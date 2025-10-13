@@ -43,16 +43,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final postDate = DateTime.now().subtract(const Duration(days: 1));
     //dummy for Tweet_design fell free to remove when integrating :)
     final post=Post(body: "Hi This Is The Tweet Body\nHappiness comes from within. Focus on gratitude, surround yourself with kind people, and do what brings meaning. Accept what you can’t control, forgive easily, and celebrate small wins. Stay present, care for your body and mind, and spread kindness daily.",
     mediaPic:'https://tse4.mm.bing.net/th/id/OIP.u7kslI7potNthBAIm93JDwHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
     mediaVideo: 'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
-    date: DateTime.now() );
+    date: postDate );
    final user= UserProf(username: "Mazen", hashUserName: "@mazenthe1",
     profilePic: "https://tse1.mm.bing.net/th/id/OIP.LaIEJVg54ruohkapUdF8RAHaEy?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3");
 
     //
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.onSurface,
    body: Center(
     child: Column(
       children: [
