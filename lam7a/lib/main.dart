@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/theme/theme.dart';
+import 'package:lam7a/models/tweet.dart';
+import 'package:lam7a/models/user_profile.dart';
+import 'package:lam7a/widgets/tweet.dart';
 
 void main() {
   runApp(ProviderScope(child: MyApp()));
@@ -40,28 +43,25 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    //dummy for Tweet_design fell free to remove when integrating :)
+    final post=Post(body: "Hi This Is The Tweet Body\nHappiness comes from within. Focus on gratitude, surround yourself with kind people, and do what brings meaning. Accept what you can’t control, forgive easily, and celebrate small wins. Stay present, care for your body and mind, and spread kindness daily.",
+    mediaPic:'https://tse4.mm.bing.net/th/id/OIP.u7kslI7potNthBAIm93JDwHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
+    mediaVideo: 'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+    date: DateTime.now() );
+   final user= UserProf(username: "Mazen", hashUserName: "@mazenthe1",
+    profilePic: "https://tse1.mm.bing.net/th/id/OIP.LaIEJVg54ruohkapUdF8RAHaEy?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3");
+
+    //
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+   body: Center(
+    child: Column(
+      children: [
+        SizedBox(height: 10,),
+        Tweet(tweetId: 1,user: user,post: post,),
+        SizedBox(height: 10,),
+      ],
+    ),
+   ),
     );
   }
 }
