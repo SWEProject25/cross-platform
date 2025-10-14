@@ -48,7 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final post=Post(body: "Hi This Is The Tweet Body\nHappiness comes from within. Focus on gratitude, surround yourself with kind people, and do what brings meaning. Accept what you can’t control, forgive easily, and celebrate small wins. Stay present, care for your body and mind, and spread kindness daily.",
     mediaPic:'https://tse4.mm.bing.net/th/id/OIP.u7kslI7potNthBAIm93JDwHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
     mediaVideo: 'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
-    date: postDate );
+    date: postDate, likes: 999,comments: 8900,views: 5700000 ,repost: 54 );
    final user= UserProf(username: "Mazen", hashUserName: "@mazenthe1",
     profilePic: "https://tse1.mm.bing.net/th/id/OIP.LaIEJVg54ruohkapUdF8RAHaEy?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3");
 
