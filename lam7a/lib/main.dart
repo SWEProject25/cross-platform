@@ -54,7 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     //
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.onSurface,
+      backgroundColor: Colors.black,//Theme.of(context).colorScheme.onSurface,
    body: Center(
     child: Column(
       children: [
