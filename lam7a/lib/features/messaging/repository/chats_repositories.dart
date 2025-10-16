@@ -1,0 +1,21 @@
+import 'package:lam7a/features/messaging/model/Conversation.dart';
+import 'package:lam7a/features/messaging/services/chats_api_service.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'chats_repositories.g.dart';
+
+@riverpod
+ChatsRepository chatsRepository(Ref ref) {
+  return ChatsRepository(ref.read(chatsApiServiceProvider));
+}
+
+class ChatsRepository {
+
+  final ChatsApiService _apiService;
+
+  ChatsRepository(this._apiService);
+
+  Future<List<Conversation>> fetchConversations() async {
+    return await _apiService.getConversations();
+  }
+}
