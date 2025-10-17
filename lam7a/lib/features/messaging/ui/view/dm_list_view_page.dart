@@ -26,10 +26,9 @@ class DMListViewPage extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Welcome to your\ninbox!", style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),),
+                Text("Welcome to your\ninbox!", style: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),),
                 SizedBox(height: 10),
                 Text("Drop a line, share posts and more with private conversations between you and onthers on X.", style: Theme.of(context).textTheme.bodyMedium),
-                // Flat rounded white button with text "Write a message"
                 SizedBox(height: 30),
                 FilledButton(
                   onPressed: () {
@@ -39,14 +38,6 @@ class DMListViewPage extends ConsumerWidget {
                       ),
                     );
                   },
-                  // style: ElevatedButton.styleFrom(
-                  //   backgroundColor: Colors.white,
-                  //   foregroundColor: Colors.black,
-                  //   shape: RoundedRectangleBorder(
-                  //     borderRadius: BorderRadius.circular(20),
-                  //   ),
-                  //   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  // ),
                   child: Text("Write a message", ),
                 ),
               ],
