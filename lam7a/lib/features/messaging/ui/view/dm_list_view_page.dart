@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/app_icons.dart';
+import 'package:lam7a/core/widgets/app_svg_icon.dart';
 import 'package:lam7a/features/messaging/model/Conversation.dart';
 import 'package:lam7a/features/messaging/utils.dart';
 import 'package:lam7a/features/messaging/ui/view/contacts_list_view_page.dart';
@@ -11,12 +13,46 @@ class DMListViewPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    var theme = Theme.of(context);
     final dMListPageViewModel = ref.watch(dMListPageViewModelProvider);
     return Scaffold(
       appBar: DMAppBar(title: 'Direct Message'),
       body: dMListPageViewModel.conversations.when(
         data: (data) {
-          return ListView.builder(
+          return data.length == 0? 
+          Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Welcome to your\ninbox!", style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),),
+                SizedBox(height: 10),
+                Text("Drop a line, share posts and more with private conversations between you and onthers on X.", style: Theme.of(context).textTheme.bodyMedium),
+                // Flat rounded white button with text "Write a message"
+                SizedBox(height: 30),
+                FilledButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ContactsListPage(),
+                      ),
+                    );
+                  },
+                  // style: ElevatedButton.styleFrom(
+                  //   backgroundColor: Colors.white,
+                  //   foregroundColor: Colors.black,
+                  //   shape: RoundedRectangleBorder(
+                  //     borderRadius: BorderRadius.circular(20),
+                  //   ),
+                  //   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  // ),
+                  child: Text("Write a message", ),
+                ),
+              ],
+            ),
+          )
+          : ListView.builder(
             itemCount: data.length,
             itemBuilder: (context, index) {
               final chat = data[index];
@@ -43,7 +79,7 @@ class DMListViewPage extends ConsumerWidget {
             ),
           );
         },
-        child: const Icon(Icons.message),
+        child: AppSvgIcon(AppIcons.add_message),
       ),
     );
   }

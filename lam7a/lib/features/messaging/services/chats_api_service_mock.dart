@@ -5,7 +5,7 @@ import 'package:lam7a/features/messaging/services/chats_api_service.dart';
 class ChatsApiServiceMock implements ChatsApiService {
   @override
   Future<List<Conversation>> getConversations() {
-    return Future.delayed(const Duration(seconds: 5), () {
+    return Future.delayed(const Duration(seconds: 2), () {
       return [
         Conversation(
           id: '1',

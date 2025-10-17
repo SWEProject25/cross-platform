@@ -13,7 +13,7 @@ class AppTheme {
   static const Color _warning = Color(0xFFFFD400);
 
   // 🌞 Light theme
-  static final ThemeData light = ThemeData(
+  static ThemeData get light => ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
     scaffoldBackgroundColor: _background,
@@ -61,6 +61,16 @@ class AppTheme {
       ),
     ),
 
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: _foreground,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+      ),
+    ),
+
     // Floating Action Button (like tweet button)
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: _primary,
@@ -94,7 +104,7 @@ class AppTheme {
   );
 
   // 🌚 Dark theme
-  static final ThemeData dark = light.copyWith(
+  static ThemeData get dark => light.copyWith(
     brightness: Brightness.dark,
     scaffoldBackgroundColor: const Color(0xFF000000),
     colorScheme: const ColorScheme.dark(
@@ -116,6 +126,16 @@ class AppTheme {
     inputDecorationTheme: light.inputDecorationTheme.copyWith(
       fillColor: const Color(0xFF16181C),
       hintStyle: const TextStyle(color: Color(0xFF8B98A5)),
+    ),
+
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: _background,
+        foregroundColor: _foreground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+      ),
     ),
     dividerTheme: const DividerThemeData(color: Color(0xFF2F3336)),
     iconTheme: const IconThemeData(color: Color(0xFF8B98A5)),
