@@ -13,7 +13,7 @@ part of 'dm_list_page_viewmodel.dart';
 const dMListPageViewModelProvider = DMListPageViewModelProvider._();
 
 final class DMListPageViewModelProvider
-    extends $AsyncNotifierProvider<DMListPageViewModel, List<Conversation>> {
+    extends $NotifierProvider<DMListPageViewModel, DMListState> {
   const DMListPageViewModelProvider._()
     : super(
         from: null,
@@ -31,25 +31,31 @@ final class DMListPageViewModelProvider
   @$internal
   @override
   DMListPageViewModel create() => DMListPageViewModel();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DMListState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DMListState>(value),
+    );
+  }
 }
 
 String _$dMListPageViewModelHash() =>
-    r'2ab07ab2368e35162c3f79da51fe0ca461fc74dc';
+    r'425d1b85ab3ec6e7a06dd74b9d72c8d0245333f5';
 
-abstract class _$DMListPageViewModel
-    extends $AsyncNotifier<List<Conversation>> {
-  FutureOr<List<Conversation>> build();
+abstract class _$DMListPageViewModel extends $Notifier<DMListState> {
+  DMListState build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
-    final ref =
-        this.ref as $Ref<AsyncValue<List<Conversation>>, List<Conversation>>;
+    final ref = this.ref as $Ref<DMListState, DMListState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<List<Conversation>>, List<Conversation>>,
-              AsyncValue<List<Conversation>>,
+              AnyNotifier<DMListState, DMListState>,
+              DMListState,
               Object?,
               Object?
             >;

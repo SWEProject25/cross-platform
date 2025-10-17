@@ -110,6 +110,7 @@ class AppTheme {
     appBarTheme: light.appBarTheme.copyWith(
       backgroundColor: const Color(0xFF000000),
       foregroundColor: Colors.white,
+      titleTextStyle: light.appBarTheme.titleTextStyle?.copyWith(color: Colors.white),
     ),
     textTheme: light.textTheme.apply(bodyColor: Colors.white, displayColor: Colors.white),
     inputDecorationTheme: light.inputDecorationTheme.copyWith(
