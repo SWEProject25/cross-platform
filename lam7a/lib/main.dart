@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/theme/theme.dart';
-import 'package:lam7a/models/tweet.dart';
-import 'package:lam7a/models/user_profile.dart';
-import 'package:lam7a/widgets/tweet.dart';
+import 'package:lam7a/features/tweet/models/tweet.dart';
+import 'package:lam7a/features/tweet/models/user_profile.dart';
+import 'package:lam7a/features/tweet/ui/view/widgets/tweet.dart';
 
 void main() {
   runApp(ProviderScope(child: MyApp()));
@@ -33,19 +33,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     final postDate = DateTime.now().subtract(const Duration(days: 1));
     //dummy for Tweet_design fell free to remove when integrating :)
-    final post=Post(body: "Hi This Is The Tweet Body\nHappiness comes from within. Focus on gratitude, surround yourself with kind people, and do what brings meaning. Accept what you can’t control, forgive easily, and celebrate small wins. Stay present, care for your body and mind, and spread kindness daily.",
+    final post=TweetModel(id:"1",userId: "2",body: "Hi This Is The Tweet Body\nHappiness comes from within. Focus on gratitude, surround yourself with kind people, and do what brings meaning. Accept what you can’t control, forgive easily, and celebrate small wins. Stay present, care for your body and mind, and spread kindness daily.",
     mediaPic:'https://tse4.mm.bing.net/th/id/OIP.u7kslI7potNthBAIm93JDwHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
     mediaVideo: 'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
     date: postDate, likes: 999,comments: 8900,views: 5700000 ,repost: 54 );
@@ -59,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
     child: Column(
       children: [
         SizedBox(height: 10,),
-        Tweet(tweetId: 1,user: user,post: post,),
+        TweetSummaryWidget(tweetId: 1,user: user,post: post,),
         SizedBox(height: 10,),
       ],
     ),
