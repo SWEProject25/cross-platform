@@ -19,56 +19,58 @@ class DMListViewPage extends ConsumerWidget {
       appBar: DMAppBar(title: 'Direct Message'),
       body: dMListPageViewModel.conversations.when(
         data: (data) {
-          return data.length == 0? 
-          Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Welcome to your\ninbox!", style: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),),
-                SizedBox(height: 10),
-                Text("Drop a line, share posts and more with private conversations between you and onthers on X.", style: Theme.of(context).textTheme.bodyMedium),
-                SizedBox(height: 30),
-                FilledButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => ContactsListPage(),
+          return data.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Welcome to your\ninbox!",
+                        style: theme.textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    );
+                      SizedBox(height: 10),
+                      Text(
+                        "Drop a line, share posts and more with private conversations between you and onthers on X.",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      SizedBox(height: 30),
+                      FilledButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => ContactsListPage(),
+                            ),
+                          );
+                        },
+                        child: Text("Write a message"),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: data.length,
+                  itemBuilder: (context, index) {
+                    final chat = data[index];
+                    return _ChatListTile(chat: chat);
                   },
-                  child: Text("Write a message", ),
-                ),
-              ],
-            ),
-          )
-          : ListView.builder(
-            itemCount: data.length,
-            itemBuilder: (context, index) {
-              final chat = data[index];
-              return _ChatListTile(chat: chat);
-            },
-          );
+                );
         },
         error: (error, stack) {
-          return Center(
-            child: Text('Error: $error'),
-          );
+          return Center(child: Text('Error: $error'));
         },
         loading: () {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const Center(child: CircularProgressIndicator());
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => ContactsListPage(),
-            ),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (context) => ContactsListPage()));
         },
         child: AppSvgIcon(AppIcons.add_message),
       ),
@@ -102,13 +104,12 @@ class _ChatListTile extends StatelessWidget {
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
-            
                 ),
                 Expanded(
                   child: Text(
-                  " @${chat.name.toLowerCase().replaceAll(' ', '')}",
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium,
+                    " @${chat.name.toLowerCase().replaceAll(' ', '')}",
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium,
                   ),
                 ),
               ],

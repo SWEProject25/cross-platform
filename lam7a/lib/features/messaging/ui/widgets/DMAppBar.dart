@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class DMAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onProfileTap;
@@ -52,10 +51,7 @@ class DMAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: ()=>{},
-          ),
+          IconButton(icon: const Icon(Icons.settings), onPressed: () => {}),
         ],
       ),
     );
