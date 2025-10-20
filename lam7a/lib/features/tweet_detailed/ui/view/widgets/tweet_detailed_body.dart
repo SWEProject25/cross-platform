@@ -1,17 +1,17 @@
 import 'package:lam7a/features/tweet_summary/ui/view/widgets/vedio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:lam7a/features/tweet_summary/models/tweet.dart';
-class TweetBodySummaryWidget extends StatelessWidget{
+class TweetBodyDetailedWidget extends StatelessWidget{
 
-final TweetModel post;
- const TweetBodySummaryWidget({super.key,required this.post});
+  final TweetModel post;
+ const TweetBodyDetailedWidget({super.key,required this.post});
   @override
   Widget build(BuildContext context) {
   return Column(children: [ Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(width: 50),
+                
                 Flexible(
                   child: Text(
                       maxLines: 3, // or 4
@@ -19,6 +19,8 @@ final TweetModel post;
                     post.body,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onPrimary,
+                       decoration: TextDecoration.none,
+                       fontSize: 17,
                     ),
                     softWrap: true,
                   ),
@@ -29,7 +31,6 @@ final TweetModel post;
             if (post.mediaPic != null)
                  Row(
                   children: [
-                    SizedBox(width: 40),
                     Expanded(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -42,7 +43,7 @@ final TweetModel post;
                               child: Image.network(
                                 post.mediaPic.toString(),
                                 width: double.infinity,
-                                height: 200,
+                                height: 400,
                                 fit: BoxFit.cover,
 
                                 loadingBuilder:
@@ -61,7 +62,7 @@ final TweetModel post;
                               ),
                             ),
                           ),
-                          if (post.mediaVideo != null && post.mediaPic ==null)
+                          if (post.mediaVideo != null)
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: VideoPlayerWidget(

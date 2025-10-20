@@ -26,8 +26,11 @@ class _TweetState extends ConsumerState<TweetSummaryWidget> with TickerProviderS
   
   @override
   Widget build(BuildContext context) {
+
    final tweetAsync = ref.watch(tweetByIdProvider(widget.tweetId));
 
+  bool isLiked = false;
+  bool isReposted = false;
     //get how many days pased since date posted
     return SafeArea(
       child: Container(
@@ -51,7 +54,7 @@ class _TweetState extends ConsumerState<TweetSummaryWidget> with TickerProviderS
                  ),
                  tweetAsync.when( 
                   data : (tweet) => IconButton(icon: Icon(Icons.rocket),
-                   onPressed:ref.read(tweetViewModelProvider(initialTweet:  tweet,tweet.id).notifier).summerizeBody),
+                   onPressed:ref.read(tweetViewModelProvider(tweet.id).notifier).summarizeBody),
                    loading : ()=>  const CircularProgressIndicator(),
                   error: (e ,st)=> Text('Error $e')
                  ),
@@ -66,7 +69,7 @@ class _TweetState extends ConsumerState<TweetSummaryWidget> with TickerProviderS
               child: Container(
                 color: Colors.transparent,
                 child: tweetAsync.when( 
-                  data : (tweet) => TweetBodyWidget(post: tweet),
+                  data : (tweet) => TweetBodySummaryWidget(post: tweet),
                   loading : ()=>  const CircularProgressIndicator(),
                   error: (e ,st)=> Text('Error $e')
             ),
@@ -74,7 +77,7 @@ class _TweetState extends ConsumerState<TweetSummaryWidget> with TickerProviderS
             ),
               // feed
               tweetAsync.when( 
-                  data : (tweet) => TweetFeed(post: tweet),
+                  data : (tweet) => TweetFeed(post: tweet,isLiked: isLiked,isReposted:  isReposted,),
                    loading : ()=>  const CircularProgressIndicator(),
                   error: (e ,st)=> Text('Error $e')
               )

@@ -1,42 +1,58 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/animation.dart';
 import 'package:lam7a/features/tweet_summary/models/tweet.dart';
+import 'package:lam7a/features/tweet_summary/repository/mock_tweet_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'tweet_viewmodel.g.dart';
 
 @riverpod
-class TweetViewModel extends _$TweetViewModel{
+class TweetViewModel extends _$TweetViewModel {
+  bool isLiked=false;
+  bool isReposted=false;
   @override
-  TweetModel build(String tweetId, {TweetModel? initialTweet}) {
-    // Could check from Firestore, REST API, or local cache
-    return initialTweet ?? TweetModel.empty(); // default (not liked)
+  FutureOr<TweetModel> build(String tweetId) async {
+    // Listen to the tweetByIdProvider (mock repository)
+    final tweet = await ref.watch(tweetByIdProvider(tweetId).future);
+    return tweet;
   }
-    bool handleLike({ required AnimationController controller ,required bool isLiked }) {
-      
+
+  //  Handle Like toggle
+ void handleLike({
+    required AnimationController controller,
+  }) {
     if (isLiked) {
-        isLiked = !isLiked;
-       state = state.copyWith(likes: state.likes - 1);
-      
+      isLiked = false;
+      state = AsyncData(
+        state.value!.copyWith(likes: state.value!.likes - 1),
+      );
     } else {
       controller.forward().then((_) => controller.reverse());
-      isLiked = !isLiked;
-      state = state.copyWith(likes: state.likes + 1);
+      isLiked = true;
+      state = AsyncData(
+        state.value!.copyWith(likes: state.value!.likes + 1),
+      );
     }
-    return isLiked;
   }
-    bool handlerepost({required bool isReposted , required AnimationController controllerRepost}) {
-    if (isReposted) {
-      isReposted = !isReposted;
 
-      state=state.copyWith(repost: state.repost-1);
+  // Handle Repost toggle
+  void handleRepost({
+    required AnimationController controllerRepost,
+  }) {
+    if (isReposted) {
+      isReposted = false;
+      state = AsyncData(
+        state.value!.copyWith(repost: state.value!.repost - 1),
+      );
     } else {
       controllerRepost.forward().then((_) => controllerRepost.reverse());
-      isReposted = !isReposted;
-       state=state.copyWith(repost: state.repost+1);
-
+      isReposted = true;
+      state = AsyncData(
+        state.value!.copyWith(repost: state.value!.repost + 1),
+      );
     }
-      return isReposted;
   }
+
+  // Format large numbers (K, M, B)
   String howLong(double m) {
     String s = '';
     if (m >= 1_000_000_000) {
@@ -50,26 +66,37 @@ class TweetViewModel extends _$TweetViewModel{
       m /= 1_000;
     }
 
-    String formatted;
-    if (s.isEmpty) {
-      // <1000, show as integer
-      formatted = m.toInt().toString();
-    } else {
-      // For K, M, B — show up to 2 decimals, remove .0 automatically
-      formatted = (m % 1 == 0) ? m.toInt().toString() : m.toStringAsFixed(2);
-    }
-
+    String formatted = (m % 1 == 0)
+        ? m.toInt().toString()
+        : m.toStringAsFixed(2).replaceAll(RegExp(r'\.0+$'), '');
     return '$formatted$s';
   }
-  void handleViews() {
 
+  void handleViews() {
+    // TODO: increment views or track analytics later
   }
 
   void handleComment() {
+    // TODO: add comment logic
+  }
+
+  void summarizeBody() {
+    // TODO: implement tweet summarization
+  }
+  void handleShare()
+  {
 
   }
-    //TO DO
-  void summerizeBody() {}
+  void handleBookmark()
+  {
 
-  ///
+  }
+  bool getIsLiked()
+  {
+    return isLiked;
+  }
+  bool getisReposted()
+  {
+    return isReposted;
+  }
 }

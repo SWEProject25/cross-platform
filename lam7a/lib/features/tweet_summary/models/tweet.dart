@@ -4,7 +4,7 @@ class TweetModel {
   final String? mediaPic; // image URL
   final String? mediaVideo; // video link
   final DateTime date;
-  int likes;
+  int likes,qoutes,bookmarks;
   int repost,comments,views;
   final String id;
   final String userId;
@@ -18,7 +18,9 @@ class TweetModel {
   required this.comments,
   required this.views,
   required this.id,
-  required this.userId
+  required this.userId,
+  required this.qoutes,
+  required this.bookmarks
   });
    factory TweetModel.empty() => TweetModel(
         id: '',
@@ -31,6 +33,8 @@ class TweetModel {
         views: 0,
         date: DateTime.now(),
         userId: '',
+        qoutes:0,
+        bookmarks: 0
       );
 
   TweetModel copyWith({
@@ -44,6 +48,8 @@ class TweetModel {
     int? views,
     DateTime? date,
     String? userId,
+    int? qoutes,
+    int? bookmarks
   }) {
     return TweetModel(
       id: id ?? this.id,
@@ -56,6 +62,8 @@ class TweetModel {
       views: views ?? this.views,
       date: date ?? this.date,
       userId: userId ?? this.userId,
+      qoutes: qoutes ??this.qoutes,
+      bookmarks: bookmarks ?? this.bookmarks
     );
   }
 }

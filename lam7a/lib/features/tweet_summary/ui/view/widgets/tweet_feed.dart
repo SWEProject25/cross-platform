@@ -3,19 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:lam7a/features/tweet_summary/ui/view_model/tweet_viewmodel.dart';
 import 'package:lam7a/features/tweet_summary/models/tweet.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
-class TweetFeed extends ConsumerStatefulWidget
-{
-  TweetFeed({super.key,required this.post});
+
+class TweetFeed extends ConsumerStatefulWidget {
+  TweetFeed({
+    super.key,
+    required this.post,
+    required this.isLiked,
+    required this.isReposted,
+  });
   final TweetModel post;
-    @override
+  bool isLiked;
+  bool isReposted;
+  @override
   ConsumerState<TweetFeed> createState() {
     return _TweetFeedState();
   }
 }
-class _TweetFeedState extends ConsumerState<TweetFeed>  with TickerProviderStateMixin
-{
-    var isLiked = false;
-  var isReposted = false;
+
+class _TweetFeedState extends ConsumerState<TweetFeed>
+    with TickerProviderStateMixin {
   // for the like animation
   late AnimationController _controller;
   late AnimationController _controllerRepost;
@@ -42,10 +48,15 @@ class _TweetFeedState extends ConsumerState<TweetFeed>  with TickerProviderState
       CurvedAnimation(parent: _controllerRepost, curve: Curves.easeOut),
     );
   }
+
   void _handlerepost() {
-    isReposted=ref.read(tweetViewModelProvider(initialTweet: widget.post,widget.post.id).notifier).handlerepost(controllerRepost: _controllerRepost,isReposted: isReposted);
-       if(isReposted)
-       {showTopSnackBar(
+ ref.read(tweetViewModelProvider(widget.post.id).notifier)
+        .handleRepost(
+          controllerRepost: _controllerRepost,
+        );
+    if (ref.read(tweetViewModelProvider(widget.post.id).notifier)
+        .getisReposted()) {
+      showTopSnackBar(
         Overlay.of(context),
         Card(
           color: Colors.blueAccent,
@@ -68,111 +79,120 @@ class _TweetFeedState extends ConsumerState<TweetFeed>  with TickerProviderState
           ),
         ),
       );
-       }
+    }
   }
-    @override
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-   
+
   Widget build(BuildContext context) {
-    final tweet = ref.watch(tweetViewModelProvider(widget.post.id, initialTweet: widget.post),);
+    final tweet = ref.watch(tweetViewModelProvider(widget.post.id));
     String commentsNumStr = '';
     String veiwsNumStr = '';
     String likesNumStr = '';
     String repostsNumStr = '';
-    double commNum = (tweet.comments).toDouble();
-    double likesNum = tweet.likes.toDouble();  //
-    double repostNum = tweet.repost.toDouble();
-    double viewsNum = tweet.views.toDouble();
-    commentsNumStr = ref.read(tweetViewModelProvider(initialTweet: widget.post,widget.post.id).notifier).howLong(commNum);
-    likesNumStr =ref.read(tweetViewModelProvider(initialTweet: widget.post,widget.post.id).notifier).howLong(likesNum);
-    repostsNumStr =ref.read(tweetViewModelProvider(initialTweet: widget.post,widget.post.id).notifier).howLong(repostNum);
-    veiwsNumStr = ref.read(tweetViewModelProvider(initialTweet: widget.post,widget.post.id).notifier).howLong(viewsNum);
-   return
-       Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                SizedBox(width: 40),
-                ////Comment
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0, top: 3.0),
-                  child: GestureDetector(
-                    onTap: ref.read(tweetViewModelProvider(initialTweet:  widget.post,widget.post.id).notifier).handleComment,
-                    child: Icon(Icons.comment, color: Colors.grey),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 1.0, top: 3.0),
-                  child: Text(
-                    commentsNumStr,
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-                SizedBox(width: 10),
+    tweet.whenData((tweet) {
+      final viewModel = ref.read(
+        tweetViewModelProvider(widget.post.id).notifier,
+      );
 
-                ///repost
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0, top: 3.0),
-                  child: ScaleTransition(
-                    scale: _scaleAnimationRepost,
-                    child: GestureDetector(
-                      onTap: _handlerepost,
-                      child: isReposted
-                          ? Icon(Icons.loop, color: Colors.green)
-                          : Icon(Icons.loop, color: Colors.grey),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 1.0, top: 3.0),
-                  child: Text(
-                    repostsNumStr,
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-                SizedBox(width: 10),
-                ///// Like
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0, top: 3.0),
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: GestureDetector(
-                      onTap:() { isLiked = ref.read(tweetViewModelProvider(initialTweet:  widget.post,widget.post.id).notifier).handleLike(controller: _controller, isLiked: isLiked);},
-                      child: isLiked
-                          ? Icon(Icons.favorite, color: Colors.red)
-                          : Icon(Icons.favorite_border, color: Colors.grey),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 1.0, top: 3.0),
-                  child: Text(
-                    likesNumStr,
-                    style: TextStyle(color: isLiked ? Colors.red : Colors.grey),
-                  ),
-                ),
-                SizedBox(width: 10),
+      final commNum = tweet.comments.toDouble();
+      final likesNum = tweet.likes.toDouble();
+      final repostNum = tweet.repost.toDouble();
+      final viewsNum = tweet.views.toDouble();
 
-                ///views
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0, top: 3.0),
-                  child: GestureDetector(
-                    onTap: ref.read(tweetViewModelProvider(initialTweet: widget.post,widget.post.id).notifier).handleViews,
-                    child: Icon(Icons.bar_chart, color: Colors.grey),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 1.0, top: 3.0),
-                  child: Text(
-                    veiwsNumStr,
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-                SizedBox(width: 15),
-              ],
-            );
-   
+      commentsNumStr = viewModel.howLong(commNum);
+      likesNumStr = viewModel.howLong(likesNum);
+      repostsNumStr = viewModel.howLong(repostNum);
+      veiwsNumStr = viewModel.howLong(viewsNum);
+    });
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        SizedBox(width: 40),
+        ////Comment
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0, top: 3.0),
+          child: GestureDetector(
+            onTap: ref
+                .read(tweetViewModelProvider(widget.post.id).notifier)
+                .handleComment,
+            child: Icon(Icons.comment, color: Colors.grey),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 1.0, top: 3.0),
+          child: Text(commentsNumStr, style: TextStyle(color: Colors.grey)),
+        ),
+        SizedBox(width: 10),
+
+        ///repost
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0, top: 3.0),
+          child: ScaleTransition(
+            scale: _scaleAnimationRepost,
+            child: GestureDetector(
+              onTap: _handlerepost,
+              child: widget.isReposted
+                  ? Icon(Icons.loop, color: Colors.green)
+                  : Icon(Icons.loop, color: Colors.grey),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 1.0, top: 3.0),
+          child: Text(repostsNumStr, style: TextStyle(color: Colors.grey)),
+        ),
+        SizedBox(width: 10),
+        ///// Like
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0, top: 3.0),
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: GestureDetector(
+              onTap: () {ref
+                    .read(tweetViewModelProvider(widget.post.id).notifier)
+                    .handleLike(
+                      controller: _controller,
+                    );
+              },
+              child: ref
+                    .read(tweetViewModelProvider(widget.post.id).notifier)
+                    .getIsLiked(
+                    )
+                  ? Icon(Icons.favorite, color: Colors.red)
+                  : Icon(Icons.favorite_border, color: Colors.grey),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 1.0, top: 3.0),
+          child: Text(
+            likesNumStr,
+            style: TextStyle(color: widget.isLiked ? Colors.red : Colors.grey),
+          ),
+        ),
+        SizedBox(width: 10),
+
+        ///views
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0, top: 3.0),
+          child: GestureDetector(
+            onTap: ref
+                .read(tweetViewModelProvider(widget.post.id).notifier)
+                .handleViews,
+            child: Icon(Icons.bar_chart, color: Colors.grey),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 1.0, top: 3.0),
+          child: Text(veiwsNumStr, style: TextStyle(color: Colors.grey)),
+        ),
+        SizedBox(width: 15),
+      ],
+    );
   }
 }

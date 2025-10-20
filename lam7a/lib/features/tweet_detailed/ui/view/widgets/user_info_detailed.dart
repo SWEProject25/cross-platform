@@ -8,10 +8,8 @@ class TweetUserInfoDetailed extends ConsumerStatefulWidget {
   const TweetUserInfoDetailed({
     super.key,
     required this.tweet,
-    required this.daysPosted,
   });
   final TweetModel tweet;
-  final int daysPosted;
   @override
   ConsumerState<TweetUserInfoDetailed> createState() {
     return _TweetUserInfoDetailed();
@@ -24,6 +22,7 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
     //need userProvider to check for changes for now i use static data
     final userAsync = ref.watch(userByIdProvider(widget.tweet.userId));
     return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         userAsync.when(
           data: (user) => CircleAvatar(
@@ -37,8 +36,9 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
         ),
         SizedBox(width: 10),
         Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(width: 20, height: 5),
             userAsync.when(
               data: (user) => Text(
                 user.username,
@@ -52,7 +52,7 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
                   const CircleAvatar(radius: 22, backgroundColor: Colors.grey),
               error: (err, _) => const Icon(Icons.error),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 2),
             userAsync.when(
               data: (user) => Text(
                 user.hashUserName,
@@ -68,6 +68,27 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
             ),
           ],
         ),
+       const Spacer(), // pushes the button to the right
+    Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade400),
+      ),
+      child: TextButton(
+        onPressed: () {},
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 2), // slimmer vertically
+          foregroundColor: Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap, // avoids extra height
+          minimumSize: Size.zero, // removes default min constraints
+        ),
+        child: const Text("Follow"),
+      ),
+    ),
       ],
     );
   }

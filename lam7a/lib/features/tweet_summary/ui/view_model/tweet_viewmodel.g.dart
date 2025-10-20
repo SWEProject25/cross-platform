@@ -13,10 +13,10 @@ part of 'tweet_viewmodel.dart';
 const tweetViewModelProvider = TweetViewModelFamily._();
 
 final class TweetViewModelProvider
-    extends $NotifierProvider<TweetViewModel, TweetModel> {
+    extends $AsyncNotifierProvider<TweetViewModel, TweetModel> {
   const TweetViewModelProvider._({
     required TweetViewModelFamily super.from,
-    required (String, {TweetModel? initialTweet}) super.argument,
+    required String super.argument,
   }) : super(
          retry: null,
          name: r'tweetViewModelProvider',
@@ -32,20 +32,12 @@ final class TweetViewModelProvider
   String toString() {
     return r'tweetViewModelProvider'
         ''
-        '$argument';
+        '($argument)';
   }
 
   @$internal
   @override
   TweetViewModel create() => TweetViewModel();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(TweetModel value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<TweetModel>(value),
-    );
-  }
 
   @override
   bool operator ==(Object other) {
@@ -58,16 +50,16 @@ final class TweetViewModelProvider
   }
 }
 
-String _$tweetViewModelHash() => r'0ff72944f9b4738ff66a4c19b896245a11a024dd';
+String _$tweetViewModelHash() => r'3f5b3b2420bc663e7e15d535b029ba0651848d73';
 
 final class TweetViewModelFamily extends $Family
     with
         $ClassFamilyOverride<
           TweetViewModel,
+          AsyncValue<TweetModel>,
           TweetModel,
-          TweetModel,
-          TweetModel,
-          (String, {TweetModel? initialTweet})
+          FutureOr<TweetModel>,
+          String
         > {
   const TweetViewModelFamily._()
     : super(
@@ -78,32 +70,28 @@ final class TweetViewModelFamily extends $Family
         isAutoDispose: true,
       );
 
-  TweetViewModelProvider call(String tweetId, {TweetModel? initialTweet}) =>
-      TweetViewModelProvider._(
-        argument: (tweetId, initialTweet: initialTweet),
-        from: this,
-      );
+  TweetViewModelProvider call(String tweetId) =>
+      TweetViewModelProvider._(argument: tweetId, from: this);
 
   @override
   String toString() => r'tweetViewModelProvider';
 }
 
-abstract class _$TweetViewModel extends $Notifier<TweetModel> {
-  late final _$args = ref.$arg as (String, {TweetModel? initialTweet});
-  String get tweetId => _$args.$1;
-  TweetModel? get initialTweet => _$args.initialTweet;
+abstract class _$TweetViewModel extends $AsyncNotifier<TweetModel> {
+  late final _$args = ref.$arg as String;
+  String get tweetId => _$args;
 
-  TweetModel build(String tweetId, {TweetModel? initialTweet});
+  FutureOr<TweetModel> build(String tweetId);
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args.$1, initialTweet: _$args.initialTweet);
-    final ref = this.ref as $Ref<TweetModel, TweetModel>;
+    final created = build(_$args);
+    final ref = this.ref as $Ref<AsyncValue<TweetModel>, TweetModel>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<TweetModel, TweetModel>,
-              TweetModel,
+              AnyNotifier<AsyncValue<TweetModel>, TweetModel>,
+              AsyncValue<TweetModel>,
               Object?,
               Object?
             >;
