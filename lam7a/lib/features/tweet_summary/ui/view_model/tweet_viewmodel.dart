@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:lam7a/features/tweet/models/tweet.dart';
+import 'package:lam7a/features/tweet_summary/models/tweet.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'tweet_viewmodel.g.dart';

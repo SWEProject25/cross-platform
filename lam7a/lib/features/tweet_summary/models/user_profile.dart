@@ -3,10 +3,12 @@ class UserProf {
   final String username;
   final String hashUserName;
   final String profilePic; // image URL
+  final String id;
 
   UserProf({
     required this.username,
     required this.hashUserName,
     required this.profilePic,
+    required this.id
   });
 }
