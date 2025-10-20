@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/app_icons.dart';
 import 'package:lam7a/core/widgets/app_svg_icon.dart';
 import 'package:lam7a/features/messaging/model/Conversation.dart';
+import 'package:lam7a/features/messaging/ui/view/chat_view_page.dart';
 import 'package:lam7a/features/messaging/utils.dart';
 import 'package:lam7a/features/messaging/ui/view/contacts_list_view_page.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/dm_list_page_viewmodel.dart';
@@ -128,6 +129,11 @@ class _ChatListTile extends StatelessWidget {
       ),
       onTap: () {
         // TODO: Navigate to chat detail page
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ChatViewPage(),
+          ),
+        );
       },
     );
   }
