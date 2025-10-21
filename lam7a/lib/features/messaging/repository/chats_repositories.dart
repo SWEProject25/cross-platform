@@ -1,5 +1,5 @@
-import 'package:lam7a/features/messaging/model/Contact.dart';
-import 'package:lam7a/features/messaging/model/Conversation.dart';
+import 'package:lam7a/features/messaging/model/contact.dart';
+import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:lam7a/features/messaging/model/chat_message.dart';
 import 'package:lam7a/features/messaging/services/chats_api_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -25,7 +25,7 @@ class ChatsRepository {
     return await _apiService.getContacts();
   }
 
-  Future<List<ChatMessage>> fetchMessages() async {
-    return await _apiService.getMessages();
+  Future<List<ChatMessage>> fetchMessages(String conversationId) async {
+    return await _apiService.getMessages(conversationId);
   }
 }

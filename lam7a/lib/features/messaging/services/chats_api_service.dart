@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lam7a/features/messaging/model/Contact.dart';
-import 'package:lam7a/features/messaging/model/Conversation.dart';
+import 'package:lam7a/features/messaging/model/contact.dart';
+import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:lam7a/features/messaging/model/chat_message.dart';
 import 'package:lam7a/features/messaging/services/chats_api_service_mock.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -18,5 +18,5 @@ abstract class ChatsApiService {
 
   Future<List<Contact>> getContacts();
 
-  Future<List<ChatMessage>> getMessages();
+  Future<List<ChatMessage>> getMessages(String conversationId);
 }

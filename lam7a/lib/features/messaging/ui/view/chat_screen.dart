@@ -1,20 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lam7a/features/messaging/ui/viewmodel/chat_view_page_view_mode.dart';
+import 'package:lam7a/features/messaging/model/contact.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/chat_viewmodel.dart';
 import 'package:lam7a/features/messaging/ui/widgets/chat_input_bar.dart';
 import 'package:lam7a/features/messaging/ui/widgets/messages_list_view.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
-class ChatViewPage extends ConsumerWidget {
-  const ChatViewPage({super.key});
+class ChatScreen extends ConsumerWidget {
+  static const routeName = '/chat';
+
+  final String id;
+  final Contact? contact;
+
+  const ChatScreen({super.key, required this.id, this.contact});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var chatViewModel = ref.watch(chatViewPageViewModelProvider);
+    var chatViewModel = ref.watch(chatViewModelProvider(userId: id, user: contact));
     return GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: _buildAppBar(),
+        appBar: _buildAppBar(chatViewModel.contact),
       
         // Body
         body: Column(
@@ -45,7 +52,7 @@ class ChatViewPage extends ConsumerWidget {
     );
   }
 
-  AppBar _buildAppBar() {
+  AppBar _buildAppBar(AsyncValue<Contact> contact) {
     return AppBar(
       elevation: 0,
       backgroundColor: Colors.white,
@@ -53,36 +60,39 @@ class ChatViewPage extends ConsumerWidget {
         icon: const Icon(Icons.arrow_back, color: Colors.black87),
         onPressed: () {},
       ),
-      title: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: Colors.transparent,
-            child: CircleAvatar(
+      title: Skeletonizer(
+        enabled: contact.isLoading,
+        child: Row(
+          children: [
+            CircleAvatar(
               backgroundColor: Colors.transparent,
-              backgroundImage: NetworkImage(
-                "https://avatar.iran.liara.run/public",
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Ask PlayStation',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
+              child: CircleAvatar(
+                backgroundColor: Colors.transparent,
+                backgroundImage: NetworkImage(
+                  contact.value?.avatarUrl ?? "https://avatar.iran.liara.run/public",
                 ),
               ),
-              Text(
-                '@AskPlayStation',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
-              ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  contact.value?.name ?? 'Ask PlayStation',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  contact.value?.handle ?? '@AskPlayStation',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,5 +1,5 @@
-import 'package:lam7a/features/messaging/model/Contact.dart';
-import 'package:lam7a/features/messaging/model/Conversation.dart';
+import 'package:lam7a/features/messaging/model/contact.dart';
+import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:lam7a/features/messaging/model/chat_message.dart';
 import 'package:lam7a/features/messaging/services/chats_api_service.dart';
 
@@ -125,7 +125,7 @@ class ChatsApiServiceMock implements ChatsApiService {
   }
 
   @override
-  Future<List<ChatMessage>> getMessages() {
+  Future<List<ChatMessage>> getMessages(String conversationId) {
     return Future.delayed(const Duration(seconds: 3), () {
       return [
         ChatMessage(text: "Hi!", time: DateTime(2023, 6, 18, 10, 31), isMine: true),

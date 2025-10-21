@@ -115,20 +115,20 @@ class _ChatInputBarState extends State<ChatInputBar>
               ),
             Row(
               children: [
-                IconButton(
-                  onPressed: () {},
-                  splashColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  focusColor: Colors.transparent,
-                  icon: const Icon(Icons.image_outlined, size: 28),
-                ),
-                IconButton(
-                  onPressed: () {},
-                  splashColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  focusColor: Colors.transparent,
-                  icon: const Icon(Icons.gif_box_outlined, size: 28),
-                ),
+                // IconButton(
+                //   onPressed: () {},
+                //   splashColor: Colors.transparent,
+                //   highlightColor: Colors.transparent,
+                //   focusColor: Colors.transparent,
+                //   icon: const Icon(Icons.image_outlined, size: 28),
+                // ),
+                // IconButton(
+                //   onPressed: () {},
+                //   splashColor: Colors.transparent,
+                //   highlightColor: Colors.transparent,
+                //   focusColor: Colors.transparent,
+                //   icon: const Icon(Icons.gif_box_outlined, size: 28),
+                // ),
                 Expanded(
                   child: FadeTransition(
                     opacity: ReverseAnimation(_fadeOutAnimation),
