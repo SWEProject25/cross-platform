@@ -63,7 +63,8 @@ class _TweetState extends ConsumerState<TweetSummaryWidget> with TickerProviderS
             //tweet body
             GestureDetector(
               onTap: () {
-                Navigator.push(context,MaterialPageRoute(
+                  ref.read(tweetViewModelProvider(widget.tweetId).notifier).handleViews();
+                  Navigator.push(context,MaterialPageRoute(
                   builder: (_)=>TweetDetailedWidget(tweetId: widget.tweetId,)));
               },
               child: Container(

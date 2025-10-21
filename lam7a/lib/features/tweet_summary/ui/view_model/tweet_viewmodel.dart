@@ -9,6 +9,7 @@ part 'tweet_viewmodel.g.dart';
 class TweetViewModel extends _$TweetViewModel {
   bool isLiked=false;
   bool isReposted=false;
+  bool isViewed=false;
   @override
   FutureOr<TweetModel> build(String tweetId) async {
     // Listen to the tweetByIdProvider (mock repository)
@@ -73,7 +74,13 @@ class TweetViewModel extends _$TweetViewModel {
   }
 
   void handleViews() {
-    // TODO: increment views or track analytics later
+    if(!isViewed)
+    {state = AsyncData(
+        state.value!.copyWith(views: state.value!.views +1),
+      );
+      isViewed=true;
+    }
+    
   }
 
   void handleComment() {

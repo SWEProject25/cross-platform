@@ -32,7 +32,7 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
           ),
           loading: () =>
               const CircleAvatar(radius: 30, backgroundColor: Colors.grey),
-          error: (err, _) => const Icon(Icons.error),
+           error: (e ,st)=> Text('Error $e'),
         ),
         SizedBox(width: 10),
         Column(
@@ -50,7 +50,7 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
               ),
               loading: () =>
                   const CircleAvatar(radius: 22, backgroundColor: Colors.grey),
-              error: (err, _) => const Icon(Icons.error),
+               error: (e ,st)=> Text('Error $e'),
             ),
             SizedBox(height: 2),
             userAsync.when(
@@ -64,7 +64,7 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
               ),
               loading: () =>
                   const CircleAvatar(radius: 22, backgroundColor: Colors.grey),
-              error: (err, _) => const Icon(Icons.error),
+               error: (e ,st)=> Text('Error $e'),
             ),
           ],
         ),

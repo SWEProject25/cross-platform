@@ -36,6 +36,6 @@ final _mockTweets = {
 
 @riverpod
 Future<TweetModel> tweetById(Ref ref, String tweetId) async {
-  await Future.delayed(const Duration(milliseconds: 600)); // simulate latency
+ // await Future.delayed(const Duration(milliseconds: 600)); // simulate latency
   return _mockTweets[tweetId] ?? _mockTweets.values.first;
 }

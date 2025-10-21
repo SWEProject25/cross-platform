@@ -135,7 +135,7 @@ class _TweetFeedState extends ConsumerState<TweetFeedDetailed>
                 ),
               ),
               loading: () => CircularProgressIndicator(),
-              error: (error, stackTrace) => Icon(Icons.error),
+              error: (e ,st)=> Text('Error $e'),
             ),
             Text(
               '·',
@@ -158,7 +158,7 @@ class _TweetFeedState extends ConsumerState<TweetFeedDetailed>
                 ),
               ),
               loading: () => CircularProgressIndicator(),
-              error: (error, stackTrace) => Icon(Icons.error),
+               error: (e ,st)=> Text('Error $e'),
             ),
             Text(
               '·',
@@ -181,7 +181,7 @@ class _TweetFeedState extends ConsumerState<TweetFeedDetailed>
                 ),
               ),
               loading: () => CircleAvatar(),
-              error: (error, stackTrace) => Icon(Icons.error),
+               error: (e ,st)=> Text('Error $e'),
             ),
             Text(
               " Views",
@@ -215,7 +215,7 @@ class _TweetFeedState extends ConsumerState<TweetFeedDetailed>
                 ),
               ),
               loading: () => CircleAvatar(),
-              error: (error, stackTrace) => Icon(Icons.error),
+               error: (e ,st)=> Text('Error $e'),
             ),
             Text(
               " Reposts",
@@ -239,7 +239,7 @@ class _TweetFeedState extends ConsumerState<TweetFeedDetailed>
                 ),
               ),
               loading: () => CircleAvatar(),
-              error: (error, stackTrace) => Icon(Icons.error),
+               error: (e ,st)=> Text('Error $e'),
             ),
             Text(
               " Quotes",
@@ -263,7 +263,7 @@ class _TweetFeedState extends ConsumerState<TweetFeedDetailed>
                 ),
               ),
               loading: () => CircleAvatar(),
-              error: (error, stackTrace) => Icon(Icons.error),
+               error: (e ,st)=> Text('Error $e'),
             ),
             Text(
               " Likes",
@@ -296,7 +296,7 @@ class _TweetFeedState extends ConsumerState<TweetFeedDetailed>
                 ),
               ),
               loading: () => CircleAvatar(),
-              error: (error, stackTrace) => Icon(Icons.error),
+               error: (e ,st)=> Text('Error $e'),
             ),
             Text(
               " Bookmarks",

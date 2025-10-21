@@ -20,6 +20,6 @@ final _mockUsers = {
 
 @riverpod
 Future<UserProf> userById(Ref ref, String userId) async {
-  await Future.delayed(const Duration(milliseconds: 500)); // simulate latency
+  //await Future.delayed(const Duration(milliseconds: 500)); // simulate latency
   return _mockUsers[userId] ?? _mockUsers.values.first;
 }

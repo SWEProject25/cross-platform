@@ -29,35 +29,37 @@ Widget build(BuildContext context)
         color:  Colors.black,//Theme.of(context).colorScheme.onSurface,
         padding: EdgeInsets.only(left:10),
         //main column
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            //user
-            tweetAsync.when( 
-                  data : (tweet) => TweetUserInfoDetailed(tweet:tweet ),
-                  loading : ()=>  const CircularProgressIndicator(),
-                  error: (e ,st)=> Text('Error $e')
-            ),
-            //body
-             Padding(
-               padding: const EdgeInsets.only(top:10),
-               child: Container(
-                 color: Colors.transparent,
-                 child: tweetAsync.when( 
-                   data : (tweet) => TweetBodyDetailedWidget(post: tweet),
-                   loading : ()=>  const CircularProgressIndicator(),
-                   error: (e ,st)=> Text('Error $e')
-                           ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              //user
+              tweetAsync.when( 
+                    data : (tweet) => TweetUserInfoDetailed(tweet:tweet ),
+                    loading : ()=>  const CircularProgressIndicator(),
+                    error: (e ,st)=> Text('Error $e')
+              ),
+              //body
+               Padding(
+                 padding: const EdgeInsets.only(top:10),
+                 child: Container(
+                   color: Colors.transparent,
+                   child: tweetAsync.when( 
+                     data : (tweet) => TweetBodyDetailedWidget(post: tweet),
+                     loading : ()=>  const CircularProgressIndicator(),
+                     error: (e ,st)=> Text('Error $e')
+                             ),
+                 ),
                ),
-             ),
-            //feed
-            tweetAsync.when( 
-                data : (tweet) =>TweetFeedDetailed(post: tweet,),
-                loading: () => CircleAvatar(),
-                error: (error, stackTrace) => Icon(Icons.error),
-            )
-          ]
+              //feed
+              tweetAsync.when( 
+                  data : (tweet) =>TweetFeedDetailed(post: tweet,),
+                  loading: () => CircleAvatar(),
+                  error: (error, stackTrace) => Icon(Icons.error),
+              )
+            ]
+          ),
         )
       )
  );

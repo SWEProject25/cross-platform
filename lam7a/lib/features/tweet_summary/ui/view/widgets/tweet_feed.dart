@@ -81,6 +81,49 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
       );
     }
   }
+    void _showRepostQuoteOptions(BuildContext context) {
+    if(!ref.read(tweetViewModelProvider(widget.post.id).notifier).getisReposted())
+    {showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      backgroundColor: Colors.black,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.repeat, color: Colors.blue),
+                  title: const Text("Repost",style: TextStyle(color: Colors.white)),
+                  onTap: () {
+                    _handlerepost();
+                     Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.format_quote, color: Colors.green),
+                  title: const Text("Quote",style: TextStyle(color: Colors.white)),
+                  onTap: () {
+                    //
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    }
+    else 
+    {
+      _handlerepost();
+    }
+  }
 
   @override
   void dispose() {
@@ -127,7 +170,7 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
           padding: const EdgeInsets.only(left: 1.0, top: 3.0),
           child: Text(commentsNumStr, style: TextStyle(color: Colors.grey)),
         ),
-        SizedBox(width: 10),
+        SizedBox(width: 30),  
 
         ///repost
         Padding(
@@ -135,8 +178,12 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
           child: ScaleTransition(
             scale: _scaleAnimationRepost,
             child: GestureDetector(
-              onTap: _handlerepost,
-              child: widget.isReposted
+              onTap: () {
+                _showRepostQuoteOptions(context);
+                },
+              child: ref
+                    .read(tweetViewModelProvider(widget.post.id).notifier)
+                    .getisReposted()
                   ? Icon(Icons.loop, color: Colors.green)
                   : Icon(Icons.loop, color: Colors.grey),
             ),
@@ -146,7 +193,7 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
           padding: const EdgeInsets.only(left: 1.0, top: 3.0),
           child: Text(repostsNumStr, style: TextStyle(color: Colors.grey)),
         ),
-        SizedBox(width: 10),
+        SizedBox(width: 30),
         ///// Like
         Padding(
           padding: const EdgeInsets.only(left: 8.0, top: 3.0),
@@ -175,7 +222,7 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
             style: TextStyle(color: widget.isLiked ? Colors.red : Colors.grey),
           ),
         ),
-        SizedBox(width: 10),
+        SizedBox(width: 30),
 
         ///views
         Padding(
