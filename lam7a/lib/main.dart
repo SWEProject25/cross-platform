@@ -3,7 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/theme/theme.dart';
 import 'package:lam7a/features/tweet_detailed/ui/view/widgets/tweet_detailed_widget.dart';
-import 'package:lam7a/features/tweet_summary/models/tweet.dart';
+import 'package:lam7a/features/models/tweet.dart';
 import 'package:lam7a/features/tweet_summary/models/user_profile.dart';
 import 'package:lam7a/features/tweet_summary/ui/view/widgets/tweet.dart';
 void main() {

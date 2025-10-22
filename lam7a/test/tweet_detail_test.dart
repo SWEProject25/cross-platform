@@ -1,7 +1,7 @@
 import 'package:flutter/animation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lam7a/features/tweet_summary/models/tweet.dart';
+import 'package:lam7a/features/models/tweet.dart';
 import 'package:lam7a/features/tweet_summary/ui/view_model/tweet_viewmodel.dart';
 
 void main() {

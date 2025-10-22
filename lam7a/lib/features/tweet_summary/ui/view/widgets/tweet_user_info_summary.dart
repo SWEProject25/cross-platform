@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lam7a/features/tweet_summary/models/tweet.dart';
+import 'package:lam7a/features/models/tweet.dart';
 import 'package:lam7a/features/tweet_summary/repository/mock_user_provider.dart';
 class TweetUserInfo extends ConsumerStatefulWidget
 {
