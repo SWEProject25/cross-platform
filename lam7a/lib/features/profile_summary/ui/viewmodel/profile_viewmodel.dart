@@ -1,19 +1,29 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import '../../model/profile_model.dart';
 import '../../repository/profile_repository.dart';
+import '../../../../core/services/mock_api_service.dart';
+
+final profileRepositoryProvider = Provider(
+  (ref) => ProfileRepository(MockAPIService()),
+);
+
 
 final profileViewModelProvider =
-    StateNotifierProvider<ProfileViewModel, List<ProfileModel>>((ref) {
-  return ProfileViewModel(ProfileRepository());
-});
+    AsyncNotifierProvider<ProfileViewModel, List<ProfileModel>>(ProfileViewModel.new);
 
-class ProfileViewModel extends StateNotifier<List<ProfileModel>> {
-  final ProfileRepository _repository;
 
-  ProfileViewModel(this._repository) : super(_repository.getProfiles());
+class ProfileViewModel extends AsyncNotifier<List<ProfileModel>> {
+  late final ProfileRepository _repository;
+
+  @override
+  Future<List<ProfileModel>> build() async {
+    _repository = ref.read(profileRepositoryProvider);
+    final profiles = await _repository.getProfiles();
+    return profiles;
+  }
 
   void unfollow(String username) {
-    state = state.where((p) => p.username != username).toList();
+    final currentState = state.value ?? [];
+    state = AsyncData(currentState.where((p) => p.username != username).toList());
   }
 }
