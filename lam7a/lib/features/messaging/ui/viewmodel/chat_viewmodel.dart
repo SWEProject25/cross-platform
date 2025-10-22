@@ -13,7 +13,7 @@ class ChatViewModel extends _$ChatViewModel {
   late Contact? _user;
 
   @override
-  ChatState build({required String userId, Contact? user}) {
+  ChatState build(String userId, [Contact? user]) {
     _chatsRepository = ref.read(chatsRepositoryProvider);
     _userId = userId;
     _user = user;
@@ -22,6 +22,7 @@ class ChatViewModel extends _$ChatViewModel {
       _loadContant();
       _loadMessages();
     });
+  
 
     return ChatState();
   }

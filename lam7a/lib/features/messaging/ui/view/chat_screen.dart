@@ -16,7 +16,7 @@ class ChatScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var chatViewModel = ref.watch(chatViewModelProvider(userId: id, user: contact));
+    var chatViewModel = ref.watch(chatViewModelProvider(id, contact));
     return GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(

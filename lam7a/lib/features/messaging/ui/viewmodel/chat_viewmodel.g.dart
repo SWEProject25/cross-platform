@@ -16,7 +16,7 @@ final class ChatViewModelProvider
     extends $NotifierProvider<ChatViewModel, ChatState> {
   const ChatViewModelProvider._({
     required ChatViewModelFamily super.from,
-    required ({String userId, Contact? user}) super.argument,
+    required (String, Contact?) super.argument,
   }) : super(
          retry: null,
          name: r'chatViewModelProvider',
@@ -58,7 +58,7 @@ final class ChatViewModelProvider
   }
 }
 
-String _$chatViewModelHash() => r'8bddbc36371f61ad5c3c053cec196fc3ff64c8a6';
+String _$chatViewModelHash() => r'e9dad278102b1b406b10e6f51e6566866150b402';
 
 final class ChatViewModelFamily extends $Family
     with
@@ -67,7 +67,7 @@ final class ChatViewModelFamily extends $Family
           ChatState,
           ChatState,
           ChatState,
-          ({String userId, Contact? user})
+          (String, Contact?)
         > {
   const ChatViewModelFamily._()
     : super(
@@ -78,26 +78,23 @@ final class ChatViewModelFamily extends $Family
         isAutoDispose: true,
       );
 
-  ChatViewModelProvider call({required String userId, Contact? user}) =>
-      ChatViewModelProvider._(
-        argument: (userId: userId, user: user),
-        from: this,
-      );
+  ChatViewModelProvider call(String userId, [Contact? user]) =>
+      ChatViewModelProvider._(argument: (userId, user), from: this);
 
   @override
   String toString() => r'chatViewModelProvider';
 }
 
 abstract class _$ChatViewModel extends $Notifier<ChatState> {
-  late final _$args = ref.$arg as ({String userId, Contact? user});
-  String get userId => _$args.userId;
-  Contact? get user => _$args.user;
+  late final _$args = ref.$arg as (String, Contact?);
+  String get userId => _$args.$1;
+  Contact? get user => _$args.$2;
 
-  ChatState build({required String userId, Contact? user});
+  ChatState build(String userId, [Contact? user]);
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(userId: _$args.userId, user: _$args.user);
+    final created = build(_$args.$1, _$args.$2);
     final ref = this.ref as $Ref<ChatState, ChatState>;
     final element =
         ref.element

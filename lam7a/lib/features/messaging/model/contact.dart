@@ -4,7 +4,6 @@ class Contact {
   final String avatarUrl;
   final String handle;
 
-
   Contact({
     required this.id,
     required this.name,
