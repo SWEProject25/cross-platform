@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 
 class TermsText extends StatelessWidget {
+  const TermsText({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -25,7 +27,7 @@ class TermsText extends StatelessWidget {
                   ),
                 ),
                 TextSpan(text: ", "),
-                WidgetSpan(
+                 WidgetSpan(
                   child: InkWell(
                     onTap: () {},
                     child: Text(

@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps/password_login/password_login.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps/unique_identifier/unique_identifier.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/sign_up_flow_screen/steps/password/password_screen.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/sign_up_flow_screen/steps/profile_picture/profile_picture.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/sign_up_flow_screen/steps/user_data/user_data.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/sign_up_flow_screen/steps/user_name_screen/user_name_screen.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/sign_up_flow_screen/steps/verification_code/verification_code.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps/password_login_step.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps/unique_identifier_step.dart';
 
 Provider<List<Widget>> logInNavProvider = Provider<List<Widget>>((ref) {
   return [

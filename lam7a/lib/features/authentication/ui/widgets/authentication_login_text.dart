@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/login_screen/log_in.dart';
-
+import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authentication_login_screen.dart';
 class LoginText extends StatelessWidget {
   Function onPress;
-  LoginText({required this.onPress});
+  LoginText({super.key, required this.onPress});
   @override
   Widget build(BuildContext context) {
     return Row(

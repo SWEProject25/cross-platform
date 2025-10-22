@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 
 class PasswordTermsText extends StatelessWidget {
+  const PasswordTermsText({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Row(
