@@ -1,5 +1,5 @@
 import 'package:flutter/animation.dart';
-import 'package:lam7a/features/tweet_summary/State/tweet_state.dart';
+import 'package:lam7a/features/tweet_summary/state/tweet_state.dart';
 import 'package:lam7a/features/tweet_summary/repository/mock_tweet_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -8,28 +8,34 @@ part 'tweet_viewmodel.g.dart';
 @riverpod
 class TweetViewModel extends _$TweetViewModel {
 
-  @override
-  FutureOr<TweetState> build(String tweetId) async {
-    // Use the single service provider to fetch the tweet by id
-  final MockTweetRepository repo = ref.read(mockTweetRepositoryProvider.notifier);
-    final tweet = await repo.getTweetById(tweetId);
-    return TweetState(tweet: tweet);
-  }
+@override
+FutureOr<TweetState> build(String tweetId) async {
+  final repo = ref.read(mockTweetRepositoryProvider.notifier);
+  final tweet = await repo.getTweetById(tweetId);
+
+  return TweetState(
+    isLiked: false,
+    isReposted: false,
+    isViewed: false,
+    tweet: AsyncData(tweet),
+  );
+}
+
 
   //  Handle Like toggle
   void handleLike({required AnimationController controller}) {
     final repo = ref.read(mockTweetRepositoryProvider.notifier);
     final current = state.value!;
-    final tweet= state.value!.tweet;
+    final tweet= state.value!.tweet.value!;
     if (current.isLiked) {
       final updated = tweet.copyWith(likes: tweet.likes - 1);
-      final updatedState = current.copyWith(tweet: updated,isLiked: false);
+      final updatedState = current.copyWith(tweet: AsyncData(updated),isLiked: false);
       repo.updateTweet(updated);
       state = AsyncData(updatedState);
     } else {
       controller.forward().then((_) => controller.reverse());
       final updated = tweet.copyWith(likes: tweet.likes + 1);
-      final updatedState = current.copyWith(tweet: updated,isLiked: true);
+      final updatedState = current.copyWith(tweet: AsyncData(updated),isLiked: true);
       repo.updateTweet(updated);
       state = AsyncData(updatedState);
     }
@@ -39,16 +45,16 @@ class TweetViewModel extends _$TweetViewModel {
   void handleRepost({required AnimationController controllerRepost}) {
     final repo = ref.read(mockTweetRepositoryProvider.notifier);
     final current = state.value!;
-    final tweet= state.value!.tweet;
+    final tweet= state.value!.tweet.value!;
     if (current.isReposted) {
        final updated = tweet.copyWith(repost: tweet.repost - 1);
-       final updatedState = current.copyWith(tweet: updated,isReposted: false);
+       final updatedState = current.copyWith(tweet: AsyncData(updated),isReposted: false);
       state = AsyncData(updatedState);
        repo.updateTweet(updated);
     } else {
       controllerRepost.forward().then((_) => controllerRepost.reverse());
       final updated = tweet.copyWith(repost: tweet.repost + 1);
-      final updatedState = current.copyWith(tweet: updated,isReposted: true);
+      final updatedState = current.copyWith(tweet: AsyncData(updated),isReposted: true);
       state = AsyncData(updatedState);
       repo.updateTweet(updated);
     }
@@ -77,10 +83,10 @@ class TweetViewModel extends _$TweetViewModel {
   void handleViews() {
     final repo= ref.read(mockTweetRepositoryProvider.notifier);
     final current=state.value!;
-    final tweet= state.value!.tweet;
+    final tweet= state.value!.tweet.value!;
     if (!current.isViewed) {
       final updated=tweet.copyWith(views: tweet.views+1);
-      final updatedState= current.copyWith(tweet: updated,isViewed: true);
+      final updatedState= current.copyWith(tweet: AsyncData(updated),isViewed: true);
       state = AsyncData(updatedState);
       repo.updateTweet(updated);
     }

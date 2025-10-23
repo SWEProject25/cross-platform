@@ -50,7 +50,7 @@ final class TweetViewModelProvider
   }
 }
 
-String _$tweetViewModelHash() => r'36a5b3cce997d1c2f3ab71e67940880c1f1d8363';
+String _$tweetViewModelHash() => r'70f4b23ca9651a6682e85d09235a8f21acbb89a8';
 
 final class TweetViewModelFamily extends $Family
     with

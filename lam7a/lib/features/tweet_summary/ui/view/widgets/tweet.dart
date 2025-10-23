@@ -45,7 +45,7 @@ class _TweetState extends ConsumerState<TweetSummaryWidget>
                 tweetAsync.when(
                   data: (tweetState) => TweetUserInfo(
                     tweetState: tweetState,
-                    daysPosted: DateTime.now().day - tweetState.tweet.date.day,
+                    daysPosted: DateTime.now().day - tweetState.tweet.value!.date.day,
                   ),
                   loading: () => const CircularProgressIndicator(),
                   error: (e, st) => Text('Error $e'),
@@ -55,7 +55,7 @@ class _TweetState extends ConsumerState<TweetSummaryWidget>
                     icon: Icon(Icons.rocket),
                     onPressed: ref
                         .read(
-                          tweetViewModelProvider(tweetState.tweet.id).notifier,
+                          tweetViewModelProvider(tweetState.tweet.value!.id).notifier,
                         )
                         .summarizeBody,
                   ),
@@ -84,7 +84,7 @@ class _TweetState extends ConsumerState<TweetSummaryWidget>
                   color: Colors.transparent,
                   child: tweetAsync.when(
                     data: (tweetState) =>
-                        TweetBodySummaryWidget(post: tweetState.tweet),
+                        TweetBodySummaryWidget(post: tweetState.tweet.value!),
                     loading: () => const CircularProgressIndicator(),
                     error: (e, st) => Text('Error $e'),
                   ),

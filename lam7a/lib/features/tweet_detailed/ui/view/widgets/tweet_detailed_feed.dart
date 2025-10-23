@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:lam7a/features/tweet_summary/State/tweet_state.dart';
+import 'package:lam7a/features/tweet_summary/state/tweet_state.dart';
 import 'package:lam7a/features/tweet_summary/ui/view_model/tweet_viewmodel.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:intl/intl.dart';
@@ -44,11 +44,11 @@ class _TweetFeedState extends ConsumerState<TweetFeedDetailed>
   }
     
  void _handlerepost() {
- ref.read(tweetViewModelProvider(widget.tweetState.tweet.id).notifier)
+ ref.read(tweetViewModelProvider(widget.tweetState.tweet.value!.id).notifier)
         .handleRepost(
           controllerRepost: _controllerRepost,
         );
-    if (ref.read(tweetViewModelProvider(widget.tweetState.tweet.id).notifier).getisReposted()) {
+    if (ref.read(tweetViewModelProvider(widget.tweetState.tweet.value!.id).notifier).getisReposted()) {
       showTopSnackBar(
         Overlay.of(context),
         Card(
@@ -82,7 +82,7 @@ class _TweetFeedState extends ConsumerState<TweetFeedDetailed>
   }
   @override
   Widget build(BuildContext context) {
-    final postId =widget.tweetState.tweet.id;
+    final postId =widget.tweetState.tweet.value!.id;
     final tweetState = ref.watch(tweetViewModelProvider(postId));
     final tweet =tweetState.whenData((tweetState) => tweetState.tweet);
     String veiwsNumStr = '';
@@ -94,12 +94,12 @@ class _TweetFeedState extends ConsumerState<TweetFeedDetailed>
       final viewModel = ref.read(
         tweetViewModelProvider(postId).notifier,
       );
-
-      final likesNum = tweet.likes.toDouble();
-      final repostNum = tweet.repost.toDouble();
-      final viewsNum = tweet.views.toDouble();
-      final qoutesNum= tweet.qoutes.toDouble();
-      final bookmarksNum=tweet.bookmarks.toDouble();
+    final tweetVal=tweet.value!;
+      final likesNum = tweetVal.likes.toDouble();
+      final repostNum = tweetVal.repost.toDouble();
+      final viewsNum = tweetVal.views.toDouble();
+      final qoutesNum= tweetVal.qoutes.toDouble();
+      final bookmarksNum=tweetVal.bookmarks.toDouble();
       likesNumStr = viewModel.howLong(likesNum);
       repostsNumStr = viewModel.howLong(repostNum);
       veiwsNumStr = viewModel.howLong(viewsNum);
@@ -112,7 +112,7 @@ class _TweetFeedState extends ConsumerState<TweetFeedDetailed>
     }
 
     void showRepostQuoteOptions(BuildContext context) {
-    if(!ref.read(tweetViewModelProvider(widget.tweetState.tweet.id).notifier).getisReposted())
+    if(!ref.read(tweetViewModelProvider(widget.tweetState.tweet.value!.id).notifier).getisReposted())
     {showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -167,7 +167,7 @@ class _TweetFeedState extends ConsumerState<TweetFeedDetailed>
               data: (tweet) => Padding(
                 padding: const EdgeInsets.only(left: 10),
                 child: Text(
-                  formatDate(tweet.date),
+                  formatDate(tweet.value!.date),
                   style: TextStyle(
                     fontSize: 15,
                     decoration: TextDecoration.none,
@@ -190,7 +190,7 @@ class _TweetFeedState extends ConsumerState<TweetFeedDetailed>
               data: (tweet) => Padding(
                 padding: const EdgeInsets.only(left: 0),
                 child: Text(
-                  DateFormat('d MMM yy').format(tweet.date),
+                  DateFormat('d MMM yy').format(tweet.value!.date),
                   style: TextStyle(
                     fontSize: 15,
                     decoration: TextDecoration.none,

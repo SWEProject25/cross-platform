@@ -1,4 +1,4 @@
-import 'package:lam7a/features/tweet_summary/State/tweet_state.dart';
+import 'package:lam7a/features/tweet_summary/state/tweet_state.dart';
 import 'package:lam7a/features/tweet_summary/ui/view/widgets/vedio_player.dart';
 import 'package:flutter/material.dart';
 class TweetBodyDetailedWidget extends StatelessWidget{
@@ -7,7 +7,7 @@ class TweetBodyDetailedWidget extends StatelessWidget{
  const TweetBodyDetailedWidget({super.key,required this.tweetState});
   @override
   Widget build(BuildContext context) {
-    final post= tweetState.tweet;
+    final post= tweetState.tweet.value!;
   return Column(children: [ Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
