@@ -13,7 +13,7 @@ part of 'tweet_viewmodel.dart';
 const tweetViewModelProvider = TweetViewModelFamily._();
 
 final class TweetViewModelProvider
-    extends $AsyncNotifierProvider<TweetViewModel, TweetModel> {
+    extends $AsyncNotifierProvider<TweetViewModel, TweetState> {
   const TweetViewModelProvider._({
     required TweetViewModelFamily super.from,
     required String super.argument,
@@ -50,15 +50,15 @@ final class TweetViewModelProvider
   }
 }
 
-String _$tweetViewModelHash() => r'3f5b3b2420bc663e7e15d535b029ba0651848d73';
+String _$tweetViewModelHash() => r'36a5b3cce997d1c2f3ab71e67940880c1f1d8363';
 
 final class TweetViewModelFamily extends $Family
     with
         $ClassFamilyOverride<
           TweetViewModel,
-          AsyncValue<TweetModel>,
-          TweetModel,
-          FutureOr<TweetModel>,
+          AsyncValue<TweetState>,
+          TweetState,
+          FutureOr<TweetState>,
           String
         > {
   const TweetViewModelFamily._()
@@ -77,21 +77,21 @@ final class TweetViewModelFamily extends $Family
   String toString() => r'tweetViewModelProvider';
 }
 
-abstract class _$TweetViewModel extends $AsyncNotifier<TweetModel> {
+abstract class _$TweetViewModel extends $AsyncNotifier<TweetState> {
   late final _$args = ref.$arg as String;
   String get tweetId => _$args;
 
-  FutureOr<TweetModel> build(String tweetId);
+  FutureOr<TweetState> build(String tweetId);
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build(_$args);
-    final ref = this.ref as $Ref<AsyncValue<TweetModel>, TweetModel>;
+    final ref = this.ref as $Ref<AsyncValue<TweetState>, TweetState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<TweetModel>, TweetModel>,
-              AsyncValue<TweetModel>,
+              AnyNotifier<AsyncValue<TweetState>, TweetState>,
+              AsyncValue<TweetState>,
               Object?,
               Object?
             >;

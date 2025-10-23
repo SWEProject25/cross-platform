@@ -1,12 +1,13 @@
+import 'package:lam7a/features/tweet_summary/State/tweet_state.dart';
 import 'package:lam7a/features/tweet_summary/ui/view/widgets/vedio_player.dart';
 import 'package:flutter/material.dart';
-import 'package:lam7a/features/models/tweet.dart';
 class TweetBodyDetailedWidget extends StatelessWidget{
 
-  final TweetModel post;
- const TweetBodyDetailedWidget({super.key,required this.post});
+  final TweetState tweetState;
+ const TweetBodyDetailedWidget({super.key,required this.tweetState});
   @override
   Widget build(BuildContext context) {
+    final post= tweetState.tweet;
   return Column(children: [ Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -14,8 +15,6 @@ class TweetBodyDetailedWidget extends StatelessWidget{
                 
                 Flexible(
                   child: Text(
-                      maxLines: 3, // or 4
-                    overflow: TextOverflow.ellipsis,
                     post.body,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onPrimary,

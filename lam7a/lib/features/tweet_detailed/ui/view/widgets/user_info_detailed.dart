@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lam7a/features/models/tweet.dart';
+
+import 'package:lam7a/features/tweet_summary/State/tweet_state.dart';
 import 'package:lam7a/features/tweet_summary/repository/mock_user_provider.dart';
 
 class TweetUserInfoDetailed extends ConsumerStatefulWidget {
   //need userProvider to check for changes for now i use static data
   const TweetUserInfoDetailed({
     super.key,
-    required this.tweet,
+    required this.tweetState,
   });
-  final TweetModel tweet;
+  final TweetState tweetState;
   @override
   ConsumerState<TweetUserInfoDetailed> createState() {
     return _TweetUserInfoDetailed();
@@ -19,8 +20,9 @@ class TweetUserInfoDetailed extends ConsumerStatefulWidget {
 class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
   @override
   Widget build(BuildContext context) {
+    final tweet= widget.tweetState.tweet;
     //need userProvider to check for changes for now i use static data
-    final userAsync = ref.watch(userByIdProvider(widget.tweet.userId));
+    final userAsync = ref.watch(userByIdProvider(tweet.userId));
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [

@@ -1,5 +1,5 @@
 import 'package:flutter/animation.dart';
-import 'package:lam7a/features/models/tweet.dart';
+import 'package:lam7a/features/tweet_summary/State/tweet_state.dart';
 import 'package:lam7a/features/tweet_summary/repository/mock_tweet_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -7,49 +7,50 @@ part 'tweet_viewmodel.g.dart';
 
 @riverpod
 class TweetViewModel extends _$TweetViewModel {
-  bool isLiked=false;
-  bool isReposted=false;
-  bool isViewed=false;
+
   @override
-  FutureOr<TweetModel> build(String tweetId) async {
-    // Listen to the tweetByIdProvider (mock repository)
-    final tweet = await ref.watch(tweetByIdProvider(tweetId).future);
-    return tweet;
+  FutureOr<TweetState> build(String tweetId) async {
+    // Use the single service provider to fetch the tweet by id
+  final MockTweetRepository repo = ref.read(mockTweetRepositoryProvider.notifier);
+    final tweet = await repo.getTweetById(tweetId);
+    return TweetState(tweet: tweet);
   }
 
   //  Handle Like toggle
- void handleLike({
-    required AnimationController controller,
-  }) {
-    if (isLiked) {
-      isLiked = false;
-      state = AsyncData(
-        state.value!.copyWith(likes: state.value!.likes - 1),
-      );
+  void handleLike({required AnimationController controller}) {
+    final repo = ref.read(mockTweetRepositoryProvider.notifier);
+    final current = state.value!;
+    final tweet= state.value!.tweet;
+    if (current.isLiked) {
+      final updated = tweet.copyWith(likes: tweet.likes - 1);
+      final updatedState = current.copyWith(tweet: updated,isLiked: false);
+      repo.updateTweet(updated);
+      state = AsyncData(updatedState);
     } else {
       controller.forward().then((_) => controller.reverse());
-      isLiked = true;
-      state = AsyncData(
-        state.value!.copyWith(likes: state.value!.likes + 1),
-      );
+      final updated = tweet.copyWith(likes: tweet.likes + 1);
+      final updatedState = current.copyWith(tweet: updated,isLiked: true);
+      repo.updateTweet(updated);
+      state = AsyncData(updatedState);
     }
   }
 
   // Handle Repost toggle
-  void handleRepost({
-    required AnimationController controllerRepost,
-  }) {
-    if (isReposted) {
-      isReposted = false;
-      state = AsyncData(
-        state.value!.copyWith(repost: state.value!.repost - 1),
-      );
+  void handleRepost({required AnimationController controllerRepost}) {
+    final repo = ref.read(mockTweetRepositoryProvider.notifier);
+    final current = state.value!;
+    final tweet= state.value!.tweet;
+    if (current.isReposted) {
+       final updated = tweet.copyWith(repost: tweet.repost - 1);
+       final updatedState = current.copyWith(tweet: updated,isReposted: false);
+      state = AsyncData(updatedState);
+       repo.updateTweet(updated);
     } else {
       controllerRepost.forward().then((_) => controllerRepost.reverse());
-      isReposted = true;
-      state = AsyncData(
-        state.value!.copyWith(repost: state.value!.repost + 1),
-      );
+      final updated = tweet.copyWith(repost: tweet.repost + 1);
+      final updatedState = current.copyWith(tweet: updated,isReposted: true);
+      state = AsyncData(updatedState);
+      repo.updateTweet(updated);
     }
   }
 
@@ -74,13 +75,15 @@ class TweetViewModel extends _$TweetViewModel {
   }
 
   void handleViews() {
-    if(!isViewed)
-    {state = AsyncData(
-        state.value!.copyWith(views: state.value!.views +1),
-      );
-      isViewed=true;
+    final repo= ref.read(mockTweetRepositoryProvider.notifier);
+    final current=state.value!;
+    final tweet= state.value!.tweet;
+    if (!current.isViewed) {
+      final updated=tweet.copyWith(views: tweet.views+1);
+      final updatedState= current.copyWith(tweet: updated,isViewed: true);
+      state = AsyncData(updatedState);
+      repo.updateTweet(updated);
     }
-    
   }
 
   void handleComment() {
@@ -90,20 +93,13 @@ class TweetViewModel extends _$TweetViewModel {
   void summarizeBody() {
     // TODO: implement tweet summarization
   }
-  void handleShare()
-  {
+  void handleShare() {}
+  void handleBookmark() {}
+  bool getIsLiked() {
+    return state.value!.isLiked;
+  }
 
-  }
-  void handleBookmark()
-  {
-
-  }
-  bool getIsLiked()
-  {
-    return isLiked;
-  }
-  bool getisReposted()
-  {
-    return isReposted;
+  bool getisReposted() {
+    return state.value!.isReposted;
   }
 }

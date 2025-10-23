@@ -8,77 +8,66 @@ part of 'mock_tweet_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// ✅ This replaces `tweetByIdProvider`
+/// A single provider managing all mock tweet data.
 
-@ProviderFor(tweetById)
-const tweetByIdProvider = TweetByIdFamily._();
+@ProviderFor(MockTweetRepository)
+const mockTweetRepositoryProvider = MockTweetRepositoryProvider._();
 
-final class TweetByIdProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<TweetModel>,
-          TweetModel,
-          FutureOr<TweetModel>
-        >
-    with $FutureModifier<TweetModel>, $FutureProvider<TweetModel> {
-  const TweetByIdProvider._({
-    required TweetByIdFamily super.from,
-    required String super.argument,
-  }) : super(
-         retry: null,
-         name: r'tweetByIdProvider',
-         isAutoDispose: true,
-         dependencies: null,
-         $allTransitiveDependencies: null,
-       );
-
-  @override
-  String debugGetCreateSourceHash() => _$tweetByIdHash();
+/// ✅ This replaces `tweetByIdProvider`
+/// A single provider managing all mock tweet data.
+final class MockTweetRepositoryProvider
+    extends $NotifierProvider<MockTweetRepository, void> {
+  /// ✅ This replaces `tweetByIdProvider`
+  /// A single provider managing all mock tweet data.
+  const MockTweetRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'mockTweetRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
-  String toString() {
-    return r'tweetByIdProvider'
-        ''
-        '($argument)';
-  }
+  String debugGetCreateSourceHash() => _$mockTweetRepositoryHash();
 
   @$internal
   @override
-  $FutureProviderElement<TweetModel> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+  MockTweetRepository create() => MockTweetRepository();
 
-  @override
-  FutureOr<TweetModel> create(Ref ref) {
-    final argument = this.argument as String;
-    return tweetById(ref, argument);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is TweetByIdProvider && other.argument == argument;
-  }
-
-  @override
-  int get hashCode {
-    return argument.hashCode;
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(void value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<void>(value),
+    );
   }
 }
 
-String _$tweetByIdHash() => r'14916db1cc5c3dc3c43e5219f698fc86323e297e';
+String _$mockTweetRepositoryHash() =>
+    r'bfcab7c25893f4a8a1d27ec61fbfa64cae89ff44';
 
-final class TweetByIdFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<TweetModel>, String> {
-  const TweetByIdFamily._()
-    : super(
-        retry: null,
-        name: r'tweetByIdProvider',
-        dependencies: null,
-        $allTransitiveDependencies: null,
-        isAutoDispose: true,
-      );
+/// ✅ This replaces `tweetByIdProvider`
+/// A single provider managing all mock tweet data.
 
-  TweetByIdProvider call(String tweetId) =>
-      TweetByIdProvider._(argument: tweetId, from: this);
-
+abstract class _$MockTweetRepository extends $Notifier<void> {
+  void build();
+  @$mustCallSuper
   @override
-  String toString() => r'tweetByIdProvider';
+  void runBuild() {
+    build();
+    final ref = this.ref as $Ref<void, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<void, void>,
+              void,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, null);
+  }
 }

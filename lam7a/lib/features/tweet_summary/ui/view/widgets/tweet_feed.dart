@@ -1,19 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:lam7a/features/tweet_summary/State/tweet_state.dart';
 import 'package:lam7a/features/tweet_summary/ui/view_model/tweet_viewmodel.dart';
-import 'package:lam7a/features/models/tweet.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 class TweetFeed extends ConsumerStatefulWidget {
-  TweetFeed({
+  const TweetFeed({
     super.key,
-    required this.post,
-    required this.isLiked,
-    required this.isReposted,
+    required this.tweetState,
+
   });
-  final TweetModel post;
-  bool isLiked;
-  bool isReposted;
+  final TweetState tweetState;
+
   @override
   ConsumerState<TweetFeed> createState() {
     return _TweetFeedState();
@@ -50,12 +48,11 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
   }
 
   void _handlerepost() {
- ref.read(tweetViewModelProvider(widget.post.id).notifier)
+ ref.read(tweetViewModelProvider(widget.tweetState.tweet.id).notifier)
         .handleRepost(
           controllerRepost: _controllerRepost,
         );
-    if (ref.read(tweetViewModelProvider(widget.post.id).notifier)
-        .getisReposted()) {
+    if (ref.read(tweetViewModelProvider(widget.tweetState.tweet.id).notifier).getisReposted()) {
       showTopSnackBar(
         Overlay.of(context),
         Card(
@@ -82,7 +79,7 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
     }
   }
     void _showRepostQuoteOptions(BuildContext context) {
-    if(!ref.read(tweetViewModelProvider(widget.post.id).notifier).getisReposted())
+    if(!ref.read(tweetViewModelProvider(widget.tweetState.tweet.id).notifier).getisReposted())
     {showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -130,22 +127,22 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
     _controller.dispose();
     super.dispose();
   }
-
+ @override
   Widget build(BuildContext context) {
-    final tweet = ref.watch(tweetViewModelProvider(widget.post.id));
+    final tweetState = ref.watch(tweetViewModelProvider(widget.tweetState.tweet.id));
     String commentsNumStr = '';
     String veiwsNumStr = '';
     String likesNumStr = '';
     String repostsNumStr = '';
-    tweet.whenData((tweet) {
+    tweetState.whenData((tweetState) {
       final viewModel = ref.read(
-        tweetViewModelProvider(widget.post.id).notifier,
+        tweetViewModelProvider(widget.tweetState.tweet.id).notifier,
       );
 
-      final commNum = tweet.comments.toDouble();
-      final likesNum = tweet.likes.toDouble();
-      final repostNum = tweet.repost.toDouble();
-      final viewsNum = tweet.views.toDouble();
+      final commNum = tweetState.tweet.comments.toDouble();
+      final likesNum = tweetState.tweet.likes.toDouble();
+      final repostNum = tweetState.tweet.repost.toDouble();
+      final viewsNum = tweetState.tweet.views.toDouble();
 
       commentsNumStr = viewModel.howLong(commNum);
       likesNumStr = viewModel.howLong(likesNum);
@@ -161,7 +158,7 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
           padding: const EdgeInsets.only(left: 8.0, top: 3.0),
           child: GestureDetector(
             onTap: ref
-                .read(tweetViewModelProvider(widget.post.id).notifier)
+                .read(tweetViewModelProvider(widget.tweetState.tweet.id).notifier)
                 .handleComment,
             child: Icon(Icons.comment, color: Colors.grey),
           ),
@@ -182,7 +179,7 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                 _showRepostQuoteOptions(context);
                 },
               child: ref
-                    .read(tweetViewModelProvider(widget.post.id).notifier)
+                    .read(tweetViewModelProvider(widget.tweetState.tweet.id).notifier)
                     .getisReposted()
                   ? Icon(Icons.loop, color: Colors.green)
                   : Icon(Icons.loop, color: Colors.grey),
@@ -201,13 +198,13 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
             scale: _scaleAnimation,
             child: GestureDetector(
               onTap: () {ref
-                    .read(tweetViewModelProvider(widget.post.id).notifier)
+                    .read(tweetViewModelProvider(widget.tweetState.tweet.id).notifier)
                     .handleLike(
                       controller: _controller,
                     );
               },
               child: ref
-                    .read(tweetViewModelProvider(widget.post.id).notifier)
+                    .read(tweetViewModelProvider(widget.tweetState.tweet.id).notifier)
                     .getIsLiked(
                     )
                   ? Icon(Icons.favorite, color: Colors.red)
@@ -219,7 +216,8 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
           padding: const EdgeInsets.only(left: 1.0, top: 3.0),
           child: Text(
             likesNumStr,
-            style: TextStyle(color: widget.isLiked ? Colors.red : Colors.grey),
+            style: TextStyle(color: ref.read(tweetViewModelProvider(widget.tweetState.tweet.id).notifier).getIsLiked()
+             ? Colors.red : Colors.grey),
           ),
         ),
         SizedBox(width: 30),
@@ -229,7 +227,7 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
           padding: const EdgeInsets.only(left: 8.0, top: 3.0),
           child: GestureDetector(
             onTap: ref
-                .read(tweetViewModelProvider(widget.post.id).notifier)
+                .read(tweetViewModelProvider(widget.tweetState.tweet.id).notifier)
                 .handleViews,
             child: Icon(Icons.bar_chart, color: Colors.grey),
           ),

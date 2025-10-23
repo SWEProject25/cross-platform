@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/tweet_detailed/ui/view/widgets/tweet_detailed_body.dart';
 import 'package:lam7a/features/tweet_detailed/ui/view/widgets/tweet_detailed_feed.dart';
 import 'package:lam7a/features/tweet_detailed/ui/view/widgets/user_info_detailed.dart';
-import 'package:lam7a/features/tweet_summary/repository/mock_tweet_provider.dart';
+import 'package:lam7a/features/tweet_summary/ui/view_model/tweet_viewmodel.dart';
 
 class TweetDetailedWidget extends ConsumerStatefulWidget
 {
   final String tweetId;
-  TweetDetailedWidget({super.key,required this.tweetId});
+  const TweetDetailedWidget({super.key,required this.tweetId});
   @override
   ConsumerState<TweetDetailedWidget> createState()
   {
@@ -21,7 +21,7 @@ class _TweetDetailedWidgetState extends ConsumerState<TweetDetailedWidget>
   @override
 Widget build(BuildContext context)
 {
-   final tweetAsync = ref.watch(tweetByIdProvider(widget.tweetId));
+   final tweetAsync = ref.watch(tweetViewModelProvider(widget.tweetId));
 
  return SafeArea(
       child: Container(
@@ -36,7 +36,7 @@ Widget build(BuildContext context)
             children: [
               //user
               tweetAsync.when( 
-                    data : (tweet) => TweetUserInfoDetailed(tweet:tweet ),
+                    data : (tweet) => TweetUserInfoDetailed(tweetState:tweet ),
                     loading : ()=>  const CircularProgressIndicator(),
                     error: (e ,st)=> Text('Error $e')
               ),
@@ -46,7 +46,7 @@ Widget build(BuildContext context)
                  child: Container(
                    color: Colors.transparent,
                    child: tweetAsync.when( 
-                     data : (tweet) => TweetBodyDetailedWidget(post: tweet),
+                     data : (tweet) => TweetBodyDetailedWidget(tweetState: tweet),
                      loading : ()=>  const CircularProgressIndicator(),
                      error: (e ,st)=> Text('Error $e')
                              ),
@@ -54,7 +54,7 @@ Widget build(BuildContext context)
                ),
               //feed
               tweetAsync.when( 
-                  data : (tweet) =>TweetFeedDetailed(post: tweet,),
+                  data : (tweet) =>TweetFeedDetailed(tweetState: tweet,),
                   loading: () => CircleAvatar(),
                   error: (error, stackTrace) => Icon(Icons.error),
               )
