@@ -2,19 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/app_icons.dart';
 import 'package:lam7a/core/widgets/app_svg_icon.dart';
-import 'package:lam7a/features/messaging/model/Conversation.dart';
+import 'package:lam7a/features/messaging/model/conversation.dart';
+import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
 import 'package:lam7a/features/messaging/utils.dart';
-import 'package:lam7a/features/messaging/ui/view/contacts_list_view_page.dart';
-import 'package:lam7a/features/messaging/ui/viewmodel/dm_list_page_viewmodel.dart';
-import 'package:lam7a/features/messaging/ui/widgets/DMAppBar.dart';
+import 'package:lam7a/features/messaging/ui/view/find_contacts_screen.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/conversations_viewmodel.dart';
+import 'package:lam7a/features/messaging/ui/widgets/dm_app_bar.dart';
 
-class DMListViewPage extends ConsumerWidget {
-  const DMListViewPage({super.key});
+class ConversationsScreen extends ConsumerWidget {
+  static const routeName = '/dm';
+
+  const ConversationsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var theme = Theme.of(context);
-    final dMListPageViewModel = ref.watch(dMListPageViewModelProvider);
+    final dMListPageViewModel = ref.watch(conversationsViewModelProvider);
     return Scaffold(
       appBar: DMAppBar(title: 'Direct Message'),
       body: dMListPageViewModel.conversations.when(
@@ -34,7 +37,7 @@ class DMListViewPage extends ConsumerWidget {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => ContactsListPage(),
+                        builder: (context) => FindContactsScreen(),
                       ),
                     );
                   },
@@ -66,7 +69,7 @@ class DMListViewPage extends ConsumerWidget {
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => ContactsListPage(),
+              builder: (context) => FindContactsScreen(),
             ),
           );
         },
@@ -128,6 +131,11 @@ class _ChatListTile extends StatelessWidget {
       ),
       onTap: () {
         // TODO: Navigate to chat detail page
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ChatScreen(id: chat.id),
+          ),
+        );
       },
     );
   }

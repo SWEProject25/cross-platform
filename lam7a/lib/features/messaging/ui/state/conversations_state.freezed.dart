@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'dm_list_state.dart';
+part of 'conversations_state.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -12,20 +12,20 @@ part of 'dm_list_state.dart';
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
-mixin _$DMListState {
+mixin _$ConversationsState {
 
  AsyncValue<List<Conversation>> get conversations; AsyncValue<List<Contact>> get contacts;
-/// Create a copy of DMListState
+/// Create a copy of ConversationsState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$DMListStateCopyWith<DMListState> get copyWith => _$DMListStateCopyWithImpl<DMListState>(this as DMListState, _$identity);
+$ConversationsStateCopyWith<ConversationsState> get copyWith => _$ConversationsStateCopyWithImpl<ConversationsState>(this as ConversationsState, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DMListState&&(identical(other.conversations, conversations) || other.conversations == conversations)&&(identical(other.contacts, contacts) || other.contacts == contacts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConversationsState&&(identical(other.conversations, conversations) || other.conversations == conversations)&&(identical(other.contacts, contacts) || other.contacts == contacts));
 }
 
 
@@ -34,15 +34,15 @@ int get hashCode => Object.hash(runtimeType,conversations,contacts);
 
 @override
 String toString() {
-  return 'DMListState(conversations: $conversations, contacts: $contacts)';
+  return 'ConversationsState(conversations: $conversations, contacts: $contacts)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $DMListStateCopyWith<$Res>  {
-  factory $DMListStateCopyWith(DMListState value, $Res Function(DMListState) _then) = _$DMListStateCopyWithImpl;
+abstract mixin class $ConversationsStateCopyWith<$Res>  {
+  factory $ConversationsStateCopyWith(ConversationsState value, $Res Function(ConversationsState) _then) = _$ConversationsStateCopyWithImpl;
 @useResult
 $Res call({
  AsyncValue<List<Conversation>> conversations, AsyncValue<List<Contact>> contacts
@@ -53,14 +53,14 @@ $Res call({
 
 }
 /// @nodoc
-class _$DMListStateCopyWithImpl<$Res>
-    implements $DMListStateCopyWith<$Res> {
-  _$DMListStateCopyWithImpl(this._self, this._then);
+class _$ConversationsStateCopyWithImpl<$Res>
+    implements $ConversationsStateCopyWith<$Res> {
+  _$ConversationsStateCopyWithImpl(this._self, this._then);
 
-  final DMListState _self;
-  final $Res Function(DMListState) _then;
+  final ConversationsState _self;
+  final $Res Function(ConversationsState) _then;
 
-/// Create a copy of DMListState
+/// Create a copy of ConversationsState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? conversations = null,Object? contacts = null,}) {
   return _then(_self.copyWith(
@@ -73,8 +73,8 @@ as AsyncValue<List<Contact>>,
 }
 
 
-/// Adds pattern-matching-related methods to [DMListState].
-extension DMListStatePatterns on DMListState {
+/// Adds pattern-matching-related methods to [ConversationsState].
+extension ConversationsStatePatterns on ConversationsState {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -87,10 +87,10 @@ extension DMListStatePatterns on DMListState {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _DMListState value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ConversationsState value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _DMListState() when $default != null:
+case _ConversationsState() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -109,10 +109,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _DMListState value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ConversationsState value)  $default,){
 final _that = this;
 switch (_that) {
-case _DMListState():
+case _ConversationsState():
 return $default(_that);case _:
   throw StateError('Unexpected subclass');
 
@@ -130,10 +130,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _DMListState value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ConversationsState value)?  $default,){
 final _that = this;
 switch (_that) {
-case _DMListState() when $default != null:
+case _ConversationsState() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -153,7 +153,7 @@ return $default(_that);case _:
 
 @optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( AsyncValue<List<Conversation>> conversations,  AsyncValue<List<Contact>> contacts)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _DMListState() when $default != null:
+case _ConversationsState() when $default != null:
 return $default(_that.conversations,_that.contacts);case _:
   return orElse();
 
@@ -174,7 +174,7 @@ return $default(_that.conversations,_that.contacts);case _:
 
 @optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( AsyncValue<List<Conversation>> conversations,  AsyncValue<List<Contact>> contacts)  $default,) {final _that = this;
 switch (_that) {
-case _DMListState():
+case _ConversationsState():
 return $default(_that.conversations,_that.contacts);case _:
   throw StateError('Unexpected subclass');
 
@@ -194,7 +194,7 @@ return $default(_that.conversations,_that.contacts);case _:
 
 @optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( AsyncValue<List<Conversation>> conversations,  AsyncValue<List<Contact>> contacts)?  $default,) {final _that = this;
 switch (_that) {
-case _DMListState() when $default != null:
+case _ConversationsState() when $default != null:
 return $default(_that.conversations,_that.contacts);case _:
   return null;
 
@@ -206,24 +206,24 @@ return $default(_that.conversations,_that.contacts);case _:
 /// @nodoc
 
 
-class _DMListState implements DMListState {
-  const _DMListState({this.conversations = const AsyncValue.loading(), this.contacts = const AsyncValue.loading()});
+class _ConversationsState implements ConversationsState {
+  const _ConversationsState({this.conversations = const AsyncValue.loading(), this.contacts = const AsyncValue.loading()});
   
 
 @override@JsonKey() final  AsyncValue<List<Conversation>> conversations;
 @override@JsonKey() final  AsyncValue<List<Contact>> contacts;
 
-/// Create a copy of DMListState
+/// Create a copy of ConversationsState
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$DMListStateCopyWith<_DMListState> get copyWith => __$DMListStateCopyWithImpl<_DMListState>(this, _$identity);
+_$ConversationsStateCopyWith<_ConversationsState> get copyWith => __$ConversationsStateCopyWithImpl<_ConversationsState>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DMListState&&(identical(other.conversations, conversations) || other.conversations == conversations)&&(identical(other.contacts, contacts) || other.contacts == contacts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConversationsState&&(identical(other.conversations, conversations) || other.conversations == conversations)&&(identical(other.contacts, contacts) || other.contacts == contacts));
 }
 
 
@@ -232,15 +232,15 @@ int get hashCode => Object.hash(runtimeType,conversations,contacts);
 
 @override
 String toString() {
-  return 'DMListState(conversations: $conversations, contacts: $contacts)';
+  return 'ConversationsState(conversations: $conversations, contacts: $contacts)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$DMListStateCopyWith<$Res> implements $DMListStateCopyWith<$Res> {
-  factory _$DMListStateCopyWith(_DMListState value, $Res Function(_DMListState) _then) = __$DMListStateCopyWithImpl;
+abstract mixin class _$ConversationsStateCopyWith<$Res> implements $ConversationsStateCopyWith<$Res> {
+  factory _$ConversationsStateCopyWith(_ConversationsState value, $Res Function(_ConversationsState) _then) = __$ConversationsStateCopyWithImpl;
 @override @useResult
 $Res call({
  AsyncValue<List<Conversation>> conversations, AsyncValue<List<Contact>> contacts
@@ -251,17 +251,17 @@ $Res call({
 
 }
 /// @nodoc
-class __$DMListStateCopyWithImpl<$Res>
-    implements _$DMListStateCopyWith<$Res> {
-  __$DMListStateCopyWithImpl(this._self, this._then);
+class __$ConversationsStateCopyWithImpl<$Res>
+    implements _$ConversationsStateCopyWith<$Res> {
+  __$ConversationsStateCopyWithImpl(this._self, this._then);
 
-  final _DMListState _self;
-  final $Res Function(_DMListState) _then;
+  final _ConversationsState _self;
+  final $Res Function(_ConversationsState) _then;
 
-/// Create a copy of DMListState
+/// Create a copy of ConversationsState
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? conversations = null,Object? contacts = null,}) {
-  return _then(_DMListState(
+  return _then(_ConversationsState(
 conversations: null == conversations ? _self.conversations : conversations // ignore: cast_nullable_to_non_nullable
 as AsyncValue<List<Conversation>>,contacts: null == contacts ? _self.contacts : contacts // ignore: cast_nullable_to_non_nullable
 as AsyncValue<List<Contact>>,

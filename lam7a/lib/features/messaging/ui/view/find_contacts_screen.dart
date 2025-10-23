@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../viewmodel/dm_list_page_viewmodel.dart';
+import '../viewmodel/conversations_viewmodel.dart';
 
-class ContactsListPage extends ConsumerWidget {
-  const ContactsListPage({super.key});
+class FindContactsScreen extends ConsumerWidget {
+  const FindContactsScreen({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var theme = Theme.of(context);
-    final dMListPageViewModel = ref.watch(dMListPageViewModelProvider);
+    final conversationsViewModel = ref.watch(conversationsViewModelProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -53,7 +53,7 @@ class ContactsListPage extends ConsumerWidget {
 
           // Conversation list
           Expanded(
-            child: dMListPageViewModel.contacts.when(
+            child: conversationsViewModel.contacts.when(
               data: (conversations) => ListView.separated(
               itemCount: conversations.length,
               separatorBuilder: (_, __) => const Divider(height: 0),

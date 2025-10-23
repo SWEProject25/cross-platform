@@ -1,15 +1,15 @@
 import 'package:lam7a/features/messaging/repository/chats_repositories.dart';
-import 'package:lam7a/features/messaging/ui/state/dm_list_state.dart';
+import 'package:lam7a/features/messaging/ui/state/conversations_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'dm_list_page_viewmodel.g.dart';
+part 'conversations_viewmodel.g.dart';
 
 @riverpod
-class DMListPageViewModel extends _$DMListPageViewModel {
+class ConversationsViewModel extends _$ConversationsViewModel {
   late final ChatsRepository _chatsRepository;
   
   @override
-  DMListState build() {
+  ConversationsState build() {
     _chatsRepository = ref.read(chatsRepositoryProvider);
 
     Future.microtask(() async {
@@ -17,7 +17,7 @@ class DMListPageViewModel extends _$DMListPageViewModel {
       await _loadContacts();
     });
 
-    return const DMListState();
+    return const ConversationsState();
   }
 
   Future<void> _loadConversations() async {
