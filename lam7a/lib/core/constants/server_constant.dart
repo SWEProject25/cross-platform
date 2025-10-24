@@ -1,4 +1,3 @@
-import 'dart:io';
 
 class ServerConstant {
   static String serverURL =
@@ -14,4 +13,5 @@ class ServerConstant {
     static String refreshToken = "/auth/refresh-token";
     static String  forgotPassword = "/auth/forgot-password";
     static String resetPassword = "/auth/reset-password";
+  static String serverURL = "http://backend-code.duckdns.org/dev";
 }
