@@ -12,7 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
-final List<Widget> signupFlowٍSteps = [
+final List<Widget> signupFlowSteps = [
     UserDataSignUp(),
     VerificationCode(),
     PasswordScreen(),
@@ -73,7 +73,7 @@ class SignUpFlow extends StatelessWidget {
             body: !state.isLoadingSignup
                 ? Column(
                     children: [
-                      signupFlowٍSteps[currentIndex],
+                      signupFlowSteps[currentIndex],
                       Spacer(flex: 5),
                       Expanded(
                         flex: 2,
@@ -82,8 +82,8 @@ class SignUpFlow extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              ((signupFlowٍSteps[currentIndex] is ProfilePicture) ||
-                                      (signupFlowٍSteps[currentIndex]
+                              ((signupFlowSteps[currentIndex] is ProfilePicture) ||
+                                      (signupFlowSteps[currentIndex]
                                           is UserNameScreen))
                                   ? Expanded(
                                       flex: 8,
@@ -101,10 +101,10 @@ class SignUpFlow extends StatelessWidget {
                               Expanded(
                                 flex: 6,
                                 child: AuthenticationStepButton(
-                                  enable: viewmodel.enableNext(),
+                                  enable: viewmodel.shouldEnableNext(),
                                   label: nextLabels[currentIndex],
                                   onPressedEffect: () {
-                                    if (viewmodel.enableNext()){
+                                    if (viewmodel.shouldEnableNext()){
                                         viewmodel.registrationProgress();
                                     }
                                   }
