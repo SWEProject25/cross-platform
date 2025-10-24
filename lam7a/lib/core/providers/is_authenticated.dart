@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'is_authenticated.g.dart';
-
+// this is under developing not finished yet
 @riverpod
 class  IsAuthenticated extends _$IsAuthenticated{
   @override

@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:lam7a/core/constants/server_constant.dart';
-import 'package:lam7a/features/authentication/model/user_credential_model/authentication_user_credentials_model.dart';
-import 'package:lam7a/features/authentication/model/user_data_model/authentication_user_data_model.dart';
+import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';
+import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
 // import 'package:lam7a/features/authentication/model/user_data_model.dart';
 
 class AuthenticationApiService {

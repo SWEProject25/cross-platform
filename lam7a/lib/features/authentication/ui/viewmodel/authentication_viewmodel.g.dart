@@ -9,47 +9,6 @@ part of 'authentication_viewmodel.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(signUpFlow)
-const signUpFlowProvider = SignUpFlowProvider._();
-
-final class SignUpFlowProvider
-    extends $FunctionalProvider<List<Widget>, List<Widget>, List<Widget>>
-    with $Provider<List<Widget>> {
-  const SignUpFlowProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'signUpFlowProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$signUpFlowHash();
-
-  @$internal
-  @override
-  $ProviderElement<List<Widget>> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  List<Widget> create(Ref ref) {
-    return signUpFlow(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(List<Widget> value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<List<Widget>>(value),
-    );
-  }
-}
-
-String _$signUpFlowHash() => r'831262deb1a2c1546a9fad32a3535a9b1c76bf3f';
-
 @ProviderFor(loginFlow)
 const loginFlowProvider = LoginFlowProvider._();
 
@@ -124,7 +83,7 @@ final class AuthenticationViewmodelProvider
 }
 
 String _$authenticationViewmodelHash() =>
-    r'aae2322bc5882a65e532cfc5deb02c8e5c58ee1f';
+    r'66464e94fef136f0f2555a87183892f65ceb46c0';
 
 abstract class _$AuthenticationViewmodel
     extends $Notifier<AuthenticationState> {

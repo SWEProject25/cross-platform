@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lam7a/features/authentication/model/user_credential_model/authentication_user_credentials_model.dart';
-import 'package:lam7a/features/authentication/model/user_data_model/authentication_user_data_model.dart';
-import 'package:lam7a/features/authentication/repository/authentication_repository.dart';
+import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';
+import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
+import 'package:lam7a/features/authentication/repository/authentication_impl_repository.dart';
 import 'package:lam7a/features/authentication/ui/state/authentication_state.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps/password_login_step.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps/unique_identifier_step.dart';
@@ -14,18 +14,6 @@ import 'package:lam7a/features/authentication/utils/authentication_constants.dar
 import 'package:lam7a/features/authentication/utils/authentication_validator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'authentication_viewmodel.g.dart';
-
-@riverpod
-List<Widget> signUpFlow(Ref ref) {
-  return [
-    UserDataSignUp(),
-    VerificationCode(),
-    PasswordScreen(),
-    ProfilePicture(),
-    UserNameScreen(),
-  ];
-}
-
 @riverpod
 List<Widget> loginFlow(Ref ref) {
   return [UniqueIdentifier(), PasswordLogin()];
@@ -36,14 +24,14 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   static const maxSignupScreens = 4;
   static const maxLoginScreens = 1;
   final Validator validator = Validator();
-  final repo = AuthenticationRepository();
+  final repo = AuthenticationRepositoryImpl();
   
   // the initial state of my state is signup
   @override
   AuthenticationState build() => const AuthenticationState.signup();
   
   // check for the validation to enable step button
-  bool enableNext() {
+  bool shouldEnableNext() {
     if (state.currentSignupStep == userData &&
         state.isValidEmail &&
         state.isValidName &&

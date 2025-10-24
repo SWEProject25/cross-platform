@@ -13,12 +13,9 @@ class VerificationCode extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
-        ////////////////////////////////////////////////////////////////
-        ///             the needed state managers                     //
-        ////////////////////////////////////////////////////////////////
+
         final state = ref.watch(authenticationViewmodelProvider);
         final viewModel = ref.watch(authenticationViewmodelProvider.notifier);
-        ////////////////////////////////////////////////////////////////
         return Column(
           children: [
             Row(
