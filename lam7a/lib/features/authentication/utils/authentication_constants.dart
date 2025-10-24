@@ -19,3 +19,6 @@ const String passwordSignupInstructionsText =
 const String otpCodeHeaderText = "We sent you a code";
 const String otpCodeDesText = "Enter it below to verify emai@example.com";
 const String otpCodeResendText = "Didn't recieve an email?";
+const String status = 'status';
+const String success = 'success';
+const String faild = 'fail';

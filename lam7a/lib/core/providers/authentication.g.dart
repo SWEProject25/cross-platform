@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'is_authenticated.dart';
+part of 'authentication.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,52 +9,52 @@ part of 'is_authenticated.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(IsAuthenticated)
-const isAuthenticatedProvider = IsAuthenticatedProvider._();
+@ProviderFor(Authentication)
+const authenticationProvider = AuthenticationProvider._();
 
-final class IsAuthenticatedProvider
-    extends $NotifierProvider<IsAuthenticated, bool> {
-  const IsAuthenticatedProvider._()
+final class AuthenticationProvider
+    extends $NotifierProvider<Authentication, dynamic> {
+  const AuthenticationProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'isAuthenticatedProvider',
+        name: r'authenticationProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$isAuthenticatedHash();
+  String debugGetCreateSourceHash() => _$authenticationHash();
 
   @$internal
   @override
-  IsAuthenticated create() => IsAuthenticated();
+  Authentication create() => Authentication();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(bool value) {
+  Override overrideWithValue(dynamic value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<bool>(value),
+      providerOverride: $SyncValueProvider<dynamic>(value),
     );
   }
 }
 
-String _$isAuthenticatedHash() => r'9662d0a922b3c2e4d43f04b60cdc72e9715eb076';
+String _$authenticationHash() => r'af0da2d7d3bb90e6960de3c5333ed83ae8cb0aed';
 
-abstract class _$IsAuthenticated extends $Notifier<bool> {
-  bool build();
+abstract class _$Authentication extends $Notifier<dynamic> {
+  dynamic build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
-    final ref = this.ref as $Ref<bool, bool>;
+    final ref = this.ref as $Ref<dynamic, dynamic>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<bool, bool>,
-              bool,
+              AnyNotifier<dynamic, dynamic>,
+              dynamic,
               Object?,
               Object?
             >;

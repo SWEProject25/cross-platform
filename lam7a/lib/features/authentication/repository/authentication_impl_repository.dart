@@ -1,44 +1,53 @@
+import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
 import 'package:lam7a/features/authentication/repository/authentication_repository.dart';
 import 'package:lam7a/features/authentication/service/authentication_api_service.dart';
+import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 class AuthenticationRepositoryImpl implements AuthenticationRepository {
-  final apiAuth = AuthenticationApiService();
+  final apiService = AuthenticationApiService();
   @override
-  Future<bool> checkEmail(String email) async {
-    bool isUnique = false;
-    isUnique = await apiAuth.checkEmail(email);
-    return isUnique;
+  Future<bool> checkEmail(String email, Ref ref) async {
+    ApiService _apiService = ref.read(apiServiceProvider);
+    Map<String, dynamic> body;
+    body = await apiService.checkEmail(email, _apiService);
+    return (body[status] == success);
   }
 
   @override
-  Future<String> verificationOTP(String email) async {
-    final message = await apiAuth.verificationOTP(email);
-    return message;
+  Future<bool> verificationOTP(String email, Ref ref) async {
+    ApiService _apiService = ref.read(apiServiceProvider);
+    final message = await apiService.verificationOTP(email, _apiService);
+    return (message[status] == success);
   }
 
   @override
-  Future<String> resendOTP(String email) async {
-    final message = await apiAuth.resendOTP(email);
-    return message;
+  Future<bool> resendOTP(String email, Ref ref) async {
+    ApiService _apiService = ref.read(apiServiceProvider);
+    final message = await apiService.resendOTP(email, _apiService);
+    return (message[status] == success);
   }
 
   @override
-  Future<int> register(AuthenticationUserDataModel user) async {
-    int message = await apiAuth.register(user);
-    return message;
+  Future<bool> register(AuthenticationUserDataModel user, Ref ref) async {
+    ApiService _apiService = ref.read(apiServiceProvider);
+    final message = await apiService.register(user, _apiService);  
+    return (message[status] == success);
   }
 
   @override
-  Future<bool> verifyOTP(String email, String OTP) async {
-    bool isValidOTP = await apiAuth.verifyOTP(email, OTP);
-    return isValidOTP;
+  Future<bool> verifyOTP(String email, String OTP, Ref ref) async {
+    ApiService _apiService = ref.read(apiServiceProvider);
+    final message = await apiService.verifyOTP(email, OTP, _apiService);
+    return (message[status] == success);
   }
 
   @override
-  Future<int> login(AuthenticationUserCredentialsModel userCredentials) async {
-    int statusCode = await apiAuth.Login(userCredentials);
-    return statusCode;
+  Future<bool> login(AuthenticationUserCredentialsModel userCredentials, Ref ref) async {
+    ApiService _apiService = ref.read(apiServiceProvider);
+    final message = await apiService.Login(userCredentials,_apiService);
+    return (message[status] == success);
   }
 }

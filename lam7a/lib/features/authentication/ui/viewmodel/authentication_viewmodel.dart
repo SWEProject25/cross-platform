@@ -1,4 +1,10 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/core/services/api_service.dart';
+import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
 import 'package:lam7a/features/authentication/repository/authentication_impl_repository.dart';
@@ -14,6 +20,7 @@ import 'package:lam7a/features/authentication/utils/authentication_constants.dar
 import 'package:lam7a/features/authentication/utils/authentication_validator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'authentication_viewmodel.g.dart';
+
 @riverpod
 List<Widget> loginFlow(Ref ref) {
   return [UniqueIdentifier(), PasswordLogin()];
@@ -25,11 +32,11 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   static const maxLoginScreens = 1;
   final Validator validator = Validator();
   final repo = AuthenticationRepositoryImpl();
-  
+
   // the initial state of my state is signup
   @override
   AuthenticationState build() => const AuthenticationState.signup();
-  
+
   // check for the validation to enable step button
   bool shouldEnableNext() {
     if (state.currentSignupStep == userData &&
@@ -42,8 +49,8 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
     } else if (state.currentSignupStep == passwordScreen &&
         state.isValidSignupPassword) {
       return true;
-        }
-      return false;
+    }
+    return false;
   }
 
   // check for email if it exists in data base and call the generate otp method from backend
@@ -55,13 +62,22 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           signup: (signup) => signup.copyWith(isLoadingSignup: true),
         );
 
-        bool checkValid = await repo.checkEmail(state.email);
+        bool checkValid = await repo.checkEmail(state.email, ref);
         state = state.map(
           login: (login) => login,
           signup: (signup) => signup.copyWith(isValidEmail: checkValid),
         );
         if (state.isValidEmail) {
-          final genrateStatus = await repo.verificationOTP(state.email);
+          final genrateStatus = await repo.verificationOTP(state.email, ref);
+          if (genrateStatus) {
+            Fluttertoast.showToast(
+              msg: "code sent to your email",
+              gravity: ToastGravity.CENTER,
+              timeInSecForIosWeb: 2,
+              backgroundColor: Pallete.toastColor,
+              textColor: Pallete.toastColor,
+            );
+          }
           state = state.map(
             login: (login) => login,
             signup: (signup) => signup.copyWith(isLoadingSignup: false),
@@ -72,9 +88,17 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
             login: (login) => login,
             signup: (signup) => signup.copyWith(isLoadingSignup: false),
           );
+          Fluttertoast.showToast(
+            msg: "this email is already taken take another one",
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 2,
+            backgroundColor: Pallete.toastColor,
+            textColor: Pallete.toastColor,
+          );
         }
       }
     } catch (e) {
+      print(e);
       state = state.map(
         login: (login) => login,
         signup: (signup) => signup.copyWith(isLoadingSignup: false),
@@ -90,7 +114,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           login: (login) => login,
           signup: (signup) => signup.copyWith(isLoadingSignup: true),
         );
-        bool isValidCode = await repo.verifyOTP(state.email, state.code);
+        bool isValidCode = await repo.verifyOTP(state.email, state.code, ref);
         state = state.map(
           login: (login) => login,
           signup: (signup) =>
@@ -98,15 +122,25 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         );
         if (state.isValidCode) {
           gotoNextSignupStep();
+        } else {
+          Fluttertoast.showToast(
+            msg: "the code is wrong",
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 2,
+            backgroundColor: Pallete.toastColor,
+            textColor: Pallete.toastColor,
+          );
         }
       }
     } catch (e) {
+      print(e);
       state = state.map(
         login: (login) => login,
         signup: (signup) => signup.copyWith(isLoadingSignup: false),
       );
     }
   }
+
   // register the user to data base and add him
   Future<void> newUser() async {
     try {
@@ -115,26 +149,52 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           login: (login) => login,
           signup: (signup) => signup.copyWith(isLoadingSignup: true),
         );
-        int message = await repo.register(
+        bool isRegistred = await repo.register(
           AuthenticationUserDataModel(
             name: state.name,
             email: state.email,
             password: state.passwordSignup,
             birth_date: state.date,
           ),
+          ref,
         );
         state = state.map(
           login: (login) => login,
           signup: (signup) => signup.copyWith(isLoadingSignup: false),
         );
-        if (message < 300) {
+        if (isRegistred) {
           gotoNextSignupStep();
+          print("User ${state.email} signed up successfully");
+          state = state.map(
+            login: (login){
+             return login.copyWith(
+                identifier: state.email,
+                passwordLogin: state.passwordSignup,
+              );
+            },
+            signup: (signup) => signup,
+          );
+          login();
         }
       }
     } catch (e) {
+      print(e);
       state = state.map(
         login: (login) => login,
         signup: (signup) => signup.copyWith(isLoadingSignup: false),
+      );
+    }
+  }
+
+  void resendOTP() async {
+    bool isSuccessed = await repo.resendOTP(state.email, ref);
+    if (!isSuccessed) {
+      Fluttertoast.showToast(
+        msg: "this service isn't available rigt now",
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 2,
+        backgroundColor: Pallete.toastColor,
+        textColor: Pallete.toastColor,
       );
     }
   }
@@ -160,18 +220,28 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       login: (login) => login.copyWith(isLoadingLogin: true),
       signup: (signup) => signup,
     );
-    int status = await repo.login(
+    bool isLoggedin = await repo.login(
       AuthenticationUserCredentialsModel(
         email: state.identifier,
         password: state.passwordLogin,
       ),
+      ref,
     );
+    if (isLoggedin) {
+      print("user ${state.identifier} logged in successfully");
+      final authController = ref.watch(authenticationProvider);
+      authController.AuthenticateUser();
+    }
     state = state.map(
       login: (login) => login.copyWith(isLoadingLogin: false),
       signup: (signup) => signup,
     );
   }
 
+  void logout() {
+    final authController = ref.watch(authenticationProvider);
+    authController.logout();
+  }
 
   void gotoNextSignupStep() {
     state = state.map(
@@ -191,9 +261,10 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       },
     );
   }
-///////////////////////////////////////////////
-///    this part is to manage my state       //
-///////////////////////////////////////////////
+
+  ///////////////////////////////////////////////
+  ///    this part is to manage my state       //
+  ///////////////////////////////////////////////
   void changeToLogin() {
     state = AuthenticationState.login();
   }
@@ -201,7 +272,8 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   void changeToSignup() {
     state = AuthenticationState.signup();
   }
-////////////////////////////////////////////
+
+  ////////////////////////////////////////////
   void gotoPrevSignupStep() {
     state = state.map(
       login: (loginState) => loginState,
@@ -231,6 +303,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       },
     );
   }
+
   void goToHome() {
     state = state.map(
       login: (loginState) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
@@ -12,13 +13,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
+import 'package:lam7a/features/navigation/view/screens/navigation_home_screen.dart';
+
 final List<Widget> signupFlowSteps = [
-    UserDataSignUp(),
-    VerificationCode(),
-    PasswordScreen(),
-    ProfilePicture(),
-    UserNameScreen(),
-  ];
+  UserDataSignUp(),
+  VerificationCode(),
+  PasswordScreen(),
+  ProfilePicture(),
+  UserNameScreen(),
+];
+
 class SignUpFlow extends StatelessWidget {
   static const String routeName = "sign_up_flow";
 
@@ -33,9 +37,10 @@ class SignUpFlow extends StatelessWidget {
         ////////////////////////////////////////////////////////////////
         final state = ref.watch(authenticationViewmodelProvider);
         final viewmodel = ref.watch(authenticationViewmodelProvider.notifier);
+        final authenticationState = ref.watch(authenticationProvider);
         int currentIndex = state.currentSignupStep;
         /////////////////////////////////////////////////////////////////
-        
+
         // pop scope to prevent pop screen on back gestures
         return PopScope(
           canPop: false,
@@ -82,7 +87,8 @@ class SignUpFlow extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              ((signupFlowSteps[currentIndex] is ProfilePicture) ||
+                              ((signupFlowSteps[currentIndex]
+                                          is ProfilePicture) ||
                                       (signupFlowSteps[currentIndex]
                                           is UserNameScreen))
                                   ? Expanded(
@@ -104,10 +110,17 @@ class SignUpFlow extends StatelessWidget {
                                   enable: viewmodel.shouldEnableNext(),
                                   label: nextLabels[currentIndex],
                                   onPressedEffect: () {
-                                    if (viewmodel.shouldEnableNext()){
-                                        viewmodel.registrationProgress();
+                                    if (viewmodel.shouldEnableNext()) {
+                                      viewmodel.registrationProgress();
+                                      if (authenticationState.isAuthenticated) {
+                                        Navigator.pushNamedAndRemoveUntil(
+                                          context,
+                                          NavigationHomeScreen.routeName,
+                                          (route) => false,
+                                        );
+                                      }
                                     }
-                                  }
+                                  },
                                 ),
                               ),
                             ],
