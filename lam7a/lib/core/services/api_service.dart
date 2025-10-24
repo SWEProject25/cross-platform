@@ -15,6 +15,6 @@ Openapi apiClient(Ref ref){
   ));
 
   final apiClient = Openapi(dio: dio);
-  
+
   return apiClient;
 }
