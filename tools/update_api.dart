@@ -12,34 +12,43 @@ const outputDir = 'Lam7aApi';
 Future<void> main(List<String> args) async {
   _log('Starting cross-platform OpenAPI build…');
 
-  try {
-    // 1) Download OpenAPI JSON
+  // If the user passed a path, use it; otherwise download.
+  String swaggerInputPath;
+  if (args.isNotEmpty) {
+    swaggerInputPath = args.first;
+    _log('Using local Swagger file: $swaggerInputPath');
+  } else {
+    _log('No file path provided. Downloading Swagger file...');
     await _downloadSwagger(swaggerUrl, downloadPath);
+    swaggerInputPath = downloadPath;
+    _log('Downloaded Swagger to: $swaggerInputPath');
+  }
 
-    // 2) Fix operationIds (try external script, otherwise built-in Dart fix)
-    await _dartFixOperationIds(downloadPath, fixedPath);
+  try {
+    // 1) Fix operationIds (try external script, otherwise built-in Dart fix)
+    await _dartFixOperationIds(swaggerInputPath, fixedPath);
 
-    // 3) Remove previous output directory (if exists)
+    // 2) Remove previous output directory (if exists)
     await _removeDirIfExists(outputDir);
 
-    // 4) Ensure openapi-generator-cli exists (install if needed)
+    // 3) Ensure openapi-generator-cli exists (install if needed)
     await _ensureOpenApiGenerator();
 
-    // 5) Generate Dart client
+    // 4) Generate Dart client
     await _runCmd(
       'openapi-generator-cli',
       ['generate', '-i', fixedPath, '-g', 'dart-dio', '-o', outputDir],
     );
 
-    // 6) Cleanup generator extras
+    // 5) Cleanup generator extras
     await _removeDirIfExists('$outputDir/test');
     await _removeDirIfExists('$outputDir/doc');
-    // await _removeFileIfExists(downloadPath);
-    // await _removeFileIfExists(fixedPath);
+    await _removeFileIfExists(downloadPath);
+    await _removeFileIfExists(fixedPath);
 
-    // 7) Flutter steps
+
+    // 6) Flutter steps
     await _runCmd('flutter', ['pub', 'get'], workingDirectory: outputDir);
-
     await _runCmd(
       'flutter',
       ['pub', 'run', 'build_runner', 'build', '--delete-conflicting-outputs'],
@@ -51,11 +60,11 @@ Future<void> main(List<String> args) async {
     exitCode = 0;
   } catch (e, st) {
     _err('Build failed: $e');
-    // print stack for debugging in CI
     stderr.writeln(st);
     exitCode = 1;
   }
 }
+
 
 /// Download OpenAPI JSON using Dart's HttpClient (no external curl dependency).
 Future<void> _downloadSwagger(String url, String outPath) async {
