@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:lam7a/features/tweet_summary/models/user_profile.dart';
+import 'package:lam7a/features/tweet/models/user_profile.dart';
 
-part 'mock_user_provider.g.dart';
+part 'mock_user_api_service.g.dart';
 
 final _mockUsers = {
   '1': UserProf(

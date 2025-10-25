@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:lam7a/features/tweet_summary/ui/state/tweet_state.dart';
-import 'package:lam7a/features/tweet_summary/services/mock_user_provider.dart';
+import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
+import 'package:lam7a/features/tweet/services/mock_user_api_service.dart';
 
 class TweetUserInfoDetailed extends ConsumerStatefulWidget {
   //need userProvider to check for changes for now i use static data

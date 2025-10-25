@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'tweet.freezed.dart';
-part 'tweet.g.dart';
+part 'tweet_model.freezed.dart';
+part 'tweet_model.g.dart';
 
 @freezed
 abstract class TweetModel with _$TweetModel {

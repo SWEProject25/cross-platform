@@ -1,6 +1,6 @@
-import 'package:lam7a/features/tweet_summary/ui/widgets/video_player_widget.dart';
+import 'package:lam7a/features/tweet/ui/widgets/video_player_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:lam7a/features/common/models/tweet.dart';
+import 'package:lam7a/features/common/models/tweet_model.dart';
 class TweetBodySummaryWidget extends StatelessWidget{
 
 final TweetModel post;

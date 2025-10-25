@@ -3,9 +3,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/theme/theme.dart';
 
-import 'package:lam7a/features/common/models/tweet.dart';
-import 'package:lam7a/features/tweet_summary/models/user_profile.dart';
-import 'package:lam7a/features/tweet_summary/ui/widgets/tweet.dart';
+import 'package:lam7a/features/common/models/tweet_model.dart';
+import 'package:lam7a/features/tweet/models/user_profile.dart';
+import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 void main() {
   debugPaintBaselinesEnabled = false;
   debugPaintSizeEnabled = false;
@@ -40,16 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final postDate = DateTime.now().subtract(const Duration(days: 1));
-    //dummy for Tweet_design fell free to remove when integrating :)
-    final post=TweetModel(id:"1",userId: "1",body: "Hi This Is The Tweet Body\nHappiness comes from within. Focus on gratitude, surround yourself with kind people, and do what brings meaning. Accept what you can’t control, forgive easily, and celebrate small wins. Stay present, care for your body and mind, and spread kindness daily.",
-    mediaPic:'https://tse4.mm.bing.net/th/id/OIP.u7kslI7potNthBAIm93JDwHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
-    mediaVideo: 'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
-    date: postDate, likes: 999,comments: 8900,views: 5700000 ,repost: 54 , qoutes: 9000000000,bookmarks: 10);
-   final user= UserProf(username: "Mazen", hashUserName: "@mazenthe1",id: '1',
-    profilePic: "https://tse1.mm.bing.net/th/id/OIP.LaIEJVg54ruohkapUdF8RAHaEy?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3");
 
-    //
     return Scaffold(
       backgroundColor: Colors.black,//Theme.of(context).colorScheme.onSurface,
    body: Center(

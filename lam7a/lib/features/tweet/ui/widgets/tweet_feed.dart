@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:lam7a/features/tweet_summary/ui/state/tweet_state.dart';
-import 'package:lam7a/features/tweet_summary/ui/viewmodel/tweet_viewmodel.dart';
+import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 class TweetFeed extends ConsumerStatefulWidget {

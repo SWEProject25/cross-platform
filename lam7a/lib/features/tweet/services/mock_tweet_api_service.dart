@@ -1,7 +1,9 @@
-import 'package:lam7a/features/common/models/tweet.dart';
+import 'package:lam7a/features/common/models/tweet_model.dart';
+import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'mock_tweet_provider.g.dart';
+
+part 'mock_tweet_api_service.g.dart';
 
 // Dummy in-memory mock tweets
 final _mockTweets = <String, TweetModel>{
@@ -39,7 +41,8 @@ final _mockTweets = <String, TweetModel>{
         "Hi This Is The Tweet Body\nHappiness comes from within. Focus on gratitude, surround yourself with kind people, and do what brings meaning. Accept what you can’t control, forgive easily, and celebrate small wins. Stay present, care for your body and mind, and spread kindness daily.",
     mediaPic:
         'https://tse4.mm.bing.net/th/id/OIP.u7kslI7potNthBAIm93JDwHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
-    mediaVideo: 'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+    mediaVideo:
+        'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
     date: DateTime.now().subtract(const Duration(days: 1)),
     likes: 999,
     comments: 8900,
@@ -50,46 +53,43 @@ final _mockTweets = <String, TweetModel>{
   ),
 };
 
-
-/// A single provider managing all mock tweet data.
 @riverpod
-class MockTweetRepository extends _$MockTweetRepository {
-  late Map<String, TweetModel> _tweets;
+class MockTweetRepository extends _$MockTweetRepository
+    implements TweetRepository {
+  // ✅ Initialize immediately
+  final Map<String, TweetModel> _tweets = Map.of(_mockTweets);
 
   @override
   void build() {
-    // initialize mock tweets once
-    _tweets = Map.of(_mockTweets);
+    // no-op — already initialized
   }
 
-  /// Simulate network delay
-  Future<void> _simulateDelay() async {
-    await Future.delayed(const Duration(milliseconds: 600));
-  }
+  Future<void> _simulateDelay() async =>
+      Future.delayed(const Duration(milliseconds: 400));
 
-  ///  Get one tweet by ID
+  @override
   Future<TweetModel> getTweetById(String id) async {
     await _simulateDelay();
     return _tweets[id] ?? _tweets.values.first;
   }
 
-  ///  Get all tweets
+  @override
   Future<List<TweetModel>> getAllTweets() async {
     await _simulateDelay();
     return _tweets.values.toList();
   }
 
-  ///  Update a tweet (e.g., after like or repost)
+  @override
   void updateTweet(TweetModel updated) {
     _tweets[updated.id] = updated;
   }
 
-  ///  Add a new tweet (optional)
+  @override
   void addTweet(TweetModel tweet) {
     _tweets[tweet.id] = tweet;
   }
 
-  ///  Delete a tweet (optional)
+  @override
   void deleteTweet(String id) {
     _tweets.remove(id);
   }

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'mock_tweet_provider.dart';
+part of 'mock_tweet_api_service.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -8,18 +8,12 @@ part of 'mock_tweet_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-///  This replaces `tweetByIdProvider`
-/// A single provider managing all mock tweet data.
 
 @ProviderFor(MockTweetRepository)
 const mockTweetRepositoryProvider = MockTweetRepositoryProvider._();
 
-///  This replaces `tweetByIdProvider`
-/// A single provider managing all mock tweet data.
 final class MockTweetRepositoryProvider
     extends $NotifierProvider<MockTweetRepository, void> {
-  ///  This replaces `tweetByIdProvider`
-  /// A single provider managing all mock tweet data.
   const MockTweetRepositoryProvider._()
     : super(
         from: null,
@@ -48,10 +42,7 @@ final class MockTweetRepositoryProvider
 }
 
 String _$mockTweetRepositoryHash() =>
-    r'bfcab7c25893f4a8a1d27ec61fbfa64cae89ff44';
-
-///  This replaces `tweetByIdProvider`
-/// A single provider managing all mock tweet data.
+    r'948110a5fc84def0a390ca0247b5632247f4ab0d';
 
 abstract class _$MockTweetRepository extends $Notifier<void> {
   void build();

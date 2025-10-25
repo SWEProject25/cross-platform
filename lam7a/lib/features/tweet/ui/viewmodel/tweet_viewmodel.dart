@@ -1,6 +1,7 @@
 import 'package:flutter/animation.dart';
-import 'package:lam7a/features/tweet_summary/ui/state/tweet_state.dart';
-import 'package:lam7a/features/tweet_summary/services/mock_tweet_provider.dart';
+import 'package:lam7a/features/tweet/repository/tweet%20_repository_provider.dart';
+import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
+import 'package:lam7a/features/tweet/services/mock_tweet_api_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'tweet_viewmodel.g.dart';
@@ -10,7 +11,7 @@ class TweetViewModel extends _$TweetViewModel {
 
 @override
 FutureOr<TweetState> build(String tweetId) async {
-  final repo = ref.read(mockTweetRepositoryProvider.notifier);
+  final repo = ref.read(tweetRepositoryProvider);
   final tweet = await repo.getTweetById(tweetId);
 
   return TweetState(

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'mock_user_provider.dart';
+part of 'mock_user_api_service.dart';
 
 // **************************************************************************
 // RiverpodGenerator

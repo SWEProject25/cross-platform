@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:lam7a/features/tweet_summary/ui/widgets/tweet_body.dart';
-import 'package:lam7a/features/tweet_detailed/ui/view/pages/tweet_detailed_widget.dart';
-import 'package:lam7a/features/tweet_summary/ui/widgets/tweet_feed.dart';
-import 'package:lam7a/features/tweet_summary/ui/widgets/tweet_user_info_summary.dart';
-import 'package:lam7a/features/tweet_summary/ui/viewmodel/tweet_viewmodel.dart';
+import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
+import 'package:lam7a/features/tweet/ui/view/pages/tweet_detailed_widget.dart';
+import 'package:lam7a/features/tweet/ui/widgets/tweet_feed.dart';
+import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_summary.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 
 class TweetSummaryWidget extends ConsumerWidget {
   const TweetSummaryWidget({
