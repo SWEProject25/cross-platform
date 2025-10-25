@@ -1,9 +1,38 @@
 import 'package:lam7a/features/common/models/tweet_model.dart';
+import 'package:lam7a/features/tweet/services/tweet_api_service.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-abstract class TweetRepository {
-  Future<TweetModel> getTweetById(String id);
-  Future<List<TweetModel>> getAllTweets();
-  void updateTweet(TweetModel updated);
-  void addTweet(TweetModel tweet);
-  void deleteTweet(String id);
+part 'tweet_repository.g.dart';
+
+@riverpod
+TweetRepository tweetRepository(Ref ref) {
+  // You can toggle between mock and API service here later
+  final apiService = ref.read(tweetsApiServiceProvider);
+  return TweetRepository(apiService);
+}
+
+class TweetRepository {
+  final TweetsApiService _apiService;
+
+  TweetRepository(this._apiService);
+
+  Future<List<TweetModel>> fetchAllTweets() async {
+    return await _apiService.getAllTweets();
+  }
+
+  Future<TweetModel> fetchTweetById(String id) async {
+    return await _apiService.getTweetById(id);
+  }
+
+  Future<void> addTweet(TweetModel tweet) async {
+    await _apiService.addTweet(tweet);
+  }
+
+  Future<void> updateTweet(TweetModel tweet) async {
+    await _apiService.updateTweet(tweet);
+  }
+
+  Future<void> deleteTweet(String id) async {
+    await _apiService.deleteTweet(id);
+  }
 }

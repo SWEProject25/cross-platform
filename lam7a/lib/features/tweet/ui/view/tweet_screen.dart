@@ -5,10 +5,10 @@ import 'package:lam7a/features/tweet/ui/widgets/tweet_detailed_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_detailed.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 
-class TweetDetailedWidget extends ConsumerWidget {
+class TweetScreen extends ConsumerWidget {
   final String tweetId;
 
-  const TweetDetailedWidget({super.key, required this.tweetId});
+  const TweetScreen({super.key, required this.tweetId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

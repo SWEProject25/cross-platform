@@ -1,7 +1,6 @@
 import 'package:flutter/animation.dart';
-import 'package:lam7a/features/tweet/repository/tweet%20_repository_provider.dart';
+import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
-import 'package:lam7a/features/tweet/services/mock_tweet_api_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'tweet_viewmodel.g.dart';
@@ -12,7 +11,7 @@ class TweetViewModel extends _$TweetViewModel {
 @override
 FutureOr<TweetState> build(String tweetId) async {
   final repo = ref.read(tweetRepositoryProvider);
-  final tweet = await repo.getTweetById(tweetId);
+  final tweet = await repo.fetchTweetById(tweetId);
 
   return TweetState(
     isLiked: false,
@@ -25,7 +24,7 @@ FutureOr<TweetState> build(String tweetId) async {
 
   //  Handle Like toggle
   void handleLike({required AnimationController controller}) {
-    final repo = ref.read(mockTweetRepositoryProvider.notifier);
+    final repo = ref.read(tweetRepositoryProvider);
     final current = state.value!;
     final tweet= state.value!.tweet.value!;
     if (current.isLiked) {
@@ -44,7 +43,7 @@ FutureOr<TweetState> build(String tweetId) async {
 
   // Handle Repost toggle
   void handleRepost({required AnimationController controllerRepost}) {
-    final repo = ref.read(mockTweetRepositoryProvider.notifier);
+    final repo = ref.read(tweetRepositoryProvider);
     final current = state.value!;
     final tweet= state.value!.tweet.value!;
     if (current.isReposted) {
@@ -82,7 +81,7 @@ FutureOr<TweetState> build(String tweetId) async {
   }
 
   void handleViews() {
-    final repo= ref.read(mockTweetRepositoryProvider.notifier);
+    final repo= ref.read(tweetRepositoryProvider);
     final current=state.value!;
     final tweet= state.value!.tweet.value!;
     if (!current.isViewed) {

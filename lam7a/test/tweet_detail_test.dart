@@ -2,12 +2,12 @@ import 'package:flutter/animation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
-import 'package:lam7a/features/tweet/services/mock_tweet_api_service.dart';
+import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:mocktail/mocktail.dart';
 
 /// ---- MOCK CLASSES ----
-class MockTweetRepo extends Mock implements MockTweetRepository {}
+class MockTweetRepository extends Mock implements TweetRepository {}
 
 class FakeAnimationController extends Fake implements AnimationController {}
 
@@ -15,7 +15,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late ProviderContainer container;
-  late MockTweetRepo mockRepo;
+  late MockTweetRepository mockRepo;
   const tweetId = 't1';
 
   final testTweet = TweetModel(
@@ -39,10 +39,10 @@ void main() {
   });
 
   setUp(() {
-    mockRepo = MockTweetRepo();
+    mockRepo = MockTweetRepository();
     container = ProviderContainer(
       overrides: [
-        mockTweetRepositoryProvider.overrideWithValue(mockRepo),
+        tweetRepositoryProvider.overrideWithValue(mockRepo),
       ],
     );
   });
@@ -53,7 +53,7 @@ void main() {
 
   group('TweetViewModel Tests', () {
     test('Initial state builds correctly', () async {
-      when(() => mockRepo.getTweetById(tweetId))
+      when(() => mockRepo.fetchTweetById(tweetId))
           .thenAnswer((_) async => testTweet);
 
       final viewModel = container.read(tweetViewModelProvider(tweetId).notifier);
@@ -66,7 +66,7 @@ void main() {
     });
 
     test('handleLike increments likes when not liked', () async {
-      when(() => mockRepo.getTweetById(tweetId))
+      when(() => mockRepo.fetchTweetById(tweetId))
           .thenAnswer((_) async => testTweet);
       when(() => mockRepo.updateTweet(any())).thenAnswer((_) async {});
 
@@ -84,7 +84,7 @@ void main() {
     });
 
     test('handleLike decrements likes when already liked', () async {
-      when(() => mockRepo.getTweetById(tweetId))
+      when(() => mockRepo.fetchTweetById(tweetId))
           .thenAnswer((_) async => testTweet);
       when(() => mockRepo.updateTweet(any())).thenAnswer((_) async {});
 
@@ -106,7 +106,7 @@ void main() {
     });
 
     test('handleRepost toggles repost count', () async {
-      when(() => mockRepo.getTweetById(tweetId))
+      when(() => mockRepo.fetchTweetById(tweetId))
           .thenAnswer((_) async => testTweet);
       when(() => mockRepo.updateTweet(any())).thenAnswer((_) async {});
 
@@ -125,7 +125,7 @@ void main() {
     });
 
     test('handleViews increases view count once only', () async {
-      when(() => mockRepo.getTweetById(tweetId))
+      when(() => mockRepo.fetchTweetById(tweetId))
           .thenAnswer((_) async => testTweet);
       when(() => mockRepo.updateTweet(any())).thenAnswer((_) async {});
 

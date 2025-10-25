@@ -1,9 +1,6 @@
 import 'package:lam7a/features/common/models/tweet_model.dart';
-import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:lam7a/features/tweet/services/tweet_api_service.dart';
 
-
-part 'mock_tweet_api_service.g.dart';
 
 // Dummy in-memory mock tweets
 final _mockTweets = <String, TweetModel>{
@@ -25,7 +22,7 @@ final _mockTweets = <String, TweetModel>{
   't2': TweetModel(
     id: 't2',
     userId: '2',
-    body: 'Mock tweet #2 — Flutter is amazing 💙',
+    body: 'Mock tweet #2 — Flutter is amazing ',
     likes: 54,
     repost: 2,
     comments: 10,
@@ -53,25 +50,13 @@ final _mockTweets = <String, TweetModel>{
   ),
 };
 
-@riverpod
-class MockTweetRepository extends _$MockTweetRepository
-    implements TweetRepository {
-  // ✅ Initialize immediately
+
+
+class TweetsApiServiceMock implements TweetsApiService {
   final Map<String, TweetModel> _tweets = Map.of(_mockTweets);
 
-  @override
-  void build() {
-    // no-op — already initialized
-  }
-
   Future<void> _simulateDelay() async =>
-      Future.delayed(const Duration(milliseconds: 400));
-
-  @override
-  Future<TweetModel> getTweetById(String id) async {
-    await _simulateDelay();
-    return _tweets[id] ?? _tweets.values.first;
-  }
+      Future.delayed(const Duration(milliseconds: 300));
 
   @override
   Future<List<TweetModel>> getAllTweets() async {
@@ -80,17 +65,27 @@ class MockTweetRepository extends _$MockTweetRepository
   }
 
   @override
-  void updateTweet(TweetModel updated) {
-    _tweets[updated.id] = updated;
+  Future<TweetModel> getTweetById(String id) async {
+    await _simulateDelay();
+    return _tweets[id] ?? _tweets.values.first;
   }
 
   @override
-  void addTweet(TweetModel tweet) {
+  Future<void> addTweet(TweetModel tweet) async {
+    await _simulateDelay();
     _tweets[tweet.id] = tweet;
   }
 
   @override
-  void deleteTweet(String id) {
+  Future<void> updateTweet(TweetModel tweet) async {
+    await _simulateDelay();
+    _tweets[tweet.id] = tweet;
+  }
+
+  @override
+  Future<void> deleteTweet(String id) async {
+    await _simulateDelay();
     _tweets.remove(id);
   }
 }
+
