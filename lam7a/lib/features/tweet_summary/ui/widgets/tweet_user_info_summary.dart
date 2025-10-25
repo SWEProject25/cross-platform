@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lam7a/features/tweet_summary/state/tweet_state.dart';
-import 'package:lam7a/features/tweet_summary/repository/mock_user_provider.dart';
-class TweetUserInfo extends ConsumerStatefulWidget
+import 'package:lam7a/features/tweet_summary/ui/state/tweet_state.dart';
+import 'package:lam7a/features/tweet_summary/services/mock_user_provider.dart';
+class TweetUserSummaryInfo extends ConsumerStatefulWidget
 {
    //need userProvider to check for changes for now i use static data
-  const TweetUserInfo({super.key, required this.tweetState, required this.daysPosted});
+  const TweetUserSummaryInfo({super.key, required this.tweetState, required this.daysPosted});
   final TweetState tweetState;
   final int daysPosted;
   @override
-  ConsumerState<TweetUserInfo> createState() {
-    return _TweetUserInfo();
+  ConsumerState<TweetUserSummaryInfo> createState() {
+    return _TweetUserSummaryInfoState();
 }
 }
 
-class _TweetUserInfo extends ConsumerState<TweetUserInfo>{
+class _TweetUserSummaryInfoState extends ConsumerState<TweetUserSummaryInfo>{
   @override
   Widget build(BuildContext context) {
 //need userProvider to check for changes for now i use static data

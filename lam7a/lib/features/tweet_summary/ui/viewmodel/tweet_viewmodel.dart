@@ -1,6 +1,6 @@
 import 'package:flutter/animation.dart';
-import 'package:lam7a/features/tweet_summary/state/tweet_state.dart';
-import 'package:lam7a/features/tweet_summary/repository/mock_tweet_provider.dart';
+import 'package:lam7a/features/tweet_summary/ui/state/tweet_state.dart';
+import 'package:lam7a/features/tweet_summary/services/mock_tweet_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'tweet_viewmodel.g.dart';

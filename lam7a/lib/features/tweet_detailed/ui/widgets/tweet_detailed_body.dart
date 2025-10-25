@@ -1,10 +1,10 @@
-import 'package:lam7a/features/tweet_summary/state/tweet_state.dart';
-import 'package:lam7a/features/tweet_summary/ui/view/widgets/vedio_player.dart';
+import 'package:lam7a/features/tweet_summary/ui/state/tweet_state.dart';
+import 'package:lam7a/features/tweet_summary/ui/widgets/video_player_widget.dart';
 import 'package:flutter/material.dart';
-class TweetBodyDetailedWidget extends StatelessWidget{
+class TweetDetailedBodyWidget extends StatelessWidget{
 
   final TweetState tweetState;
- const TweetBodyDetailedWidget({super.key,required this.tweetState});
+ const TweetDetailedBodyWidget({super.key,required this.tweetState});
   @override
   Widget build(BuildContext context) {
     final post= tweetState.tweet.value!;

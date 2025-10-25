@@ -1,4 +1,4 @@
-import 'package:lam7a/features/models/tweet.dart';
+import 'package:lam7a/features/common/models/tweet.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'mock_tweet_provider.g.dart';
@@ -50,7 +50,7 @@ final _mockTweets = <String, TweetModel>{
   ),
 };
 
-/// ✅ This replaces `tweetByIdProvider`
+
 /// A single provider managing all mock tweet data.
 @riverpod
 class MockTweetRepository extends _$MockTweetRepository {
@@ -67,29 +67,29 @@ class MockTweetRepository extends _$MockTweetRepository {
     await Future.delayed(const Duration(milliseconds: 600));
   }
 
-  /// 🔹 Get one tweet by ID
+  ///  Get one tweet by ID
   Future<TweetModel> getTweetById(String id) async {
     await _simulateDelay();
     return _tweets[id] ?? _tweets.values.first;
   }
 
-  /// 🔹 Get all tweets
+  ///  Get all tweets
   Future<List<TweetModel>> getAllTweets() async {
     await _simulateDelay();
     return _tweets.values.toList();
   }
 
-  /// 🔹 Update a tweet (e.g., after like or repost)
+  ///  Update a tweet (e.g., after like or repost)
   void updateTweet(TweetModel updated) {
     _tweets[updated.id] = updated;
   }
 
-  /// 🔹 Add a new tweet (optional)
+  ///  Add a new tweet (optional)
   void addTweet(TweetModel tweet) {
     _tweets[tweet.id] = tweet;
   }
 
-  /// 🔹 Delete a tweet (optional)
+  ///  Delete a tweet (optional)
   void deleteTweet(String id) {
     _tweets.remove(id);
   }

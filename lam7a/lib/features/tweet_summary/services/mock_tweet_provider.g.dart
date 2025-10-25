@@ -8,17 +8,17 @@ part of 'mock_tweet_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// ✅ This replaces `tweetByIdProvider`
+///  This replaces `tweetByIdProvider`
 /// A single provider managing all mock tweet data.
 
 @ProviderFor(MockTweetRepository)
 const mockTweetRepositoryProvider = MockTweetRepositoryProvider._();
 
-/// ✅ This replaces `tweetByIdProvider`
+///  This replaces `tweetByIdProvider`
 /// A single provider managing all mock tweet data.
 final class MockTweetRepositoryProvider
     extends $NotifierProvider<MockTweetRepository, void> {
-  /// ✅ This replaces `tweetByIdProvider`
+  ///  This replaces `tweetByIdProvider`
   /// A single provider managing all mock tweet data.
   const MockTweetRepositoryProvider._()
     : super(
@@ -50,7 +50,7 @@ final class MockTweetRepositoryProvider
 String _$mockTweetRepositoryHash() =>
     r'bfcab7c25893f4a8a1d27ec61fbfa64cae89ff44';
 
-/// ✅ This replaces `tweetByIdProvider`
+///  This replaces `tweetByIdProvider`
 /// A single provider managing all mock tweet data.
 
 abstract class _$MockTweetRepository extends $Notifier<void> {

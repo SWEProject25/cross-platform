@@ -1,20 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:lam7a/features/tweet_summary/state/tweet_state.dart';
-import 'package:lam7a/features/tweet_summary/ui/view_model/tweet_viewmodel.dart';
+import 'package:lam7a/features/tweet_summary/ui/state/tweet_state.dart';
+import 'package:lam7a/features/tweet_summary/ui/viewmodel/tweet_viewmodel.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:intl/intl.dart';
 
-class TweetFeedDetailed extends ConsumerStatefulWidget {
-  const TweetFeedDetailed({super.key, required this.tweetState});
+class TweetDetailedFeed extends ConsumerStatefulWidget {
+  const TweetDetailedFeed({super.key, required this.tweetState});
   final TweetState tweetState;
   @override
-  ConsumerState<TweetFeedDetailed> createState() {
-    return _TweetFeedState();
+  ConsumerState<TweetDetailedFeed> createState() {
+    return _TweetDetailedFeedState();
   }
 }
 
-class _TweetFeedState extends ConsumerState<TweetFeedDetailed>
+class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
     with TickerProviderStateMixin {
   // for the like animation
   late AnimationController _controller;
