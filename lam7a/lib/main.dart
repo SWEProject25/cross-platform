@@ -7,7 +7,7 @@ import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 
 void main() {
-  runApp(ProviderScope(child: TestTweetApp()));
+  runApp(ProviderScope(child: MyApp()));
 }
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -19,12 +19,12 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.light,
-      // routes: {
-      //   FirstTimeScreen.routeName : (context) => FirstTimeScreen(),
-      //   SignUpFlow.routeName : (context) => SignUpFlow(), 
-      //   LogInScreen.routeName : (context) => LogInScreen(),
-      // },
-      // initialRoute: FirstTimeScreen.routeName,
+      routes: {
+        FirstTimeScreen.routeName : (context) => FirstTimeScreen(),
+        SignUpFlow.routeName : (context) => SignUpFlow(), 
+        LogInScreen.routeName : (context) => LogInScreen(),
+      },
+      initialRoute: FirstTimeScreen.routeName,
     );
   }
 }
