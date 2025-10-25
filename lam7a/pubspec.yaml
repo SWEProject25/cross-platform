@@ -29,7 +29,10 @@ dependencies:
   # State Management & Code Generation Annotations
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
+
   riverpod_annotation: ^3.0.3
+  top_snackbar_flutter: ^3.1.0
+  video_player: ^2.9.1
 
   # UI / Utilities
   dotted_border: ^3.1.0
@@ -38,19 +41,22 @@ dependencies:
   timeago: ^3.7.1
 
 dev_dependencies:
+  freezed: ^3.1.0
+  riverpod_generator: ^3.0.3
+  json_serializable: ^6.9.2
+  flutter_lints: ^6.0.0
+  custom_lint: ^0.8.0
   flutter_test:
     sdk: flutter
+  mocktail: ^1.0.3
+
+
 
   # Code Generators (used with annotations above)
   build_runner: ^2.7.1
-  custom_lint: ^0.8.0
-  freezed: ^3.2.3
-  json_serializable: ^6.11.1
-  riverpod_generator: ^3.0.3
 
   # Linting & Tooling
   flutter_launcher_icons: ^0.14.4
-  flutter_lints: ^5.0.0
   riverpod_lint: ^3.0.3
 
 

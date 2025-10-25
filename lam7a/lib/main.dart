@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/theme/theme.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authentication_login_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
 
+import 'package:lam7a/features/common/models/tweet_model.dart';
+import 'package:lam7a/features/tweet/models/user_profile.dart';
+import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 void main() {
+  debugPaintBaselinesEnabled = false;
+  debugPaintSizeEnabled = false;
   runApp(ProviderScope(child: MyApp()));
 }
 class MyApp extends StatelessWidget {
@@ -37,38 +43,22 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+      backgroundColor: Colors.black,//Theme.of(context).colorScheme.onSurface,
+   body: Center(
+    child: Column(
+      children: [
+        SizedBox(height: 10,),
+        TweetSummaryWidget(tweetId: 't3'),
+        SizedBox(height: 10,),
+      ],
+    ),
+   ),
     );
   }
 }
