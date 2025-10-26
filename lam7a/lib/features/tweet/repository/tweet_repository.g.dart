@@ -49,4 +49,4 @@ final class TweetRepositoryProvider
   }
 }
 
-String _$tweetRepositoryHash() => r'9193b84618166282a9c7970f68e85556bd7edd75';
+String _$tweetRepositoryHash() => r'a29e83d2a58eb4324d517b057c8ae033367df023';
