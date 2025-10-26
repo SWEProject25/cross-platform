@@ -14,9 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AuthState {
 
- UserModel? get user; set user(UserModel? value);// need to change 
- String? get token;// need to change 
- set token(String? value); bool get isAuthenticated; set isAuthenticated(bool value);
+ String? get token; UserModel? get user; bool get isAuthenticated;
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,16 +25,16 @@ $AuthStateCopyWith<AuthState> get copyWith => _$AuthStateCopyWithImpl<AuthState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthState&&(identical(other.user, user) || other.user == user)&&(identical(other.token, token) || other.token == token)&&(identical(other.isAuthenticated, isAuthenticated) || other.isAuthenticated == isAuthenticated));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthState&&(identical(other.token, token) || other.token == token)&&(identical(other.user, user) || other.user == user)&&(identical(other.isAuthenticated, isAuthenticated) || other.isAuthenticated == isAuthenticated));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,user,token,isAuthenticated);
+int get hashCode => Object.hash(runtimeType,token,user,isAuthenticated);
 
 @override
 String toString() {
-  return 'AuthState(user: $user, token: $token, isAuthenticated: $isAuthenticated)';
+  return 'AuthState(token: $token, user: $user, isAuthenticated: $isAuthenticated)';
 }
 
 
@@ -47,11 +45,11 @@ abstract mixin class $AuthStateCopyWith<$Res>  {
   factory $AuthStateCopyWith(AuthState value, $Res Function(AuthState) _then) = _$AuthStateCopyWithImpl;
 @useResult
 $Res call({
- String? token, UserModel? user
+ String? token, UserModel? user, bool isAuthenticated
 });
 
 
-
+$UserModelCopyWith<$Res>? get user;
 
 }
 /// @nodoc
@@ -64,14 +62,27 @@ class _$AuthStateCopyWithImpl<$Res>
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? token = freezed,Object? user = freezed,}) {
-  return _then(AuthState(
+@pragma('vm:prefer-inline') @override $Res call({Object? token = freezed,Object? user = freezed,Object? isAuthenticated = null,}) {
+  return _then(_self.copyWith(
 token: freezed == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
 as String?,user: freezed == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
-as UserModel?,
+as UserModel?,isAuthenticated: null == isAuthenticated ? _self.isAuthenticated : isAuthenticated // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
+/// Create a copy of AuthState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$UserModelCopyWith<$Res>? get user {
+    if (_self.user == null) {
+    return null;
+  }
 
+  return $UserModelCopyWith<$Res>(_self.user!, (value) {
+    return _then(_self.copyWith(user: value));
+  });
+}
 }
 
 
@@ -89,10 +100,11 @@ extension AuthStatePatterns on AuthState {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _AuthState value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _:
+case _AuthState() when $default != null:
+return $default(_that);case _:
   return orElse();
 
 }
@@ -110,10 +122,11 @@ case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _AuthState value)  $default,){
 final _that = this;
 switch (_that) {
-case _:
+case _AuthState():
+return $default(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -130,10 +143,11 @@ case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _AuthState value)?  $default,){
 final _that = this;
 switch (_that) {
-case _:
+case _AuthState() when $default != null:
+return $default(_that);case _:
   return null;
 
 }
@@ -150,9 +164,10 @@ case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? token,  UserModel? user,  bool isAuthenticated)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _:
+case _AuthState() when $default != null:
+return $default(_that.token,_that.user,_that.isAuthenticated);case _:
   return orElse();
 
 }
@@ -170,9 +185,10 @@ case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>() {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? token,  UserModel? user,  bool isAuthenticated)  $default,) {final _that = this;
 switch (_that) {
-case _:
+case _AuthState():
+return $default(_that.token,_that.user,_that.isAuthenticated);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -189,14 +205,97 @@ case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>() {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? token,  UserModel? user,  bool isAuthenticated)?  $default,) {final _that = this;
 switch (_that) {
-case _:
+case _AuthState() when $default != null:
+return $default(_that.token,_that.user,_that.isAuthenticated);case _:
   return null;
 
 }
 }
 
+}
+
+/// @nodoc
+
+
+class _AuthState implements AuthState {
+  const _AuthState({this.token, this.user, this.isAuthenticated = false});
+  
+
+@override final  String? token;
+@override final  UserModel? user;
+@override@JsonKey() final  bool isAuthenticated;
+
+/// Create a copy of AuthState
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$AuthStateCopyWith<_AuthState> get copyWith => __$AuthStateCopyWithImpl<_AuthState>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthState&&(identical(other.token, token) || other.token == token)&&(identical(other.user, user) || other.user == user)&&(identical(other.isAuthenticated, isAuthenticated) || other.isAuthenticated == isAuthenticated));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,token,user,isAuthenticated);
+
+@override
+String toString() {
+  return 'AuthState(token: $token, user: $user, isAuthenticated: $isAuthenticated)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$AuthStateCopyWith<$Res> implements $AuthStateCopyWith<$Res> {
+  factory _$AuthStateCopyWith(_AuthState value, $Res Function(_AuthState) _then) = __$AuthStateCopyWithImpl;
+@override @useResult
+$Res call({
+ String? token, UserModel? user, bool isAuthenticated
+});
+
+
+@override $UserModelCopyWith<$Res>? get user;
+
+}
+/// @nodoc
+class __$AuthStateCopyWithImpl<$Res>
+    implements _$AuthStateCopyWith<$Res> {
+  __$AuthStateCopyWithImpl(this._self, this._then);
+
+  final _AuthState _self;
+  final $Res Function(_AuthState) _then;
+
+/// Create a copy of AuthState
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? token = freezed,Object? user = freezed,Object? isAuthenticated = null,}) {
+  return _then(_AuthState(
+token: freezed == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
+as String?,user: freezed == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
+as UserModel?,isAuthenticated: null == isAuthenticated ? _self.isAuthenticated : isAuthenticated // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+/// Create a copy of AuthState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$UserModelCopyWith<$Res>? get user {
+    if (_self.user == null) {
+    return null;
+  }
+
+  return $UserModelCopyWith<$Res>(_self.user!, (value) {
+    return _then(_self.copyWith(user: value));
+  });
+}
 }
 
 // dart format on

@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps/password_login_step.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps/unique_identifier_step.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
+import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
+import 'package:lam7a/features/navigation/view/screens/navigation_home_screen.dart';
+
+List<Widget> loginFlow = [UniqueIdentifier(), PasswordLogin()];
 
 class LogInScreen extends StatefulWidget {
   static const String routeName = "login";
@@ -13,21 +19,42 @@ class LogInScreen extends StatefulWidget {
   const LogInScreen({super.key});
 
   @override
-  State<LogInScreen> createState() => _LogInScreenState();
+  State<LogInScreen> createState() => _loginFlowtate();
 }
 
-class _LogInScreenState extends State<LogInScreen> {
+class _loginFlowtate extends State<LogInScreen> {
   @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
+        ///////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////
+        ref.listen(authenticationProvider, (previous, next) {
+          if (next.isAuthenticated && !(previous?.isAuthenticated ?? false)) {
+            if (!context.mounted) return;
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              NavigationHomeScreen.routeName,
+              (route) => false,
+            );
+          }
+        });
         final state = ref.watch(authenticationViewmodelProvider);
         final viewmodel = ref.watch(authenticationViewmodelProvider.notifier);
-        final loginScreens = ref.watch(loginFlowProvider);
+        final authenticationState = ref.watch(authenticationProvider);
         int currentIndex = state.currentLoginStep;
-        // this pop scope is to preven the back gestures from the user and do what i want instead 
+        ///////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////
+        // this pop scope is to preven the back gestures from the user and do what i want instead
+        ///////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////
         return PopScope(
           onPopInvokedWithResult: (didPop, result) {
+            if (currentIndex > 0)
+            {
+              viewmodel.gotoPrevLoginStep();
+              return;
+            }
             Navigator.pushReplacementNamed(context, FirstTimeScreen.routeName);
             viewmodel.goToHome();
           },
@@ -46,40 +73,50 @@ class _LogInScreenState extends State<LogInScreen> {
                 icon: Icon(Icons.close),
               ),
             ),
-            body: !state.isLoadingLogin ? Column(
-              children: [
-                loginScreens[currentIndex],
-                Spacer(flex: 5),
+            body: !state.isLoadingLogin
+                ? Column(
+                    children: [
+                      loginFlow[currentIndex],
+                      Spacer(flex: 5),
 
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Spacer(flex: 6),
-                        Expanded(
-                          flex: 2,
-                          child: AuthenticationStepButton(
-                            label: "Next",
-                            onPressedEffect: () {
-                              if (currentIndex == 1)
-                              {
-                                viewmodel.login();
-                              }
-                              else
-                              viewmodel.gotoNextLoginStep();
-                              
-                            },
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          margin: EdgeInsets.symmetric(horizontal: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Spacer(flex: 6),
+                              Expanded(
+                                flex: 2,
+                                child: AuthenticationStepButton(
+                                  label: loginButtonLabels[currentIndex],
+                                  onPressedEffect: () {
+                                    if (currentIndex == finishLogin) {
+                                      viewmodel.login();
+                                      print(authenticationState.isAuthenticated + "//////////////////////////////////////////");
+                                      if (authenticationState.isAuthenticated) {
+                                        Navigator.pushNamedAndRemoveUntil(
+                                          context,
+                                          NavigationHomeScreen.routeName,
+                                          (route) => false,
+                                        );
+                                      }
+                                    } else {
+                                      viewmodel.gotoNextLoginStep();
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  )
+                : Center(
+                    child: CircularProgressIndicator(color: Pallete.blackColor),
                   ),
-                ),
-              ],
-            ) : Center(child: CircularProgressIndicator(color: Pallete.blackColor,)),
           ),
         );
       },

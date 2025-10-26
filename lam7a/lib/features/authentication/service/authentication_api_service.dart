@@ -12,63 +12,57 @@ import 'package:lam7a/features/authentication/model/authentication_user_data_mod
 class AuthenticationApiService {
   Future<Map<String, dynamic>> checkEmail(
     String email,
-    ApiService apiService,
+    final apiService,
   ) async {
     return await apiService.post(
       endpoint: ServerConstant.domain + ServerConstant.checkEmailEndPoint,
       data: {'email': email},
-      fromJson: fromJsonToMap,
     );
   }
 
   Future<Map<String, dynamic>> verificationOTP(
     String email,
-    ApiService apiService,
+    final apiService,
   ) async {
     return await apiService.post(
       endpoint: ServerConstant.domain + ServerConstant.verificationOTP,
       data: {'email': email},
-      fromJson: fromJsonToMap,
     );
   }
 
   Future<Map<String, dynamic>> resendOTP(
     String email,
-    ApiService apiService,
+    final apiService,
   ) async {
     return await apiService.post(
       endpoint: ServerConstant.domain + ServerConstant.resendOTP,
       data: {'email': email},
-      fromJson: fromJsonToMap,
     );
   }
 
   Future<Map<String, dynamic>> verifyOTP(
     String email,
     String OTP,
-    ApiService apiService,
+    final apiService,
   ) async {
     return await apiService.post(
       endpoint: ServerConstant.domain + ServerConstant.verifyOTP,
       data: {'email': email, 'otp': OTP},
-      fromJson: fromJsonToMap,
     );
   }
 
-  Future<Map<String, dynamic>> register(AuthenticationUserDataModel user, ApiService apiService) async {
+  Future<Map<String, dynamic>> register(AuthenticationUserDataModel user, final apiService) async {
    
     return await apiService.post(
-      endpoint: ServerConstant.domain + ServerConstant.verifyOTP,
+      endpoint: ServerConstant.domain + ServerConstant.registrationEndPoint,
       data: user.toJson(),
-      fromJson: fromJsonToMap,
     );
   }
 
-  Future<Map<String, dynamic>> Login(AuthenticationUserCredentialsModel userCredentials,ApiService apiService) async {
+  Future<Map<String, dynamic>> Login(AuthenticationUserCredentialsModel userCredentials,final apiService) async {
     return await apiService.post(
-      endpoint: ServerConstant.domain + ServerConstant.verifyOTP,
+      endpoint: ServerConstant.domain + ServerConstant.login,
       data: userCredentials.toJson(),
-      fromJson: fromJsonToMap,
     );
   }
 }

@@ -61,7 +61,7 @@ class VerificationCode extends StatelessWidget {
               children: [
                 SizedBox(width: 40),
                 InkWell(
-                  onTap: (){viewModel.resendOTP();},
+                  onTap: ()async{await viewModel.resendOTP();},
                   child: const Text(
                     otpCodeResendText,
                     style: TextStyle(color: Pallete.borderHover),

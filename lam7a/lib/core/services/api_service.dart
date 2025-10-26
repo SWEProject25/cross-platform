@@ -1,45 +1,59 @@
+import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:lam7a/core/constants/server_constant.dart';
-import 'package:openapi/openapi.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lam7a/core/constants/server_constant.dart';
 
-final apiServiceProvider = Provider<ApiService>((ref) {
-  return ApiService();
+final apiServiceProvider = FutureProvider<ApiService>((ref) async {
+  return await create();
 });
+
+Future<Dio> prepareCookieManager() async {
+  final directory = await getApplicationDocumentsDirectory();
+  final cookiePath = path.join(directory.path, '.cookies');
+  await Directory(cookiePath).create(recursive: true); // ✅ Ensure folder exists
+  final cookieJar = PersistCookieJar(
+    storage: FileStorage(cookiePath),
+  );
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: ApiService._baseUrl,
+      connectTimeout: Duration(seconds: ApiService._timeoutSeconds),
+      receiveTimeout: Duration(seconds: ApiService._timeoutSeconds),
+      sendTimeout: Duration(seconds: ApiService._timeoutSeconds),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    ),
+  );
+  dio.interceptors.add(CookieManager(cookieJar));
+  return dio;
+}
+
+Future<ApiService> create() async {
+  final dio = await prepareCookieManager();
+  dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true));
+  return ApiService(dio);
+}
 
 class ApiService {
   late final Dio _dio;
-  
+
   // Base URL for the APIpart 'api_service.g.dart';
 
   static final String _baseUrl = ServerConstant.serverURL;
-  
+
   // Initialize timeout duration
   static const int _timeoutSeconds = 30;
 
-  ApiService() {
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: _baseUrl,
-        connectTimeout: Duration(seconds: _timeoutSeconds),
-        receiveTimeout: Duration(seconds: _timeoutSeconds),
-        sendTimeout: Duration(seconds: _timeoutSeconds),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      ),
-    );
+  ApiService(this._dio);
 
-    // Add interceptors for logging and error handling
-    _dio.interceptors.add(_createLogInterceptor());
-    _dio.interceptors.add(_createErrorInterceptor());
+  void declareDio() async {
+    _dio = await prepareCookieManager();
   }
 
   // GET request
@@ -55,7 +69,7 @@ class ApiService {
         queryParameters: queryParameters,
         options: options,
       );
-      
+
       return _handleResponse(response, fromJson);
     } on DioException catch (e) {
       throw _handleDioError(e);
@@ -207,10 +221,14 @@ class ApiService {
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
         final data = error.response?.data;
-        
+
         switch (statusCode) {
           case 400:
-            return ApiException('Bad request', statusCode: statusCode, data: data);
+            return ApiException(
+              'Bad request',
+              statusCode: statusCode,
+              data: data,
+            );
           case 401:
             return UnauthorizedException(data: data);
           case 403:
@@ -253,11 +271,7 @@ class ApiException implements Exception {
   final int? statusCode;
   final dynamic data;
 
-  ApiException(
-    this.message, {
-    this.statusCode,
-    this.data,
-  });
+  ApiException(this.message, {this.statusCode, this.data});
 
   @override
   String toString() => message;
@@ -265,15 +279,15 @@ class ApiException implements Exception {
 
 class UnauthorizedException extends ApiException {
   UnauthorizedException({dynamic data})
-      : super('Unauthorized', statusCode: 401, data: data);
+    : super('Unauthorized', statusCode: 401, data: data);
 }
 
 class ForbiddenException extends ApiException {
   ForbiddenException({dynamic data})
-      : super('Forbidden', statusCode: 403, data: data);
+    : super('Forbidden', statusCode: 403, data: data);
 }
 
 class NotFoundException extends ApiException {
   NotFoundException({dynamic data})
-      : super('Not found', statusCode: 404, data: data);
+    : super('Not found', statusCode: 404, data: data);
 }

@@ -1,14 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/authentication_otp_code_Step.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/authentication_signup_password_step.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/authentication_signup_user_data_step.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/profile_picture/profile_picture.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/user_name_screen/user_name_screen.dart';
-
 const int userData = 0;
+const int finishLogin = 1;
 const int OTPCode = 1;
 const int passwordScreen = 2;
-const List<String> nextLabels = ["Next", "Next", "Sign up", "Next", "Next"];
+const int transisionScreen = 3;
+const List<String> nextLabels = ["Next", "Next", "Sign up", "Next", "Continue"];
+const List<String> loginButtonLabels = ["Next", "Login"];
 const String firstTimeScreenText = "See What's happening in the world right now";
 const String oAuthWithGoogleText = "Continue with google account";
 const String oAuthWithGithubText = "Continue with github account";
@@ -19,6 +15,9 @@ const String passwordSignupInstructionsText =
 const String otpCodeHeaderText = "We sent you a code";
 const String otpCodeDesText = "Enter it below to verify emai@example.com";
 const String otpCodeResendText = "Didn't recieve an email?";
-const String status = 'status';
-const String success = 'success';
+const String message = 'message';
+const String emailExist = 'Email is available';
 const String faild = 'fail';
+const String token = 'email';
+const String success = 'success';
+const String status = 'status';

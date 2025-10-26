@@ -20,7 +20,7 @@ final class AuthenticationProvider
         argument: null,
         retry: null,
         name: r'authenticationProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -41,7 +41,7 @@ final class AuthenticationProvider
   }
 }
 
-String _$authenticationHash() => r'af0da2d7d3bb90e6960de3c5333ed83ae8cb0aed';
+String _$authenticationHash() => r'5c6455fc1164d8e26480a094e8cd6ba02db922c5';
 
 abstract class _$Authentication extends $Notifier<dynamic> {
   dynamic build();
