@@ -67,7 +67,7 @@ class _TextInputFieldState extends State<TextInputField> {
                       widget.onChangeEffect(value);
                       // setState(() {});
                     },
-                    obscureText: (widget.isPassword && isVisible),
+                    obscureText: (widget.isPassword && !isVisible),
                     keyboardType: widget.textType,
                     onTap: () {
                       if (widget.isDate) selectDate(context);

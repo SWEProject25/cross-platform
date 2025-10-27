@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';
@@ -35,10 +36,11 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
   }
 
   @override
-  Future<String?> register(AuthenticationUserDataModel user, Ref ref) async {
+  Future<UserModel> register(AuthenticationUserDataModel user, Ref ref) async {
     final _apiService = await ref.read(apiServiceProvider.future);
-    final message = await apiService.register(user, _apiService);  
-    return (message[token].toString());
+    final data = await apiService.register(user, _apiService);
+    UserModel userModel = UserModel.fromJson(data['data']['user']);
+    return userModel;
   }
 
   @override
@@ -49,11 +51,20 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
   }
 
   @override
-  Future<UserModel> login(AuthenticationUserCredentialsModel userCredentials, Ref ref) async {
+  Future<UserModel> login(
+    AuthenticationUserCredentialsModel userCredentials,
+    Ref ref,
+  ) async {
     final _apiService = await ref.read(apiServiceProvider.future);
-    final data = await apiService.Login(userCredentials,_apiService);
+    final data = await apiService.Login(userCredentials, _apiService);
     print(data);
-    UserModel userModel = UserModel.fromJson(data['date']['user']);
+    UserModel userModel = UserModel.fromJson(data['data']['user']);
     return userModel;
+  }
+
+  @override
+  Future<void> test(WidgetRef ref) async {
+    final _apiService = await ref.read(apiServiceProvider.future);
+    final data = await apiService.test(_apiService);
   }
 }

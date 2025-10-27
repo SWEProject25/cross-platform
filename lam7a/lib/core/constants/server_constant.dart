@@ -1,5 +1,5 @@
 class ServerConstant {
-  static String domain = "http://localhost:5000/api/v1.0";
+  static String domain = "https://hankers-backend.myaddr.tools/api/v1.0";
   static String registrationEndPoint = "/auth/register";
   static String checkEmailEndPoint = "/auth/check-email";
   static String verificationOTP = "/auth/verification-otp";

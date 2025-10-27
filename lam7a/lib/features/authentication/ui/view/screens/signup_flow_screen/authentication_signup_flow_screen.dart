@@ -132,7 +132,8 @@ class _SignUpFlowState extends State<SignUpFlow> {
                                       await viewmodel.registrationProgress();
                                       if (authenticationState.isAuthenticated)
                                       {
-                                        Navigator.pushReplacementNamed(context, AuthenticationTransmissionScreen.routeName);
+                                        Navigator.pop(context);
+                                        Navigator.pushNamedAndRemoveUntil(context, AuthenticationTransmissionScreen.routeName, (route) => false);
                                       }
                                     }
                                   },

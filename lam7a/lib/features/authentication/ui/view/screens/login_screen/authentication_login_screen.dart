@@ -50,8 +50,7 @@ class _loginFlowtate extends State<LogInScreen> {
         ///////////////////////////////////////////////////////////////////////////
         return PopScope(
           onPopInvokedWithResult: (didPop, result) {
-            if (currentIndex > 0)
-            {
+            if (currentIndex > 0) {
               viewmodel.gotoPrevLoginStep();
               return;
             }
@@ -90,19 +89,20 @@ class _loginFlowtate extends State<LogInScreen> {
                               Expanded(
                                 flex: 2,
                                 child: AuthenticationStepButton(
+                                  enable: viewmodel.shouldEnableNextLogin(),
                                   label: loginButtonLabels[currentIndex],
                                   onPressedEffect: () {
                                     if (currentIndex == finishLogin) {
                                       viewmodel.login();
-                                      print(authenticationState.isAuthenticated + "//////////////////////////////////////////");
                                       if (authenticationState.isAuthenticated) {
+                                        Navigator.pop(context);
                                         Navigator.pushNamedAndRemoveUntil(
                                           context,
                                           NavigationHomeScreen.routeName,
                                           (route) => false,
                                         );
                                       }
-                                    } else {
+                                    } else if (viewmodel.shouldEnableNextLogin()){
                                       viewmodel.gotoNextLoginStep();
                                     }
                                   },

@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
@@ -8,19 +6,18 @@ import 'package:lam7a/features/authentication/model/authentication_user_credenti
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
 import 'package:lam7a/features/authentication/repository/authentication_impl_repository.dart';
 import 'package:lam7a/features/authentication/ui/state/authentication_state.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps/password_login_step.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps/unique_identifier_step.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 import 'package:lam7a/features/authentication/utils/authentication_validator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'authentication_viewmodel.g.dart';
+
 /////////////////////////////////////////////////////////////////////////
 void showToastMessage(String message) {
   Fluttertoast.showToast(
     msg: message,
     gravity: ToastGravity.CENTER,
     timeInSecForIosWeb: 1,
-    backgroundColor: Pallete.inactiveBottomBarItemColor,
+    backgroundColor: Pallete.toastBgColor,
     textColor: Pallete.toastColor,
   );
 }
@@ -98,7 +95,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       }
     } catch (e) {
       print(e);
-      showToastMessage(e.toString());
+      showToastMessage("this email is already taken");
       state = state.map(
         login: (login) => login,
         signup: (signup) => signup.copyWith(isLoadingSignup: false),
@@ -119,7 +116,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           signup: (signup) => signup.copyWith(isLoadingSignup: true),
         );
         bool isValidCode = await repo.verifyOTP(state.email, state.code, ref);
-        if (state.isValidCode) {
+        if (isValidCode) {
           gotoNextSignupStep();
         } else {
           showToastMessage("the code is wrong");
@@ -132,7 +129,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       }
     } catch (e) {
       print(e);
-      showToastMessage(e.toString());
+          showToastMessage("the code is wrong");
       state = state.map(
         login: (login) => login,
         signup: (signup) => signup.copyWith(isLoadingSignup: false),
@@ -148,13 +145,9 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   Future<void> resendOTP() async {
     bool isSuccessed = await repo.resendOTP(state.email, ref);
     if (!isSuccessed) {
-      Fluttertoast.showToast(
-        msg: "this service isn't available rigt now",
-        gravity: ToastGravity.CENTER,
-        timeInSecForIosWeb: 2,
-        backgroundColor: Pallete.greyColor,
-        textColor: Pallete.toastColor,
-      );
+      showToastMessage("this service isn't available now");
+    } else {
+      showToastMessage("the code is sent to your accont");
     }
   }
 
@@ -170,7 +163,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           login: (login) => login,
           signup: (signup) => signup.copyWith(isLoadingSignup: true),
         );
-        String? email = await repo.register(
+        UserModel user = await repo.register(
           AuthenticationUserDataModel(
             name: state.name,
             email: state.email,
@@ -179,8 +172,11 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           ),
           ref,
         );
-        if (email != null) {
+        if (user != null) {
+          final authController = ref.watch(authenticationProvider.notifier);
+
           showToastMessage("user signed up successfully");
+          await authController.authenticateUser("success", UserModel());
         }
         state = state.map(
           login: (login) => login,
@@ -195,6 +191,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       );
     }
   }
+
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
   Future<void> registrationProgress() async {
@@ -207,14 +204,9 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         break;
       case passwordScreen:
         await newUser();
-        state = AuthenticationState.login(
-          identifier: state.email,
-          passwordLogin: state.passwordSignup,
-        );
-        await login();
-        break;
     }
   }
+
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
   //      this is the code of login authentication
@@ -235,11 +227,9 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         ref,
       );
       if (myUser.name != null) {
-        print("user ${state.identifier} logged in successfully");
         final authController = ref.watch(authenticationProvider.notifier);
         await authController.authenticateUser("success", myUser);
         final authState = ref.watch(authenticationProvider);
-        print(authState.isAuthenticated.toString() + "////////////////////////////////////////////");
         print(myUser);
         state = state.map(
           login: (login) => login.copyWith(
@@ -250,9 +240,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           signup: (signup) => signup.copyWith(email: "", passwordSignup: ""),
         );
         isSuccessed = true;
-      }
-      else
-      {
+      } else {
         showToastMessage("the email or password is wrong");
       }
       state = state.map(
@@ -262,7 +250,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       return isSuccessed;
     } catch (e) {
       print(e);
-      showToastMessage(e.toString());
+      showToastMessage("the email or password is wrong");
       state = state.map(
         login: (login) => login.copyWith(isLoadingLogin: false),
         signup: (signup) => signup,
@@ -307,6 +295,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   void changeToSignup() {
     state = AuthenticationState.signup();
   }
+
   ////////////////////////////////////////////////////////////////////////
   void gotoPrevSignupStep() {
     state = state.map(
@@ -315,14 +304,28 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         if (signupState.currentSignupStep > 0) {
           return signupState.copyWith(
             currentSignupStep: signupState.currentSignupStep - 1,
+            isValidSignupPassword: false,
+            isValidCode: false,
           );
+        } else {
+          return AuthenticationState.signup();
         }
-        return signupState;
       },
     );
   }
   ////////////////////////////////////////////////////////////////////////
-
+  bool shouldEnableNextLogin()
+  {
+    if (state.currentLoginStep == 0 && validator.validateEmail(state.identifier))
+    {
+      return true;
+    }
+    else if (state.currentLoginStep == 1 && validator.validatePassword(state.passwordLogin))
+    {
+      return true;
+    }
+    return false;
+  }
   void gotoNextLoginStep() {
     state = state.map(
       signup: (signupState) {
@@ -338,6 +341,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       },
     );
   }
+
   ////////////////////////////////////////////////////////////////////////
   void gotoPrevLoginStep() {
     state = state.map(
@@ -354,6 +358,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       },
     );
   }
+
   ////////////////////////////////////////////////////////////////////////
   void goToHome() {
     state = state.map(
@@ -481,4 +486,5 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
     );
   }
 }
-  ////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////
