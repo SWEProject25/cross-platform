@@ -12,8 +12,6 @@ analyzer:
 dependencies:
   flutter:
     sdk: flutter
-  openapi:
-    path: ../Lam7aApi
     
   # Core Flutter Packages
   cupertino_icons: ^1.0.8
