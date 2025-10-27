@@ -5,10 +5,20 @@ import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authe
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
+import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
+import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
 
 void main() {
-  runApp(ProviderScope(child: MyApp()));
+  // TO TEST ADD TWEET SCREEN ONLY: Uncomment line below
+  // runApp(ProviderScope(child: TestAddTweetApp()));
+  
+  // TO TEST HOME WITH FAB: Uncomment line below
+  runApp(ProviderScope(child: TestTweetHomeApp()));
+  
+  // NORMAL APP FLOW:
+  // runApp(ProviderScope(child: MyApp()));
 }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -28,7 +38,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
 class TestTweetApp extends StatelessWidget {
   const TestTweetApp({super.key});
 
@@ -42,6 +51,36 @@ class TestTweetApp extends StatelessWidget {
           child: TweetSummaryWidget(tweetId: 't3'), // 👈 your test widget
         ),
       ),
+    );
+  }
+}
+
+/// Test app for AddTweetScreen
+class TestAddTweetApp extends StatelessWidget {
+  const TestAddTweetApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark(),
+      home: const AddTweetScreen(
+        userId: 'test_user_123',
+      ),
+    );
+  }
+}
+
+/// Test app for TweetHomeScreen with FAB
+class TestTweetHomeApp extends StatelessWidget {
+  const TestTweetHomeApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark(),
+      home: const TweetHomeScreen(),
     );
   }
 }
