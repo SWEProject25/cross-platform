@@ -1,0 +1,111 @@
+import 'package:flutter/animation.dart';
+import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
+import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'tweet_viewmodel.g.dart';
+
+@riverpod
+class TweetViewModel extends _$TweetViewModel {
+
+@override
+FutureOr<TweetState> build(String tweetId) async {
+  final repo = ref.read(tweetRepositoryProvider);
+  final tweet = await repo.fetchTweetById(tweetId);
+
+  return TweetState(
+    isLiked: false,
+    isReposted: false,
+    isViewed: false,
+    tweet: AsyncData(tweet),
+  );
+}
+
+
+  //  Handle Like toggle
+  void handleLike({required AnimationController controller}) {
+    final repo = ref.read(tweetRepositoryProvider);
+    final current = state.value!;
+    final tweet= state.value!.tweet.value!;
+    if (current.isLiked) {
+      final updated = tweet.copyWith(likes: tweet.likes - 1);
+      final updatedState = current.copyWith(tweet: AsyncData(updated),isLiked: false);
+      repo.updateTweet(updated);
+      state = AsyncData(updatedState);
+    } else {
+      controller.forward().then((_) => controller.reverse());
+      final updated = tweet.copyWith(likes: tweet.likes + 1);
+      final updatedState = current.copyWith(tweet: AsyncData(updated),isLiked: true);
+      repo.updateTweet(updated);
+      state = AsyncData(updatedState);
+    }
+  }
+
+  // Handle Repost toggle
+  void handleRepost({required AnimationController controllerRepost}) {
+    final repo = ref.read(tweetRepositoryProvider);
+    final current = state.value!;
+    final tweet= state.value!.tweet.value!;
+    if (current.isReposted) {
+       final updated = tweet.copyWith(repost: tweet.repost - 1);
+       final updatedState = current.copyWith(tweet: AsyncData(updated),isReposted: false);
+      state = AsyncData(updatedState);
+       repo.updateTweet(updated);
+    } else {
+      controllerRepost.forward().then((_) => controllerRepost.reverse());
+      final updated = tweet.copyWith(repost: tweet.repost + 1);
+      final updatedState = current.copyWith(tweet: AsyncData(updated),isReposted: true);
+      state = AsyncData(updatedState);
+      repo.updateTweet(updated);
+    }
+  }
+
+  // Format large numbers (K, M, B)
+  String howLong(double m) {
+    String s = '';
+    if (m >= 1_000_000_000) {
+      s = 'B';
+      m /= 1_000_000_000;
+    } else if (m >= 1_000_000) {
+      s = 'M';
+      m /= 1_000_000;
+    } else if (m >= 1_000) {
+      s = 'K';
+      m /= 1_000;
+    }
+
+    String formatted = (m % 1 == 0)
+        ? m.toInt().toString()
+        : m.toStringAsFixed(2).replaceAll(RegExp(r'\.0+$'), '');
+    return '$formatted$s';
+  }
+
+  void handleViews() {
+    final repo= ref.read(tweetRepositoryProvider);
+    final current=state.value!;
+    final tweet= state.value!.tweet.value!;
+    if (!current.isViewed) {
+      final updated=tweet.copyWith(views: tweet.views+1);
+      final updatedState= current.copyWith(tweet: AsyncData(updated),isViewed: true);
+      state = AsyncData(updatedState);
+      repo.updateTweet(updated);
+    }
+  }
+
+  void handleComment() {
+    // TODO: add comment logic
+  }
+
+  void summarizeBody() {
+    // TODO: implement tweet summarization
+  }
+  void handleShare() {}
+  void handleBookmark() {}
+  bool getIsLiked() {
+    return state.value!.isLiked;
+  }
+
+  bool getisReposted() {
+    return state.value!.isReposted;
+  }
+}

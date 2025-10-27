@@ -8,6 +8,7 @@ import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
 import 'package:lam7a/features/navigation/view/screens/navigation_home_screen.dart';
+import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 
 void main() {
   runApp(ProviderScope(child: MyApp()));
@@ -52,8 +53,23 @@ Widget _build(AuthState state, WidgetRef ref) {
     return NavigationHomeScreen();
   } else {
     return FirstTimeScreen();
-  }
+    }
 }
+class TestTweetApp extends StatelessWidget {
+  const TestTweetApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        appBar: AppBar(title: const Text('Test Tweet Widget')),
+        body: Center(
+          child: TweetSummaryWidget(tweetId: 't3'), // 👈 your test widget
+        ),
+      ),
+    );
+
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
