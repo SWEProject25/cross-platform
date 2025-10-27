@@ -176,7 +176,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           final authController = ref.watch(authenticationProvider.notifier);
 
           showToastMessage("user signed up successfully");
-          await authController.authenticateUser("success", UserModel());
+          await authController.authenticateUser("success", user);
         }
         state = state.map(
           login: (login) => login,
