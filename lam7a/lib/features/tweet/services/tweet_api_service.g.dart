@@ -53,4 +53,4 @@ final class TweetsApiServiceProvider
   }
 }
 
-String _$tweetsApiServiceHash() => r'60571ca071e553c656a4ebb8ea05659a3907aafc';
+String _$tweetsApiServiceHash() => r'499fceb69aa9915c525aa8eb6e5159320406c652';

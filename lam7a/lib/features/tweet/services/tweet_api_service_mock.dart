@@ -74,6 +74,15 @@ class TweetsApiServiceMock implements TweetsApiService {
   Future<void> addTweet(TweetModel tweet) async {
     await _simulateDelay();
     _tweets[tweet.id] = tweet;
+    
+    // Log for debugging
+    print('✅ Tweet added successfully to mock backend!');
+    print('   ID: ${tweet.id}');
+    print('   Body: ${tweet.body}');
+    print('   User ID: ${tweet.userId}');
+    print('   Media Pic: ${tweet.mediaPic ?? "None"}');
+    print('   Media Video: ${tweet.mediaVideo ?? "None"}');
+    print('   Total tweets in mock DB: ${_tweets.length}');
   }
 
   @override
@@ -86,6 +95,16 @@ class TweetsApiServiceMock implements TweetsApiService {
   Future<void> deleteTweet(String id) async {
     await _simulateDelay();
     _tweets.remove(id);
+    print('🗑️ Tweet deleted: $id');
+  }
+  
+  /// Helper method to get all tweet IDs (for debugging)
+  List<String> getAllTweetIds() {
+    return _tweets.keys.toList();
+  }
+  
+  /// Helper method to check if a tweet exists
+  bool hasTweet(String id) {
+    return _tweets.containsKey(id);
   }
 }
-

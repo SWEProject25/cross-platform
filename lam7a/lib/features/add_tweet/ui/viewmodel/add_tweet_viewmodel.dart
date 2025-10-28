@@ -1,7 +1,7 @@
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
 import 'package:lam7a/features/add_tweet/ui/state/add_tweet_state.dart';
-import 'package:lam7a/features/add_tweet/services/media_upload_service_mock.dart';
+import 'package:lam7a/features/add_tweet/services/add_tweet_api_service_impl.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'add_tweet_viewmodel.g.dart';
@@ -72,46 +72,27 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
       print('📤 Starting to post tweet...');
       state = state.copyWith(isLoading: true, errorMessage: null);
 
-      final uploadService = ref.read(mediaUploadServiceProvider);
-      final repo = ref.read(tweetRepositoryProvider);
+      // Use real backend implementation
+      final apiService = AddTweetApiServiceImpl();
       
-      // Upload media files if they exist and get URLs
-      String? mediaPicUrl;
-      String? mediaVideoUrl;
-      
-      if (state.mediaPicPath != null) {
-        print('📸 Uploading image...');
-        mediaPicUrl = await uploadService.uploadImage(state.mediaPicPath!);
-      }
-      
-      if (state.mediaVideoPath != null) {
-        print('🎥 Uploading video...');
-        mediaVideoUrl = await uploadService.uploadVideo(state.mediaVideoPath!);
-      }
-      
-      final newTweet = TweetModel(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        body: state.body.trim(),
-        mediaPic: mediaPicUrl, // Now using URL instead of local path
-        mediaVideo: mediaVideoUrl, // Now using URL instead of local path
-        date: DateTime.now(),
-        likes: 0,
-        qoutes: 0,
-        bookmarks: 0,
-        repost: 0,
-        comments: 0,
-        views: 0,
+      // Create tweet with media files (service handles upload and returns URLs)
+      final createdTweet = await apiService.createTweet(
         userId: userId,
+        content: state.body.trim(),
+        mediaPicPath: state.mediaPicPath,
+        mediaVideoPath: state.mediaVideoPath,
       );
 
-      print('📝 Tweet prepared:');
-      print('   Body: ${newTweet.body}');
-      print('   Media Pic URL: ${newTweet.mediaPic ?? "None"}');
-      print('   Media Video URL: ${newTweet.mediaVideo ?? "None"}');
+      print('📝 Tweet created:');
+      print('   ID: ${createdTweet.id}');
+      print('   Body: ${createdTweet.body}');
+      print('   Media Pic URL: ${createdTweet.mediaPic ?? "None"}');
+      print('   Media Video URL: ${createdTweet.mediaVideo ?? "None"}');
       
-      await repo.addTweet(newTweet);
+      // Note: Backend already persisted the tweet, no need to call repository again
+      // The repository's addTweet would make a duplicate backend call
 
-      print('✅ Tweet posted successfully via repository!');
+      print('✅ Tweet posted successfully!');
       
       state = state.copyWith(
         isLoading: false,

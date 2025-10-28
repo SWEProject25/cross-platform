@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
+import 'package:lam7a/features/authentication/service/user_api_service.dart';
 import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 
@@ -106,11 +107,27 @@ class TweetHomeScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          // Get current user ID
+          final currentUserAsync = ref.read(currentUserProvider);
+          
+          String userId = '1'; // Default to 1
+          await currentUserAsync.when(
+            data: (user) {
+              userId = user.userId.toString();
+            },
+            loading: () {
+              print('⏳ User not loaded yet, using default ID: 1');
+            },
+            error: (error, stack) {
+              print('❌ Error loading user, using default ID: 1');
+            },
+          );
+          
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const AddTweetScreen(
-                userId: 'current_user_123', // Replace with actual user ID
+              builder: (context) => AddTweetScreen(
+                userId: userId, // Use actual user ID from backend
               ),
             ),
           );
