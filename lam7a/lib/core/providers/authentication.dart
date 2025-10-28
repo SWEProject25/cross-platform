@@ -20,11 +20,11 @@ class Authentication extends _$Authentication{
     print(token);
   }
 
-  Future<void> authenticateUser(String? token, UserModel user) async {
+  Future<void> authenticateUser(String? token, UserModel? user) async {
     if (token != null) {
       final prefs = await SharedPreferences.getInstance();
       prefs.setString('token', token);
-      state = state.copyWith(token: token, isAuthenticated: true);
+      state = state.copyWith(token: token, isAuthenticated: true, user: user);
     }
   }
   Future<void> logout() async
