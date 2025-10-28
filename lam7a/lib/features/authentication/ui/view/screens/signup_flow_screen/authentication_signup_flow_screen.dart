@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/authentication_signup_password_step.dart';
@@ -9,34 +11,55 @@ import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/user_name_screen/user_name_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/authentication_otp_code_Step.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
+
 final List<Widget> signupFlowSteps = [
-    UserDataSignUp(),
-    VerificationCode(),
-    PasswordScreen(),
-    ProfilePicture(),
-    UserNameScreen(),
-  ];
-class SignUpFlow extends StatelessWidget {
+  UserDataSignUp(),
+  VerificationCode(),
+  PasswordScreen(),
+  ProfilePicture(),
+  UserNameScreen(),
+];
+
+class SignUpFlow extends StatefulWidget {
   static const String routeName = "sign_up_flow";
 
   const SignUpFlow({super.key});
 
   @override
+  State<SignUpFlow> createState() => _SignUpFlowState();
+}
+
+class _SignUpFlowState extends State<SignUpFlow> {
+  @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
-        ////////////////////////////////////////////////////////////////
-        ///             the needed state managers                     //
-        ////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////
+        ref.listen(authenticationProvider, (previous, next) {
+          if (next.isAuthenticated && !(previous?.isAuthenticated ?? false)) {
+            if (!context.mounted) return;
+            Navigator.pushReplacementNamed(
+              context,
+              AuthenticationTransmissionScreen.routeName,
+            );
+          }
+        });
+
         final state = ref.watch(authenticationViewmodelProvider);
         final viewmodel = ref.watch(authenticationViewmodelProvider.notifier);
+        final authenticationState = ref.watch(authenticationProvider);
+        final authenticationController = ref.watch(
+          authenticationProvider.notifier,
+        );
         int currentIndex = state.currentSignupStep;
         /////////////////////////////////////////////////////////////////
-        
+        /////////////////////////////////////////////////////////////////
         // pop scope to prevent pop screen on back gestures
+        /////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////
         return PopScope(
           canPop: false,
           onPopInvokedWithResult: (bool didPop, Object? result) async {
@@ -70,7 +93,7 @@ class SignUpFlow extends StatelessWidget {
               ),
             ),
             // the main screen that has the sign up steps
-            body: !state.isLoadingSignup
+            body: !state.isLoadingSignup && !state.isLoadingLogin
                 ? Column(
                     children: [
                       signupFlowSteps[currentIndex],
@@ -82,7 +105,8 @@ class SignUpFlow extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              ((signupFlowSteps[currentIndex] is ProfilePicture) ||
+                              ((signupFlowSteps[currentIndex]
+                                          is ProfilePicture) ||
                                       (signupFlowSteps[currentIndex]
                                           is UserNameScreen))
                                   ? Expanded(
@@ -103,11 +127,16 @@ class SignUpFlow extends StatelessWidget {
                                 child: AuthenticationStepButton(
                                   enable: viewmodel.shouldEnableNext(),
                                   label: nextLabels[currentIndex],
-                                  onPressedEffect: () {
-                                    if (viewmodel.shouldEnableNext()){
-                                        viewmodel.registrationProgress();
+                                  onPressedEffect: () async {
+                                    if (viewmodel.shouldEnableNext()) {
+                                      await viewmodel.registrationProgress();
+                                      if (authenticationState.isAuthenticated)
+                                      {
+                                        Navigator.pop(context);
+                                        Navigator.pushNamedAndRemoveUntil(context, AuthenticationTransmissionScreen.routeName, (route) => false);
+                                      }
                                     }
-                                  }
+                                  },
                                 ),
                               ),
                             ],

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/models/auth_state.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/theme.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authentication_login_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
+import 'package:lam7a/features/navigation/view/screens/navigation_home_screen.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
@@ -24,20 +28,43 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'lam7a',
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.light,
-      routes: {
-        FirstTimeScreen.routeName : (context) => FirstTimeScreen(),
-        SignUpFlow.routeName : (context) => SignUpFlow(), 
-        LogInScreen.routeName : (context) => LogInScreen(),
+    return Consumer(
+      builder: (context, ref, child) {
+        final state = ref.watch(authenticationProvider);
+
+        return MaterialApp(
+          title: 'lam7a',
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: ThemeMode.light,
+          home: _build(state, ref),
+          routes: {
+            FirstTimeScreen.routeName: (context) => FirstTimeScreen(),
+            SignUpFlow.routeName: (context) => SignUpFlow(),
+            LogInScreen.routeName: (context) => LogInScreen(),
+            NavigationHomeScreen.routeName: (context) => NavigationHomeScreen(),
+            AuthenticationTransmissionScreen.routeName: (context) =>
+                AuthenticationTransmissionScreen(),
+          },
+          initialRoute: !state.isAuthenticated
+              ? FirstTimeScreen.routeName
+              : NavigationHomeScreen.routeName,
+        );
       },
-      initialRoute: FirstTimeScreen.routeName,
     );
   }
+
+  Widget _build(AuthState state, WidgetRef ref) {
+    final controller = ref.watch(authenticationProvider.notifier);
+    controller.isAuthenticated();
+    if (state.isAuthenticated) {
+      return NavigationHomeScreen();
+    } else {
+      return FirstTimeScreen();
+    }
+  }
 }
+
 class TestTweetApp extends StatelessWidget {
   const TestTweetApp({super.key});
 
