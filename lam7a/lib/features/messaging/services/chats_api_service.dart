@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/messaging/model/Contact.dart';
 import 'package:lam7a/features/messaging/model/Conversation.dart';
 import 'package:lam7a/features/messaging/services/chats_api_service_mock.dart';

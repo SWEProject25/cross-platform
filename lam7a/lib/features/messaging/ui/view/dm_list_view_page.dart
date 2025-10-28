@@ -19,7 +19,7 @@ class DMListViewPage extends ConsumerWidget {
       appBar: DMAppBar(title: 'Direct Message'),
       body: dMListPageViewModel.conversations.when(
         data: (data) {
-          return data.length == 0? 
+          return data.isEmpty? 
           Padding(
             padding: const EdgeInsets.all(32.0),
             child: Column(
