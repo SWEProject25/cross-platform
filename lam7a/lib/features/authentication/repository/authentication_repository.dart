@@ -12,4 +12,5 @@ abstract class AuthenticationRepository {
   Future<bool> verifyOTP(String email, String OTP, Ref ref);
   Future<UserModel?> login(AuthenticationUserCredentialsModel userCredentials, Ref ref);
   Future<void> test(WidgetRef ref);
+  Future<bool> logout(Ref ref);
 }

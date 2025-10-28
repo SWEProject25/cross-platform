@@ -74,5 +74,11 @@ class AuthenticationApiService {
     );
       print(res[status]);
     }
-
+    Future<bool> logout(final apiService) async {
+    Map<String, dynamic> res =  await apiService.post(
+      endpoint: ServerConstant.domain + "/auth/logout",
+    );
+      print(res[status]);
+      return res[status]==success;
+    }
 }

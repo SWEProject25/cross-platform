@@ -67,4 +67,11 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
     final _apiService = await ref.read(apiServiceProvider.future);
     final data = await apiService.test(_apiService);
   }
+  Future<bool> logout(Ref ref) async {
+    final _apiService = await ref.read(apiServiceProvider.future);
+    bool res =  await apiService.logout(_apiService);
+      print(res);
+      return res;
+    }
 }
+

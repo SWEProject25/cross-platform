@@ -263,7 +263,8 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
 
   void logout() {
     final authController = ref.watch(authenticationProvider);
-    authController.logout();
+    // authController.logout();
+    repo.logout(ref);
   }
 
   void gotoNextSignupStep() {
