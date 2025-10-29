@@ -16,7 +16,7 @@ class ApiService {
 
   // Base URL for the APIpart 'api_service.g.dart';
 
-  static final String _baseUrl = ServerConstant.serverURL;
+  static final String _baseUrl = ServerConstant.serverURL + ServerConstant.apiPrefix;
 
   // Initialize timeout duration
   static const int _timeoutSeconds = 30;
