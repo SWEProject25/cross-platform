@@ -1,81 +1,84 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:lam7a/core/constants/server_constant.dart';
+import 'package:lam7a/core/services/api_service.dart';
+import 'package:lam7a/core/utils.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
+import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 // import 'package:lam7a/features/authentication/model/user_data_model.dart';
 
 class AuthenticationApiService {
-  Future<bool> checkEmail(String email) async {
-    Uri url = Uri.parse(
-      ServerConstant.domain + ServerConstant.checkEmailEndPoint,
+  Future<Map<String, dynamic>> checkEmail(
+    String email,
+    final apiService,
+  ) async {
+    return await apiService.post(
+      endpoint: ServerConstant.domain + ServerConstant.checkEmailEndPoint,
+      data: {'email': email},
     );
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email}),
-    );
-    print(response.statusCode);
-    return (response.statusCode == 200);
   }
 
-  Future<String> verificationOTP(String email) async {
-    Uri url = Uri.parse(ServerConstant.domain + ServerConstant.verificationOTP);
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email}),
+  Future<Map<String, dynamic>> verificationOTP(
+    String email,
+    final apiService,
+  ) async {
+    return await apiService.post(
+      endpoint: ServerConstant.domain + ServerConstant.verificationOTP,
+      data: {'email': email},
     );
-    return response.body;
   }
 
-  Future<String> resendOTP(String email) async {
-    Uri url = Uri.parse(ServerConstant.domain + ServerConstant.resendOTP);
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email}),
+  Future<Map<String, dynamic>> resendOTP(
+    String email,
+    final apiService,
+  ) async {
+    return await apiService.post(
+      endpoint: ServerConstant.domain + ServerConstant.resendOTP,
+      data: {'email': email},
     );
-    return response.body;
   }
 
-  Future<bool> verifyOTP(String email, String OTP) async {
-    Uri url = Uri.parse(ServerConstant.domain + ServerConstant.verifyOTP);
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, "otp": OTP}),
+  Future<Map<String, dynamic>> verifyOTP(
+    String email,
+    String OTP,
+    final apiService,
+  ) async {
+    return await apiService.post(
+      endpoint: ServerConstant.domain + ServerConstant.verifyOTP,
+      data: {'email': email, 'otp': OTP},
     );
-    return (response.statusCode < 400);
   }
 
-  Future<int> register(AuthenticationUserDataModel user) async {
-    Uri url = Uri.parse(
-      ServerConstant.domain + ServerConstant.registrationEndPoint,
+  Future<Map<String, dynamic>> register(AuthenticationUserDataModel user, final apiService) async {
+   
+    return await apiService.post(
+      endpoint: ServerConstant.domain + ServerConstant.registrationEndPoint,
+      data: user.toJson(),
     );
-      print(user.toJson());
-      var res = jsonEncode(user.toJson());
-      print(res);
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: res,
-    );
-    return response.statusCode;
   }
-  Future<int> Login(AuthenticationUserCredentialsModel userCredentials) async
-  {
-        Uri url = Uri.parse(
-      ServerConstant.domain + ServerConstant.login,
+
+  Future<Map<String, dynamic>> Login(AuthenticationUserCredentialsModel userCredentials,final apiService) async {
+    return await apiService.post(
+      endpoint: ServerConstant.domain + ServerConstant.login,
+      data: userCredentials.toJson(),
     );
-      var res = jsonEncode(userCredentials.toJson());
-      print(res);
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: res,
-    );
-    return response.statusCode;
   }
+
+    Future<void> test(final apiService) async
+    {
+        Map<String, dynamic> res =  await apiService.get(
+      endpoint: ServerConstant.domain + "/auth/me",
+    );
+      print(res[status]);
+    }
+    Future<bool> logout(final apiService) async {
+    Map<String, dynamic> res =  await apiService.post(
+      endpoint: ServerConstant.domain + "/auth/logout",
+    );
+      print(res[status]);
+      return res[status]==success;
+    }
 }

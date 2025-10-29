@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 
+// ignore: must_be_immutable
 class TextInputField extends StatefulWidget {
   String labelTextField;
   bool isLimited;
@@ -8,7 +9,6 @@ class TextInputField extends StatefulWidget {
   bool isValid;
   bool isDate;
   int flex;
-  bool isVisible;
   Function onChangeEffect;
   TextInputType textType;
   String content;
@@ -21,7 +21,6 @@ class TextInputField extends StatefulWidget {
     required this.textType,
     this.isPassword = false,
     this.isDate = false,
-    this.isVisible = true,
     required this.isValid,
     required this.onChangeEffect,
     this.content = "",
@@ -33,6 +32,7 @@ class TextInputField extends StatefulWidget {
 }
 
 class _TextInputFieldState extends State<TextInputField> {
+  bool isVisible = false;
   final FocusNode _focusNode = FocusNode();
   final TextEditingController _controller = TextEditingController();
   bool _isFocused = false;
@@ -50,7 +50,6 @@ class _TextInputFieldState extends State<TextInputField> {
 
   @override
   Widget build(BuildContext context) {
-    String? date;
     return Container(
       margin: EdgeInsets.only(bottom: widget.isLimited ? 2 : 25),
       child: Row(
@@ -68,7 +67,7 @@ class _TextInputFieldState extends State<TextInputField> {
                       widget.onChangeEffect(value);
                       // setState(() {});
                     },
-                    obscureText: (widget.isPassword && widget.isVisible),
+                    obscureText: (widget.isPassword && !isVisible),
                     keyboardType: widget.textType,
                     onTap: () {
                       if (widget.isDate) selectDate(context);
@@ -132,18 +131,18 @@ class _TextInputFieldState extends State<TextInputField> {
                   children: [
                     widget.isPassword
                         ? Container(
-                            child: widget.isVisible
+                            child: isVisible
                                 ? IconButton(
                                     icon: Icon(Icons.visibility_sharp),
                                     onPressed: () {
-                                      widget.isVisible = !widget.isVisible;
+                                      isVisible = !isVisible;
                                       setState(() {});
                                     },
                                   )
                                 : IconButton(
                                     icon: Icon(Icons.visibility_off_sharp),
                                     onPressed: () {
-                                      widget.isVisible = !widget.isVisible;
+                                      isVisible = !isVisible;
                                       setState(() {});
                                     },
                                   ),
@@ -179,6 +178,7 @@ class _TextInputFieldState extends State<TextInputField> {
 
   Future<void> selectDate(BuildContext context) async {
     final pickedDate = await showDatePicker(
+      
       context: context,
       firstDate: DateTime(1930, 1, 1),
       lastDate: DateTime.now(),

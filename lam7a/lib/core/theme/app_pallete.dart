@@ -12,11 +12,12 @@ abstract class Pallete {
   static const Color gradient2 = Color.fromRGBO(251, 109, 169, 1);
   static const Color gradient3 = Color.fromRGBO(255, 159, 124, 1);
   static const Color borderColor = Color.fromRGBO(52, 51, 67, 1);
-  static const Color whiteColor = Colors.white;
+  static const Color whiteColor = Color.fromARGB(255, 255, 255, 255);
   static const blackColor = Colors.black;
   static const Color greyColor = Colors.grey;
   static const Color errorColor = Colors.redAccent;
   static const Color transparentColor = Colors.transparent;
   static const Color toastColor = Color.fromRGBO(240, 240, 240, 1);
+  static const Color toastBgColor = Color.fromRGBO(204, 203, 203, 1);
   static const Color inactiveSeekColor = Colors.white38;
 }
