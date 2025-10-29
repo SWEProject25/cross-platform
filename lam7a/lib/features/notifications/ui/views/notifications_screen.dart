@@ -11,6 +11,7 @@ class NotificationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var viewModel = ref.watch(notificationsViewModelProvider.notifier);
+    var notificationsState = ref.watch(notificationsViewModelProvider);
     return DefaultTabController(
       length: 2,
       initialIndex: 1,
@@ -25,11 +26,11 @@ class NotificationsScreen extends ConsumerWidget {
                   children: [
                     _buildNotificationsListView(
                       viewModel,
-                      viewModel.allNotifications,
+                      notificationsState.allNotifications,
                     ),
                     _buildNotificationsListView(
                       viewModel,
-                      viewModel.mentionNotifications,
+                      notificationsState.mentionNotifications,
                     ),
                   ],
                 ),

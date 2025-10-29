@@ -44,7 +44,7 @@ class NotificationItem extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 18,
-                  backgroundImage: NetworkImage(actor.imageUrl ?? ''),
+                  backgroundImage: NetworkImage(actor.imageUrl),
                 ),
                 Text.rich(
                   TextSpan(

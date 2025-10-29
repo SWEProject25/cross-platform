@@ -1,4 +1,3 @@
-import 'package:lam7a/features/notifications/models/notification_model.dart';
 import 'package:lam7a/features/notifications/repositories/notifications_repository.dart';
 import 'package:lam7a/features/notifications/ui/state/notifications_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -32,14 +31,6 @@ class NotificationsViewModel extends _$NotificationsViewModel {
       );
     }
   }
-
-  AsyncValue<List<NotificationModel>> get allNotifications =>
-      state.notifications;
-
-  AsyncValue<List<NotificationModel>> get mentionNotifications =>
-      state.notifications.whenData(
-        (list) => list.where((n) => n.type == NotificationType.mention).toList(),
-      );
 
   Future<void> refresh() async {
     await _loadNotifications();
