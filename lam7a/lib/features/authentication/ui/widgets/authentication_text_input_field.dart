@@ -13,6 +13,7 @@ class TextInputField extends StatefulWidget {
   TextInputType textType;
   String content;
   bool enabled;
+  bool isLoginField;
   TextInputField({
     super.key,
     required this.labelTextField,
@@ -25,6 +26,7 @@ class TextInputField extends StatefulWidget {
     required this.onChangeEffect,
     this.content = "",
     this.enabled = true,
+    this.isLoginField = false,
   });
 
   @override
@@ -148,7 +150,7 @@ class _TextInputFieldState extends State<TextInputField> {
                                   ),
                           )
                         : Container(),
-                    (_isFocused && _controller.text.isNotEmpty)
+                    (_isFocused && _controller.text.isNotEmpty && !widget.isLoginField)
                         ? ((widget.isValid)
                               ? Container(
                                   margin: EdgeInsets.only(right: 5),

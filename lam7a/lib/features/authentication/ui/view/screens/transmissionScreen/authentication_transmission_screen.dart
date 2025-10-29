@@ -71,9 +71,10 @@ class AuthenticationTransmissionScreen extends StatelessWidget {
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pushReplacementNamed(
+                        Navigator.pushNamedAndRemoveUntil(
                           context,
                           NavigationHomeScreen.routeName,
+                          (route) => false,
                         );
                       },
                       style: ElevatedButton.styleFrom(

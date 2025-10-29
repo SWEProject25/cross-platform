@@ -41,7 +41,8 @@ class UniqueIdentifier extends StatelessWidget
               flex: 12,
               textType: TextInputType.text,
               isValid: true,
-              onChangeEffect: state.updateIdentifier
+              onChangeEffect: state.updateIdentifier,
+              isLoginField: true,
             ),
           ],
         );
