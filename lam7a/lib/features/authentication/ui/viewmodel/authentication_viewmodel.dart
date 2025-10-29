@@ -41,17 +41,17 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
   bool shouldEnableNext() {
-    if (state.currentSignupStep == userData &&
+    if (state.currentSignupStep == AuthenticationConstants.userData &&
         state.isValidEmail &&
         state.isValidName &&
         state.isValidDate) {
       return true;
-    } else if (state.currentSignupStep == OTPCode && state.isValidCode) {
+    } else if (state.currentSignupStep ==AuthenticationConstants.OTPCode && state.isValidCode) {
       return true;
-    } else if (state.currentSignupStep == passwordScreen &&
+    } else if (state.currentSignupStep == AuthenticationConstants.passwordScreen &&
         state.isValidSignupPassword) {
       return true;
-    } else if (state.currentSignupStep == transisionScreen) {
+    } else if (state.currentSignupStep == AuthenticationConstants.transisionScreen) {
       return true;
     }
     return false;
@@ -172,14 +172,14 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
             name: state.name,
             email: state.email,
             password: state.passwordSignup,
-            birth_date: state.date,
+            birthDate: state.date,
           ),
           
         );
         if (user != null) {
 
           showToastMessage("user signed up successfully");
-          await authController.authenticateUser(user);
+          authController.authenticateUser(user);
         }
         state = state.map(
           login: (login) => login,
@@ -199,13 +199,13 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   ////////////////////////////////////////////////////////////////////////
   Future<void> registrationProgress() async {
     switch (state.currentSignupStep) {
-      case userData:
+      case AuthenticationConstants.userData:
         checkValidEmail();
         break;
-      case OTPCode:
+      case AuthenticationConstants.OTPCode:
         checkValidCode();
         break;
-      case passwordScreen:
+      case AuthenticationConstants.passwordScreen:
         await newUser();
     }
   }
@@ -229,7 +229,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         ),
       );
       if (myUser.name != null) {
-        await authController.authenticateUser(myUser);
+         authController.authenticateUser(myUser);
         print(myUser);
         state = state.map(
           login: (login) => login.copyWith(

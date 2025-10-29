@@ -23,17 +23,17 @@ class AuthenticationRepositoryImpl {
     Map<String, dynamic> body;
     body = await apiService.checkEmail(email);
     print(body);
-    return (body[message].toString() == emailExist);
+    return (body[AuthenticationConstants.message].toString() == AuthenticationConstants.emailExist);
   }
 
   Future<bool> verificationOTP(String email) async {
     final message = await apiService.verificationOTP(email);
-    return (message[status].toString() == success);
+    return (message[AuthenticationConstants.status].toString() == AuthenticationConstants.success);
   }
 
   Future<bool> resendOTP(String email) async {
     final message = await apiService.resendOTP(email);
-    return (message[status].toString() == success);
+    return (message[AuthenticationConstants.status].toString() == AuthenticationConstants.success);
   }
 
   Future<UserModel?> register(AuthenticationUserDataModel user) async {
@@ -44,7 +44,7 @@ class AuthenticationRepositoryImpl {
 
   Future<bool> verifyOTP(String email, String OTP) async {
     final message = await apiService.verifyOTP(email, OTP);
-    return (message[status].toString() == success);
+    return (message[AuthenticationConstants.status].toString() == AuthenticationConstants.success);
   }
 
   Future<UserModel> login(

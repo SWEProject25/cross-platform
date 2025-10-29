@@ -126,7 +126,7 @@ class _SignUpFlowState extends State<SignUpFlow> {
                                 flex: 6,
                                 child: AuthenticationStepButton(
                                   enable: viewmodel.shouldEnableNext(),
-                                  label: nextLabels[currentIndex],
+                                  label: AuthenticationConstants.nextLabels[currentIndex],
                                   onPressedEffect: () async {
                                     if (viewmodel.shouldEnableNext()) {
                                       await viewmodel.registrationProgress();

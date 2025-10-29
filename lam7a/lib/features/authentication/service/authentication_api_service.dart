@@ -68,14 +68,14 @@ class AuthenticationApiService {
     Map<String, dynamic> res = await apiService.get(
       endpoint: ServerConstant.me,
     );
-    print(res[status]);
+    print(res[AuthenticationConstants.status]);
   }
 
   Future<bool> logout() async {
     Map<String, dynamic> res = await apiService.post(
       endpoint: ServerConstant.logout,
     );
-    print(res[status]);
-    return res[status] == success;
+    print(res[AuthenticationConstants.status]);
+    return res[AuthenticationConstants.status] == AuthenticationConstants.success;
   }
 }

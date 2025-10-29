@@ -19,6 +19,7 @@ void main() async {
     container.read(apiServiceProvider).initialize(),
   ]);
   await container.read(authenticationProvider.notifier).isAuthenticated();
+  print(container.read(authenticationProvider).isAuthenticated);
   runApp(UncontrolledProviderScope(child: MyApp(), container: container));
 }
 
@@ -31,11 +32,11 @@ class MyApp extends ConsumerStatefulWidget {
 
 class _MyAppState extends ConsumerState<MyApp> {
   @override
-  @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
         final state = ref.watch(authenticationProvider);
+        print(state.isAuthenticated);
 
         return MaterialApp(
           title: 'lam7a',
@@ -52,9 +53,9 @@ class _MyAppState extends ConsumerState<MyApp> {
           },
           home:
               // const Center(child: CircularProgressIndicator(color: Pallete.blackColor, backgroundColor: Pallete.whiteColor,))
-              (!state.isAuthenticated
+              !state.isAuthenticated
               ? FirstTimeScreen()
-              : NavigationHomeScreen()),
+              : NavigationHomeScreen(),
         );
       },
     );

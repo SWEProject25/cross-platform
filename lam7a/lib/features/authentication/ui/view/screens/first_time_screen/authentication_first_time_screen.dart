@@ -35,7 +35,7 @@ class FirstTimeScreen extends StatelessWidget {
                       Expanded(
                         flex: 8,
                         child: Text(
-                          firstTimeScreenText,
+                          AuthenticationConstants.firstTimeScreenText,
                           style: TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
@@ -53,13 +53,13 @@ class FirstTimeScreen extends StatelessWidget {
               Column(
                 children: [
                   IconedButtonCentered(
-                    buttonLabel: oAuthWithGoogleText,
+                    buttonLabel: AuthenticationConstants.oAuthWithGoogleText,
                     imgPath: AppAssets.googleIcon,
                     backGroundColor: Pallete.whiteColor,
                     textColor: Pallete.blackColor,
                   ),
                   IconedButtonCentered(
-                    buttonLabel: oAuthWithGithubText,
+                    buttonLabel: AuthenticationConstants.oAuthWithGithubText,
                     imgPath: AppAssets.githubIcon,
                     backGroundColor: Pallete.whiteColor,
                     textColor: Pallete.blackColor,
