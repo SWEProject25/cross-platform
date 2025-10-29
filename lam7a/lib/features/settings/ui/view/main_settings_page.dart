@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/settings_listTile.dart';
 import '../widgets/settings_searchBar.dart';
+import 'account_settings/account_settings_page.dart';
+import 'privacy_settings/privacy_settings_page.dart';
 
 class MainSettingsPage extends StatelessWidget {
   const MainSettingsPage({super.key});
@@ -43,7 +45,30 @@ class MainSettingsPage extends StatelessWidget {
                   title: item['title'] as String,
                   subtitle: item['subtitle'] as String,
                   onTap: () {
-                    // navigate to detailed page later
+                    if (item['title'] == 'Your account') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (ctx) => const YourAccountSettings(),
+                        ),
+                      );
+                    }
+                    // else if (item['title'] == 'Security and account access') {
+                    //   Navigator.push(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //       builder: (ctx) => const SecurityAccessPage(),
+                    //     ),
+                    //   );
+                    // }
+                    else if (item['title'] == 'Privacy and safety') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (ctx) => const PrivacySettingsPage(),
+                        ),
+                      );
+                    }
                   },
                 );
               },

@@ -22,8 +22,14 @@ final ThemeData xDarkTheme = ThemeData(
     bodyMedium: TextStyle(color: Color(0xFFE7E9EA)),
     bodySmall: TextStyle(color: Color(0xFF71767B)),
     titleMedium: TextStyle(
-      color: Color.fromARGB(255, 219, 221, 222),
-      fontWeight: FontWeight.w600,
+      color: Color.fromARGB(208, 220, 222, 223),
+      fontWeight: FontWeight.w400,
+      fontSize: 16,
+    ),
+    titleLarge: TextStyle(
+      color: Color(0xFFE7E9EA),
+      fontWeight: FontWeight.w400,
+      fontSize: 20,
     ),
   ),
   listTileTheme: const ListTileThemeData(
@@ -31,7 +37,7 @@ final ThemeData xDarkTheme = ThemeData(
     textColor: Color(0xFFE7E9EA),
     // overlayColor: Color.fromARGB(255, 83, 83, 84),
   ),
-  dividerColor: const Color(0xFF2F3336),
+  dividerColor: const Color.fromARGB(105, 47, 51, 54),
   iconTheme: const IconThemeData(color: Color(0xFFE7E9EA)),
   inputDecorationTheme: const InputDecorationTheme(
     filled: true,

@@ -18,10 +18,11 @@ class SettingsOptionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      dense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       leading: Padding(
         padding: const EdgeInsets.only(right: 12.0),
-        child: Icon(icon, size: 28),
+        child: Icon(icon, size: 26),
       ),
       title: Text(title, style: theme.textTheme.titleMedium),
       subtitle: Text(
