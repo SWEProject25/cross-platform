@@ -1,4 +1,4 @@
-import 'package:lam7a/core/services/mock_api_service.dart';
+import 'package:lam7a/core/services/mockProfileSammary_api_service.dart';
 import '../model/profile_model.dart';
 
 class ProfileRepository {
