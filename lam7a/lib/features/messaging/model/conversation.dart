@@ -1,16 +1,16 @@
 class Conversation {
   final String id;
   final String name;
-  final String avatarUrl;
-  final String lastMessage;
-  final DateTime lastMessageTime;
+  final String? avatarUrl;
+  final String? lastMessage;
+  final DateTime? lastMessageTime;
 
   Conversation({
     required this.id,
     required this.name,
-    required this.avatarUrl,
-    required this.lastMessage,
-    required this.lastMessageTime,
+    this.avatarUrl,
+    this.lastMessage,
+    this.lastMessageTime,
   });
 
   factory Conversation.fromJson(Map<String, dynamic> json) {
@@ -29,7 +29,7 @@ class Conversation {
       'name': name,
       'avatarUrl': avatarUrl,
       'lastMessage': lastMessage,
-      'lastMessageTime': lastMessageTime.toIso8601String(),
+      'lastMessageTime': lastMessageTime?.toIso8601String() ?? "",
     };
   }
 }

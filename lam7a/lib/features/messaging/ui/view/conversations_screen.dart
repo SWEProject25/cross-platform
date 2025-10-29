@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/app_icons.dart';
 import 'package:lam7a/core/widgets/app_svg_icon.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
+import 'package:lam7a/features/messaging/services/socket_service.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
 import 'package:lam7a/features/messaging/utils.dart';
 import 'package:lam7a/features/messaging/ui/view/find_contacts_screen.dart';
@@ -18,6 +19,7 @@ class ConversationsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     var theme = Theme.of(context);
     final dMListPageViewModel = ref.watch(conversationsViewModelProvider);
+    ref.watch(socketServiceProvider);
     return Scaffold(
       appBar: DMAppBar(title: 'Direct Message'),
       body: dMListPageViewModel.conversations.when(
@@ -56,7 +58,7 @@ class ConversationsScreen extends ConsumerWidget {
         },
         error: (error, stack) {
           return Center(
-            child: Text('Error: $error'),
+            child: Text('Error: $error $stack'),
           );
         },
         loading: () {
@@ -92,7 +94,7 @@ class _ChatListTile extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: CircleAvatar(
         radius: 28,
-        backgroundImage: NetworkImage(chat.avatarUrl),
+        backgroundImage: NetworkImage(chat.avatarUrl ?? ""),
       ),
       title: Row(
         children: [
@@ -117,18 +119,19 @@ class _ChatListTile extends StatelessWidget {
               ],
             ),
           ),
-          Text(
-            " ${timeToTimeAgo(chat.lastMessageTime)}",
-            style: theme.textTheme.bodyMedium,
-          ),
+          if (chat.lastMessageTime != null)
+            Text(
+              " ${timeToTimeAgo(chat.lastMessageTime!)}",
+              style: theme.textTheme.bodyMedium,
+            ),
         ],
       ),
-      subtitle: Text(
-        chat.lastMessage,
+      subtitle: (chat.lastMessageTime != null) ? Text(
+        chat.lastMessage!,
         style: theme.textTheme.bodyMedium,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-      ),
+      ) : null,
       onTap: () {
         // TODO: Navigate to chat detail page
         Navigator.of(context).push(

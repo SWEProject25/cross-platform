@@ -9,7 +9,7 @@ part 'authentication.g.dart';
 @Riverpod(keepAlive: true)
 class Authentication extends _$Authentication{
   @override
-  dynamic build() {
+  AuthState build() {
     return AuthState();
   }
 

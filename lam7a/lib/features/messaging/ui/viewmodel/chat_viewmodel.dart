@@ -6,15 +6,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'chat_viewmodel.g.dart';
 
 @riverpod
-class ChatViewModel extends _$ChatViewModel {
-  late final ChatsRepository _chatsRepository;
-  
+class ChatViewModel extends _$ChatViewModel {  
   late final String _userId;
   late Contact? _user;
 
   @override
   ChatState build(String userId, [Contact? user]) {
-    _chatsRepository = ref.read(chatsRepositoryProvider);
     _userId = userId;
     _user = user;
 
@@ -28,6 +25,8 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   Future<void> _loadContant() async {
+    var chatsRepository = await ref.read(chatsRepositoryProvider.future);
+
     if (_user != null) return;
     try {
       // final contact = await _chatsRepository.fetchContactById(_userId);
@@ -47,9 +46,11 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   Future<void> _loadMessages() async {
+    var chatsRepository = await ref.read(chatsRepositoryProvider.future);
+
     state = state.copyWith(messages: const AsyncLoading());
     try {
-      final data = await _chatsRepository.fetchMessages(_userId);
+      final data = await chatsRepository.fetchMessages(_userId);
       state = state.copyWith(messages: AsyncData(data));
     } catch (e, st) {
       state = state.copyWith(messages: AsyncError(e, st));
