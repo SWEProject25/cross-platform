@@ -5,13 +5,11 @@ import 'package:lam7a/features/notifications/ui/viewmodels/notifications_viewmod
 import 'package:lam7a/features/notifications/ui/widgets/notification_item.dart';
 
 class NotificationsScreen extends ConsumerWidget {
-  final List<NotificationModel> notifications;
 
-  const NotificationsScreen({super.key, required this.notifications});
+  const NotificationsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var notificationsState = ref.watch(notificationsViewModelProvider);
     var viewModel = ref.watch(notificationsViewModelProvider.notifier);
     return DefaultTabController(
       length: 2,
