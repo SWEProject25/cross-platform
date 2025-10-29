@@ -8,15 +8,17 @@ abstract class TweetModel with _$TweetModel {
   const factory TweetModel({
     required String id,
     required String body,
-    String? mediaPic,
-    String? mediaVideo,
+    String? mediaPic, // Keep for backward compatibility
+    String? mediaVideo, // Keep for backward compatibility
+    @Default([]) List<String> mediaImages, // Multiple images support
+    @Default([]) List<String> mediaVideos, // Multiple videos support
     required DateTime date,
-    required int likes,
-    required int qoutes,
-    required int bookmarks,
-    required int repost,
-    required int comments,
-    required int views,
+    @Default(0) int likes,
+    @Default(0) int qoutes,
+    @Default(0) int bookmarks,
+    @Default(0) int repost,
+    @Default(0) int comments,
+    @Default(0) int views,
     required String userId,
   }) = _TweetModel;
 
@@ -24,15 +26,7 @@ abstract class TweetModel with _$TweetModel {
   factory TweetModel.empty() => TweetModel(
         id: '',
         body: '',
-        mediaPic: null,
-        mediaVideo: null,
         date: DateTime.now(),
-        likes: 0,
-        qoutes: 0,
-        bookmarks: 0,
-        repost: 0,
-        comments: 0,
-        views: 0,
         userId: '',
       );
 

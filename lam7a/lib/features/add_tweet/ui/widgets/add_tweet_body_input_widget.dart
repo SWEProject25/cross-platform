@@ -33,6 +33,8 @@ class AddTweetBodyInputWidget extends StatelessWidget {
         ),
         border: InputBorder.none,
         counterText: '', // Hide the default counter
+        filled: false, // Ensure no fill
+        fillColor: Colors.transparent, // Transparent background
       ),
       cursorColor: Pallete.borderHover,
     );

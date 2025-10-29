@@ -72,8 +72,8 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
       print('📤 Starting to post tweet...');
       state = state.copyWith(isLoading: true, errorMessage: null);
 
-      // Use real backend implementation
-      final apiService = AddTweetApiServiceImpl();
+      // Use real backend implementation with authentication
+      final apiService = await ref.read(addTweetApiServiceProvider.future);
       
       // Create tweet with media files (service handles upload and returns URLs)
       final createdTweet = await apiService.createTweet(

@@ -64,7 +64,10 @@ class TweetHomeScreen extends ConsumerWidget {
                 final tweet = sortedTweets[index];
                 return Column(
                   children: [
-                    TweetSummaryWidget(tweetId: tweet.id),
+                    TweetSummaryWidget(
+                      tweetId: tweet.id,
+                      tweetData: tweet, // Pass pre-loaded data to avoid 404 fetch
+                    ),
                     const Divider(
                       color: Pallete.borderColor,
                       thickness: 0.5,

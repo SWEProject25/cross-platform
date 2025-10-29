@@ -11,6 +11,19 @@ class TweetDetailedBodyWidget extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
+    // Handle null tweet (e.g., 404 error)
+    if (tweetState.tweet.value == null) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Text(
+            'Tweet not found or has been deleted',
+            style: TextStyle(color: Colors.grey),
+          ),
+        ),
+      );
+    }
+    
     final post = tweetState.tweet.value!;
     final responsive = context.responsive;
     final fontSize = responsive.fontSize(17);
@@ -42,52 +55,88 @@ class TweetDetailedBodyWidget extends StatelessWidget {
               ],
             ),
             SizedBox(height: responsive.padding(10)),
-            if (post.mediaPic != null)
-                 Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.all(responsive.padding(8)),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.network(
-                                post.mediaPic.toString(),
-                                width: double.infinity,
-                                height: imageHeight,
-                                fit: BoxFit.cover,
-
-                                loadingBuilder:
-                                    (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return const Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    },
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(
-                                    Icons.error,
-                                    color: Colors.red,
-                                  );
-                                },
+            // Display multiple images
+            if (post.mediaImages.isNotEmpty)
+              Column(
+                children: post.mediaImages.map((imageUrl) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: responsive.padding(8),
+                      vertical: responsive.padding(4),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(
+                        imageUrl,
+                        width: double.infinity,
+                        height: imageHeight,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return SizedBox(
+                            height: imageHeight,
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return SizedBox(
+                            height: imageHeight,
+                            child: const Center(
+                              child: Icon(
+                                Icons.error,
+                                color: Colors.red,
                               ),
                             ),
-                          ),
-                          if (post.mediaVideo != null)
-                            Padding(
-                              padding: EdgeInsets.all(responsive.padding(8)),
-                              child: VideoPlayerWidget(
-                                url: post.mediaVideo.toString(),
-                              ),
-                            ),
-                        ],
+                          );
+                        },
                       ),
                     ),
-                  ],
-                 )
+                  );
+                }).toList(),
+              ),
+            // Display multiple videos
+            if (post.mediaVideos.isNotEmpty)
+              Column(
+                children: post.mediaVideos.map((videoUrl) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: responsive.padding(8),
+                      vertical: responsive.padding(4),
+                    ),
+                    child: VideoPlayerWidget(
+                      url: videoUrl,
+                    ),
+                  );
+                }).toList(),
+              ),
+            // Backward compatibility: show old single media fields if new lists are empty
+            if (post.mediaImages.isEmpty && post.mediaPic != null)
+              Padding(
+                padding: EdgeInsets.all(responsive.padding(8)),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(
+                    post.mediaPic.toString(),
+                    width: double.infinity,
+                    height: imageHeight,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(Icons.error, color: Colors.red);
+                    },
+                  ),
+                ),
+              ),
+            if (post.mediaVideos.isEmpty && post.mediaVideo != null)
+              Padding(
+                padding: EdgeInsets.all(responsive.padding(8)),
+                child: VideoPlayerWidget(url: post.mediaVideo.toString()),
+              ),
           ],
         );
       },

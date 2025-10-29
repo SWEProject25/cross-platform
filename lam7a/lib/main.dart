@@ -13,14 +13,14 @@ import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
 
 void main() {
-  // TO TEST ADD TWEET SCREEN ONLY: Uncomment line below
+  // NORMAL APP FLOW WITH LOGIN (Required for authentication):
+  runApp(ProviderScope(child: MyApp()));
+  
+  // TO TEST ADD TWEET SCREEN ONLY (No auth): Uncomment line below
   // runApp(ProviderScope(child: TestAddTweetApp()));
   
-  // TO TEST HOME WITH FAB: Uncomment line below
-  runApp(ProviderScope(child: TestTweetHomeApp()));
-  
-  // NORMAL APP FLOW:
-  // runApp(ProviderScope(child: MyApp()));
+  // TO TEST HOME WITH FAB (No auth): Uncomment line below
+  // runApp(ProviderScope(child: TestTweetHomeApp()));
 }
 
 class MyApp extends StatelessWidget {

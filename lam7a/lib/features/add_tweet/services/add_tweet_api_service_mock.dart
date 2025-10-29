@@ -23,25 +23,36 @@ class AddTweetApiServiceMock implements AddTweetApiService {
     print('   Image Path: ${mediaPicPath ?? "None"}');
     print('   Video Path: ${mediaVideoPath ?? "None"}');
     
-    // Simulate network delay
+    // Simulate network delay (matching main service logic)
     await _simulateNetworkDelay();
     
-    // Generate mock URLs for media files
-    String? mockImageUrl;
-    String? mockVideoUrl;
+    // Generate mock URLs for media files - supporting multiple images and videos
+    final mockImageUrls = <String>[];
+    final mockVideoUrls = <String>[];
     
     if (mediaPicPath != null && mediaPicPath.isNotEmpty) {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      mockImageUrl = 'https://picsum.photos/seed/$timestamp/800/600';
-      print('   📷 Generated mock image URL: $mockImageUrl');
+      // Generate multiple mock images (simulating backend behavior)
+      mockImageUrls.add('https://picsum.photos/seed/$timestamp-1/800/600');
+      mockImageUrls.add('https://picsum.photos/seed/$timestamp-2/800/600');
+      mockImageUrls.add('https://picsum.photos/seed/$timestamp-3/800/600');
+      print('   📷 Generated ${mockImageUrls.length} mock image URLs');
+      for (int i = 0; i < mockImageUrls.length; i++) {
+        print('      - Image $i: ${mockImageUrls[i]}');
+      }
     }
     
     if (mediaVideoPath != null && mediaVideoPath.isNotEmpty) {
-      mockVideoUrl = 'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4';
-      print('   🎥 Generated mock video URL: $mockVideoUrl');
+      // Generate multiple mock videos (simulating backend behavior)
+      mockVideoUrls.add('https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4');
+      mockVideoUrls.add('https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4');
+      print('   🎥 Generated ${mockVideoUrls.length} mock video URLs');
+      for (int i = 0; i < mockVideoUrls.length; i++) {
+        print('      - Video $i: ${mockVideoUrls[i]}');
+      }
     }
     
-    // Create and return the mock tweet
+    // Create and return the mock tweet (matching backend response structure)
     final mockTweet = TweetModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       userId: userId,
@@ -53,14 +64,14 @@ class AddTweetApiServiceMock implements AddTweetApiService {
       views: 0,
       qoutes: 0,
       bookmarks: 0,
-      mediaPic: mockImageUrl,
-      mediaVideo: mockVideoUrl,
+      mediaImages: mockImageUrls,
+      mediaVideos: mockVideoUrls,
     );
     
     print('✅ [MOCK] Tweet created successfully!');
     print('   Tweet ID: ${mockTweet.id}');
-    print('   Media Pic URL: ${mockTweet.mediaPic ?? "None"}');
-    print('   Media Video URL: ${mockTweet.mediaVideo ?? "None"}');
+    print('   Media Images: ${mockTweet.mediaImages.length} items');
+    print('   Media Videos: ${mockTweet.mediaVideos.length} items');
     
     return mockTweet;
   }

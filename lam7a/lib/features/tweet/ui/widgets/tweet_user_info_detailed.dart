@@ -21,6 +21,12 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
   @override
   Widget build(BuildContext context) {
     final tweet= widget.tweetState.tweet;
+    
+    // Handle null tweet
+    if (tweet.value == null) {
+      return const SizedBox.shrink();
+    }
+    
     //need userProvider to check for changes for now i use static data
     final userAsync = ref.watch(userByIdProvider(tweet.value!.userId));
     return Row(

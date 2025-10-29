@@ -2,32 +2,42 @@ import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/services/tweet_api_service.dart';
 
 
-// Dummy in-memory mock tweets
+// Dummy in-memory mock tweets with multiple media support
 final _mockTweets = <String, TweetModel>{
   't1': TweetModel(
     id: 't1',
     userId: '1',
-    body: 'This is a mocked tweet about Riverpod!',
+    body: 'This is a mocked tweet about Riverpod with multiple images!',
     likes: 23,
     repost: 4,
     comments: 3,
     views: 230,
     date: DateTime.now().subtract(const Duration(days: 1)),
-    mediaPic:
-        'https://media.istockphoto.com/id/1703754111/photo/sunset-dramatic-sky-clouds.jpg?s=612x612&w=0&k=20&c=6vevvAvvqvu5MxfOC0qJuxLZXmus3hyUCfzVAy-yFPA=',
+    // Multiple images
+    mediaImages: [
+      'https://media.istockphoto.com/id/1703754111/photo/sunset-dramatic-sky-clouds.jpg?s=612x612&w=0&k=20&c=6vevvAvvqvu5MxfOC0qJuxLZXmus3hyUCfzVAy-yFPA=',
+      'https://picsum.photos/seed/img1/800/600',
+      'https://picsum.photos/seed/img2/800/600',
+    ],
+    mediaVideos: [],
     qoutes: 777000,
-    mediaVideo: null,
     bookmarks: 6000000,
   ),
   't2': TweetModel(
     id: 't2',
     userId: '2',
-    body: 'Mock tweet #2 — Flutter is amazing ',
+    body: 'Mock tweet #2 — Flutter is amazing with videos!',
     likes: 54,
     repost: 2,
     comments: 10,
     views: 980,
     date: DateTime.now().subtract(const Duration(hours: 5)),
+    // Multiple videos
+    mediaImages: [],
+    mediaVideos: [
+      'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+      'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
+    ],
     qoutes: 1000000,
     bookmarks: 5000000000,
   ),
@@ -35,11 +45,15 @@ final _mockTweets = <String, TweetModel>{
     id: "t3",
     userId: "1",
     body:
-        "Hi This Is The Tweet Body\nHappiness comes from within. Focus on gratitude, surround yourself with kind people, and do what brings meaning. Accept what you can’t control, forgive easily, and celebrate small wins. Stay present, care for your body and mind, and spread kindness daily.",
-    mediaPic:
-        'https://tse4.mm.bing.net/th/id/OIP.u7kslI7potNthBAIm93JDwHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
-    mediaVideo:
-        'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+        "Hi This Is The Tweet Body\nHappiness comes from within. Focus on gratitude, surround yourself with kind people, and do what brings meaning. Accept what you can't control, forgive easily, and celebrate small wins. Stay present, care for your body and mind, and spread kindness daily.",
+    // Mix of images and videos
+    mediaImages: [
+      'https://tse4.mm.bing.net/th/id/OIP.u7kslI7potNthBAIm93JDwHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
+      'https://picsum.photos/seed/nature/800/600',
+    ],
+    mediaVideos: [
+      'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+    ],
     date: DateTime.now().subtract(const Duration(days: 1)),
     likes: 999,
     comments: 8900,
@@ -75,13 +89,23 @@ class TweetsApiServiceMock implements TweetsApiService {
     await _simulateDelay();
     _tweets[tweet.id] = tweet;
     
-    // Log for debugging
+    // Log for debugging (matching main API service logic)
     print('✅ Tweet added successfully to mock backend!');
     print('   ID: ${tweet.id}');
     print('   Body: ${tweet.body}');
     print('   User ID: ${tweet.userId}');
-    print('   Media Pic: ${tweet.mediaPic ?? "None"}');
-    print('   Media Video: ${tweet.mediaVideo ?? "None"}');
+    print('   Media Images: ${tweet.mediaImages.length} items');
+    if (tweet.mediaImages.isNotEmpty) {
+      for (int i = 0; i < tweet.mediaImages.length; i++) {
+        print('      - Image $i: ${tweet.mediaImages[i]}');
+      }
+    }
+    print('   Media Videos: ${tweet.mediaVideos.length} items');
+    if (tweet.mediaVideos.isNotEmpty) {
+      for (int i = 0; i < tweet.mediaVideos.length; i++) {
+        print('      - Video $i: ${tweet.mediaVideos[i]}');
+      }
+    }
     print('   Total tweets in mock DB: ${_tweets.length}');
   }
 

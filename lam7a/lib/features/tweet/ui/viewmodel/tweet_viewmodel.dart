@@ -23,7 +23,7 @@ FutureOr<TweetState> build(String tweetId) async {
 
 
   //  Handle Like toggle
-  void handleLike({required AnimationController controller}) {
+  Future<void> handleLike({required AnimationController controller}) async {
     final repo = ref.read(tweetRepositoryProvider);
     final current = state.value!;
     final tweet= state.value!.tweet.value!;
@@ -42,7 +42,7 @@ FutureOr<TweetState> build(String tweetId) async {
   }
 
   // Handle Repost toggle
-  void handleRepost({required AnimationController controllerRepost}) {
+  Future<void> handleRepost({required AnimationController controllerRepost}) async {
     final repo = ref.read(tweetRepositoryProvider);
     final current = state.value!;
     final tweet= state.value!.tweet.value!;
@@ -80,8 +80,8 @@ FutureOr<TweetState> build(String tweetId) async {
     return '$formatted$s';
   }
 
-  void handleViews() {
-    final repo= ref.read(tweetRepositoryProvider);
+  Future<void> handleViews() async {
+    final repo = ref.read(tweetRepositoryProvider);
     final current=state.value!;
     final tweet= state.value!.tweet.value!;
     if (!current.isViewed) {

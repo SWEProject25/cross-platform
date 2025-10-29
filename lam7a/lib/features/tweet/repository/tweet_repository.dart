@@ -6,7 +6,7 @@ part 'tweet_repository.g.dart';
 
 @riverpod
 TweetRepository tweetRepository(Ref ref) {
-  // You can toggle between mock and API service here later
+  // Using mock API service (switched from real backend)
   final apiService = ref.read(tweetsApiServiceProvider);
   return TweetRepository(apiService);
 }
