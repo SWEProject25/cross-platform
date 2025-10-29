@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 part 'user_model.freezed.dart';
 part 'user_model.g.dart';
@@ -23,4 +22,3 @@ abstract class UserModel with _$UserModel{
       _$UserModelFromJson(json);
 
 }
-final userProvider = Provider<UserModel?>((ref) => null);

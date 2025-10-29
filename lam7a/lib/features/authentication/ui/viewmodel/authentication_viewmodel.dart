@@ -1,6 +1,7 @@
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
@@ -22,17 +23,20 @@ void showToastMessage(String message) {
   );
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   static const maxSignupScreens = 4;
   static const maxLoginScreens = 1;
   final Validator validator = Validator();
-  final repo = AuthenticationRepositoryImpl();
-
+  late AuthenticationRepositoryImpl repo;
+  late Authentication authController;
   // the initial state of my state is signup
   @override
-  AuthenticationState build() => const AuthenticationState.signup();
-
+  AuthenticationState build(){ 
+    repo = ref.read(authenticationImplRepositoryProvider);
+    authController = ref.read(authenticationProvider.notifier);
+    return const AuthenticationState.signup();
+  }
   // check for the validation to enable step button
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
@@ -69,14 +73,14 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           login: (login) => login,
           signup: (signup) => signup.copyWith(isLoadingSignup: true),
         );
-        bool checkValid = await repo.checkEmail(state.email, ref);
+        bool checkValid = await repo.checkEmail(state.email);
         state = state.map(
           login: (login) => login,
           signup: (signup) => signup.copyWith(isValidEmail: checkValid),
         );
         if (checkValid) {
           //generate otp and send it to user email
-          final genrateStatus = await repo.verificationOTP(state.email, ref);
+          final genrateStatus = await repo.verificationOTP(state.email);
           if (genrateStatus) {
             state = state.map(
               login: (login) => login,
@@ -115,7 +119,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           login: (login) => login,
           signup: (signup) => signup.copyWith(isLoadingSignup: true),
         );
-        bool isValidCode = await repo.verifyOTP(state.email, state.code, ref);
+        bool isValidCode = await repo.verifyOTP(state.email, state.code);
         if (isValidCode) {
           gotoNextSignupStep();
         } else {
@@ -143,7 +147,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
   Future<void> resendOTP() async {
-    bool isSuccessed = await repo.resendOTP(state.email, ref);
+    bool isSuccessed = await repo.resendOTP(state.email);
     if (!isSuccessed) {
       showToastMessage("this service isn't available now");
     } else {
@@ -163,20 +167,19 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           login: (login) => login,
           signup: (signup) => signup.copyWith(isLoadingSignup: true),
         );
-        UserModel user = await repo.register(
+        UserModel? user = await repo.register(
           AuthenticationUserDataModel(
             name: state.name,
             email: state.email,
             password: state.passwordSignup,
             birth_date: state.date,
           ),
-          ref,
+          
         );
         if (user != null) {
-          final authController = ref.watch(authenticationProvider.notifier);
 
           showToastMessage("user signed up successfully");
-          await authController.authenticateUser("success", user);
+          await authController.authenticateUser(user);
         }
         state = state.map(
           login: (login) => login,
@@ -224,12 +227,9 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           email: state.identifier,
           password: state.passwordLogin,
         ),
-        ref,
       );
       if (myUser.name != null) {
-        final authController = ref.watch(authenticationProvider.notifier);
-        await authController.authenticateUser("success", myUser);
-        final authState = ref.watch(authenticationProvider);
+        await authController.authenticateUser(myUser);
         print(myUser);
         state = state.map(
           login: (login) => login.copyWith(
@@ -260,12 +260,6 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   }
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
-
-  void logout() {
-    final authController = ref.watch(authenticationProvider);
-    // authController.logout();
-    repo.logout(ref);
-  }
 
   void gotoNextSignupStep() {
     state = state.map(
