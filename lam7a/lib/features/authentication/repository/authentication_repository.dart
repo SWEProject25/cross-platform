@@ -8,7 +8,7 @@ abstract class AuthenticationRepository {
   Future<bool> checkEmail(String email, Ref ref);
   Future<bool> verificationOTP(String email, Ref ref);
   Future<bool> resendOTP(String email, Ref ref);
-  Future<UserModel> register(AuthenticationUserDataModel user, Ref ref);
+  Future<UserModel?> register(AuthenticationUserDataModel user, Ref ref);
   Future<bool> verifyOTP(String email, String OTP, Ref ref);
   Future<UserModel?> login(AuthenticationUserCredentialsModel userCredentials, Ref ref);
   Future<void> test(WidgetRef ref);

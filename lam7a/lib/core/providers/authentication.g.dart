@@ -41,7 +41,7 @@ final class AuthenticationProvider
   }
 }
 
-String _$authenticationHash() => r'5c6455fc1164d8e26480a094e8cd6ba02db922c5';
+String _$authenticationHash() => r'86dcf7c756e38e0e12a1a01a6a4f825e0ae9a914';
 
 abstract class _$Authentication extends $Notifier<dynamic> {
   dynamic build();

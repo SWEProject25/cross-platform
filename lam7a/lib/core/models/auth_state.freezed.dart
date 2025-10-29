@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AuthState {
 
- String? get token; UserModel? get user; bool get isAuthenticated;
+ String? get token; UserModel? get user; bool get isAuthenticated; bool get isLoading;
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $AuthStateCopyWith<AuthState> get copyWith => _$AuthStateCopyWithImpl<AuthState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthState&&(identical(other.token, token) || other.token == token)&&(identical(other.user, user) || other.user == user)&&(identical(other.isAuthenticated, isAuthenticated) || other.isAuthenticated == isAuthenticated));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthState&&(identical(other.token, token) || other.token == token)&&(identical(other.user, user) || other.user == user)&&(identical(other.isAuthenticated, isAuthenticated) || other.isAuthenticated == isAuthenticated)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,token,user,isAuthenticated);
+int get hashCode => Object.hash(runtimeType,token,user,isAuthenticated,isLoading);
 
 @override
 String toString() {
-  return 'AuthState(token: $token, user: $user, isAuthenticated: $isAuthenticated)';
+  return 'AuthState(token: $token, user: $user, isAuthenticated: $isAuthenticated, isLoading: $isLoading)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $AuthStateCopyWith<$Res>  {
   factory $AuthStateCopyWith(AuthState value, $Res Function(AuthState) _then) = _$AuthStateCopyWithImpl;
 @useResult
 $Res call({
- String? token, UserModel? user, bool isAuthenticated
+ String? token, UserModel? user, bool isAuthenticated, bool isLoading
 });
 
 
@@ -62,11 +62,12 @@ class _$AuthStateCopyWithImpl<$Res>
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? token = freezed,Object? user = freezed,Object? isAuthenticated = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? token = freezed,Object? user = freezed,Object? isAuthenticated = null,Object? isLoading = null,}) {
   return _then(_self.copyWith(
 token: freezed == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
 as String?,user: freezed == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as UserModel?,isAuthenticated: null == isAuthenticated ? _self.isAuthenticated : isAuthenticated // ignore: cast_nullable_to_non_nullable
+as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -164,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? token,  UserModel? user,  bool isAuthenticated)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? token,  UserModel? user,  bool isAuthenticated,  bool isLoading)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AuthState() when $default != null:
-return $default(_that.token,_that.user,_that.isAuthenticated);case _:
+return $default(_that.token,_that.user,_that.isAuthenticated,_that.isLoading);case _:
   return orElse();
 
 }
@@ -185,10 +186,10 @@ return $default(_that.token,_that.user,_that.isAuthenticated);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? token,  UserModel? user,  bool isAuthenticated)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? token,  UserModel? user,  bool isAuthenticated,  bool isLoading)  $default,) {final _that = this;
 switch (_that) {
 case _AuthState():
-return $default(_that.token,_that.user,_that.isAuthenticated);case _:
+return $default(_that.token,_that.user,_that.isAuthenticated,_that.isLoading);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +206,10 @@ return $default(_that.token,_that.user,_that.isAuthenticated);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? token,  UserModel? user,  bool isAuthenticated)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? token,  UserModel? user,  bool isAuthenticated,  bool isLoading)?  $default,) {final _that = this;
 switch (_that) {
 case _AuthState() when $default != null:
-return $default(_that.token,_that.user,_that.isAuthenticated);case _:
+return $default(_that.token,_that.user,_that.isAuthenticated,_that.isLoading);case _:
   return null;
 
 }
@@ -220,12 +221,13 @@ return $default(_that.token,_that.user,_that.isAuthenticated);case _:
 
 
 class _AuthState implements AuthState {
-  const _AuthState({this.token, this.user, this.isAuthenticated = false});
+  const _AuthState({this.token, this.user, this.isAuthenticated = false, this.isLoading = false});
   
 
 @override final  String? token;
 @override final  UserModel? user;
 @override@JsonKey() final  bool isAuthenticated;
+@override@JsonKey() final  bool isLoading;
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
@@ -237,16 +239,16 @@ _$AuthStateCopyWith<_AuthState> get copyWith => __$AuthStateCopyWithImpl<_AuthSt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthState&&(identical(other.token, token) || other.token == token)&&(identical(other.user, user) || other.user == user)&&(identical(other.isAuthenticated, isAuthenticated) || other.isAuthenticated == isAuthenticated));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthState&&(identical(other.token, token) || other.token == token)&&(identical(other.user, user) || other.user == user)&&(identical(other.isAuthenticated, isAuthenticated) || other.isAuthenticated == isAuthenticated)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,token,user,isAuthenticated);
+int get hashCode => Object.hash(runtimeType,token,user,isAuthenticated,isLoading);
 
 @override
 String toString() {
-  return 'AuthState(token: $token, user: $user, isAuthenticated: $isAuthenticated)';
+  return 'AuthState(token: $token, user: $user, isAuthenticated: $isAuthenticated, isLoading: $isLoading)';
 }
 
 
@@ -257,7 +259,7 @@ abstract mixin class _$AuthStateCopyWith<$Res> implements $AuthStateCopyWith<$Re
   factory _$AuthStateCopyWith(_AuthState value, $Res Function(_AuthState) _then) = __$AuthStateCopyWithImpl;
 @override @useResult
 $Res call({
- String? token, UserModel? user, bool isAuthenticated
+ String? token, UserModel? user, bool isAuthenticated, bool isLoading
 });
 
 
@@ -274,11 +276,12 @@ class __$AuthStateCopyWithImpl<$Res>
 
 /// Create a copy of AuthState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? token = freezed,Object? user = freezed,Object? isAuthenticated = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? token = freezed,Object? user = freezed,Object? isAuthenticated = null,Object? isLoading = null,}) {
   return _then(_AuthState(
 token: freezed == token ? _self.token : token // ignore: cast_nullable_to_non_nullable
 as String?,user: freezed == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as UserModel?,isAuthenticated: null == isAuthenticated ? _self.isAuthenticated : isAuthenticated // ignore: cast_nullable_to_non_nullable
+as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

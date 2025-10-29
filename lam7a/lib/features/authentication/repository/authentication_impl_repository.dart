@@ -36,7 +36,7 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
   }
 
   @override
-  Future<UserModel> register(AuthenticationUserDataModel user, Ref ref) async {
+  Future<UserModel?> register(AuthenticationUserDataModel user, Ref ref) async {
     final _apiService = await ref.read(apiServiceProvider.future);
     final data = await apiService.register(user, _apiService);
     UserModel userModel = UserModel.fromJson(data['data']['user']);

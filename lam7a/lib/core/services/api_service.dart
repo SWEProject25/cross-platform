@@ -14,7 +14,7 @@ final apiServiceProvider = FutureProvider<ApiService>((ref) async {
 Future<Dio> prepareCookieManager() async {
   final directory = await getApplicationDocumentsDirectory();
   final cookiePath = path.join(directory.path, '.cookies');
-  await Directory(cookiePath).create(recursive: true); // ✅ Ensure folder exists
+  await Directory(cookiePath).create(recursive: true);
   final cookieJar = PersistCookieJar(
     storage: FileStorage(cookiePath),
   );
@@ -65,7 +65,7 @@ class ApiService {
   }) async {
     try {
       final response = await _dio.get<dynamic>(
-        endpoint,
+        _baseUrl + endpoint,
         queryParameters: queryParameters,
         options: options,
       );
@@ -86,7 +86,7 @@ class ApiService {
   }) async {
     try {
       final response = await _dio.post<dynamic>(
-        endpoint,
+        _baseUrl + endpoint,
         data: data,
         queryParameters: queryParameters,
         options: options,
@@ -108,7 +108,7 @@ class ApiService {
   }) async {
     try {
       final response = await _dio.put<dynamic>(
-        endpoint,
+        _baseUrl + endpoint,
         data: data,
         queryParameters: queryParameters,
         options: options,
@@ -130,7 +130,7 @@ class ApiService {
   }) async {
     try {
       final response = await _dio.delete<dynamic>(
-        endpoint,
+        _baseUrl + endpoint,
         data: data,
         queryParameters: queryParameters,
         options: options,
@@ -152,7 +152,7 @@ class ApiService {
   }) async {
     try {
       final response = await _dio.patch<dynamic>(
-        endpoint,
+        _baseUrl + endpoint,
         data: data,
         queryParameters: queryParameters,
         options: options,

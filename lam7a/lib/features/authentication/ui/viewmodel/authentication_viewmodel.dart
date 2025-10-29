@@ -163,7 +163,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           login: (login) => login,
           signup: (signup) => signup.copyWith(isLoadingSignup: true),
         );
-        UserModel user = await repo.register(
+        UserModel? user = await repo.register(
           AuthenticationUserDataModel(
             name: state.name,
             email: state.email,
@@ -176,7 +176,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           final authController = ref.watch(authenticationProvider.notifier);
 
           showToastMessage("user signed up successfully");
-          await authController.authenticateUser("success", user);
+          await authController.authenticateUser(user);
         }
         state = state.map(
           login: (login) => login,
@@ -228,7 +228,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       );
       if (myUser.name != null) {
         final authController = ref.watch(authenticationProvider.notifier);
-        await authController.authenticateUser("success", myUser);
+        await authController.authenticateUser(myUser);
         final authState = ref.watch(authenticationProvider);
         print(myUser);
         state = state.map(
@@ -260,12 +260,6 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   }
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
-
-  void logout() {
-    final authController = ref.watch(authenticationProvider);
-    // authController.logout();
-    repo.logout(ref);
-  }
 
   void gotoNextSignupStep() {
     state = state.map(

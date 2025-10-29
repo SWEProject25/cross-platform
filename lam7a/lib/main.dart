@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/theme/theme.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authentication_login_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
@@ -14,8 +15,23 @@ void main() {
   runApp(ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
+
+  @override
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final controller = ref.read(authenticationProvider.notifier);
+      final state = ref.read(authenticationProvider);
+      await controller.isAuthenticated(ref);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +44,6 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: ThemeMode.light,
-          home: _build(state, ref),
           routes: {
             FirstTimeScreen.routeName: (context) => FirstTimeScreen(),
             SignUpFlow.routeName: (context) => SignUpFlow(),
@@ -37,24 +52,15 @@ class MyApp extends StatelessWidget {
             AuthenticationTransmissionScreen.routeName: (context) =>
                 AuthenticationTransmissionScreen(),
           },
-          initialRoute: !state.isAuthenticated
-              ? FirstTimeScreen.routeName
-              : NavigationHomeScreen.routeName,
+          home: state.isLoading
+              ? const Center(child: CircularProgressIndicator(color: Pallete.blackColor, backgroundColor: Pallete.whiteColor,))
+              : (!state.isAuthenticated ? FirstTimeScreen() : NavigationHomeScreen()),
         );
       },
     );
   }
 }
 
-Widget _build(AuthState state, WidgetRef ref) {
-  final controller = ref.watch(authenticationProvider.notifier);
-  controller.isAuthenticated();
-  if (state.isAuthenticated) {
-    return NavigationHomeScreen();
-  } else {
-    return FirstTimeScreen();
-    }
-}
 class TestTweetApp extends StatelessWidget {
   const TestTweetApp({super.key});
 

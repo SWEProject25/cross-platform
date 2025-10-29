@@ -42,7 +42,7 @@ final class AuthenticationViewmodelProvider
 }
 
 String _$authenticationViewmodelHash() =>
-    r'bae9fe3a56762e03f023b536dd27a74be0b0ab04';
+    r'6d69216b8c03d3557fb24b5dec6f5725dac23887';
 
 abstract class _$AuthenticationViewmodel
     extends $Notifier<AuthenticationState> {

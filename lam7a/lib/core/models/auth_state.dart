@@ -7,6 +7,7 @@ abstract class AuthState with _$AuthState {
      String? token,
      UserModel? user,
      @Default(false) bool isAuthenticated,
+     @Default(true) bool isLoading,
      
   }) = _AuthState;
 }
