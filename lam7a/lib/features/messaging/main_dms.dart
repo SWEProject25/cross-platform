@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/theme/theme.dart';
-import 'package:lam7a/features/messaging/ui/view/dm_list_view_page.dart';
+import 'package:lam7a/features/messaging/ui/view/conversations_screen.dart';
 
 void main() {
   runApp(ProviderScope(child: MyApp()));
@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.light,
       home: Scaffold(
-        body: DMListViewPage(),
+        body: ConversationsScreen(),
       ),
     );
   }

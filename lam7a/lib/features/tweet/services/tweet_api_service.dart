@@ -1,0 +1,19 @@
+import 'package:lam7a/features/tweet/services/tweet_api_service_mock.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:lam7a/features/common/models/tweet_model.dart';
+
+
+part 'tweet_api_service.g.dart';
+
+@riverpod
+TweetsApiService tweetsApiService(Ref ref) {
+  // For now return mock – later swap here to real API
+ return TweetsApiServiceMock();
+}
+abstract class TweetsApiService {
+  Future<List<TweetModel>> getAllTweets();
+  Future<TweetModel> getTweetById(String id);
+  Future<void> addTweet(TweetModel tweet);
+  Future<void> updateTweet(TweetModel tweet);
+  Future<void> deleteTweet(String id);
+}
