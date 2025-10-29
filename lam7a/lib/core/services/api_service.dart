@@ -6,42 +6,14 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+// part 'api_service.g.dart';
 
-final apiServiceProvider = FutureProvider<ApiService>((ref) async {
-  return await create();
-});
 
-Future<Dio> prepareCookieManager() async {
-  final directory = await getApplicationDocumentsDirectory();
-  final cookiePath = path.join(directory.path, '.cookies');
-  await Directory(cookiePath).create(recursive: true);
-  final cookieJar = PersistCookieJar(
-    storage: FileStorage(cookiePath),
-  );
-  final dio = Dio(
-    BaseOptions(
-      baseUrl: ApiService._baseUrl,
-      connectTimeout: Duration(seconds: ApiService._timeoutSeconds),
-      receiveTimeout: Duration(seconds: ApiService._timeoutSeconds),
-      sendTimeout: Duration(seconds: ApiService._timeoutSeconds),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-    ),
-  );
-  dio.interceptors.add(CookieManager(cookieJar));
-  return dio;
-}
-
-Future<ApiService> create() async {
-  final dio = await prepareCookieManager();
-  dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true));
-  return ApiService(dio);
-}
+final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
 
 class ApiService {
-  late final Dio _dio;
+  late Dio _dio;
 
   // Base URL for the APIpart 'api_service.g.dart';
 
@@ -50,10 +22,42 @@ class ApiService {
   // Initialize timeout duration
   static const int _timeoutSeconds = 30;
 
-  ApiService(this._dio);
+  ApiService() {
+    print("Initializing ApiService with base URL: $_baseUrl");
+    _dio = _createDio();
+    _dio.interceptors.add(_createErrorInterceptor());
+    _dio.interceptors.add(_createLogInterceptor());
+  }
 
-  void declareDio() async {
-    _dio = await prepareCookieManager();
+  Dio _createDio() {
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: ApiService._baseUrl,
+        connectTimeout: Duration(seconds: ApiService._timeoutSeconds),
+        receiveTimeout: Duration(seconds: ApiService._timeoutSeconds),
+        sendTimeout: Duration(seconds: ApiService._timeoutSeconds),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      ),
+    );
+    return dio;
+  }
+
+  Future<void> _addInterceptorsToDio(Dio dio) async {
+    dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true));
+    final directory = await getApplicationDocumentsDirectory();
+    final cookiePath = path.join(directory.path, '.cookies');
+    await Directory(cookiePath).create(recursive: true);
+    final cookieJar = PersistCookieJar(storage: FileStorage(cookiePath));
+    dio.interceptors.add(CookieManager(cookieJar));
+
+    print('Cookie jar initialized at $cookiePath');
+  }
+
+  Future<void> initialize() async {
+    await _addInterceptorsToDio(_dio);
   }
 
   // GET request
