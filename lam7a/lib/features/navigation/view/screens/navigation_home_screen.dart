@@ -12,7 +12,7 @@ class NavigationHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(success)),
+      appBar: AppBar(title: Text(AuthenticationConstants.success)),
       body: Consumer(
         builder: (context, ref, child){
           final authController = ref.watch(authenticationProvider.notifier);

@@ -27,7 +27,7 @@ class _UserDataSignUp extends State {
           children: [
             Center(
               child: Text(
-                userDataHeaderText,
+                AuthenticationConstants.userDataHeaderText,
                 style: TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,

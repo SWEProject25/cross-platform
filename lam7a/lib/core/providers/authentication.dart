@@ -22,16 +22,16 @@ class Authentication extends _$Authentication {
   Future<void> isAuthenticated() async {
     try {
       final response = await _apiService.get(endpoint: ServerConstant.me);
-      if (response['user'] != null) {
-        UserModel? user = UserModel.fromJson(response["user"]);
-        await authenticateUser(user);
+      if (response['data']['user'] != null) {
+        UserModel? user = UserModel.fromJson(response['data']["user"]);
+        authenticateUser(user);
       }
     } catch (e) {
       print(e);
     }
   }
 
-  Future<void> authenticateUser(UserModel? user) async {
+  void authenticateUser(UserModel? user) {
     if (user != null) {
       state = state.copyWith(token: null, isAuthenticated: true, user: user);
     }
