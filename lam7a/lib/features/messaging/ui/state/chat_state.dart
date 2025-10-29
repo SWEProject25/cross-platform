@@ -1,0 +1,14 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:lam7a/features/messaging/model/chat_message.dart';
+import 'package:lam7a/features/messaging/model/contact.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'chat_state.freezed.dart';
+
+@freezed
+abstract class ChatState with _$ChatState {
+  const factory ChatState({
+    @Default(AsyncValue.loading()) AsyncValue<Contact> contact,
+    @Default(AsyncValue.loading()) AsyncValue<List<ChatMessage>> messages,
+  }) = _ChatState;
+}
