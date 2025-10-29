@@ -12,29 +12,31 @@ part 'chats_repositories.g.dart';
 
 @riverpod
 Future<ChatsRepository> chatsRepository(Ref ref) async {
-  return ChatsRepository( 
-    await ref.read(chatsApiServiceProvider.future),
-    ref.watch(authenticationProvider),);
+  return ChatsRepository(
+    await ref.read(chatsApiServiceProvider),
+    ref.watch(authenticationProvider),
+  );
 }
 
 class ChatsRepository {
-
   final ChatsApiService _apiService;
   final AuthState _authState;
 
   ChatsRepository(this._apiService, this._authState);
 
   Future<List<Conversation>> fetchConversations() async {
-
-    if(!_authState.isAuthenticated) return [];
+    if (!_authState.isAuthenticated) return [];
 
     var conversationsDto = await _apiService.getConversations();
 
     var conversations = conversationsDto.data!.map((x) {
-      UserDto user = x.user1.id == _authState.user!.id ? x.user2 : x.user1;
-
-      return Conversation(id: x.id.toString(), name: user.displayName, avatarUrl: user.profileImageUrl, lastMessage: x.lastMessage?.text
-      , lastMessageTime: x.updatedAt,);
+      return Conversation(
+        id: x.id.toString(),
+        name: x.user.displayName,
+        avatarUrl: x.user.profileImageUrl,
+        lastMessage: x.lastMessage?.text,
+        lastMessageTime: x.updatedAt,
+      );
     }).toList();
 
     return conversations;

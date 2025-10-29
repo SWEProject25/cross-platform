@@ -12,8 +12,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'chats_api_service.g.dart';
 
 @riverpod
-Future<ChatsApiService> chatsApiService(Ref ref) async {
-  final apiService = await ref.read(apiServiceProvider.future);
+ChatsApiService chatsApiService(Ref ref) {
+  final apiService = ref.read(apiServiceProvider);
   return ChatsApiServiceImpl(apiService);
 }
 

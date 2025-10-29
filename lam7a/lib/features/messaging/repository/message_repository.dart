@@ -1,12 +1,9 @@
-import 'dart:convert';
-
 import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/messaging/dtos/message_socket_dtos.dart';
 import 'package:lam7a/features/messaging/model/chat_message.dart';
 import 'package:lam7a/features/messaging/services/local_cache.dart';
 import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
-import 'package:lam7a/features/messaging/services/socket_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'message_repository.g.dart';
@@ -29,7 +26,7 @@ class MessagesRepository extends _$MessagesRepository {
 
   void _onReceivedMessage(MessageDto data) {
 
-    var message = ChatMessage(id: data.id, text: data.text, time: data.createdAt!, isMine: _authState.isAuthenticated && data.senderId == _authState.user!.id);
+    var message = ChatMessage(id: data.id ?? -1, text: data.text ?? "(Missing Message)", time: data.createdAt!, isMine: _authState.isAuthenticated && data.senderId == _authState.user!.id);
 
     _cache.addMessage(message.conversationId?? -1, message);
   }

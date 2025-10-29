@@ -11,10 +11,9 @@ abstract class ConversationDto with _$ConversationDto {
     required String createdAt,
     required DateTime updatedAt,
     MessageDto? lastMessage,
-    required UserDto user1,
-    required UserDto user2,
+    required UserDto user,
   }) = _ConversationDto;
-
+ 
   factory ConversationDto.fromJson(Map<String, dynamic> json) =>
       _$ConversationDtoFromJson(json);
 }

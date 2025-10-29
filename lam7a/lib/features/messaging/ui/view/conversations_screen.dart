@@ -19,7 +19,6 @@ class ConversationsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     var theme = Theme.of(context);
     final dMListPageViewModel = ref.watch(conversationsViewModelProvider);
-    ref.watch(socketServiceProvider);
     return Scaffold(
       appBar: DMAppBar(title: 'Direct Message'),
       body: dMListPageViewModel.conversations.when(
@@ -119,14 +118,14 @@ class _ChatListTile extends StatelessWidget {
               ],
             ),
           ),
-          if (chat.lastMessageTime != null)
+          if (chat.lastMessage != null)
             Text(
               " ${timeToTimeAgo(chat.lastMessageTime!)}",
               style: theme.textTheme.bodyMedium,
             ),
         ],
       ),
-      subtitle: (chat.lastMessageTime != null) ? Text(
+      subtitle: (chat.lastMessage != null) ? Text(
         chat.lastMessage!,
         style: theme.textTheme.bodyMedium,
         maxLines: 2,

@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'package:lam7a/core/constants/server_constant.dart';
 import 'package:lam7a/features/messaging/dtos/message_socket_dtos.dart';
 import 'package:lam7a/features/messaging/services/socket_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 part 'messages_socket_service.g.dart';
 
