@@ -5,24 +5,24 @@ import 'package:lam7a/features/messaging/dtos/conversation_dto.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:lam7a/features/messaging/model/chat_message.dart';
-import 'package:lam7a/features/messaging/services/chats_api_service.dart';
+import 'package:lam7a/features/messaging/services/dms_api_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'chats_repositories.g.dart';
+part 'conversations_repositories.g.dart';
 
 @riverpod
-Future<ChatsRepository> chatsRepository(Ref ref) async {
-  return ChatsRepository(
-    await ref.read(chatsApiServiceProvider),
+ConversationsRepository conversationsRepository(Ref ref) {
+  return ConversationsRepository(
+    ref.read(dmsApiServiceProvider),
     ref.watch(authenticationProvider),
   );
 }
 
-class ChatsRepository {
-  final ChatsApiService _apiService;
+class ConversationsRepository {
+  final DMsApiService _apiService;
   final AuthState _authState;
 
-  ChatsRepository(this._apiService, this._authState);
+  ConversationsRepository(this._apiService, this._authState);
 
   Future<List<Conversation>> fetchConversations() async {
     if (!_authState.isAuthenticated) return [];
@@ -31,7 +31,7 @@ class ChatsRepository {
 
     var conversations = conversationsDto.data!.map((x) {
       return Conversation(
-        id: x.id.toString(),
+        id: x.id,
         name: x.user.displayName,
         avatarUrl: x.user.profileImageUrl,
         lastMessage: x.lastMessage?.text,
@@ -46,7 +46,7 @@ class ChatsRepository {
     return await _apiService.getContacts();
   }
 
-  Future<List<ChatMessage>> fetchMessages(String conversationId) async {
-    return await _apiService.getMessages(conversationId);
+  Future<int> getConversationIdByUserId(int userId) async{
+    return await _apiService.createConversation(userId);
   }
 }

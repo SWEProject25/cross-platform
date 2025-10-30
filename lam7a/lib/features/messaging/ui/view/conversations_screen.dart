@@ -135,7 +135,7 @@ class _ChatListTile extends StatelessWidget {
         // TODO: Navigate to chat detail page
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => ChatScreen(id: chat.id),
+            builder: (context) => ChatScreen(conversationId: chat.id),
           ),
         );
       },

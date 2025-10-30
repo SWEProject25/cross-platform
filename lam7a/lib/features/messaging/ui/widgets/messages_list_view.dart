@@ -2,23 +2,51 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lam7a/features/messaging/model/chat_message.dart';
 
-class MessagesListView extends StatelessWidget {
+class MessagesListView extends StatefulWidget {
   final List<ChatMessage> messages;
   final Widget? leading;
 
-  const MessagesListView({super.key, required this.messages, this.leading});
+  final Function()? loadMore;
+
+  const MessagesListView({super.key, required this.messages, this.leading, this.loadMore});
+
+  @override
+  State<MessagesListView> createState() => _MessagesListViewState();
+}
+
+class _MessagesListViewState extends State<MessagesListView> {
+
+
+  ScrollController _scrollController = ScrollController();
+
+
+  @override
+  void initState() {
+    _scrollController.addListener(() {
+      const double threshold = 200.0; // how close to top to trigger (px)
+
+      // For reversed ListView, top visually = scrollExtent
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - threshold) {
+        widget.loadMore?.call();
+      }
+    });
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
+          controller: _scrollController,
           reverse: true, // 👈 newest messages at bottom
           padding: const EdgeInsets.all(12),
-          itemCount: messages.length,
+          itemCount: widget.messages.length,
           itemBuilder: (context, index) {
-            index = messages.length - 1 - index; // reverse index for display
-            final message = messages[index];
-            final previousMessage = index > 0 ? messages[index - 1] : null;
-            final nextMessage = index < messages.length - 1 ? messages[index + 1] : null;
+            index = widget.messages.length - 1 - index; // reverse index for display
+            final message = widget.messages[index];
+            final previousMessage = index > 0 ? widget.messages[index - 1] : null;
+            final nextMessage = index < widget.messages.length - 1 ? widget.messages[index + 1] : null;
 
             final bool showDate = previousMessage == null ||
                 !_isSameDay(message.time, previousMessage.time);
@@ -30,7 +58,7 @@ class MessagesListView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if(index == 0)
-                  leading ?? SizedBox.shrink(),
+                  widget.leading ?? SizedBox.shrink(),
                 
                 if (showDate) ...[
                   _DateSeparator(date: message.time),
@@ -55,7 +83,7 @@ class MessagesListView extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      message.text,
+                      "${message.id}: ${message.text}",
                       style: TextStyle(
                         color: message.isMine ? Colors.white : Colors.black,
                       ),

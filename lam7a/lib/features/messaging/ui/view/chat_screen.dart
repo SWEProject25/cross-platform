@@ -9,19 +9,21 @@ import 'package:skeletonizer/skeletonizer.dart';
 class ChatScreen extends ConsumerWidget {
   static const routeName = '/chat';
 
-  final String id;
+  final int? conversationId;
+  final int? userId;
   final Contact? contact;
 
-  const ChatScreen({super.key, required this.id, this.contact});
+  const ChatScreen({super.key, this.conversationId, this.userId, this.contact});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var chatViewModel = ref.watch(chatViewModelProvider(id, contact));
+    var chatState = ref.watch(chatViewModelProvider(conversationId: conversationId, userId: userId, user: contact));
+    var chatViewModel = ref.read(chatViewModelProvider(conversationId: conversationId, userId: userId, user: contact).notifier);
     return GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: _buildAppBar(chatViewModel.contact),
+        appBar: _buildAppBar(chatState.contact),
       
         // Body
         body: Column(
@@ -30,10 +32,15 @@ class ChatScreen extends ConsumerWidget {
             // Profile section
             // _buildProfileInfo(),
             Expanded(
-              child: chatViewModel.messages.when(
-                data: (messages) => MessagesListView(
-                  messages: messages,
-                  leading: _buildProfileInfo(),
+              child: chatState.messages.when(
+                data: (messages) => RefreshIndicator(
+
+                  onRefresh: ()=>chatViewModel.refresh(),
+                  child: MessagesListView(
+                    messages: messages,
+                    leading: chatState.hasMoreMessages? null : _buildProfileInfo(),
+                    loadMore: ()=> chatViewModel.loadMoreMessages(),
+                  ),
                 ),
                 loading: () => Center(child: CircularProgressIndicator()),
                 error: (error, stackTrace) =>
@@ -44,7 +51,7 @@ class ChatScreen extends ConsumerWidget {
             Container(
               color: Colors.white,
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-              child: Row(children: [Expanded(child: ChatInputBar())]),
+              child: Row(children: [Expanded(child: ChatInputBar(onSend: (m)=>chatViewModel.sendMessage(m),))]),
             ),
           ],
         ),

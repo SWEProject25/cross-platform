@@ -4,6 +4,7 @@ import 'package:cookie_jar/cookie_jar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/constants/server_constant.dart';
 import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/core/utils/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -20,18 +21,34 @@ void socketInitializer(Ref ref) {
   final socket = ref.read(socketServiceProvider);
 
   if(auth.user != null){
-    print("SOCKET: Connecting");
     socket.connect();
   }else{
-    print("SOCKET: Disconnecting");
     socket.disconnect();
   }
 }
 
 class SocketService {
-  late final IO.Socket _socket;
+  IO.Socket? _socket;
+
+  final Map<String, List<Function(dynamic)>> _listeners = {};
+
+
+  final _logger = getLogger(SocketService);
 
   Future<void> connect() async {
+    if (_socket != null) {
+      _logger.i('Disposing existing socket');
+      try {
+        _socket!.disconnect();
+      } catch (_) {}
+      try {
+        _socket!.dispose();
+      } catch (_) {}
+      _socket = null;
+    }
+
+    _logger.i("Connecting to socket service");
+
     var cookieHeader = await getCookie();
 
     _socket = IO.io(
@@ -43,10 +60,12 @@ class SocketService {
           .build(),
     );
 
-    _socket.onError((err) => print(err.toString()));
+    _socket!.onError((err) => _logger.e(err.toString()));
 
-    _socket.onConnect((_) => print('Connected to socket'));
-    _socket.onDisconnect((_) => print('Disconnected'));
+    _socket!.onConnect((_) => _logger.i('Connected to socket'));
+    _socket!.onDisconnect((_) => _logger.i('Disconnected'));
+
+    _attachStoredListeners();
   }
 
   Future<String> getCookie() async {
@@ -60,7 +79,8 @@ class SocketService {
     final cookies = await cookieJar.loadForRequest(uri);
 
     if (cookies.isEmpty) {
-      print('⚠️ No cookies found in jar for $uri');
+      _logger.w('⚠️ No cookies found in jar for $uri');
+      return "";
     }
 
     final cookieHeader = cookies.map((c) => '${c.name}=${c.value}').join('; ');
@@ -68,19 +88,66 @@ class SocketService {
     return cookieHeader;
   }
 
-  void on(String event, Function(dynamic) callback) {
-    _socket.on(event, callback);
+  void _attachStoredListeners() {
+    if (_socket == null) return;
+    _listeners.forEach((event, callbacks) {
+      for (final cb in callbacks) {
+        try {
+          _socket!.on(event, cb);
+        } catch (e, st) {
+          _logger.w('Failed to attach listener for "$event": $e\n$st');
+        }
+      }
+    });
   }
+
+
+  void on(String event, Function(dynamic) callback) {
+    // store callback
+    _listeners.putIfAbsent(event, () => []).add(callback);
+
+    // attach to live socket if exists
+    try {
+      _socket?.on(event, callback);
+    } catch (e) {
+      _logger.w('Failed to attach on() for "$event": $e');
+    }
+  }
+
 
   void emit(String event, dynamic data) {
-    _socket.emit(event, data);
+    if (_socket == null) {
+      _logger.w('Attempted to emit while socket is null. Event: $event');
+      return;
+    }
+    try {
+      _socket!.emit(event, data);
+    } catch (e) {
+      _logger.e('Failed to emit "$event": $e');
+    }
   }
 
-  void off(String event){
-    _socket.off(event);
+
+  void off(String event, [Function(dynamic)? callback]) {
+    if (callback == null) {
+      _listeners.remove(event);
+      try {
+        _socket?.off(event);
+      } catch (e) {
+        _logger.w('Failed to off() for "$event": $e');
+      }
+    } else {
+      _listeners[event]?.remove(callback);
+      try {
+        _socket?.off(event, callback);
+      } catch (e) {
+        _logger.w('Failed to off(event, callback) for "$event": $e');
+      }
+    }
   }
 
   void disconnect() {
-    _socket.disconnect();
+    _logger.i("Disconnecting from socket");
+    _socket?.disconnect();
   }
 }

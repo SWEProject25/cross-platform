@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 class ChatInputBar extends StatefulWidget {
-  const ChatInputBar({Key? key}) : super(key: key);
+  final void Function(String message)? onSend;
+
+  const ChatInputBar({Key? key, this.onSend}) : super(key: key);
+
 
   @override
   State<ChatInputBar> createState() => _ChatInputBarState();
@@ -143,6 +146,8 @@ class _ChatInputBarState extends State<ChatInputBar>
                   child: IconButton(
                     onPressed: _textController.value.text.isEmpty ? null : () {
                       // Send message action
+                      widget.onSend?.call(_textController.value.text);
+                      _textController.clear();
                     },
                     icon: Icon(
                       Icons.send,

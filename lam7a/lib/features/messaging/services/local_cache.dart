@@ -3,7 +3,7 @@ import 'package:lam7a/features/messaging/model/chat_message.dart';
 class LocalCache {
   final Map<int, List<ChatMessage>> _messages = {};
 
-  void saveMessages(int chatId, List<ChatMessage> newMessages) {
+  void addMessages(int chatId, List<ChatMessage> newMessages) {
     final existing = _messages[chatId] ?? [];
 
     final existingIds = existing.map((m) => m.id).toSet();
@@ -19,8 +19,8 @@ class LocalCache {
 
 
   void addMessage(int chatId, ChatMessage message) {
-    saveMessages(chatId, [message]);
+    addMessages(chatId, [message]);
   }
 
-  List<ChatMessage> getMessages(int chatId) => _messages[chatId] ?? [];
+  List<ChatMessage> getMessages(int chatId) => _messages.putIfAbsent(chatId, ()=>[]);
 }
