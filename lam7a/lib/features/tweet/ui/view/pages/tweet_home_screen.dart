@@ -8,7 +8,7 @@ import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 
 /// Provider to fetch all tweets
 final allTweetsProvider = FutureProvider((ref) async {
-  final repository = ref.watch(tweetRepositoryProvider);
+  final repository = await ref.watch(tweetRepositoryProvider.future);
   return await repository.fetchAllTweets();
 });
 

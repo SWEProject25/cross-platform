@@ -15,28 +15,48 @@ class AddTweetBodyInputWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      onChanged: onChanged,
-      maxLines: null,
-      minLines: 5,
-      maxLength: maxLength,
-      style: const TextStyle(
-        color: Pallete.whiteColor,
-        fontSize: 18,
-      ),
-      decoration: const InputDecoration(
-        hintText: "What's happening?",
-        hintStyle: TextStyle(
-          color: Pallete.greyColor,
-          fontSize: 18,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // User avatar
+        CircleAvatar(
+          radius: 20,
+          backgroundColor: Pallete.borderHover,
+          child: const Icon(
+            Icons.person,
+            color: Pallete.whiteColor,
+            size: 24,
+          ),
         ),
-        border: InputBorder.none,
-        counterText: '', // Hide the default counter
-        filled: false, // Ensure no fill
-        fillColor: Colors.transparent, // Transparent background
-      ),
-      cursorColor: Pallete.borderHover,
+        const SizedBox(width: 12),
+        
+        // Text field
+        Expanded(
+          child: TextField(
+            controller: controller,
+            onChanged: onChanged,
+            maxLines: null,
+            minLines: 5,
+            maxLength: maxLength,
+            style: const TextStyle(
+              color: Pallete.whiteColor,
+              fontSize: 18,
+            ),
+            decoration: const InputDecoration(
+              hintText: "What's happening?",
+              hintStyle: TextStyle(
+                color: Pallete.greyColor,
+                fontSize: 18,
+              ),
+              border: InputBorder.none,
+              counterText: '', // Hide the default counter
+              filled: false, // Ensure no fill
+              fillColor: Colors.transparent, // Transparent background
+            ),
+            cursorColor: Pallete.borderHover,
+          ),
+        ),
+      ],
     );
   }
 }

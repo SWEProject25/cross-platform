@@ -10,7 +10,7 @@ class TweetViewModel extends _$TweetViewModel {
 
 @override
 FutureOr<TweetState> build(String tweetId) async {
-  final repo = ref.read(tweetRepositoryProvider);
+  final repo = await ref.read(tweetRepositoryProvider.future);
   final tweet = await repo.fetchTweetById(tweetId);
 
   return TweetState(
@@ -24,7 +24,7 @@ FutureOr<TweetState> build(String tweetId) async {
 
   //  Handle Like toggle
   Future<void> handleLike({required AnimationController controller}) async {
-    final repo = ref.read(tweetRepositoryProvider);
+    final repo = await ref.read(tweetRepositoryProvider.future);
     final current = state.value!;
     final tweet= state.value!.tweet.value!;
     if (current.isLiked) {
@@ -43,7 +43,7 @@ FutureOr<TweetState> build(String tweetId) async {
 
   // Handle Repost toggle
   Future<void> handleRepost({required AnimationController controllerRepost}) async {
-    final repo = ref.read(tweetRepositoryProvider);
+    final repo = await ref.read(tweetRepositoryProvider.future);
     final current = state.value!;
     final tweet= state.value!.tweet.value!;
     if (current.isReposted) {
@@ -81,7 +81,7 @@ FutureOr<TweetState> build(String tweetId) async {
   }
 
   Future<void> handleViews() async {
-    final repo = ref.read(tweetRepositoryProvider);
+    final repo = await ref.read(tweetRepositoryProvider.future);
     final current=state.value!;
     final tweet= state.value!.tweet.value!;
     if (!current.isViewed) {

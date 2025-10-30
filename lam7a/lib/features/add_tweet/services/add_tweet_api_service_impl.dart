@@ -129,6 +129,8 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
         data: formData,
         options: Options(
           contentType: 'multipart/form-data',
+          // Ensure cookies are included on web (CORS) requests
+          extra: {'withCredentials': true},
         ),
       );
       

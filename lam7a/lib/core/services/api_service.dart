@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // part 'api_service.g.dart';
 
-
 final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
 
 class ApiService {

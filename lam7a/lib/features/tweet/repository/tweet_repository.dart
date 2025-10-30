@@ -5,9 +5,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'tweet_repository.g.dart';
 
 @riverpod
-TweetRepository tweetRepository(Ref ref) {
-  // Using mock API service (switched from real backend)
-  final apiService = ref.read(tweetsApiServiceProvider);
+Future<TweetRepository> tweetRepository(Ref ref) async {
+  // Using real backend API service
+  final apiService = await ref.read(tweetsApiServiceProvider.future);
   return TweetRepository(apiService);
 }
 

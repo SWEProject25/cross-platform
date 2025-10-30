@@ -1,6 +1,6 @@
-// import 'package:lam7a/features/tweet/services/tweet_api_service_impl.dart'; // Uncomment for real backend
-import 'package:lam7a/features/tweet/services/tweet_api_service_mock.dart';
-// import 'package:lam7a/core/api/authenticated_dio_provider.dart'; // Uncomment for real backend
+import 'package:lam7a/features/tweet/services/tweet_api_service_impl.dart';
+// import 'package:lam7a/features/tweet/services/tweet_api_service_mock.dart'; // Uncomment for mock
+import 'package:lam7a/core/api/authenticated_dio_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 
@@ -8,13 +8,13 @@ import 'package:lam7a/features/common/models/tweet_model.dart';
 part 'tweet_api_service.g.dart';
 
 @riverpod
-TweetsApiService tweetsApiService(Ref ref) {
-  // SWITCHED TO MOCK: Using mock service for local testing (no backend needed)
-  return TweetsApiServiceMock();
+Future<TweetsApiService> tweetsApiService(Ref ref) async {
+  // SWITCHED TO REAL BACKEND: Now using backend API
+  final dio = await ref.watch(authenticatedDioProvider.future);
+  return TweetsApiServiceImpl(dio: dio);
   
-  // REAL SERVICE (commented out): Uncomment below AND the imports above to use real backend
-  // final dio = await ref.watch(authenticatedDioProvider.future);
-  // return TweetsApiServiceImpl(dio: dio);
+  // MOCK SERVICE (commented out): Uncomment below for local testing without backend
+  // return TweetsApiServiceMock();
 }
 abstract class TweetsApiService {
   Future<List<TweetModel>> getAllTweets();

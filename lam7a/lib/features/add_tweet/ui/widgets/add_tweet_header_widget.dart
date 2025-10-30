@@ -31,16 +31,15 @@ class AddTweetHeaderWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Cancel button
-          GestureDetector(
-            onTap: isLoading ? null : onCancel,
-            child: Text(
-              'Cancel',
-              style: TextStyle(
-                color: isLoading ? Pallete.greyColor : Pallete.whiteColor,
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-              ),
+          IconButton(
+            onPressed: isLoading ? null : onCancel,
+            icon: Icon(
+              Icons.close,
+              color: isLoading ? Pallete.greyColor : Pallete.whiteColor,
+              size: 24,
             ),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
           ),
           
           // Post button

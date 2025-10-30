@@ -52,7 +52,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
             'id': tweetId,
             'userId': (json['user_id'] ?? json['userId'])?.toString() ?? '0',
             'body': (json['content'] ?? json['body'] ?? '').toString(),
-            'date': (json['created_at'] ?? json['date'] ?? DateTime.now().toIso8601String()).toString(),
+            'date': (json['createdAt'] ?? json['created_at'] ?? json['date'] ?? DateTime.now().toIso8601String()).toString(),
           };
           
           // Parse mediaUrls array from backend - supporting multiple media
@@ -147,7 +147,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
           'id': tweetId,
           'userId': (json['user_id'] ?? json['userId'])?.toString() ?? '0',
           'body': (json['content'] ?? json['body'] ?? '').toString(),
-          'date': (json['created_at'] ?? json['date'] ?? DateTime.now().toIso8601String()).toString(),
+          'date': (json['createdAt'] ?? json['created_at'] ?? json['date'] ?? DateTime.now().toIso8601String()).toString(),
         };
         
         // Parse mediaUrls array from backend - supporting multiple media
