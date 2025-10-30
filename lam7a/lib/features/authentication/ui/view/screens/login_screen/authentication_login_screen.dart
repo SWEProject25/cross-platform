@@ -90,9 +90,9 @@ class _loginFlowtate extends State<LogInScreen> {
                                 flex: 2,
                                 child: AuthenticationStepButton(
                                   enable: viewmodel.shouldEnableNextLogin(),
-                                  label: loginButtonLabels[currentIndex],
+                                  label: AuthenticationConstants.loginButtonLabels[currentIndex],
                                   onPressedEffect: () {
-                                    if (currentIndex == finishLogin) {
+                                    if (currentIndex == AuthenticationConstants.finishLogin) {
                                       viewmodel.login();
                                       if (authenticationState.isAuthenticated) {
                                         Navigator.pop(context);

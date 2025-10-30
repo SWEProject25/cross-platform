@@ -9,7 +9,7 @@ abstract class AuthenticationUserDataModel with _$AuthenticationUserDataModel {
     required String name,
     required String email,
     required String password,
-    required String birth_date,
+    required String birthDate,
   }) = _AuthenticationUserDataModel;
 
   // 👇 This enables fromJson

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/core/theme/theme.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authentication_login_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
@@ -12,32 +13,43 @@ import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
 
-void main() {
-  // NORMAL APP FLOW WITH LOGIN (Required for authentication):
-  runApp(ProviderScope(child: MyApp()));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final container = ProviderContainer();
+  await Future.wait([
+    container.read(apiServiceProvider).initialize(),
+  ]);
+  await container.read(authenticationProvider.notifier).isAuthenticated();
+  print(container.read(authenticationProvider).isAuthenticated);
+  runApp(UncontrolledProviderScope(child: MyApp(), container: container));
   
-  // TO TEST ADD TWEET SCREEN ONLY (No auth): Uncomment line below
+  // TO TEST ADD TWEET SCREEN ONLY (No auth): Uncomment lines below
   // runApp(ProviderScope(child: TestAddTweetApp()));
   
-  // TO TEST HOME WITH FAB (No auth): Uncomment line below
+  // TO TEST HOME WITH FAB (No auth): Uncomment lines below
   // runApp(ProviderScope(child: TestTweetHomeApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
+  @override
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
   @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
         final state = ref.watch(authenticationProvider);
+        print(state.isAuthenticated);
 
         return MaterialApp(
           title: 'lam7a',
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: ThemeMode.light,
-          home: _build(state, ref),
           routes: {
             FirstTimeScreen.routeName: (context) => FirstTimeScreen(),
             SignUpFlow.routeName: (context) => SignUpFlow(),
@@ -46,22 +58,14 @@ class MyApp extends StatelessWidget {
             AuthenticationTransmissionScreen.routeName: (context) =>
                 AuthenticationTransmissionScreen(),
           },
-          initialRoute: !state.isAuthenticated
-              ? FirstTimeScreen.routeName
-              : NavigationHomeScreen.routeName,
+          home:
+              // const Center(child: CircularProgressIndicator(color: Pallete.blackColor, backgroundColor: Pallete.whiteColor,))
+              !state.isAuthenticated
+              ? FirstTimeScreen()
+              : NavigationHomeScreen(),
         );
       },
     );
-  }
-
-  Widget _build(AuthState state, WidgetRef ref) {
-    final controller = ref.watch(authenticationProvider.notifier);
-    controller.isAuthenticated();
-    if (state.isAuthenticated) {
-      return NavigationHomeScreen();
-    } else {
-      return FirstTimeScreen();
-    }
   }
 }
 

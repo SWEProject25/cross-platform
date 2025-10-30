@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
 
 /// Navigation Home Screen - After successful login, users are directed here

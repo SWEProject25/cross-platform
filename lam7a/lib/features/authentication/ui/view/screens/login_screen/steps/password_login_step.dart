@@ -51,6 +51,7 @@ class PasswordLogin extends StatelessWidget {
               isPassword: true,
               onChangeEffect: viewmodel.updatePasswordLogin,
               isValid: true,
+              isLoginField: true,
             ),
           ],
         );
