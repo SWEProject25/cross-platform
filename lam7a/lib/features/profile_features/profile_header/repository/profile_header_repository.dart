@@ -1,5 +1,5 @@
 import '../../../profile/model/profile_model.dart';
-import '../../../../core/services/mock_profile_api_service.dart';
+import '../../services/mock_profile_api_service.dart';
 
 class ProfileRepository {
   final MockProfileAPIService? mockService;

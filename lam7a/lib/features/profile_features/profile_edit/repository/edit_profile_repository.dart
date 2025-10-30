@@ -1,4 +1,4 @@
-import '../../../../core/services/mock_edit_profile_api_service.dart';
+import '../../services/mock_edit_profile_api_service.dart';
 import '../model/edit_profile_model.dart';
 
 class EditProfileRepository {

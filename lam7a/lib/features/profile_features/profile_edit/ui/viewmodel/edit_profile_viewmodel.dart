@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../repository/edit_profile_repository.dart';
 import '../../model/edit_profile_model.dart';
-import '../../../../../core/services/mock_edit_profile_api_service.dart';
+import '../../../services/mock_edit_profile_api_service.dart';
 
 final editProfileRepositoryProvider = Provider<EditProfileRepository>(
   (ref) => EditProfileRepository(mockService: MockEditProfileAPIService()),

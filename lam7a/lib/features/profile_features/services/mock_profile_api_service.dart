@@ -1,5 +1,5 @@
 import 'dart:async';
-import '../../features/profile/model/profile_model.dart';
+import '../../profile/model/profile_model.dart';
 
 /// ✅ Mock API Service to simulate backend data for testing or offline mode.
 class MockProfileAPIService {
