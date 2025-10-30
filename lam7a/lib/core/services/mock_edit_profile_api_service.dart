@@ -1,5 +1,5 @@
 import 'dart:async';
-import '../../features/profile_edit/model/edit_profile_model.dart';
+import '../../features/profile_features/profile_edit/model/edit_profile_model.dart';
 
 class MockEditProfileAPIService {
   EditProfileModel _mockProfile = const EditProfileModel(

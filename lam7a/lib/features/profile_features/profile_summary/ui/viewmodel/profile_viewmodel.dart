@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../model/profile_model.dart';
 import '../../repository/profile_repository.dart';
-import '../../../../core/services/mockProfileSammary_api_service.dart';
+import '../../../../../core/services/mockProfileSammary_api_service.dart';
 
 final profileRepositoryProvider = Provider(
   (ref) => ProfileRepository(MockAPIService()),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../profile/model/profile_model.dart';
+import '../../../../profile/model/profile_model.dart';
 
 class EditProfilePage extends StatefulWidget {
   final ProfileHeaderModel profile;

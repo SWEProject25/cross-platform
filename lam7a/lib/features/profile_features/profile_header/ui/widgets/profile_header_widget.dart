@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../profile_header/ui/viewmodel/profile_header_viewmodel.dart';
-import '../../../../core/widgets/app_outlined_button.dart';
+import '../viewmodel/profile_header_viewmodel.dart';
+import '../../../../../core/widgets/app_outlined_button.dart';
 import '../../../profile_edit/ui/view/edit_profile_page.dart';
 
 class ProfileHeaderWidget extends ConsumerStatefulWidget {

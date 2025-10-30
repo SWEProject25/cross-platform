@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../model/profile_model.dart';
 import '../viewmodel/profile_viewmodel.dart';
-import '../../../../core/widgets/app_dialog.dart';
-import '../../../../core/widgets/app_outlined_button.dart';
+import '../../../../../core/widgets/app_dialog.dart';
+import '../../../../../core/widgets/app_outlined_button.dart';
 
 class ProfileCard extends ConsumerWidget {
   final ProfileModel profile;
