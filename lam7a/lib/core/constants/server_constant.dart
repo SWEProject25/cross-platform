@@ -11,5 +11,5 @@ class ServerConstant {
   static String resetPassword = "/auth/reset-password";
   static String me = "/auth/me";
   static String apiPrefix = "/api/v1.0";
-  static String serverURL = "https://hankers-backend.myaddr.tools";
+  static String serverURL = "https://api.hankers.myaddr.tools";
 }
