@@ -11,7 +11,7 @@ class TweetViewModel extends _$TweetViewModel {
 
 @override
 FutureOr<TweetState> build(String tweetId) async {
-  final repo = await ref.read(tweetRepositoryProvider.future);
+  final repo = ref.read(tweetRepositoryProvider);
   final tweet = await repo.fetchTweetById(tweetId);
   
   // Initialize interaction state
@@ -70,7 +70,7 @@ FutureOr<TweetState> build(String tweetId) async {
     
     // Sync with backend
     try {
-      final interactionsService = await ref.read(postInteractionsServiceProvider.future);
+      final interactionsService = ref.read(postInteractionsServiceProvider);
       
       // Toggle like on backend
       final backendIsLiked = await interactionsService.toggleLike(currentTweet.id);
@@ -135,7 +135,7 @@ FutureOr<TweetState> build(String tweetId) async {
     
     // Sync with backend
     try {
-      final interactionsService = await ref.read(postInteractionsServiceProvider.future);
+      final interactionsService = ref.read(postInteractionsServiceProvider);
       
       // Toggle repost on backend
       final backendIsReposted = await interactionsService.toggleRepost(currentTweet.id);

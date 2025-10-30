@@ -27,6 +27,9 @@ class ApiService {
     _dio.interceptors.add(_createLogInterceptor());
   }
 
+  /// Expose Dio instance for special cases (e.g., multipart uploads)
+  Dio get dio => _dio;
+
   Dio _createDio() {
     final dio = Dio(
       BaseOptions(

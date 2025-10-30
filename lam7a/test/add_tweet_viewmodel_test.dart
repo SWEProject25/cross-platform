@@ -214,7 +214,7 @@ void main() {
       )).thenAnswer((_) async => testTweet);
       
       // Execute
-      await viewModel.postTweet('user123');
+      await viewModel.postTweet();
       
       // Verify
       expect(viewModel.state.isLoading, false);
@@ -245,7 +245,7 @@ void main() {
       ));
       
       // Execute
-      await viewModel.postTweet('user123');
+      await viewModel.postTweet();
       
       // Verify
       expect(viewModel.state.isLoading, false);
@@ -275,7 +275,7 @@ void main() {
       ));
       
       // Execute
-      await viewModel.postTweet('user123');
+      await viewModel.postTweet();
       
       // Verify
       expect(viewModel.state.isLoading, false);
@@ -302,7 +302,7 @@ void main() {
       )).thenAnswer((_) async => testTweet);
       
       // Execute
-      await viewModel.postTweet('user123');
+      await viewModel.postTweet();
       
       // Verify trimmed content was sent
       verify(() => mockApiService.createTweet(
@@ -320,7 +320,7 @@ void main() {
       viewModel.updateBody('');
       
       // Execute
-      await viewModel.postTweet('user123');
+      await viewModel.postTweet();
       
       // Verify
       expect(viewModel.state.isLoading, false);
@@ -348,7 +348,7 @@ void main() {
       )).thenThrow(Exception('Network error'));
       
       // Execute
-      await viewModel.postTweet('user123');
+      await viewModel.postTweet();
       
       // Verify
       expect(viewModel.state.isLoading, false);
@@ -375,7 +375,7 @@ void main() {
       });
       
       // Execute
-      await viewModel.postTweet('user123');
+      await viewModel.postTweet();
       
       // Verify loading was true during call
       expect(loadingStateObserved, true);
@@ -398,7 +398,7 @@ void main() {
         mediaVideoPath: any(named: 'mediaVideoPath'),
       )).thenAnswer((_) async => testTweet);
       
-      await viewModel.postTweet('user123');
+      await viewModel.postTweet();
       
       // Verify tweet was posted
       expect(viewModel.state.isTweetPosted, true);
@@ -426,12 +426,12 @@ void main() {
         mediaVideoPath: any(named: 'mediaVideoPath'),
       )).thenAnswer((_) async => testTweet);
       
-      // Should not throw
-      await viewModel.postTweet('');
+      // Should not throw - now uses fallback userId '1'
+      await viewModel.postTweet();
       
-      // Verify API was called with empty userId
+      // Verify API was called with fallback userId
       verify(() => mockApiService.createTweet(
-        userId: '',
+        userId: '1',
         content: 'Test tweet',
         mediaPicPath: null,
         mediaVideoPath: null,

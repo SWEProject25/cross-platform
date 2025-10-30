@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/api/api_config.dart';
-import 'package:lam7a/core/api/authenticated_dio_provider.dart';
+import 'package:lam7a/core/services/api_service.dart';
 
 /// Service for handling post interactions (likes, reposts, etc.)
 /// Uses authenticated Dio from core with ApiConfig endpoints
@@ -11,9 +11,9 @@ import 'package:lam7a/core/api/authenticated_dio_provider.dart';
 /// - POST /posts/{postId}/repost - Toggle repost  
 /// - GET /posts/{postId}/reposters - Get list of reposters (count in metadata)
 class PostInteractionsService {
-  final Dio _dio;
+  final ApiService _apiService;
 
-  PostInteractionsService(this._dio);
+  PostInteractionsService(this._apiService);
 
   /// Toggle like on a post
   /// Returns true if liked, false if unliked
@@ -21,7 +21,7 @@ class PostInteractionsService {
     try {
       print('❤️  Toggling like on post: $postId');
       
-      final response = await _dio.post(
+      final response = await _apiService.dio.post(
         '${ApiConfig.postsEndpoint}/$postId/like',
       );
       
@@ -42,7 +42,7 @@ class PostInteractionsService {
   /// Note: Backend doesn't return total count, we get array length as approximation
   Future<int> getLikesCount(String postId) async {
     try {
-      final response = await _dio.get(
+      final response = await _apiService.dio.get(
         '${ApiConfig.postsEndpoint}/$postId/likers',
         queryParameters: {'limit': 100, 'page': 1}, // Get more to estimate count
       );
@@ -74,7 +74,7 @@ class PostInteractionsService {
     try {
       print('🔁 Toggling repost on post: $postId');
       
-      final response = await _dio.post(
+      final response = await _apiService.dio.post(
         '${ApiConfig.postsEndpoint}/$postId/repost',
       );
       
@@ -95,7 +95,7 @@ class PostInteractionsService {
   /// Note: Backend doesn't return total count, we get array length as approximation
   Future<int> getRepostsCount(String postId) async {
     try {
-      final response = await _dio.get(
+      final response = await _apiService.dio.get(
         '${ApiConfig.postsEndpoint}/$postId/reposters',
         queryParameters: {'limit': 100, 'page': 1}, // Get more to estimate count
       );
@@ -141,7 +141,7 @@ class PostInteractionsService {
 }
 
 /// Provider for PostInteractionsService
-final postInteractionsServiceProvider = FutureProvider<PostInteractionsService>((ref) async {
-  final dio = await ref.watch(authenticatedDioProvider.future);
-  return PostInteractionsService(dio);
+final postInteractionsServiceProvider = Provider<PostInteractionsService>((ref) {
+  final apiService = ref.watch(apiServiceProvider);
+  return PostInteractionsService(apiService);
 });

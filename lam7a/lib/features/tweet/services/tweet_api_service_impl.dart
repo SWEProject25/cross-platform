@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:lam7a/core/api/api_config.dart';
-import 'package:lam7a/core/api/authenticated_dio_provider.dart';
+import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/services/tweet_api_service.dart';
 import 'package:lam7a/features/tweet/services/post_interactions_service.dart';
@@ -9,21 +9,12 @@ import 'package:lam7a/features/tweet/services/post_interactions_service.dart';
 /// Real implementation of Tweets API Service
 /// Communicates with the backend server with authentication
 class TweetsApiServiceImpl implements TweetsApiService {
-  final Dio _dio;
+  final ApiService _apiService;
   late final PostInteractionsService _interactionsService;
   
-  TweetsApiServiceImpl({Dio? dio}) : _dio = dio ?? Dio() {
-    if (dio == null) {
-      // If no Dio provided, we'll use the authenticated one
-      print('⚠️ TweetsApiServiceImpl: Using non-authenticated Dio. Use createAuthenticatedDio() for auth.');
-    }
-    _interactionsService = PostInteractionsService(_dio);
-  }
-  
-  /// Factory constructor to create with authenticated Dio
-  static Future<TweetsApiServiceImpl> createAuthenticated() async {
-    final dio = await createAuthenticatedDio();
-    return TweetsApiServiceImpl(dio: dio);
+  TweetsApiServiceImpl({required ApiService apiService}) 
+      : _apiService = apiService {
+    _interactionsService = PostInteractionsService(_apiService);
   }
   
   @override
@@ -33,7 +24,15 @@ class TweetsApiServiceImpl implements TweetsApiService {
       print('📥 Fetching all tweets from backend...');
       print('   URL: $url');
       
-      final response = await _dio.get(ApiConfig.postsEndpoint);
+      // Add query parameters to get latest tweets first with pagination
+      final response = await _apiService.dio.get(
+        ApiConfig.postsEndpoint,
+        queryParameters: {
+          'limit': 50, // Limit to 50 most recent tweets
+          'page': 1,   // First page
+          'sort': 'desc', // Sort by newest first (if backend supports it)
+        },
+      );
       
       print('   Response status: ${response.statusCode}');
       print('   Response data type: ${response.data.runtimeType}');
@@ -89,7 +88,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
     try {
       print('📥 Fetching tweet by ID: $id');
       
-      final response = await _dio.get('${ApiConfig.postsEndpoint}/$id');
+      final response = await _apiService.dio.get('${ApiConfig.postsEndpoint}/$id');
       
       if (response.statusCode == 200) {
         final json = response.data['data'];
@@ -254,7 +253,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
       }
       
       // Send request
-      final response = await _dio.post(
+      final response = await _apiService.dio.post(
         ApiConfig.postsEndpoint,
         data: formData,
         options: Options(
@@ -281,7 +280,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
     try {
       print('📤 Updating tweet on backend: ${tweet.id}');
       
-      final response = await _dio.put(
+      final response = await _apiService.dio.put(
         '${ApiConfig.postsEndpoint}/${tweet.id}',
         data: tweet.toJson(),
       );
@@ -302,7 +301,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
     try {
       print('📤 Deleting tweet on backend: $id');
       
-      final response = await _dio.delete('${ApiConfig.postsEndpoint}/$id');
+      final response = await _apiService.dio.delete('${ApiConfig.postsEndpoint}/$id');
       
       if (response.statusCode == 200 || response.statusCode == 204) {
         print('✅ Tweet deleted successfully');

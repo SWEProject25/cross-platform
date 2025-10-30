@@ -1,15 +1,16 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lam7a/core/api/authenticated_dio_provider.dart';
+import 'package:lam7a/core/services/api_service.dart';
 import 'media_upload_service.dart';
 
 /// Real implementation of media upload service
 /// Uploads files to the backend server with authentication
 class MediaUploadServiceImpl implements MediaUploadService {
-  final Dio _dio;
+  final ApiService _apiService;
   
-  MediaUploadServiceImpl({required Dio dio}) : _dio = dio;
+  MediaUploadServiceImpl({required ApiService apiService}) 
+      : _apiService = apiService;
   
   @override
   Future<String> uploadImage(String localPath) async {
@@ -33,8 +34,8 @@ class MediaUploadServiceImpl implements MediaUploadService {
         'image': multipartFile,
       });
       
-      // Upload to backend
-      final response = await _dio.post(
+      // Upload to backend using ApiService's Dio instance
+      final response = await _apiService.dio.post(
         '/upload/image', // Adjust endpoint as needed
         data: formData,
         options: Options(
@@ -79,8 +80,8 @@ class MediaUploadServiceImpl implements MediaUploadService {
         'video': multipartFile,
       });
       
-      // Upload to backend
-      final response = await _dio.post(
+      // Upload to backend using ApiService's Dio instance
+      final response = await _apiService.dio.post(
         '/upload/video', // Adjust endpoint as needed
         data: formData,
         options: Options(
@@ -104,8 +105,8 @@ class MediaUploadServiceImpl implements MediaUploadService {
   }
 }
 
-/// Provider for MediaUploadService with authenticated Dio
-final mediaUploadServiceProvider = FutureProvider<MediaUploadService>((ref) async {
-  final dio = await ref.watch(authenticatedDioProvider.future);
-  return MediaUploadServiceImpl(dio: dio);
+/// Provider for MediaUploadService with ApiService
+final mediaUploadServiceProvider = Provider<MediaUploadService>((ref) {
+  final apiService = ref.watch(apiServiceProvider);
+  return MediaUploadServiceImpl(apiService: apiService);
 });

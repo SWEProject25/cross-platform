@@ -2,15 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
-import 'package:lam7a/features/authentication/service/user_api_service.dart';
-import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
+import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_home_viewmodel.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
-
-/// Provider to fetch all tweets
-final allTweetsProvider = FutureProvider((ref) async {
-  final repository = await ref.watch(tweetRepositoryProvider.future);
-  return await repository.fetchAllTweets();
-});
 
 /// Home screen with FAB button to navigate to AddTweetScreen
 class TweetHomeScreen extends ConsumerWidget {
@@ -18,7 +12,7 @@ class TweetHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tweetsAsync = ref.watch(allTweetsProvider);
+    final tweetsAsync = ref.watch(tweetHomeViewModelProvider);
 
     return Scaffold(
       backgroundColor: Pallete.blackColor,
@@ -32,15 +26,14 @@ class TweetHomeScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh, color: Pallete.whiteColor),
             onPressed: () {
-              ref.invalidate(allTweetsProvider);
+              ref.read(tweetHomeViewModelProvider.notifier).refreshTweets();
             },
           ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(allTweetsProvider);
-          await Future.delayed(const Duration(milliseconds: 500));
+          await ref.read(tweetHomeViewModelProvider.notifier).refreshTweets();
         },
         child: tweetsAsync.when(
           data: (tweets) {
@@ -110,32 +103,34 @@ class TweetHomeScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          // Get current user ID
-          final currentUserAsync = ref.read(currentUserProvider);
+          // Check authentication before navigating
+          final authState = ref.read(authenticationProvider);
           
-          String userId = '1'; // Default to 1
-          await currentUserAsync.when(
-            data: (user) {
-              userId = user.userId.toString();
-            },
-            loading: () {
-              print('⏳ User not loaded yet, using default ID: 1');
-            },
-            error: (error, stack) {
-              print('❌ Error loading user, using default ID: 1');
-            },
-          );
+          if (!authState.isAuthenticated || authState.user == null) {
+            // Show error if not authenticated
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Please log in to post a tweet'),
+                  backgroundColor: Pallete.errorColor,
+                ),
+              );
+            }
+            return;
+          }
+          
+          final userId = authState.user!.userId ?? '1';
           
           await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => AddTweetScreen(
-                userId: userId, // Use actual user ID from backend
+                userId: userId,
               ),
             ),
           );
           // Refresh tweets after returning from add screen
-          ref.invalidate(allTweetsProvider);
+          ref.read(tweetHomeViewModelProvider.notifier).refreshTweets();
         },
         backgroundColor: Pallete.borderHover,
         child: const Icon(

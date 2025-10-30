@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/api/api_config.dart';
-import 'package:lam7a/features/authentication/model/user_model.dart';
+import 'package:lam7a/core/models/user_model.dart';
 
 /// User API Service for fetching user information
 class UserApiService {
@@ -27,7 +27,7 @@ class UserApiService {
         final userData = response.data['data'];
         final user = UserModel.fromJson(userData);
         
-        print('✅ Current user fetched: ${user.username} (ID: ${user.userId})');
+        print('✅ Current user fetched: ${user.username}');
         return user;
       } else {
         throw Exception('Failed to fetch current user: ${response.statusCode}');
@@ -37,10 +37,9 @@ class UserApiService {
       // Return a default user for now
       print('   Using default user ID: 1');
       return const UserModel(
-        userId: 1,
         username: 'default_user',
         email: 'user@example.com',
-        displayName: 'Default User',
+        name: 'Default User',
       );
     }
   }

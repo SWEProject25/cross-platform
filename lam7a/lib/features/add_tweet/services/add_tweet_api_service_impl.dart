@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/api/api_config.dart';
-import 'package:lam7a/core/api/authenticated_dio_provider.dart';
+import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
@@ -11,19 +11,10 @@ import 'add_tweet_api_service.dart';
 /// Real implementation of AddTweetApiService
 /// Sends tweet with media files to backend in a single multipart request with authentication
 class AddTweetApiServiceImpl implements AddTweetApiService {
-  final Dio _dio;
+  final ApiService _apiService;
   
-  AddTweetApiServiceImpl({Dio? dio}) : _dio = dio ?? Dio() {
-    if (dio == null) {
-      print('⚠️ AddTweetApiServiceImpl: Using non-authenticated Dio. Use createAuthenticated() for auth.');
-    }
-  }
-  
-  /// Factory constructor to create with authenticated Dio
-  static Future<AddTweetApiServiceImpl> createAuthenticated() async {
-    final dio = await createAuthenticatedDio();
-    return AddTweetApiServiceImpl(dio: dio);
-  }
+  AddTweetApiServiceImpl({required ApiService apiService}) 
+      : _apiService = apiService;
   
   @override
   Future<TweetModel> createTweet({
@@ -124,7 +115,8 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
       print('      media files: ${formData.files.length}');
       
       // Always send as multipart/form-data when using FormData
-      response = await _dio.post(
+      // Use ApiService's Dio instance for multipart requests
+      response = await _apiService.dio.post(
         ApiConfig.postsEndpoint,
         data: formData,
         options: Options(
@@ -233,7 +225,7 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
 }
 
 /// Provider for AddTweetApiService (real implementation with authentication)
-final addTweetApiServiceProvider = FutureProvider<AddTweetApiService>((ref) async {
-  final dio = await ref.watch(authenticatedDioProvider.future);
-  return AddTweetApiServiceImpl(dio: dio);
+final addTweetApiServiceProvider = Provider<AddTweetApiService>((ref) {
+  final apiService = ref.watch(apiServiceProvider);
+  return AddTweetApiServiceImpl(apiService: apiService);
 });

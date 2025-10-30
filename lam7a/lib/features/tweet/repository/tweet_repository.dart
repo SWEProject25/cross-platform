@@ -5,9 +5,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'tweet_repository.g.dart';
 
 @riverpod
-Future<TweetRepository> tweetRepository(Ref ref) async {
+TweetRepository tweetRepository(Ref ref) {
   // Using real backend API service
-  final apiService = await ref.read(tweetsApiServiceProvider.future);
+  final apiService = ref.read(tweetsApiServiceProvider);
   return TweetRepository(apiService);
 }
 

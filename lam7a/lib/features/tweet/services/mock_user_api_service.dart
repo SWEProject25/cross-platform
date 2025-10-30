@@ -1,25 +1,33 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:lam7a/features/tweet/models/user_profile.dart';
+import 'package:lam7a/core/models/user_model.dart';
 
 part 'mock_user_api_service.g.dart';
 
 final _mockUsers = {
-  '1': UserProf(
-    id: '1',
-    username: 'John Doe',
-    hashUserName: '@johnd',
-    profilePic: 'https://i.pravatar.cc/150?img=3',
+  '1': UserModel(
+    userId: '1',
+    username: 'johnd',
+    email: 'john@example.com',
+    name: 'John Doe',
+    profileImageUrl: 'https://i.pravatar.cc/150?img=3',
+    bio: 'Software Developer',
+    location: 'New York',
+    createdAt: DateTime.now().toIso8601String(),
   ),
-  '2': UserProf(
-    id: '2',
-    username: 'Sarah Jane',
-    hashUserName: '@sjane',
-    profilePic: 'https://i.pravatar.cc/150?img=5',
+  '2': UserModel(
+    userId: '2',
+    username: 'sjane',
+    email: 'sarah@example.com',
+    name: 'Sarah Jane',
+    profileImageUrl: 'https://i.pravatar.cc/150?img=5',
+    bio: 'Designer',
+    location: 'San Francisco',
+    createdAt: DateTime.now().toIso8601String(),
   ),
 };
 
 @riverpod
-Future<UserProf> userById(Ref ref, String userId) async {
+Future<UserModel> userById(Ref ref, String userId) async {
   //await Future.delayed(const Duration(milliseconds: 500)); // simulate latency
   return _mockUsers[userId] ?? _mockUsers.values.first;
 }

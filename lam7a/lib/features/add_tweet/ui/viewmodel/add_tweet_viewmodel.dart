@@ -1,7 +1,6 @@
-import 'package:lam7a/features/common/models/tweet_model.dart';
-import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
 import 'package:lam7a/features/add_tweet/ui/state/add_tweet_state.dart';
 import 'package:lam7a/features/add_tweet/services/add_tweet_api_service_impl.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'add_tweet_viewmodel.g.dart';
@@ -59,7 +58,7 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
   }
 
   // Post the tweet
-  Future<void> postTweet(String userId) async {
+  Future<void> postTweet() async {
     if (!canPostTweet()) {
       print('⚠️ Cannot post tweet: validation failed');
       state = state.copyWith(
@@ -72,8 +71,24 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
       print('📤 Starting to post tweet...');
       state = state.copyWith(isLoading: true, errorMessage: null);
 
+      // Get authenticated user from core provider
+      final authState = ref.read(authenticationProvider);
+      final user = authState.user;
+      
+      // Get user ID - fallback to '1' if not authenticated (for testing)
+      // In production, you should enforce authentication
+      String userId;
+      if (user == null || user.userId == null) {
+        print('⚠️ User not authenticated, using default ID: 1');
+        print('   Note: In production, you should redirect to login');
+        userId = '1'; // Fallback for testing
+      } else {
+        userId = user.userId!;
+        print('✅ Using authenticated user ID: $userId');
+      }
+
       // Use real backend implementation with authentication
-      final apiService = await ref.read(addTweetApiServiceProvider.future);
+      final apiService = ref.read(addTweetApiServiceProvider);
       
       // Create tweet with media files (service handles upload and returns URLs)
       final createdTweet = await apiService.createTweet(

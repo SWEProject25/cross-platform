@@ -35,7 +35,7 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
         userAsync.when(
           data: (user) => CircleAvatar(
             radius: 25,
-            backgroundImage: NetworkImage(user.profilePic.toString()),
+            backgroundImage: NetworkImage(user.profileImageUrl ?? 'https://i.pravatar.cc/150'),
             backgroundColor: Colors.grey[200], // optional placeholder color
           ),
           loading: () =>
@@ -49,7 +49,7 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
           children: [
             userAsync.when(
               data: (user) => Text(
-                user.username,
+                user.name ?? user.username ?? 'Unknown',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -63,7 +63,7 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
             SizedBox(height: 2),
             userAsync.when(
               data: (user) => Text(
-                user.hashUserName,
+                '@${user.username ?? 'unknown'}',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onPrimary,
                   fontSize: 15,
