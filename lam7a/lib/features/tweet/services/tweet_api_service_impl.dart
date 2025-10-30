@@ -42,85 +42,38 @@ class TweetsApiServiceImpl implements TweetsApiService {
         final data = response.data['data'] as List;
         print('   Raw tweet data count: ${data.length}');
         
+        // Fetch each tweet individually using getTweetById to get complete data
+        // This ensures we get media, counts, and all other fields
         final tweets = await Future.wait(data.map((json) async {
-          print('   Processing tweet: ${json['id']}');
-          
-          // Map backend fields to frontend model
           final tweetId = json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString();
+          print('   📍 Fetching full data for tweet: $tweetId');
           
-          final mappedJson = <String, dynamic>{
-            'id': tweetId,
-            'userId': (json['user_id'] ?? json['userId'])?.toString() ?? '0',
-            'body': (json['content'] ?? json['body'] ?? '').toString(),
-            'date': (json['createdAt'] ?? json['created_at'] ?? json['date'] ?? DateTime.now().toIso8601String()).toString(),
-          };
-          
-          // Parse mediaUrls array from backend - supporting multiple media
-          final imageUrls = <String>[];
-          final videoUrls = <String>[];
-          
-          if (json['mediaUrls'] != null && json['mediaUrls'] is List && (json['mediaUrls'] as List).isNotEmpty) {
-            final mediaUrls = json['mediaUrls'] as List;
-            print('   📷 MediaUrls found: ${mediaUrls.length} items');
-            
-            // TODO: Backend should return media with type information
-            // For now, assume all URLs are images unless they have video extensions
-            for (int i = 0; i < mediaUrls.length; i++) {
-              final url = mediaUrls[i]?.toString();
-              print('      - URL $i: $url');
-              
-              if (url != null && url.isNotEmpty) {
-                // Simple heuristic: check file extension
-                final lowerUrl = url.toLowerCase();
-                if (lowerUrl.endsWith('.mp4') || lowerUrl.endsWith('.mov') || 
-                    lowerUrl.endsWith('.avi') || lowerUrl.endsWith('.webm') ||
-                    lowerUrl.contains('video')) {
-                  videoUrls.add(url);
-                  print('      ✅ Added to videos');
-                } else {
-                  imageUrls.add(url);
-                  print('      ✅ Added to images');
-                }
-              }
-            }
-            
-            mappedJson['mediaImages'] = imageUrls;
-            mappedJson['mediaVideos'] = videoUrls;
-            print('   📊 Parsed: ${imageUrls.length} images, ${videoUrls.length} videos');
-          }
-          // Fallback to old field names if mediaUrls not present
-          else {
-            print('   ℹ️ No mediaUrls in response, checking old fields');
-            if (json['mediaPic'] != null || json['media_pic'] != null) {
-              final pic = json['mediaPic'] ?? json['media_pic'];
-              imageUrls.add(pic);
-              mappedJson['mediaPic'] = pic;
-            }
-            if (json['mediaVideo'] != null || json['media_video'] != null) {
-              final video = json['mediaVideo'] ?? json['media_video'];
-              videoUrls.add(video);
-              mappedJson['mediaVideo'] = video;
-            }
-            mappedJson['mediaImages'] = imageUrls;
-            mappedJson['mediaVideos'] = videoUrls;
-          }
-          
-          // Fetch real counts from interaction endpoints (if available)
-          // Backend may not have these endpoints yet (returns 404)
           try {
-            final counts = await _interactionsService.getPostCounts(tweetId);
-            mappedJson['likes'] = counts['likes'] ?? 0;
-            mappedJson['repost'] = counts['reposts'] ?? 0;
+            // Use getTweetById to get complete tweet data with media and counts
+            return await getTweetById(tweetId);
           } catch (e) {
-            // Silently use defaults if endpoints not available
-            mappedJson['likes'] = 0;
-            mappedJson['repost'] = 0;
+            print('   ⚠️ Error fetching tweet $tweetId: $e');
+            // Fallback to basic parsing if getTweetById fails
+            return TweetModel(
+              id: tweetId,
+              userId: (json['user_id'] ?? json['userId'])?.toString() ?? '0',
+              body: (json['content'] ?? json['body'] ?? '').toString(),
+              date: json['createdAt'] != null 
+                  ? DateTime.parse(json['createdAt']) 
+                  : DateTime.now(),
+              likes: 0,
+              repost: 0,
+              comments: 0,
+              views: 0,
+              qoutes: 0,
+              bookmarks: 0,
+              mediaImages: [],
+              mediaVideos: [],
+            );
           }
-          
-          return TweetModel.fromJson(mappedJson);
         }).toList());
         
-        print('✅ Fetched ${tweets.length} tweets');
+        print('✅ Fetched ${tweets.length} tweets with complete data');
         return tweets;
       } else {
         throw Exception('Failed to fetch tweets: ${response.statusCode}');
@@ -150,12 +103,37 @@ class TweetsApiServiceImpl implements TweetsApiService {
           'date': (json['createdAt'] ?? json['created_at'] ?? json['date'] ?? DateTime.now().toIso8601String()).toString(),
         };
         
-        // Parse mediaUrls array from backend - supporting multiple media
+        // Parse media from backend - supporting multiple formats
         final imageUrls = <String>[];
         final videoUrls = <String>[];
         
-        if (json['mediaUrls'] != null && json['mediaUrls'] is List && (json['mediaUrls'] as List).isNotEmpty) {
+        // Format 1: media array with type info (from getPostById)
+        if (json['media'] != null && json['media'] is List && (json['media'] as List).isNotEmpty) {
+          final mediaArray = json['media'] as List;
+          print('   📷 Media array found: ${mediaArray.length} items');
+          
+          for (final mediaItem in mediaArray) {
+            final url = mediaItem['media_url']?.toString();
+            final type = mediaItem['type']?.toString();
+            
+            if (url != null && url.isNotEmpty) {
+              print('      - URL: $url (type: $type)');
+              if (type == 'VIDEO') {
+                videoUrls.add(url);
+              } else {
+                imageUrls.add(url);
+              }
+            }
+          }
+          
+          mappedJson['mediaImages'] = imageUrls;
+          mappedJson['mediaVideos'] = videoUrls;
+          print('   📊 Parsed: ${imageUrls.length} images, ${videoUrls.length} videos');
+        }
+        // Format 2: mediaUrls array (fallback)
+        else if (json['mediaUrls'] != null && json['mediaUrls'] is List && (json['mediaUrls'] as List).isNotEmpty) {
           final mediaUrls = json['mediaUrls'] as List;
+          print('   📷 MediaUrls found: ${mediaUrls.length} items');
           
           for (int i = 0; i < mediaUrls.length; i++) {
             final url = mediaUrls[i]?.toString();
@@ -176,8 +154,9 @@ class TweetsApiServiceImpl implements TweetsApiService {
           mappedJson['mediaImages'] = imageUrls;
           mappedJson['mediaVideos'] = videoUrls;
         }
-        // Fallback to old field names if mediaUrls not present
+        // Format 3: Old field names (legacy)
         else {
+          print('   ℹ️ No media array, checking old fields');
           if (json['mediaPic'] != null || json['media_pic'] != null) {
             final pic = json['mediaPic'] ?? json['media_pic'];
             imageUrls.add(pic);

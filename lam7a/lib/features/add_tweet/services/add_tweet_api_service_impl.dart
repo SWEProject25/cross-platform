@@ -144,11 +144,33 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
         // Create TweetModel from response
         // The backend returns the post with field names: id, user_id, content, created_at
         
-        // Parse mediaUrls array from backend - supporting multiple media
+        // Parse media from backend - supporting multiple formats
         final imageUrls = <String>[];
         final videoUrls = <String>[];
         
-        if (responseData['mediaUrls'] != null && responseData['mediaUrls'] is List) {
+        // Format 1: media array with type info (preferred)
+        if (responseData['media'] != null && responseData['media'] is List) {
+          final mediaArray = responseData['media'] as List;
+          print('   📷 Media array found: ${mediaArray.length} items');
+          
+          for (final mediaItem in mediaArray) {
+            final url = mediaItem['media_url']?.toString();
+            final type = mediaItem['type']?.toString();
+            
+            if (url != null && url.isNotEmpty) {
+              print('      - URL: $url (type: $type)');
+              if (type == 'VIDEO') {
+                videoUrls.add(url);
+                print('      ✅ Added to videos');
+              } else {
+                imageUrls.add(url);
+                print('      ✅ Added to images');
+              }
+            }
+          }
+        }
+        // Format 2: mediaUrls array (fallback)
+        else if (responseData['mediaUrls'] != null && responseData['mediaUrls'] is List) {
           final mediaUrls = responseData['mediaUrls'] as List;
           print('   📷 MediaUrls in response: ${mediaUrls.length} items');
           

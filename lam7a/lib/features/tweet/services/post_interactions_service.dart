@@ -4,6 +4,7 @@ import 'package:lam7a/core/api/api_config.dart';
 import 'package:lam7a/core/api/authenticated_dio_provider.dart';
 
 /// Service for handling post interactions (likes, reposts, etc.)
+/// Uses authenticated Dio from core with ApiConfig endpoints
 /// According to API spec:
 /// - POST /posts/{postId}/like - Toggle like
 /// - GET /posts/{postId}/likers - Get list of likers (count in metadata)
@@ -24,7 +25,7 @@ class PostInteractionsService {
         '${ApiConfig.postsEndpoint}/$postId/like',
       );
       
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final message = response.data['message'] as String?;
         final isLiked = message?.toLowerCase().contains('liked') ?? false;
         print('   ${isLiked ? "✅ Liked" : "❌ Unliked"}');
@@ -77,7 +78,7 @@ class PostInteractionsService {
         '${ApiConfig.postsEndpoint}/$postId/repost',
       );
       
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final message = response.data['message'] as String?;
         final isReposted = message?.toLowerCase().contains('repost') ?? false;
         print('   ${isReposted ? "✅ Reposted" : "❌ Un-reposted"}');
