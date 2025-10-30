@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../model/profile_header_model.dart';
+import '../../../profile/model/profile_model.dart';
 import '../../repository/profile_header_repository.dart';
 import '../../../../core/services/mock_profile_api_service.dart';
 
@@ -17,23 +17,23 @@ final profileHeaderViewModelProvider =
   ProfileHeaderViewModel.new,
 );
 
-
 class ProfileHeaderViewModel extends AsyncNotifier<ProfileHeaderModel> {
   late final ProfileRepository _repository;
+  void updateProfile(ProfileHeaderModel updatedProfile) {
+  state = AsyncData(updatedProfile);
+}
+
 
   @override
   Future<ProfileHeaderModel> build() async {
     _repository = ref.read(profileRepositoryProvider);
-
-    // You can load a default profile or wait for explicit username
-    final profile = await _repository.getProfile('default_user');
-    return profile;
+    // Load a default or mock user (must exist in your mock data)
+    return _repository.getProfile('hossam_dev');
   }
 
   /// Load a specific profile header by username
   Future<void> loadProfileHeader(String username) async {
     state = const AsyncLoading();
-
     try {
       final profile = await _repository.getProfile(username);
       state = AsyncData(profile);
@@ -42,7 +42,7 @@ class ProfileHeaderViewModel extends AsyncNotifier<ProfileHeaderModel> {
     }
   }
 
-  /// Example of how you might refresh the profile
+  /// Refresh current user profile
   Future<void> refresh() async {
     final current = state.asData?.value;
     if (current == null) return;
