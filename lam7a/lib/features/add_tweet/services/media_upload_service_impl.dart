@@ -1,21 +1,15 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:lam7a/core/api/api_config.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/api/authenticated_dio_provider.dart';
 import 'media_upload_service.dart';
 
 /// Real implementation of media upload service
-/// Uploads files to the backend server
+/// Uploads files to the backend server with authentication
 class MediaUploadServiceImpl implements MediaUploadService {
   final Dio _dio;
   
-  MediaUploadServiceImpl({Dio? dio}) : _dio = dio ?? Dio(
-    BaseOptions(
-      baseUrl: ApiConfig.currentBaseUrl,
-      connectTimeout: ApiConfig.connectTimeout,
-      receiveTimeout: ApiConfig.receiveTimeout,
-      sendTimeout: ApiConfig.sendTimeout,
-    ),
-  );
+  MediaUploadServiceImpl({required Dio dio}) : _dio = dio;
   
   @override
   Future<String> uploadImage(String localPath) async {
@@ -109,3 +103,9 @@ class MediaUploadServiceImpl implements MediaUploadService {
     }
   }
 }
+
+/// Provider for MediaUploadService with authenticated Dio
+final mediaUploadServiceProvider = FutureProvider<MediaUploadService>((ref) async {
+  final dio = await ref.watch(authenticatedDioProvider.future);
+  return MediaUploadServiceImpl(dio: dio);
+});
