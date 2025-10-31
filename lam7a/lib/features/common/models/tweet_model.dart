@@ -20,6 +20,10 @@ abstract class TweetModel with _$TweetModel {
     @Default(0) int comments,
     @Default(0) int views,
     required String userId,
+    // User information from backend
+    String? username,
+    String? authorName,
+    String? authorProfileImage,
   }) = _TweetModel;
 
   /// Empty factory constructor

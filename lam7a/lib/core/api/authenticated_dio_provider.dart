@@ -34,10 +34,6 @@ Future<Dio> createAuthenticatedDio() async {
       },
     ),
   );
-
-  // Ensure cookies are sent in web builds (CORS requests require credentials).
-  // Also works harmlessly on mobile where withCredentials is ignored.
-  dio.options.extra['withCredentials'] = true;
   
   // Add cookie manager interceptor for automatic cookie handling
   dio.interceptors.add(CookieManager(cookieJar));

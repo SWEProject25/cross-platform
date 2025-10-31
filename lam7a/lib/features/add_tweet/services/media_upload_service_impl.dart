@@ -34,9 +34,9 @@ class MediaUploadServiceImpl implements MediaUploadService {
         'image': multipartFile,
       });
       
-      // Upload to backend using ApiService's Dio instance
-      final response = await _apiService.dio.post(
-        '/upload/image', // Adjust endpoint as needed
+      // Upload to backend using ApiService's post method
+      final response = await _apiService.post<Map<String, dynamic>>(
+        endpoint: '/upload/image', // Adjust endpoint as needed
         data: formData,
         options: Options(
           headers: {
@@ -45,13 +45,9 @@ class MediaUploadServiceImpl implements MediaUploadService {
         ),
       );
       
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final imageUrl = response.data['data']['url'] as String;
-        print('✅ Image uploaded successfully! URL: $imageUrl');
-        return imageUrl;
-      } else {
-        throw Exception('Failed to upload image: ${response.statusCode}');
-      }
+      final imageUrl = response['data']['url'] as String;
+      print('✅ Image uploaded successfully! URL: $imageUrl');
+      return imageUrl;
     } catch (e) {
       print('❌ Error uploading image: $e');
       rethrow;
@@ -80,9 +76,9 @@ class MediaUploadServiceImpl implements MediaUploadService {
         'video': multipartFile,
       });
       
-      // Upload to backend using ApiService's Dio instance
-      final response = await _apiService.dio.post(
-        '/upload/video', // Adjust endpoint as needed
+      // Upload to backend using ApiService's post method
+      final response = await _apiService.post<Map<String, dynamic>>(
+        endpoint: '/upload/video', // Adjust endpoint as needed
         data: formData,
         options: Options(
           headers: {
@@ -91,13 +87,9 @@ class MediaUploadServiceImpl implements MediaUploadService {
         ),
       );
       
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final videoUrl = response.data['data']['url'] as String;
-        print('✅ Video uploaded successfully! URL: $videoUrl');
-        return videoUrl;
-      } else {
-        throw Exception('Failed to upload video: ${response.statusCode}');
-      }
+      final videoUrl = response['data']['url'] as String;
+      print('✅ Video uploaded successfully! URL: $videoUrl');
+      return videoUrl;
     } catch (e) {
       print('❌ Error uploading video: $e');
       rethrow;

@@ -21,17 +21,19 @@ class PostInteractionsService {
     try {
       print('❤️  Toggling like on post: $postId');
       
-      final response = await _apiService.dio.post(
-        '${ApiConfig.postsEndpoint}/$postId/like',
+      final response = await _apiService.post<Map<String, dynamic>>(
+        endpoint: '${ApiConfig.postsEndpoint}/$postId/like',
       );
       
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final message = response.data['message'] as String?;
-        final isLiked = message?.toLowerCase().contains('liked') ?? false;
-        print('   ${isLiked ? "✅ Liked" : "❌ Unliked"}');
-        return isLiked;
-      }
-      return false;
+      final message = response['message'] as String?;
+      final messageLower = message?.toLowerCase() ?? '';
+      
+      // Check for 'unliked' first since 'unliked' contains 'liked'
+      final isLiked = !messageLower.contains('unliked') && messageLower.contains('liked');
+      
+      print('   Message: "$message"');
+      print('   ${isLiked ? "✅ Liked" : "❌ Unliked"}');
+      return isLiked;
     } catch (e) {
       print('❌ Error toggling like: $e');
       rethrow;
@@ -42,16 +44,14 @@ class PostInteractionsService {
   /// Note: Backend doesn't return total count, we get array length as approximation
   Future<int> getLikesCount(String postId) async {
     try {
-      final response = await _apiService.dio.get(
-        '${ApiConfig.postsEndpoint}/$postId/likers',
+      final response = await _apiService.get<Map<String, dynamic>>(
+        endpoint: '${ApiConfig.postsEndpoint}/$postId/likers',
         queryParameters: {'limit': 100, 'page': 1}, // Get more to estimate count
       );
       
-      if (response.statusCode == 200) {
-        final data = response.data['data'];
-        if (data is List) {
-          return data.length;
-        }
+      final data = response['data'];
+      if (data is List) {
+        return data.length;
       }
       return 0;
     } on DioException catch (e) {
@@ -74,17 +74,21 @@ class PostInteractionsService {
     try {
       print('🔁 Toggling repost on post: $postId');
       
-      final response = await _apiService.dio.post(
-        '${ApiConfig.postsEndpoint}/$postId/repost',
+      final response = await _apiService.post<Map<String, dynamic>>(
+        endpoint: '${ApiConfig.postsEndpoint}/$postId/repost',
       );
       
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final message = response.data['message'] as String?;
-        final isReposted = message?.toLowerCase().contains('repost') ?? false;
-        print('   ${isReposted ? "✅ Reposted" : "❌ Un-reposted"}');
-        return isReposted;
-      }
-      return false;
+      final message = response['message'] as String?;
+      final messageLower = message?.toLowerCase() ?? '';
+      
+      // Check for 'unrepost' or 'removed' first
+      final isReposted = !messageLower.contains('unrepost') && 
+                        !messageLower.contains('removed') && 
+                        messageLower.contains('repost');
+      
+      print('   Message: "$message"');
+      print('   ${isReposted ? "✅ Reposted" : "❌ Un-reposted"}');
+      return isReposted;
     } catch (e) {
       print('❌ Error toggling repost: $e');
       rethrow;
@@ -95,16 +99,14 @@ class PostInteractionsService {
   /// Note: Backend doesn't return total count, we get array length as approximation
   Future<int> getRepostsCount(String postId) async {
     try {
-      final response = await _apiService.dio.get(
-        '${ApiConfig.postsEndpoint}/$postId/reposters',
+      final response = await _apiService.get<Map<String, dynamic>>(
+        endpoint: '${ApiConfig.postsEndpoint}/$postId/reposters',
         queryParameters: {'limit': 100, 'page': 1}, // Get more to estimate count
       );
       
-      if (response.statusCode == 200) {
-        final data = response.data['data'];
-        if (data is List) {
-          return data.length;
-        }
+      final data = response['data'];
+      if (data is List) {
+        return data.length;
       }
       return 0;
     } on DioException catch (e) {
@@ -118,6 +120,48 @@ class PostInteractionsService {
     } catch (e) {
       print('❌ Error fetching reposts count: $e');
       return 0;
+    }
+  }
+
+  /// Check if current user has liked a post
+  /// Returns true if the current user is in the likers list
+  Future<bool> isLikedByCurrentUser(String postId, int currentUserId) async {
+    try {
+      final response = await _apiService.get<Map<String, dynamic>>(
+        endpoint: '${ApiConfig.postsEndpoint}/$postId/likers',
+        queryParameters: {'limit': 100, 'page': 1},
+      );
+      
+      final data = response['data'];
+      if (data is List) {
+        // Check if current user ID is in the likers list
+        return data.any((liker) => liker['id'] == currentUserId);
+      }
+      return false;
+    } catch (e) {
+      print('   ⚠️ Error checking if liked: $e');
+      return false;
+    }
+  }
+  
+  /// Check if current user has reposted a post
+  /// Returns true if the current user is in the reposters list
+  Future<bool> isRepostedByCurrentUser(String postId, int currentUserId) async {
+    try {
+      final response = await _apiService.get<Map<String, dynamic>>(
+        endpoint: '${ApiConfig.postsEndpoint}/$postId/reposters',
+        queryParameters: {'limit': 100, 'page': 1},
+      );
+      
+      final data = response['data'];
+      if (data is List) {
+        // Check if current user ID is in the reposters list
+        return data.any((reposter) => reposter['id'] == currentUserId);
+      }
+      return false;
+    } catch (e) {
+      print('   ⚠️ Error checking if reposted: $e');
+      return false;
     }
   }
 

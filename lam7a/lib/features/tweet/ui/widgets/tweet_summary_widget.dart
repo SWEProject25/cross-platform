@@ -7,7 +7,6 @@ import 'package:lam7a/features/tweet/ui/view/tweet_screen.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_summary.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
-import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
 
 class TweetSummaryWidget extends ConsumerWidget {
   const TweetSummaryWidget({
@@ -102,13 +101,8 @@ class TweetSummaryWidget extends ConsumerWidget {
   Widget _buildTweetUI(BuildContext context, WidgetRef ref, TweetModel tweet) {
     final daysPosted = DateTime.now().day - tweet.date.day;
     
-    // Create a minimal TweetState for compatibility with existing widgets
-    final tweetState = TweetState(
-      isLiked: false,
-      isReposted: false,
-      isViewed: false,
-      tweet: AsyncData(tweet),
-    );
+    // Watch the viewmodel to get proper state with interaction flags
+    final tweetAsync = ref.watch(tweetViewModelProvider(tweetId));
 
     return SafeArea(
       child: Container(
@@ -116,43 +110,53 @@ class TweetSummaryWidget extends ConsumerWidget {
         key: Key(tweetId),
         color: Colors.black,
         padding: const EdgeInsets.only(left: 10),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // === User row ===
-            Row(
-              children: [
-                TweetUserSummaryInfo(
-                  tweetState: tweetState,
-                  daysPosted: daysPosted,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.rocket),
-                  onPressed: () {}, // Disabled when using pre-loaded data
-                ),
-              ],
-            ),
-
-            // === Tweet body ===
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => TweetScreen(
-                      tweetId: tweetId,
-                      tweetData: tweet, // Pass tweet data to avoid 404
-                    ),
+        child: tweetAsync.when(
+          data: (tweetState) => Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // === User row ===
+              Row(
+                children: [
+                  TweetUserSummaryInfo(
+                    tweetState: tweetState,
+                    daysPosted: daysPosted,
                   ),
-                );
-              },
-              child: TweetBodySummaryWidget(post: tweet),
-            ),
+                  IconButton(
+                    icon: const Icon(Icons.rocket),
+                    onPressed: () => ref
+                        .read(tweetViewModelProvider(tweet.id).notifier)
+                        .summarizeBody(),
+                  ),
+                ],
+              ),
 
-            // === Tweet feed ===
-            TweetFeed(tweetState: tweetState),
-          ],
+              // === Tweet body ===
+              GestureDetector(
+                onTap: () {
+                  ref
+                      .read(tweetViewModelProvider(tweetId).notifier)
+                      .handleViews();
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TweetScreen(
+                        tweetId: tweetId,
+                        tweetData: tweet, // Pass tweet data to avoid 404
+                      ),
+                    ),
+                  );
+                },
+                child: TweetBodySummaryWidget(post: tweet),
+              ),
+
+              // === Tweet feed ===
+              TweetFeed(tweetState: tweetState),
+            ],
+          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => const Center(child: Text('Error loading tweet')),
         ),
       ),
     );

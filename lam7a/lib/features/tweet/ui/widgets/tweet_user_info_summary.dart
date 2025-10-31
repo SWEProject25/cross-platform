@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
-import 'package:lam7a/features/tweet/services/mock_user_api_service.dart';
 
 class TweetUserSummaryInfo extends ConsumerStatefulWidget {
   const TweetUserSummaryInfo({
@@ -28,39 +27,43 @@ class _TweetUserSummaryInfoState extends ConsumerState<TweetUserSummaryInfo> {
       return const SizedBox.shrink();
     }
     
-    final userAsync = ref.watch(userByIdProvider(tweet.userId));
     final daysPosted = widget.daysPosted;
+    
+    // Use user data directly from tweet model (from backend)
+    final username = tweet.username ?? 'unknown';
+    final displayName = tweet.authorName ?? username;
+    final profileImage = tweet.authorProfileImage;
     
     return Row(
       children: [
-        userAsync.when(
-          data: (user) => CircleAvatar(
-            radius: 19,
-            backgroundImage: NetworkImage(user.profileImageUrl ?? 'https://i.pravatar.cc/150'),
-            backgroundColor: Colors.grey[200],
-          ),
-          loading: () => const CircleAvatar(radius: 22, backgroundColor: Colors.grey),
-          error: (err, _) => const Icon(Icons.error),
+        CircleAvatar(
+          radius: 19,
+          backgroundColor: Colors.grey[700],
+          backgroundImage: profileImage != null && profileImage.isNotEmpty
+              ? NetworkImage(profileImage)
+              : null,
+          child: profileImage == null || profileImage.isEmpty
+              ? Text(
+                  username.isNotEmpty ? username[0].toUpperCase() : '?',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : null,
         ),
         const SizedBox(width: 10, height: 5),
-        userAsync.when(
-          data: (user) => Text(
-            user.name ?? user.username ?? 'Unknown',
-            style: const TextStyle(color: Colors.white, fontSize: 20),
-          ),
-          loading: () => const CircleAvatar(radius: 22, backgroundColor: Colors.grey),
-          error: (err, _) => const Icon(Icons.error),
+        Text(
+          displayName,
+          style: const TextStyle(color: Colors.white, fontSize: 20),
         ),
         const SizedBox(width: 10),
-        userAsync.when(
-          data: (user) => Text(
-            '@${user.username ?? 'unknown'}',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
+        Text(
+          '@$username',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onPrimary,
           ),
-          loading: () => const CircleAvatar(radius: 22, backgroundColor: Colors.grey),
-          error: (err, _) => const Icon(Icons.error),
         ),
         const SizedBox(width: 10),
         Text('${daysPosted}d'),

@@ -15,7 +15,8 @@ class ApiService {
 
   // Base URL for the APIpart 'api_service.g.dart';
 
-  static final String _baseUrl = ServerConstant.serverURL + ServerConstant.apiPrefix;
+  static final String _baseUrl =
+      ServerConstant.serverURL + ServerConstant.apiPrefix;
 
   // Initialize timeout duration
   static const int _timeoutSeconds = 30;
@@ -26,9 +27,6 @@ class ApiService {
     _dio.interceptors.add(_createErrorInterceptor());
     _dio.interceptors.add(_createLogInterceptor());
   }
-
-  /// Expose Dio instance for special cases (e.g., multipart uploads)
-  Dio get dio => _dio;
 
   Dio _createDio() {
     final dio = Dio(

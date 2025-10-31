@@ -7,9 +7,10 @@ import 'package:lam7a/features/common/models/tweet_model.dart';
 
 part 'tweet_api_service.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 TweetsApiService tweetsApiService(Ref ref) {
   // SWITCHED TO REAL BACKEND: Now using backend API
+  // keepAlive: true ensures the service instance persists and doesn't lose interaction flags
   final apiService = ref.watch(apiServiceProvider);
   return TweetsApiServiceImpl(apiService: apiService);
   
@@ -22,4 +23,8 @@ abstract class TweetsApiService {
   Future<void> addTweet(TweetModel tweet);
   Future<void> updateTweet(TweetModel tweet);
   Future<void> deleteTweet(String id);
+  /// Get interaction flags (isLikedByMe, isRepostedByMe) for a tweet
+  Future<Map<String, bool>?> getInteractionFlags(String tweetId);
+  /// Update interaction flag after toggle operation
+  void updateInteractionFlag(String tweetId, String flagName, bool value);
 }

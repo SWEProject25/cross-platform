@@ -104,8 +104,6 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
       }
       
       // Send request to backend - always use multipart if we have form data structure
-      final Response response;
-      
       print('   🌐 Sending request to backend:');
       print('      URL: ${ApiConfig.currentBaseUrl}${ApiConfig.postsEndpoint}');
       print('   📦 Request data:');
@@ -115,9 +113,9 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
       print('      media files: ${formData.files.length}');
       
       // Always send as multipart/form-data when using FormData
-      // Use ApiService's Dio instance for multipart requests
-      response = await _apiService.dio.post(
-        ApiConfig.postsEndpoint,
+      // Use ApiService's post method for multipart requests
+      final responseMap = await _apiService.post<Map<String, dynamic>>(
+        endpoint: ApiConfig.postsEndpoint,
         data: formData,
         options: Options(
           contentType: 'multipart/form-data',
@@ -126,11 +124,10 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
         ),
       );
       
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        print('✅ Tweet created successfully on backend!');
-        
-        // Parse response to get the created tweet with media URLs
-        final responseData = response.data['data'];
+      print('✅ Tweet created successfully on backend!');
+      
+      // Parse response to get the created tweet with media URLs
+      final responseData = responseMap['data'];
         print('   Response data: $responseData');
         
         // Create TweetModel from response
@@ -207,10 +204,7 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
         print('   Media Images: ${createdTweet.mediaImages.length} items');
         print('   Media Videos: ${createdTweet.mediaVideos.length} items');
         
-        return createdTweet;
-      } else {
-        throw Exception('Failed to create tweet: ${response.statusCode}');
-      }
+      return createdTweet;
     } on DioException catch (e) {
       print('❌ Dio Error creating tweet:');
       print('   Status Code: ${e.response?.statusCode}');

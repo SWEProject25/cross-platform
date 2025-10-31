@@ -193,11 +193,13 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
               onTap: () {
                 _showRepostQuoteOptions(context);
                 },
-              child: ref
-                    .read(tweetViewModelProvider(tweetId).notifier)
-                    .getisReposted()
-                  ? Icon(Icons.loop, color: Colors.green)
-                  : Icon(Icons.loop, color: Colors.grey),
+              child: ref.watch(tweetViewModelProvider(tweetId)).when(
+                    data: (state) => state.isReposted
+                        ? Icon(Icons.loop, color: Colors.green)
+                        : Icon(Icons.loop, color: Colors.grey),
+                    loading: () => Icon(Icons.loop, color: Colors.grey),
+                    error: (_, __) => Icon(Icons.loop, color: Colors.grey),
+                  ),
             ),
           ),
         ),
@@ -218,12 +220,13 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                       controller: _controller,
                     );
               },
-              child: ref
-                    .read(tweetViewModelProvider(tweetId).notifier)
-                    .getIsLiked(
-                    )
-                  ? Icon(Icons.favorite, color: Colors.red)
-                  : Icon(Icons.favorite_border, color: Colors.grey),
+              child: ref.watch(tweetViewModelProvider(tweetId)).when(
+                    data: (state) => state.isLiked
+                        ? Icon(Icons.favorite, color: Colors.red)
+                        : Icon(Icons.favorite_border, color: Colors.grey),
+                    loading: () => Icon(Icons.favorite_border, color: Colors.grey),
+                    error: (_, __) => Icon(Icons.favorite_border, color: Colors.grey),
+                  ),
             ),
           ),
         ),
@@ -231,8 +234,13 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
           padding: const EdgeInsets.only(left: 1.0, top: 3.0),
           child: Text(
             likesNumStr,
-            style: TextStyle(color: ref.read(tweetViewModelProvider(tweetId).notifier).getIsLiked()
-             ? Colors.red : Colors.grey),
+            style: TextStyle(
+              color: ref.watch(tweetViewModelProvider(tweetId)).when(
+                data: (state) => state.isLiked ? Colors.red : Colors.grey,
+                loading: () => Colors.grey,
+                error: (_, __) => Colors.grey,
+              ),
+            ),
           ),
         ),
         SizedBox(width: 30),

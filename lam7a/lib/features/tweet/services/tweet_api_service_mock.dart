@@ -1,7 +1,6 @@
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/services/tweet_api_service.dart';
 
-
 // Dummy in-memory mock tweets with multiple media support
 final _mockTweets = <String, TweetModel>{
   't1': TweetModel(
@@ -64,13 +63,25 @@ final _mockTweets = <String, TweetModel>{
   ),
 };
 
-
-
 class TweetsApiServiceMock implements TweetsApiService {
   final Map<String, TweetModel> _tweets = Map.of(_mockTweets);
+  final Map<String, Map<String, bool>> _interactionFlags = {};
 
   Future<void> _simulateDelay() async =>
       Future.delayed(const Duration(milliseconds: 300));
+
+  @override
+  Map<String, bool>? getInteractionFlags(String tweetId) {
+    return _interactionFlags[tweetId];
+  }
+
+  @override
+  void updateInteractionFlag(String tweetId, String flagName, bool value) {
+    if (_interactionFlags[tweetId] == null) {
+      _interactionFlags[tweetId] = {};
+    }
+    _interactionFlags[tweetId]![flagName] = value;
+  }
 
   @override
   Future<List<TweetModel>> getAllTweets() async {
@@ -88,7 +99,7 @@ class TweetsApiServiceMock implements TweetsApiService {
   Future<void> addTweet(TweetModel tweet) async {
     await _simulateDelay();
     _tweets[tweet.id] = tweet;
-    
+
     // Log for debugging (matching main API service logic)
     print('✅ Tweet added successfully to mock backend!');
     print('   ID: ${tweet.id}');
@@ -121,12 +132,12 @@ class TweetsApiServiceMock implements TweetsApiService {
     _tweets.remove(id);
     print('🗑️ Tweet deleted: $id');
   }
-  
+
   /// Helper method to get all tweet IDs (for debugging)
   List<String> getAllTweetIds() {
     return _tweets.keys.toList();
   }
-  
+
   /// Helper method to check if a tweet exists
   bool hasTweet(String id) {
     return _tweets.containsKey(id);

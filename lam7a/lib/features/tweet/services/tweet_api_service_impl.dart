@@ -1,32 +1,109 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:lam7a/core/api/api_config.dart';
 import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/services/tweet_api_service.dart';
 import 'package:lam7a/features/tweet/services/post_interactions_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Real implementation of Tweets API Service
 /// Communicates with the backend server with authentication
 class TweetsApiServiceImpl implements TweetsApiService {
   final ApiService _apiService;
-  late final PostInteractionsService _interactionsService;
+  final PostInteractionsService _interactionsService;
   
-  TweetsApiServiceImpl({required ApiService apiService}) 
-      : _apiService = apiService {
-    _interactionsService = PostInteractionsService(_apiService);
+  // Store interaction flags from backend responses
+  final Map<String, Map<String, bool>> _interactionFlags = {};
+  static const String _storageKey = 'tweet_interaction_flags';
+  bool _isInitialized = false;
+
+  TweetsApiServiceImpl({
+    required ApiService apiService,
+  })  : _apiService = apiService,
+        _interactionsService = PostInteractionsService(apiService) {
+    // Start loading flags in background (don't await in constructor)
+    _loadStoredFlags();
+  }
+  
+  /// Load interaction flags from SharedPreferences
+  Future<void> _loadStoredFlags() async {
+    if (_isInitialized) return;
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final stored = prefs.getString(_storageKey);
+      
+      if (stored != null && stored.isNotEmpty) {
+        final decoded = jsonDecode(stored) as Map<String, dynamic>;
+        _interactionFlags.clear();
+        
+        decoded.forEach((key, value) {
+          if (value is Map) {
+            _interactionFlags[key] = Map<String, bool>.from(value);
+          }
+        });
+        
+        print('💾 Loaded ${_interactionFlags.length} stored interaction flags from disk');
+      }
+      
+      _isInitialized = true;
+    } catch (e) {
+      print('⚠️ Error loading stored flags: $e');
+      _isInitialized = true;
+    }
+  }
+  
+  /// Save interaction flags to SharedPreferences
+  Future<void> _saveStoredFlags() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final encoded = jsonEncode(_interactionFlags);
+      await prefs.setString(_storageKey, encoded);
+      print('💾 Saved ${_interactionFlags.length} interaction flags to disk');
+    } catch (e) {
+      print('⚠️ Error saving flags: $e');
+    }
+  }
+  
+  /// Get interaction flags for a tweet (isLikedByMe, isRepostedByMe)
+  Future<Map<String, bool>?> getInteractionFlags(String tweetId) async {
+    // Ensure flags are loaded before returning
+    if (!_isInitialized) {
+      await _loadStoredFlags();
+    }
+    return _interactionFlags[tweetId];
+  }
+  
+  /// Update interaction flags after a toggle operation
+  void updateInteractionFlag(String tweetId, String flagName, bool value) {
+    if (_interactionFlags[tweetId] == null) {
+      _interactionFlags[tweetId] = {};
+    }
+    _interactionFlags[tweetId]![flagName] = value;
+    print('   🔄 Updated $flagName for tweet $tweetId: $value');
+    
+    // Persist to disk
+    _saveStoredFlags();
   }
   
   @override
   Future<List<TweetModel>> getAllTweets() async {
+    // Ensure flags are loaded before fetching tweets
+    if (!_isInitialized) {
+      await _loadStoredFlags();
+    }
+    
     try {
       final url = '${ApiConfig.currentBaseUrl}${ApiConfig.postsEndpoint}';
       print('📥 Fetching all tweets from backend...');
       print('   URL: $url');
+      print('   💾 Currently have ${_interactionFlags.length} stored interaction flags');
       
       // Add query parameters to get latest tweets first with pagination
-      final response = await _apiService.dio.get(
-        ApiConfig.postsEndpoint,
+      final response = await _apiService.get<Map<String, dynamic>>(
+        endpoint: ApiConfig.postsEndpoint,
         queryParameters: {
           'limit': 50, // Limit to 50 most recent tweets
           'page': 1,   // First page
@@ -34,11 +111,9 @@ class TweetsApiServiceImpl implements TweetsApiService {
         },
       );
       
-      print('   Response status: ${response.statusCode}');
-      print('   Response data type: ${response.data.runtimeType}');
+      print('   Response data type: ${response.runtimeType}');
       
-      if (response.statusCode == 200) {
-        final data = response.data['data'] as List;
+      final data = response['data'] as List;
         print('   Raw tweet data count: ${data.length}');
         
         // Fetch each tweet individually using getTweetById to get complete data
@@ -72,11 +147,8 @@ class TweetsApiServiceImpl implements TweetsApiService {
           }
         }).toList());
         
-        print('✅ Fetched ${tweets.length} tweets with complete data');
-        return tweets;
-      } else {
-        throw Exception('Failed to fetch tweets: ${response.statusCode}');
-      }
+      print('✅ Fetched ${tweets.length} tweets with complete data');
+      return tweets;
     } catch (e) {
       print('❌ Error fetching tweets: $e');
       rethrow;
@@ -88,19 +160,60 @@ class TweetsApiServiceImpl implements TweetsApiService {
     try {
       print('📥 Fetching tweet by ID: $id');
       
-      final response = await _apiService.dio.get('${ApiConfig.postsEndpoint}/$id');
+      final response = await _apiService.get<Map<String, dynamic>>(
+        endpoint: '${ApiConfig.postsEndpoint}/$id',
+      );
       
-      if (response.statusCode == 200) {
-        final json = response.data['data'];
+      final json = response['data'];
         // Map backend fields to frontend model
         final tweetId = json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString();
+        
+        print('   🔍 Raw JSON keys: ${json.keys.toList()}');
+        
+        // Parse user data from nested User/Profile structure
+        String? username;
+        String? authorName;
+        String? authorProfileImage;
+        
+        // Check if User object exists (nested structure from backend)
+        if (json['User'] != null && json['User'] is Map) {
+          final user = json['User'] as Map;
+          print('   👤 Found User object with keys: ${user.keys.toList()}');
+          username = user['username']?.toString();
+          
+          // Check for nested Profile
+          if (user['Profile'] != null && user['Profile'] is Map) {
+            final profile = user['Profile'] as Map;
+            print('   💼 Found Profile object with keys: ${profile.keys.toList()}');
+            authorName = profile['name']?.toString();
+            authorProfileImage = profile['profile_image_url']?.toString();
+          }
+        } else {
+          // Flat structure (fallback)
+          print('   ⚠️ No User object found, trying flat structure');
+          username = json['username']?.toString();
+          authorName = json['authorName']?.toString();
+          authorProfileImage = json['authorProfileImage']?.toString();
+        }
+        
+        print('   ✅ Parsed user: $username ($authorName)');
+        print('   🖼️ Avatar: $authorProfileImage');
         
         final mappedJson = <String, dynamic>{
           'id': tweetId,
           'userId': (json['user_id'] ?? json['userId'])?.toString() ?? '0',
           'body': (json['content'] ?? json['body'] ?? '').toString(),
           'date': (json['createdAt'] ?? json['created_at'] ?? json['date'] ?? DateTime.now().toIso8601String()).toString(),
+          // User information from backend
+          'username': username,
+          'authorName': authorName,
+          'authorProfileImage': authorProfileImage,
+          // User interaction flags from backend
+          'isLikedByMe': json['isLikedByMe'] ?? false,
+          'isRepostedByMe': json['isRepostedByMe'] ?? false,
         };
+        
+        print('   🎯 Interaction flags: isLikedByMe=${json['isLikedByMe']}, isRepostedByMe=${json['isRepostedByMe']}');
         
         // Parse media from backend - supporting multiple formats
         final imageUrls = <String>[];
@@ -181,12 +294,47 @@ class TweetsApiServiceImpl implements TweetsApiService {
           mappedJson['repost'] = 0;
         }
         
-        final tweet = TweetModel.fromJson(mappedJson);
-        print('✅ Tweet fetched successfully');
-        return tweet;
+      final tweet = TweetModel.fromJson(mappedJson);
+      
+      // Store interaction flags separately (not in TweetModel)
+      // These will be used by TweetViewModel to initialize TweetState
+      
+      // Check if we have existing stored flags for this tweet
+      final existingFlags = _interactionFlags[tweetId];
+      
+      // Check if backend provided the flags
+      bool isLikedByMe;
+      bool isRepostedByMe;
+      
+      // Check if the keys exist in the response (not just if they're not null)
+      final hasLikedFlag = json.containsKey('isLikedByMe');
+      final hasRepostedFlag = json.containsKey('isRepostedByMe');
+      
+      if (hasLikedFlag && hasRepostedFlag) {
+        // Backend provided flags (from feed endpoints) - use them
+        isLikedByMe = json['isLikedByMe'] ?? false;
+        isRepostedByMe = json['isRepostedByMe'] ?? false;
+        print('   ✅ Backend provided interaction flags: isLikedByMe=$isLikedByMe, isRepostedByMe=$isRepostedByMe');
+      } else if (existingFlags != null) {
+        // Backend didn't provide flags, but we have stored flags - preserve them
+        isLikedByMe = existingFlags['isLikedByMe'] ?? false;
+        isRepostedByMe = existingFlags['isRepostedByMe'] ?? false;
+        print('   💾 Preserving stored interaction flags: isLikedByMe=$isLikedByMe, isRepostedByMe=$isRepostedByMe');
       } else {
-        throw Exception('Failed to fetch tweet: ${response.statusCode}');
+        // No backend flags and no stored flags - default to false
+        isLikedByMe = false;
+        isRepostedByMe = false;
+        print('   ⚠️ No interaction flags available, defaulting to false');
       }
+      
+      _interactionFlags[tweetId] = {
+        'isLikedByMe': isLikedByMe,
+        'isRepostedByMe': isRepostedByMe,
+      };
+      
+      print('   🎯 Interaction flags stored: isLikedByMe=$isLikedByMe, isRepostedByMe=$isRepostedByMe');
+      print('✅ Tweet fetched successfully');
+      return tweet;
     } catch (e) {
       print('❌ Error fetching tweet: $e');
       rethrow;
@@ -252,9 +400,9 @@ class TweetsApiServiceImpl implements TweetsApiService {
         }
       }
       
-      // Send request
-      final response = await _apiService.dio.post(
-        ApiConfig.postsEndpoint,
+      // Send request using ApiService post method
+      final response = await _apiService.post<Map<String, dynamic>>(
+        endpoint: ApiConfig.postsEndpoint,
         data: formData,
         options: Options(
           headers: {
@@ -263,12 +411,8 @@ class TweetsApiServiceImpl implements TweetsApiService {
         ),
       );
       
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        print('✅ Tweet created successfully on backend!');
-        print('   Response: ${response.data}');
-      } else {
-        throw Exception('Failed to create tweet: ${response.statusCode}');
-      }
+      print('✅ Tweet created successfully on backend!');
+      print('   Response: $response');
     } catch (e) {
       print('❌ Error creating tweet: $e');
       rethrow;
@@ -280,16 +424,12 @@ class TweetsApiServiceImpl implements TweetsApiService {
     try {
       print('📤 Updating tweet on backend: ${tweet.id}');
       
-      final response = await _apiService.dio.put(
-        '${ApiConfig.postsEndpoint}/${tweet.id}',
+      await _apiService.put<Map<String, dynamic>>(
+        endpoint: '${ApiConfig.postsEndpoint}/${tweet.id}',
         data: tweet.toJson(),
       );
       
-      if (response.statusCode == 200) {
-        print('✅ Tweet updated successfully');
-      } else {
-        throw Exception('Failed to update tweet: ${response.statusCode}');
-      }
+      print('✅ Tweet updated successfully');
     } catch (e) {
       print('❌ Error updating tweet: $e');
       rethrow;
@@ -301,13 +441,11 @@ class TweetsApiServiceImpl implements TweetsApiService {
     try {
       print('📤 Deleting tweet on backend: $id');
       
-      final response = await _apiService.dio.delete('${ApiConfig.postsEndpoint}/$id');
+      await _apiService.delete<Map<String, dynamic>>(
+        endpoint: '${ApiConfig.postsEndpoint}/$id',
+      );
       
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        print('✅ Tweet deleted successfully');
-      } else {
-        throw Exception('Failed to delete tweet: ${response.statusCode}');
-      }
+      print('✅ Tweet deleted successfully');
     } catch (e) {
       print('❌ Error deleting tweet: $e');
       rethrow;

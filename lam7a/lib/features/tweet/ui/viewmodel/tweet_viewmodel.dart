@@ -1,6 +1,7 @@
 import 'package:flutter/animation.dart';
 import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
 import 'package:lam7a/features/tweet/services/post_interactions_service.dart';
+import 'package:lam7a/features/tweet/services/tweet_api_service.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -14,16 +15,17 @@ FutureOr<TweetState> build(String tweetId) async {
   final repo = ref.read(tweetRepositoryProvider);
   final tweet = await repo.fetchTweetById(tweetId);
   
-  // Initialize interaction state
-  // Note: Backend doesn't provide isLikedByCurrentUser or isRepostedByCurrentUser
-  // So we always start with false. State will update when user interacts.
-  // See BACKEND_REQUIREMENT.md for the proper solution.
-  bool isLiked = false;
-  bool isReposted = false;
+  // Get interaction flags from the API service
+  // The service stores these after fetching the tweet from backend
+  final apiService = ref.read(tweetsApiServiceProvider);
+  final interactionFlags = await apiService.getInteractionFlags(tweetId);
+  
+  bool isLiked = interactionFlags?['isLikedByMe'] ?? false;
+  bool isReposted = interactionFlags?['isRepostedByMe'] ?? false;
   
   print('📊 Initializing tweet state for: $tweetId');
   print('   Likes: ${tweet.likes}, Reposts: ${tweet.repost}');
-  print('   ⚠️ isLiked/isReposted initialized to false (backend limitation)');
+  print('   ✅ isLiked: $isLiked, isReposted: $isReposted (from backend)');
 
   return TweetState(
     isLiked: isLiked,
@@ -77,6 +79,10 @@ FutureOr<TweetState> build(String tweetId) async {
       
       // Fetch actual count from backend
       final actualCount = await interactionsService.getLikesCount(currentTweet.id);
+      
+      // Update stored interaction flags in the service
+      final apiService = ref.read(tweetsApiServiceProvider);
+      apiService.updateInteractionFlag(currentTweet.id, 'isLikedByMe', backendIsLiked);
       
       // Update with backend data
       state = AsyncData(
@@ -142,6 +148,10 @@ FutureOr<TweetState> build(String tweetId) async {
       
       // Fetch actual count from backend
       final actualCount = await interactionsService.getRepostsCount(currentTweet.id);
+      
+      // Update stored interaction flags in the service
+      final apiService = ref.read(tweetsApiServiceProvider);
+      apiService.updateInteractionFlag(currentTweet.id, 'isRepostedByMe', backendIsReposted);
       
       // Update with backend data
       state = AsyncData(
