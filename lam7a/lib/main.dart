@@ -9,15 +9,13 @@ import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authe
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
-import 'package:lam7a/features/navigation/view/screens/navigation_home_screen.dart';
+import 'package:lam7a/features/navigation/ui/view/screens/navigation_home_screen.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final container = ProviderContainer();
-  await Future.wait([
-    container.read(apiServiceProvider).initialize(),
-  ]);
+  await Future.wait([container.read(apiServiceProvider).initialize()]);
   await container.read(authenticationProvider.notifier).isAuthenticated();
   print(container.read(authenticationProvider).isAuthenticated);
   runApp(UncontrolledProviderScope(child: MyApp(), container: container));
@@ -51,9 +49,7 @@ class _MyAppState extends ConsumerState<MyApp> {
             AuthenticationTransmissionScreen.routeName: (context) =>
                 AuthenticationTransmissionScreen(),
           },
-          home:
-              // const Center(child: CircularProgressIndicator(color: Pallete.blackColor, backgroundColor: Pallete.whiteColor,))
-              !state.isAuthenticated
+          home: !state.isAuthenticated
               ? FirstTimeScreen()
               : NavigationHomeScreen(),
         );
