@@ -5,7 +5,7 @@ part 'mock_user_api_service.g.dart';
 
 final _mockUsers = {
   '1': UserModel(
-    id: '1',
+    userId: '1',
     username: 'johnd',
     email: 'john@example.com',
     name: 'John Doe',
@@ -15,7 +15,7 @@ final _mockUsers = {
     createdAt: DateTime.now().toIso8601String(),
   ),
   '2': UserModel(
-    id: '2',
+    userId: '2',
     username: 'sjane',
     email: 'sarah@example.com',
     name: 'Sarah Jane',

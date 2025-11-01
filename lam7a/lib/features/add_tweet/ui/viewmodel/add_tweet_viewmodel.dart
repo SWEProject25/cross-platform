@@ -75,16 +75,16 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
       final authState = ref.read(authenticationProvider);
       final user = authState.user;
       
-      // Get user ID - fallback to '1' if not authenticated (for testing)
+      // Get user userId - fallback to '1' if not authenticated (for testing)
       // In production, you should enforce authentication
-      String id;
-      if (user == null || user.id == null) {
-        print('⚠️ User not authenticated, using default ID: 1');
+      String userId;
+      if (user == null || user.userId == null) {
+        print('⚠️ User not authenticated, using default userId: 1');
         print('   Note: In production, you should redirect to login');
-        id = '1'; // Fallback for testing
+        userId = '1'; // Fallback for testing
       } else {
-        id = user.id!;
-        print('✅ Using authenticated user ID: $id');
+        userId = user.userId!;
+        print('✅ Using authenticated user userId: $userId');
       }
 
       // Use real backend implementation with authentication
@@ -92,14 +92,14 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
       
       // Create tweet with media files (service handles upload and returns URLs)
       final createdTweet = await apiService.createTweet(
-        userId: id,
+        userId: userId,
         content: state.body.trim(),
         mediaPicPath: state.mediaPicPath,
         mediaVideoPath: state.mediaVideoPath,
       );
 
       print('📝 Tweet created:');
-      print('   ID: ${createdTweet.id}');
+      print('   userId: ${createdTweet.userId}');
       print('   Body: ${createdTweet.body}');
       print('   Media Pic URL: ${createdTweet.mediaPic ?? "None"}');
       print('   Media Video URL: ${createdTweet.mediaVideo ?? "None"}');

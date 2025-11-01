@@ -119,7 +119,7 @@ class TweetHomeScreen extends ConsumerWidget {
             return;
           }
           
-          final userId = authState.user!.id ?? '1';
+          final userId = authState.user!.userId ?? '1';
           
           await Navigator.push(
             context,
