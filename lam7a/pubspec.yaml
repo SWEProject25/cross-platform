@@ -24,6 +24,8 @@ dependencies:
   # API / Network
   dio: ^5.9.0
   http: ^1.5.0
+  mime: ^2.0.0
+  http_parser: ^4.1.1
   dio_cookie_manager: ^3.3.0
   cookie_jar: ^4.0.8
   path: ^1.9.1

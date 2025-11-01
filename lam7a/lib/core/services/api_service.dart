@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // part 'api_service.g.dart';
 
-
 final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
 
 class ApiService {
@@ -16,7 +15,8 @@ class ApiService {
 
   // Base URL for the APIpart 'api_service.g.dart';
 
-  static final String _baseUrl = ServerConstant.serverURL + ServerConstant.apiPrefix;
+  static final String _baseUrl =
+      ServerConstant.serverURL + ServerConstant.apiPrefix;
 
   // Initialize timeout duration
   static const int _timeoutSeconds = 30;
@@ -190,7 +190,7 @@ class ApiService {
       responseBody: true,
       logPrint: (object) {
         // TODO: Replace with your preferred logging method
-        print('API Log: $object');
+       
       },
     );
   }

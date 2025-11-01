@@ -48,11 +48,14 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
   }
 
   void _handlerepost() {
- ref.read(tweetViewModelProvider(widget.tweetState.tweet.value!.id).notifier)
+    final tweetId = widget.tweetState.tweet.value?.id;
+    if (tweetId == null) return;
+    
+    ref.read(tweetViewModelProvider(tweetId).notifier)
         .handleRepost(
           controllerRepost: _controllerRepost,
         );
-    if (ref.read(tweetViewModelProvider(widget.tweetState.tweet.value!.id).notifier).getisReposted()) {
+    if (ref.read(tweetViewModelProvider(tweetId).notifier).getisReposted()) {
       showTopSnackBar(
         Overlay.of(context),
         Card(
@@ -79,7 +82,10 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
     }
   }
     void _showRepostQuoteOptions(BuildContext context) {
-    if(!ref.read(tweetViewModelProvider(widget.tweetState.tweet.value!.id).notifier).getisReposted())
+    final tweetId = widget.tweetState.tweet.value?.id;
+    if (tweetId == null) return;
+    
+    if(!ref.read(tweetViewModelProvider(tweetId).notifier).getisReposted())
     {showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -129,27 +135,35 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
   }
  @override
   Widget build(BuildContext context) {
-    final tweetState = ref.watch(tweetViewModelProvider(widget.tweetState.tweet.value!.id));
-    String commentsNumStr = '';
-    String veiwsNumStr = '';
-    String likesNumStr = '';
-    String repostsNumStr = '';
+    // Safe null check
+    final tweet = widget.tweetState.tweet.value;
+    if (tweet == null) {
+      return const SizedBox.shrink(); // Return empty if no tweet data
+    }
+    
+    final tweetId = tweet.id;
+    final tweetState = ref.watch(tweetViewModelProvider(tweetId));
+    String commentsNumStr = '0';
+    String veiwsNumStr = '0';
+    String likesNumStr = '0';
+    String repostsNumStr = '0';
+    
     tweetState.whenData((tweetState) {
-      final viewModel = ref.read(
-        tweetViewModelProvider(widget.tweetState.tweet.value!.id).notifier,
-      );
+      final stateTweet = tweetState.tweet.value;
+      if (stateTweet != null) {
+        final viewModel = ref.read(tweetViewModelProvider(tweetId).notifier);
 
-      final commNum = tweetState.tweet.value!.comments.toDouble();
-      final likesNum = tweetState.tweet.value!.likes.toDouble();
-      final repostNum = tweetState.tweet.value!.repost.toDouble();
-      final viewsNum = tweetState.tweet.value!.views.toDouble();
+        final commNum = (stateTweet.comments ?? 0).toDouble();
+        final likesNum = (stateTweet.likes ?? 0).toDouble();
+        final repostNum = (stateTweet.repost ?? 0).toDouble();
+        final viewsNum = (stateTweet.views ?? 0).toDouble();
 
-      commentsNumStr = viewModel.howLong(commNum);
-      likesNumStr = viewModel.howLong(likesNum);
-      repostsNumStr = viewModel.howLong(repostNum);
-      veiwsNumStr = viewModel.howLong(viewsNum);
+        commentsNumStr = viewModel.howLong(commNum);
+        likesNumStr = viewModel.howLong(likesNum);
+        repostsNumStr = viewModel.howLong(repostNum);
+        veiwsNumStr = viewModel.howLong(viewsNum);
+      }
     });
-    final tweetId=widget.tweetState.tweet.value!.id;
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
@@ -179,11 +193,13 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
               onTap: () {
                 _showRepostQuoteOptions(context);
                 },
-              child: ref
-                    .read(tweetViewModelProvider(tweetId).notifier)
-                    .getisReposted()
-                  ? Icon(Icons.loop, color: Colors.green)
-                  : Icon(Icons.loop, color: Colors.grey),
+              child: ref.watch(tweetViewModelProvider(tweetId)).when(
+                    data: (state) => state.isReposted
+                        ? Icon(Icons.loop, color: Colors.green)
+                        : Icon(Icons.loop, color: Colors.grey),
+                    loading: () => Icon(Icons.loop, color: Colors.grey),
+                    error: (_, __) => Icon(Icons.loop, color: Colors.grey),
+                  ),
             ),
           ),
         ),
@@ -204,12 +220,13 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                       controller: _controller,
                     );
               },
-              child: ref
-                    .read(tweetViewModelProvider(tweetId).notifier)
-                    .getIsLiked(
-                    )
-                  ? Icon(Icons.favorite, color: Colors.red)
-                  : Icon(Icons.favorite_border, color: Colors.grey),
+              child: ref.watch(tweetViewModelProvider(tweetId)).when(
+                    data: (state) => state.isLiked
+                        ? Icon(Icons.favorite, color: Colors.red)
+                        : Icon(Icons.favorite_border, color: Colors.grey),
+                    loading: () => Icon(Icons.favorite_border, color: Colors.grey),
+                    error: (_, __) => Icon(Icons.favorite_border, color: Colors.grey),
+                  ),
             ),
           ),
         ),
@@ -217,8 +234,13 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
           padding: const EdgeInsets.only(left: 1.0, top: 3.0),
           child: Text(
             likesNumStr,
-            style: TextStyle(color: ref.read(tweetViewModelProvider(tweetId).notifier).getIsLiked()
-             ? Colors.red : Colors.grey),
+            style: TextStyle(
+              color: ref.watch(tweetViewModelProvider(tweetId)).when(
+                data: (state) => state.isLiked ? Colors.red : Colors.grey,
+                loading: () => Colors.grey,
+                error: (_, __) => Colors.grey,
+              ),
+            ),
           ),
         ),
         SizedBox(width: 30),
