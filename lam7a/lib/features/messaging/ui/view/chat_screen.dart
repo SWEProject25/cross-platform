@@ -24,7 +24,7 @@ class ChatScreen extends ConsumerWidget {
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: _buildAppBar(chatState.contact),
+        appBar: _buildAppBar(context, chatState.contact),
       
         // Body
         body: Column(
@@ -56,14 +56,10 @@ class ChatScreen extends ConsumerWidget {
     );
   }
 
-  AppBar _buildAppBar(AsyncValue<Contact> contact) {
+  AppBar _buildAppBar(BuildContext context, AsyncValue<Contact> contact) {
     return AppBar(
       elevation: 0,
       backgroundColor: Colors.white,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.black87),
-        onPressed: () {},
-      ),
       title: Skeletonizer(
         enabled: contact.isLoading,
         child: Row(

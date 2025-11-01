@@ -19,7 +19,7 @@ class ConversationsScreen extends ConsumerWidget {
     var theme = Theme.of(context);
     final dMListPageViewModel = ref.watch(conversationsViewModelProvider);
     return Scaffold(
-      appBar: DMAppBar(title: 'Direct Message'),
+      // appBar: DMAppBar(title: 'Direct Message'),
       body: dMListPageViewModel.conversations.when(
         data: (data) {
           return data.isEmpty? 
