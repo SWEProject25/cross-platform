@@ -10,7 +10,7 @@ import 'package:lam7a/features/authentication/utils/authentication_constants.dar
 import 'package:lam7a/features/navigation/ui/viewmodel/navigation_viewmodel.dart';
 import 'package:lam7a/features/navigation/ui/widgets/list_memeber.dart';
 import 'package:lam7a/features/navigation/ui/widgets/profile_block.dart';
-import 'package:lam7a/features/navigation/utils/models/userMainData.dart';
+import 'package:lam7a/features/navigation/utils/models/user_main_data.dart';
 
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";

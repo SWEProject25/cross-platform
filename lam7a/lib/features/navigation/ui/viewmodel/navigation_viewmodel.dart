@@ -3,7 +3,7 @@
 
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
-import 'package:lam7a/features/navigation/utils/models/userMainData.dart';
+import 'package:lam7a/features/navigation/utils/models/user_main_data.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'navigation_viewmodel.g.dart';
 

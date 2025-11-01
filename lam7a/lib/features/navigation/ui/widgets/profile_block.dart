@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
-import 'package:lam7a/features/navigation/utils/models/userMainData.dart';
+import 'package:lam7a/features/navigation/utils/models/user_main_data.dart';
 
 class ProfileBlock extends StatelessWidget{
     Usermaindata? userData;
