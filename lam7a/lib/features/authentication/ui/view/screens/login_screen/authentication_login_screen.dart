@@ -9,7 +9,7 @@ import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
-import 'package:lam7a/features/navigation/ui/view/screens/navigation_home_screen.dart';
+import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 
 List<Widget> loginFlow = [UniqueIdentifier(), PasswordLogin()];
 

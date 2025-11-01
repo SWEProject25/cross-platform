@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
@@ -29,6 +30,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
     return Consumer(
       builder: (context, ref, child) {
         final viewmodel = ref.watch(navigationViewModelProvider.notifier);
+        UserModel? user = ref.watch(authenticationProvider).user;
         List<Widget> pages = [
           Center(child: Text("Search Screen")),
           Center(child: Text("Friends Screen")),
@@ -86,7 +88,13 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
               // crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(height: 50),
-                ProfileBlock(viewmodel.getUserMainData()),
+                ProfileBlock(
+                  Usermaindata(
+                    name: user?.name,
+                    userName: user?.username,
+                    profileImageUrl: user?.profileImageUrl,
+                  ),
+                ),
                 Expanded(
                   child: ListView.builder(
                     itemBuilder: (context, index) {
@@ -216,5 +224,3 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
     );
   }
 }
-
-

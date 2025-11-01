@@ -9,7 +9,7 @@ import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authe
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
-import 'package:lam7a/features/navigation/ui/view/screens/navigation_home_screen.dart';
+import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 
 void main() async {
