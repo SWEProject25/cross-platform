@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/services/api_service.dart';
-import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/theme/theme.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authentication_login_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
@@ -11,6 +10,8 @@ import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
 import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
+import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
+import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,12 @@ void main() async {
   await container.read(authenticationProvider.notifier).isAuthenticated();
   print(container.read(authenticationProvider).isAuthenticated);
   runApp(UncontrolledProviderScope(child: MyApp(), container: container));
+  
+  // TO TEST ADD TWEET SCREEN ONLY (No auth): Uncomment lines below
+  // runApp(ProviderScope(child: TestAddTweetApp()));
+  
+  // TO TEST HOME WITH FAB (No auth): Uncomment lines below
+  // runApp(ProviderScope(child: TestTweetHomeApp()));
 }
 
 class MyApp extends ConsumerStatefulWidget {
@@ -71,6 +78,36 @@ class TestTweetApp extends StatelessWidget {
           child: TweetSummaryWidget(tweetId: 't3'), // 👈 your test widget
         ),
       ),
+    );
+  }
+}
+
+/// Test app for AddTweetScreen
+class TestAddTweetApp extends StatelessWidget {
+  const TestAddTweetApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark(),
+      home: const AddTweetScreen(
+        userId: 123,
+      ),
+    );
+  }
+}
+
+/// Test app for TweetHomeScreen with FAB
+class TestTweetHomeApp extends StatelessWidget {
+  const TestTweetHomeApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark(),
+      home: const TweetHomeScreen(),
     );
   }
 }

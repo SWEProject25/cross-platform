@@ -1,79 +1,145 @@
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
 import 'package:lam7a/features/tweet/ui/widgets/video_player_widget.dart';
+import 'package:lam7a/features/tweet/ui/widgets/styled_tweet_text_widget.dart';
+import 'package:lam7a/core/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
-class TweetDetailedBodyWidget extends StatelessWidget{
 
+class TweetDetailedBodyWidget extends StatelessWidget {
   final TweetState tweetState;
- const TweetDetailedBodyWidget({super.key,required this.tweetState});
+  
+  const TweetDetailedBodyWidget({super.key, required this.tweetState});
+  
   @override
   Widget build(BuildContext context) {
-    final post= tweetState.tweet.value!;
-  return Column(children: [ Row(
+    // Handle null tweet (e.g., 404 error)
+    if (tweetState.tweet.value == null) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Text(
+            'Tweet not found or has been deleted',
+            style: TextStyle(color: Colors.grey),
+          ),
+        ),
+      );
+    }
+    
+    final post = tweetState.tweet.value!;
+    final responsive = context.responsive;
+    final fontSize = responsive.fontSize(17);
+    final imageHeight = responsive.isTablet 
+        ? 500.0 
+        : responsive.isLandscape 
+            ? responsive.heightPercent(60) 
+            : 400.0;
+    
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Column(
+          children: [
+            Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                
                 Flexible(
-                  child: Text(
-                    post.body,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                       decoration: TextDecoration.none,
-                       fontSize: 17,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: responsive.padding(16),
                     ),
-                    softWrap: true,
+                    child: StyledTweetText(
+                      text: post.body,
+                      fontSize: fontSize.clamp(15, 20),
+                    ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 10),
-            if (post.mediaPic != null)
-                 Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.network(
-                                post.mediaPic.toString(),
-                                width: double.infinity,
-                                height: 400,
-                                fit: BoxFit.cover,
-
-                                loadingBuilder:
-                                    (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return const Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    },
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(
-                                    Icons.error,
-                                    color: Colors.red,
-                                  );
-                                },
+            SizedBox(height: responsive.padding(10)),
+            // Display multiple images
+            if (post.mediaImages.isNotEmpty)
+              Column(
+                children: post.mediaImages.map((imageUrl) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: responsive.padding(8),
+                      vertical: responsive.padding(4),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(
+                        imageUrl,
+                        width: double.infinity,
+                        height: imageHeight,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return SizedBox(
+                            height: imageHeight,
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return SizedBox(
+                            height: imageHeight,
+                            child: const Center(
+                              child: Icon(
+                                Icons.error,
+                                color: Colors.red,
                               ),
                             ),
-                          ),
-                          if (post.mediaVideo != null)
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: VideoPlayerWidget(
-                                url: post.mediaVideo.toString(),
-                              ),
-                            ),
-                        ],
+                          );
+                        },
                       ),
                     ),
-                  ],
-                 )
-  ]
-  );
+                  );
+                }).toList(),
+              ),
+            // Display multiple videos
+            if (post.mediaVideos.isNotEmpty)
+              Column(
+                children: post.mediaVideos.map((videoUrl) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: responsive.padding(8),
+                      vertical: responsive.padding(4),
+                    ),
+                    child: VideoPlayerWidget(
+                      url: videoUrl,
+                    ),
+                  );
+                }).toList(),
+              ),
+            // Backward compatibility: show old single media fields if new lists are empty
+            if (post.mediaImages.isEmpty && post.mediaPic != null)
+              Padding(
+                padding: EdgeInsets.all(responsive.padding(8)),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(
+                    post.mediaPic.toString(),
+                    width: double.infinity,
+                    height: imageHeight,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(Icons.error, color: Colors.red);
+                    },
+                  ),
+                ),
+              ),
+            if (post.mediaVideos.isEmpty && post.mediaVideo != null)
+              Padding(
+                padding: EdgeInsets.all(responsive.padding(8)),
+                child: VideoPlayerWidget(url: post.mediaVideo.toString()),
+              ),
+          ],
+        );
+      },
+    );
   }
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
-import 'package:lam7a/features/tweet/services/mock_user_api_service.dart';
 
 class TweetUserInfoDetailed extends ConsumerStatefulWidget {
   //need userProvider to check for changes for now i use static data
@@ -21,52 +20,59 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
   @override
   Widget build(BuildContext context) {
     final tweet= widget.tweetState.tweet;
-    //need userProvider to check for changes for now i use static data
-    final userAsync = ref.watch(userByIdProvider(tweet.value!.userId));
+    
+    // Handle null tweet
+    if (tweet.value == null) {
+      return const SizedBox.shrink();
+    }
+    
+    // Use user data directly from tweet model (from backend)
+    final tweetData = tweet.value!;
+    final username = tweetData.username ?? 'unknown';
+    final displayName = tweetData.authorName ?? username;
+    final profileImage = tweetData.authorProfileImage;
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        userAsync.when(
-          data: (user) => CircleAvatar(
-            radius: 25,
-            backgroundImage: NetworkImage(user.profilePic.toString()),
-            backgroundColor: Colors.grey[200], // optional placeholder color
-          ),
-          loading: () =>
-              const CircleAvatar(radius: 30, backgroundColor: Colors.grey),
-           error: (e ,st)=> Text('Error $e'),
+        CircleAvatar(
+          radius: 25,
+          backgroundColor: Colors.grey[700],
+          backgroundImage: profileImage != null && profileImage.isNotEmpty
+              ? NetworkImage(profileImage)
+              : null,
+          child: profileImage == null || profileImage.isEmpty
+              ? Text(
+                  username.isNotEmpty ? username[0].toUpperCase() : '?',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : null,
         ),
         SizedBox(width: 10),
         Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            userAsync.when(
-              data: (user) => Text(
-                user.username,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  decoration: TextDecoration.none,
-                ),
+            Text(
+              displayName,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                decoration: TextDecoration.none,
               ),
-              loading: () =>
-                  const CircleAvatar(radius: 22, backgroundColor: Colors.grey),
-               error: (e ,st)=> Text('Error $e'),
             ),
             SizedBox(height: 2),
-            userAsync.when(
-              data: (user) => Text(
-                user.hashUserName,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                  fontSize: 15,
-                  decoration: TextDecoration.none,
-                ),
+            Text(
+              '@$username',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onPrimary,
+                fontSize: 15,
+                decoration: TextDecoration.none,
               ),
-              loading: () =>
-                  const CircleAvatar(radius: 22, backgroundColor: Colors.grey),
-               error: (e ,st)=> Text('Error $e'),
             ),
           ],
         ),

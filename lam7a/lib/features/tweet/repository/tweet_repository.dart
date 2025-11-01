@@ -6,7 +6,7 @@ part 'tweet_repository.g.dart';
 
 @riverpod
 TweetRepository tweetRepository(Ref ref) {
-  // You can toggle between mock and API service here later
+  // Using real backend API service
   final apiService = ref.read(tweetsApiServiceProvider);
   return TweetRepository(apiService);
 }
@@ -24,9 +24,7 @@ class TweetRepository {
     return await _apiService.getTweetById(id);
   }
 
-  Future<void> addTweet(TweetModel tweet) async {
-    await _apiService.addTweet(tweet);
-  }
+
 
   Future<void> updateTweet(TweetModel tweet) async {
     await _apiService.updateTweet(tweet);
