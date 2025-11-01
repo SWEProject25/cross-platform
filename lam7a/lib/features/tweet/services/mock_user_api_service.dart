@@ -5,7 +5,7 @@ part 'mock_user_api_service.g.dart';
 
 final _mockUsers = {
   '1': UserModel(
-    userId: '1',
+    id: '1',
     username: 'johnd',
     email: 'john@example.com',
     name: 'John Doe',
@@ -15,7 +15,7 @@ final _mockUsers = {
     createdAt: DateTime.now().toIso8601String(),
   ),
   '2': UserModel(
-    userId: '2',
+    id: '2',
     username: 'sjane',
     email: 'sarah@example.com',
     name: 'Sarah Jane',
@@ -27,7 +27,7 @@ final _mockUsers = {
 };
 
 @riverpod
-Future<UserModel> userById(Ref ref, String userId) async {
+Future<UserModel> userById(Ref ref, String id) async {
   //await Future.delayed(const Duration(milliseconds: 500)); // simulate latency
-  return _mockUsers[userId] ?? _mockUsers.values.first;
+  return _mockUsers[id] ?? _mockUsers.values.first;
 }

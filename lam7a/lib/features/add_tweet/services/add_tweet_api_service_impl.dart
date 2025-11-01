@@ -220,6 +220,6 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
 
 /// Provider for AddTweetApiService (real implementation with authentication)
 final addTweetApiServiceProvider = Provider<AddTweetApiService>((ref) {
-  final apiService = ref.watch(apiServiceProvider);
+  final apiService = ref.read(apiServiceProvider);
   return AddTweetApiServiceImpl(apiService: apiService);
 });

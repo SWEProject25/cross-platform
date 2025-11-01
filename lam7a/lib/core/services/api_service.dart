@@ -190,7 +190,7 @@ class ApiService {
       responseBody: true,
       logPrint: (object) {
         // TODO: Replace with your preferred logging method
-        print('API Log: $object');
+       
       },
     );
   }

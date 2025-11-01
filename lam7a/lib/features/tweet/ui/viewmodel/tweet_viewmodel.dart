@@ -23,8 +23,8 @@ FutureOr<TweetState> build(String tweetId) async {
   bool isLiked = interactionFlags?['isLikedByMe'] ?? false;
   bool isReposted = interactionFlags?['isRepostedByMe'] ?? false;
   
-  print('📊 Initializing tweet state for: $tweetId');
-  print('   Likes: ${tweet.likes}, Reposts: ${tweet.repost}');
+
+
   print('   ✅ isLiked: $isLiked, isReposted: $isReposted (from backend)');
 
   return TweetState(

@@ -86,7 +86,6 @@ class PostInteractionsService {
                         !messageLower.contains('removed') && 
                         messageLower.contains('repost');
       
-      print('   Message: "$message"');
       print('   ${isReposted ? "✅ Reposted" : "❌ Un-reposted"}');
       return isReposted;
     } catch (e) {

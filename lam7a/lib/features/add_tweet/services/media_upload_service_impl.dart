@@ -99,6 +99,6 @@ class MediaUploadServiceImpl implements MediaUploadService {
 
 /// Provider for MediaUploadService with ApiService
 final mediaUploadServiceProvider = Provider<MediaUploadService>((ref) {
-  final apiService = ref.watch(apiServiceProvider);
+  final apiService = ref.read(apiServiceProvider);
   return MediaUploadServiceImpl(apiService: apiService);
 });

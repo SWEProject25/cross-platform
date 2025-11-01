@@ -77,14 +77,14 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
       
       // Get user ID - fallback to '1' if not authenticated (for testing)
       // In production, you should enforce authentication
-      String userId;
-      if (user == null || user.userId == null) {
+      String id;
+      if (user == null || user.id == null) {
         print('⚠️ User not authenticated, using default ID: 1');
         print('   Note: In production, you should redirect to login');
-        userId = '1'; // Fallback for testing
+        id = '1'; // Fallback for testing
       } else {
-        userId = user.userId!;
-        print('✅ Using authenticated user ID: $userId');
+        id = user.id!;
+        print('✅ Using authenticated user ID: $id');
       }
 
       // Use real backend implementation with authentication
@@ -92,7 +92,7 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
       
       // Create tweet with media files (service handles upload and returns URLs)
       final createdTweet = await apiService.createTweet(
-        userId: userId,
+        userId: id,
         content: state.body.trim(),
         mediaPicPath: state.mediaPicPath,
         mediaVideoPath: state.mediaVideoPath,

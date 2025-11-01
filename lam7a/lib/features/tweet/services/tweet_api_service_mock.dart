@@ -71,8 +71,13 @@ class TweetsApiServiceMock implements TweetsApiService {
       Future.delayed(const Duration(milliseconds: 300));
 
   @override
-  Map<String, bool>? getInteractionFlags(String tweetId) {
-    return _interactionFlags[tweetId];
+  Future<Map<String, bool>?> getInteractionFlags(String tweetId) async {
+    final flags = _interactionFlags[tweetId];
+    if (flags == null) {
+      return null;
+    }
+    await _simulateDelay();
+    return flags;
   }
 
   @override
@@ -101,23 +106,7 @@ class TweetsApiServiceMock implements TweetsApiService {
     _tweets[tweet.id] = tweet;
 
     // Log for debugging (matching main API service logic)
-    print('✅ Tweet added successfully to mock backend!');
-    print('   ID: ${tweet.id}');
-    print('   Body: ${tweet.body}');
-    print('   User ID: ${tweet.userId}');
-    print('   Media Images: ${tweet.mediaImages.length} items');
-    if (tweet.mediaImages.isNotEmpty) {
-      for (int i = 0; i < tweet.mediaImages.length; i++) {
-        print('      - Image $i: ${tweet.mediaImages[i]}');
-      }
-    }
-    print('   Media Videos: ${tweet.mediaVideos.length} items');
-    if (tweet.mediaVideos.isNotEmpty) {
-      for (int i = 0; i < tweet.mediaVideos.length; i++) {
-        print('      - Video $i: ${tweet.mediaVideos[i]}');
-      }
-    }
-    print('   Total tweets in mock DB: ${_tweets.length}');
+
   }
 
   @override

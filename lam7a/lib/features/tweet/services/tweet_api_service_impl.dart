@@ -99,28 +99,28 @@ class TweetsApiServiceImpl implements TweetsApiService {
       final url = '${ApiConfig.currentBaseUrl}${ApiConfig.postsEndpoint}';
       print('📥 Fetching all tweets from backend...');
       print('   URL: $url');
-      print('   💾 Currently have ${_interactionFlags.length} stored interaction flags');
+
       
       // Add query parameters to get latest tweets first with pagination
       final response = await _apiService.get<Map<String, dynamic>>(
         endpoint: ApiConfig.postsEndpoint,
         queryParameters: {
-          'limit': 50, // Limit to 50 most recent tweets
+          'limit': 100, // Limit to 50 most recent tweets
           'page': 1,   // First page
           'sort': 'desc', // Sort by newest first (if backend supports it)
         },
       );
       
-      print('   Response data type: ${response.runtimeType}');
+
       
       final data = response['data'] as List;
-        print('   Raw tweet data count: ${data.length}');
+
         
         // Fetch each tweet individually using getTweetById to get complete data
         // This ensures we get media, counts, and all other fields
         final tweets = await Future.wait(data.map((json) async {
           final tweetId = json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString();
-          print('   📍 Fetching full data for tweet: $tweetId');
+
           
           try {
             // Use getTweetById to get complete tweet data with media and counts
@@ -147,7 +147,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
           }
         }).toList());
         
-      print('✅ Fetched ${tweets.length} tweets with complete data');
+
       return tweets;
     } catch (e) {
       print('❌ Error fetching tweets: $e');
@@ -158,7 +158,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
   @override
   Future<TweetModel> getTweetById(String id) async {
     try {
-      print('📥 Fetching tweet by ID: $id');
+
       
       final response = await _apiService.get<Map<String, dynamic>>(
         endpoint: '${ApiConfig.postsEndpoint}/$id',
@@ -168,7 +168,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
         // Map backend fields to frontend model
         final tweetId = json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString();
         
-        print('   🔍 Raw JSON keys: ${json.keys.toList()}');
+
         
         // Parse user data from nested User/Profile structure
         String? username;
@@ -178,26 +178,25 @@ class TweetsApiServiceImpl implements TweetsApiService {
         // Check if User object exists (nested structure from backend)
         if (json['User'] != null && json['User'] is Map) {
           final user = json['User'] as Map;
-          print('   👤 Found User object with keys: ${user.keys.toList()}');
+
           username = user['username']?.toString();
           
           // Check for nested Profile
           if (user['Profile'] != null && user['Profile'] is Map) {
             final profile = user['Profile'] as Map;
-            print('   💼 Found Profile object with keys: ${profile.keys.toList()}');
+
             authorName = profile['name']?.toString();
             authorProfileImage = profile['profile_image_url']?.toString();
           }
         } else {
           // Flat structure (fallback)
-          print('   ⚠️ No User object found, trying flat structure');
+
           username = json['username']?.toString();
           authorName = json['authorName']?.toString();
           authorProfileImage = json['authorProfileImage']?.toString();
         }
         
-        print('   ✅ Parsed user: $username ($authorName)');
-        print('   🖼️ Avatar: $authorProfileImage');
+
         
         final mappedJson = <String, dynamic>{
           'id': tweetId,
@@ -213,7 +212,6 @@ class TweetsApiServiceImpl implements TweetsApiService {
           'isRepostedByMe': json['isRepostedByMe'] ?? false,
         };
         
-        print('   🎯 Interaction flags: isLikedByMe=${json['isLikedByMe']}, isRepostedByMe=${json['isRepostedByMe']}');
         
         // Parse media from backend - supporting multiple formats
         final imageUrls = <String>[];
@@ -222,14 +220,14 @@ class TweetsApiServiceImpl implements TweetsApiService {
         // Format 1: media array with type info (from getPostById)
         if (json['media'] != null && json['media'] is List && (json['media'] as List).isNotEmpty) {
           final mediaArray = json['media'] as List;
-          print('   📷 Media array found: ${mediaArray.length} items');
+
           
           for (final mediaItem in mediaArray) {
             final url = mediaItem['media_url']?.toString();
             final type = mediaItem['type']?.toString();
             
             if (url != null && url.isNotEmpty) {
-              print('      - URL: $url (type: $type)');
+             
               if (type == 'VIDEO') {
                 videoUrls.add(url);
               } else {
@@ -240,13 +238,12 @@ class TweetsApiServiceImpl implements TweetsApiService {
           
           mappedJson['mediaImages'] = imageUrls;
           mappedJson['mediaVideos'] = videoUrls;
-          print('   📊 Parsed: ${imageUrls.length} images, ${videoUrls.length} videos');
+        
         }
         // Format 2: mediaUrls array (fallback)
         else if (json['mediaUrls'] != null && json['mediaUrls'] is List && (json['mediaUrls'] as List).isNotEmpty) {
           final mediaUrls = json['mediaUrls'] as List;
-          print('   📷 MediaUrls found: ${mediaUrls.length} items');
-          
+
           for (int i = 0; i < mediaUrls.length; i++) {
             final url = mediaUrls[i]?.toString();
             
@@ -268,7 +265,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
         }
         // Format 3: Old field names (legacy)
         else {
-          print('   ℹ️ No media array, checking old fields');
+        
           if (json['mediaPic'] != null || json['media_pic'] != null) {
             final pic = json['mediaPic'] ?? json['media_pic'];
             imageUrls.add(pic);
@@ -314,12 +311,12 @@ class TweetsApiServiceImpl implements TweetsApiService {
         // Backend provided flags (from feed endpoints) - use them
         isLikedByMe = json['isLikedByMe'] ?? false;
         isRepostedByMe = json['isRepostedByMe'] ?? false;
-        print('   ✅ Backend provided interaction flags: isLikedByMe=$isLikedByMe, isRepostedByMe=$isRepostedByMe');
+ 
       } else if (existingFlags != null) {
         // Backend didn't provide flags, but we have stored flags - preserve them
         isLikedByMe = existingFlags['isLikedByMe'] ?? false;
         isRepostedByMe = existingFlags['isRepostedByMe'] ?? false;
-        print('   💾 Preserving stored interaction flags: isLikedByMe=$isLikedByMe, isRepostedByMe=$isRepostedByMe');
+     
       } else {
         // No backend flags and no stored flags - default to false
         isLikedByMe = false;
@@ -332,8 +329,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
         'isRepostedByMe': isRepostedByMe,
       };
       
-      print('   🎯 Interaction flags stored: isLikedByMe=$isLikedByMe, isRepostedByMe=$isRepostedByMe');
-      print('✅ Tweet fetched successfully');
+    
       return tweet;
     } catch (e) {
       print('❌ Error fetching tweet: $e');
