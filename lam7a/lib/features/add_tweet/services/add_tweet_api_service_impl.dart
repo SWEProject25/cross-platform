@@ -18,7 +18,7 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
   
   @override
   Future<TweetModel> createTweet({
-    required String userId,
+    required int userId,
     required String content,
     String? mediaPicPath,
     String? mediaVideoPath,
@@ -32,17 +32,11 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
       
       // Prepare form data with required fields
       // Parse userId safely - if it's not a valid integer, default to 1
-      int userIdInt = 1;
-      try {
-        userIdInt = int.parse(userId);
-      } catch (e) {
-        print('   ⚠️ Invalid userId format: $userId, using default ID: 1');
-        userIdInt = 1;
-      }
+
       
       // Create FormData with fields first
       final formData = FormData.fromMap({
-        'userId': userIdInt, // Send as integer, not string
+        'userId': userId, // Send as integer, not string
         'content': content,
         'type': 'POST',
         'visibility': 'EVERY_ONE',
@@ -185,7 +179,7 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
         
         final createdTweet = TweetModel(
           id: responseData['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
-          userId: responseData['user_id']?.toString() ?? userId,
+          userId: responseData['user_id']?.toString() ?? userId.toString(),
           body: responseData['content'] ?? content,
           date: responseData['created_at'] != null 
               ? DateTime.parse(responseData['created_at']) 

@@ -10,7 +10,7 @@ import 'package:lam7a/features/add_tweet/ui/widgets/add_tweet_toolbar_widget.dar
 import 'dart:io';
 
 class AddTweetScreen extends ConsumerStatefulWidget {
-  final String userId;
+  final int userId;
 
   const AddTweetScreen({super.key, required this.userId});
 
@@ -199,7 +199,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
           ),
         );
         // Navigate back
-        //Navigator.of(context).pop();
+        Navigator.of(context).pop();
       } else if (state.errorMessage != null) {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(

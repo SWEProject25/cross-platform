@@ -12,7 +12,7 @@ class AddTweetApiServiceMock implements AddTweetApiService {
   
   @override
   Future<TweetModel> createTweet({
-    required String userId,
+    required int userId,
     required String content,
     String? mediaPicPath,
     String? mediaVideoPath,
@@ -55,7 +55,7 @@ class AddTweetApiServiceMock implements AddTweetApiService {
     // Create and return the mock tweet (matching backend response structure)
     final mockTweet = TweetModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      userId: userId,
+      userId: userId.toString(),
       body: content,
       date: DateTime.now(),
       likes: 0,

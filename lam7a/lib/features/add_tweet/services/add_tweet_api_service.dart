@@ -11,7 +11,7 @@ abstract class AddTweetApiService {
   /// 
   /// Returns the created tweet with media URLs populated by the backend
   Future<TweetModel> createTweet({
-    required String userId,
+    required int userId,
     required String content,
     String? mediaPicPath,
     String? mediaVideoPath,

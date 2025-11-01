@@ -222,7 +222,7 @@ void main() {
       expect(viewModel.state.errorMessage, isNull);
       
       verify(() => mockApiService.createTweet(
-        userId: 'user123',
+        userId: 123,
         content: 'Test tweet content',
         mediaPicPath: null,
         mediaVideoPath: null,
@@ -252,7 +252,7 @@ void main() {
       expect(viewModel.state.isTweetPosted, true);
       
       verify(() => mockApiService.createTweet(
-        userId: 'user123',
+        userId: 123,
         content: 'Tweet with image',
         mediaPicPath: '/path/to/image.jpg',
         mediaVideoPath: null,
@@ -282,7 +282,7 @@ void main() {
       expect(viewModel.state.isTweetPosted, true);
       
       verify(() => mockApiService.createTweet(
-        userId: 'user123',
+        userId: 123,
         content: 'Tweet with video',
         mediaPicPath: null,
         mediaVideoPath: '/path/to/video.mp4',
@@ -306,7 +306,7 @@ void main() {
       
       // Verify trimmed content was sent
       verify(() => mockApiService.createTweet(
-        userId: 'user123',
+        userId: 123,
         content: 'Tweet with spaces',
         mediaPicPath: null,
         mediaVideoPath: null,
@@ -431,7 +431,7 @@ void main() {
       
       // Verify API was called with fallback userId
       verify(() => mockApiService.createTweet(
-        userId: '1',
+        userId: 1,
         content: 'Test tweet',
         mediaPicPath: null,
         mediaVideoPath: null,

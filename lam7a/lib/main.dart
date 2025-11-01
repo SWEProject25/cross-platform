@@ -96,7 +96,7 @@ class TestAddTweetApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),
       home: const AddTweetScreen(
-        userId: 'test_user_123',
+        userId: 123,
       ),
     );
   }
