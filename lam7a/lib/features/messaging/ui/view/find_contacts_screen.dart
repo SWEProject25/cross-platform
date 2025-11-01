@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
 import '../viewmodel/conversations_viewmodel.dart';
 
 class FindContactsScreen extends ConsumerWidget {
@@ -7,7 +8,8 @@ class FindContactsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var theme = Theme.of(context);
-    final conversationsViewModel = ref.watch(conversationsViewModelProvider);
+    final state = ref.watch(conversationsViewModelProvider);
+    final viewModel = ref.read(conversationsViewModelProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -24,12 +26,13 @@ class FindContactsScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: TextField(
-              
+              onChanged: viewModel.onQueryChanged,
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search),
                 hintStyle: TextStyle(color: Colors.grey[600]),
                 contentPadding: const EdgeInsets.all(12),
                 fillColor: theme.colorScheme.surface,
+                errorText: state.searchQueryError
               ),
             ),
           ),
@@ -53,7 +56,7 @@ class FindContactsScreen extends ConsumerWidget {
 
           // Conversation list
           Expanded(
-            child: conversationsViewModel.contacts.when(
+            child: state.contacts.when(
               data: (conversations) => ListView.separated(
               itemCount: conversations.length,
               separatorBuilder: (_, __) => const Divider(height: 0),
@@ -77,7 +80,11 @@ class FindContactsScreen extends ConsumerWidget {
                   ),
                   onTap: () {
                     // Signal navigation (can be triggered from ViewModel)
-                    Navigator.pushNamed(context, '/chat', arguments: c);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ChatScreen(userId: c.id),
+                      ),
+                    );
                   },
                 );
               },

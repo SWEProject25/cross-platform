@@ -1,10 +1,7 @@
 import 'package:lam7a/core/models/auth_state.dart';
-import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
-import 'package:lam7a/features/messaging/dtos/conversation_dto.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
-import 'package:lam7a/features/messaging/model/chat_message.dart';
 import 'package:lam7a/features/messaging/services/dms_api_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -48,5 +45,9 @@ class ConversationsRepository {
 
   Future<int> getConversationIdByUserId(int userId) async{
     return await _apiService.createConversation(userId);
+  }
+
+  Future<List<Contact>> searchForContacts(String query, int page, [int limit = 20]) async {
+    return await _apiService.searchForContacts(query, page, limit);
   }
 }

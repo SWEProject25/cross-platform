@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/services/api_service.dart';
+import 'package:lam7a/core/services/socket_service.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/theme/theme.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authentication_login_screen.dart';
@@ -10,7 +11,6 @@ import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
 import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
-import 'package:lam7a/features/messaging/services/socket_service.dart';
 import 'package:lam7a/features/navigation/view/screens/navigation_home_screen.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 

@@ -1,15 +1,18 @@
-class Conversation {
-  final int id;
-  final String name;
-  final String? avatarUrl;
-  final String? lastMessage;
-  final DateTime? lastMessageTime;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  Conversation({
-    required this.id,
-    required this.name,
-    this.avatarUrl,
-    this.lastMessage,
-    this.lastMessageTime,
-  });
+part 'conversation.freezed.dart';
+part 'conversation.g.dart';
+
+@freezed
+abstract class Conversation with _$Conversation {
+  const factory Conversation({
+    required int id,
+    required String name,
+    String? avatarUrl,
+    String? lastMessage,
+    DateTime? lastMessageTime,
+  }) = _Conversation;
+
+  factory Conversation.fromJson(Map<String, dynamic> json) =>
+      _$ConversationFromJson(json);
 }

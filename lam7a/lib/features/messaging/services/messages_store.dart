@@ -1,6 +1,14 @@
 import 'package:lam7a/features/messaging/model/chat_message.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-class LocalCache {
+part 'messages_store.g.dart';
+
+@Riverpod(keepAlive: true)
+MessagesStore messagesStore(Ref ref){
+  return MessagesStore();
+}
+
+class MessagesStore {
   final Map<int, List<ChatMessage>> _messages = {};
 
   void addMessages(int chatId, List<ChatMessage> newMessages) {

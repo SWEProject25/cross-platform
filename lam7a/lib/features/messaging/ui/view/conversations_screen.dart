@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/app_icons.dart';
 import 'package:lam7a/core/widgets/app_svg_icon.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
-import 'package:lam7a/features/messaging/services/socket_service.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
 import 'package:lam7a/features/messaging/utils.dart';
 import 'package:lam7a/features/messaging/ui/view/find_contacts_screen.dart';
@@ -23,7 +22,7 @@ class ConversationsScreen extends ConsumerWidget {
       appBar: DMAppBar(title: 'Direct Message'),
       body: dMListPageViewModel.conversations.when(
         data: (data) {
-          return data.length == 0? 
+          return data.isEmpty? 
           Padding(
             padding: const EdgeInsets.all(32.0),
             child: Column(

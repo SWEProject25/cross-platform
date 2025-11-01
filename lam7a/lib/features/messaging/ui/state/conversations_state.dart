@@ -10,5 +10,7 @@ abstract class ConversationsState with _$ConversationsState {
   const factory ConversationsState({
     @Default(AsyncValue.loading()) AsyncValue<List<Conversation>> conversations,
     @Default(AsyncValue.loading()) AsyncValue<List<Contact>> contacts,
+    @Default("") String searchQuery,
+    @Default(null) String? searchQueryError,
   }) = _ConversationsState;
 }

@@ -6,7 +6,7 @@ import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/features/messaging/dtos/message_socket_dtos.dart';
 import 'package:lam7a/features/messaging/model/chat_message.dart';
 import 'package:lam7a/features/messaging/services/dms_api_service.dart';
-import 'package:lam7a/features/messaging/services/local_cache.dart';
+import 'package:lam7a/features/messaging/services/messages_store.dart';
 import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
 import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -16,25 +16,39 @@ part 'messages_repository.g.dart';
 @Riverpod(keepAlive: true)
 class MessagesRepository extends _$MessagesRepository {
   final Logger _logger = getLogger(MessagesRepository);
-  late LocalCache _cache;
+  
+  late MessagesStore _cache;
   late MessagesSocketService _socket;
   late DMsApiService _apiService;
   late AuthState _authState;
 
-
   final Map<int, StreamController<void>> _notifier = {};
-
+  StreamSubscription<MessageDto>? _incomingSub;
+  StreamSubscription<MessageDto>? _incomingNotifSub;
 
   @override
   void build() {
-    _cache = LocalCache();
+    _cache = ref.read(messagesStoreProvider);
     _apiService = ref.read(dmsApiServiceProvider);
     _socket = ref.read(messagesSocketServiceProvider);
     _authState = ref.watch(authenticationProvider);
 
     _logger.w("Create MessagesRepository");
-    _socket.incomingMessages.listen(_onReceivedMessage);
-    _socket.incomingMessagesNotifications.listen(_onReceivedMessage);
+    _incomingSub = _socket.incomingMessages.listen(_onReceivedMessage);
+    _incomingNotifSub = _socket.incomingMessagesNotifications.listen(_onReceivedMessage);
+
+    ref.onDispose(() {
+      _logger.i("Disposing MessagesRepository");
+      _incomingSub?.cancel();
+      _incomingNotifSub?.cancel();
+
+      // close and clear all controllers
+      for (final ctrl in _notifier.values) {
+        if (!ctrl.isClosed) ctrl.close();
+      }
+      _notifier.clear();
+    });
+
   }
 
   void _onReceivedMessage(MessageDto data) {

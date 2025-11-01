@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/features/messaging/dtos/message_socket_dtos.dart';
-import 'package:lam7a/features/messaging/services/socket_service.dart';
+import 'package:lam7a/core/services/socket_service.dart';
 import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

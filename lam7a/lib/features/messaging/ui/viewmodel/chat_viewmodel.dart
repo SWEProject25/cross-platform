@@ -6,7 +6,6 @@ import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/repository/conversations_repositories.dart';
 import 'package:lam7a/features/messaging/repository/messages_repository.dart';
-import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
 import 'package:lam7a/features/messaging/ui/state/chat_state.dart';
 import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -18,7 +17,6 @@ class ChatViewModel extends _$ChatViewModel {
   final Logger _logger = getLogger(ChatViewModel);
   late int? _conversationId;
   late final int? _userId;
-  late Contact? _user;
 
   late ConversationsRepository _conversationsRepository;
   late MessagesRepository _messagesRepository;
@@ -27,10 +25,11 @@ class ChatViewModel extends _$ChatViewModel {
   StreamSubscription<void>? _newMessagesSub;
 
   @override
-  ChatState build({ int? conversationId, int? userId, Contact? user}) {
+  ChatState build({ int? conversationId, int? userId}) {
     _userId = userId;
-    _user = user;
     _conversationId = conversationId;
+
+    ref.onDispose(_onDispose);
 
     _conversationsRepository = ref.read(conversationsRepositoryProvider);
     _messagesRepository = ref.read(messagesRepositoryProvider.notifier);
@@ -46,15 +45,16 @@ class ChatViewModel extends _$ChatViewModel {
 
       await loadMoreMessages();
       
+
+
     });
   
 
     return ChatState();
   }
 
-  @override
-  void dispose() {
-    _messagesRepository.leaveConversation(state.conversationId);
+  void _onDispose() {
+    _logger.d("Disposing ChatViewModel");
 
     _newMessagesSub?.cancel();
     _newMessagesSub = null;
@@ -123,7 +123,7 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   Future<void> sendMessage(String message) async {
-    _messagesRepository.sendMessage(_authState.user!.id!, state.conversationId, message);
+    _messagesRepository.sendMessage(_authState.user!.id!, state.conversationId, message.trim());
   }
 
 
