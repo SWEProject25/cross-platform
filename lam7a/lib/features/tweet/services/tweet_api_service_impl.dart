@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:dio/dio.dart';
 import 'package:lam7a/core/api/api_config.dart';
 import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
@@ -68,6 +67,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
   }
   
   /// Get interaction flags for a tweet (isLikedByMe, isRepostedByMe)
+  @override
   Future<Map<String, bool>?> getInteractionFlags(String tweetId) async {
     // Ensure flags are loaded before returning
     if (!_isInitialized) {
@@ -77,6 +77,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
   }
   
   /// Update interaction flags after a toggle operation
+  @override
   void updateInteractionFlag(String tweetId, String flagName, bool value) {
     if (_interactionFlags[tweetId] == null) {
       _interactionFlags[tweetId] = {};
@@ -337,83 +338,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
     }
   }
   
-  @override
-  Future<void> addTweet(TweetModel tweet) async {
-    try {
-      print('📤 Creating tweet on backend...');
-      print('   Body: ${tweet.body}');
-      print('   Media Pic: ${tweet.mediaPic ?? "None"}');
-      print('   Media Video: ${tweet.mediaVideo ?? "None"}');
-      
-      // Prepare form data
-      final formData = FormData.fromMap({
-        'userId': int.parse(tweet.userId),
-        'content': tweet.body,
-        'type': 'POST',
-        'visibility': 'EVERY_ONE',
-      });
-      
-      // Add media files if they exist (as local file paths)
-      final mediaFiles = <MultipartFile>[];
-      
-      if (tweet.mediaPic != null && tweet.mediaPic!.isNotEmpty) {
-        // Check if it's a local file path or URL
-        if (!tweet.mediaPic!.startsWith('http')) {
-          final file = File(tweet.mediaPic!);
-          if (await file.exists()) {
-            final multipartFile = await MultipartFile.fromFile(
-              tweet.mediaPic!,
-              filename: tweet.mediaPic!.split('/').last,
-            );
-            mediaFiles.add(multipartFile);
-            print('   📷 Added image file to upload');
-          }
-        }
-      }
-      
-      if (tweet.mediaVideo != null && tweet.mediaVideo!.isNotEmpty) {
-        // Check if it's a local file path or URL
-        if (!tweet.mediaVideo!.startsWith('http')) {
-          final file = File(tweet.mediaVideo!);
-          if (await file.exists()) {
-            final multipartFile = await MultipartFile.fromFile(
-              tweet.mediaVideo!,
-              filename: tweet.mediaVideo!.split('/').last,
-            );
-            mediaFiles.add(multipartFile);
-            print('   🎥 Added video file to upload');
-          }
-        }
-      }
-      
-      // Add media files to form data if any
-      if (mediaFiles.isNotEmpty) {
-        formData.files.add(MapEntry('mediaFiles', mediaFiles.first));
-        if (mediaFiles.length > 1) {
-          for (var i = 1; i < mediaFiles.length; i++) {
-            formData.files.add(MapEntry('mediaFiles', mediaFiles[i]));
-          }
-        }
-      }
-      
-      // Send request using ApiService post method
-      final response = await _apiService.post<Map<String, dynamic>>(
-        endpoint: ApiConfig.postsEndpoint,
-        data: formData,
-        options: Options(
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        ),
-      );
-      
-      print('✅ Tweet created successfully on backend!');
-      print('   Response: $response');
-    } catch (e) {
-      print('❌ Error creating tweet: $e');
-      rethrow;
-    }
-  }
+  
   
   @override
   Future<void> updateTweet(TweetModel tweet) async {

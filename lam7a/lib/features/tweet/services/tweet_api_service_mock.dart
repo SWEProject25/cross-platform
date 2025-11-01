@@ -100,14 +100,6 @@ class TweetsApiServiceMock implements TweetsApiService {
     return _tweets[id] ?? _tweets.values.first;
   }
 
-  @override
-  Future<void> addTweet(TweetModel tweet) async {
-    await _simulateDelay();
-    _tweets[tweet.id] = tweet;
-
-    // Log for debugging (matching main API service logic)
-
-  }
 
   @override
   Future<void> updateTweet(TweetModel tweet) async {

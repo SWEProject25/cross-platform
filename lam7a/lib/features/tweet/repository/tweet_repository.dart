@@ -24,9 +24,7 @@ class TweetRepository {
     return await _apiService.getTweetById(id);
   }
 
-  Future<void> addTweet(TweetModel tweet) async {
-    await _apiService.addTweet(tweet);
-  }
+
 
   Future<void> updateTweet(TweetModel tweet) async {
     await _apiService.updateTweet(tweet);

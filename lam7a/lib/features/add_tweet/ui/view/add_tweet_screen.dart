@@ -199,7 +199,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
           ),
         );
         // Navigate back
-        Navigator.of(context).pop();
+        //Navigator.of(context).pop();
       } else if (state.errorMessage != null) {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(

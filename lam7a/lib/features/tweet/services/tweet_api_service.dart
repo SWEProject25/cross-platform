@@ -20,7 +20,6 @@ TweetsApiService tweetsApiService(Ref ref) {
 abstract class TweetsApiService {
   Future<List<TweetModel>> getAllTweets();
   Future<TweetModel> getTweetById(String id);
-  Future<void> addTweet(TweetModel tweet);
   Future<void> updateTweet(TweetModel tweet);
   Future<void> deleteTweet(String id);
   /// Get interaction flags (isLikedByMe, isRepostedByMe) for a tweet
