@@ -1,179 +1,247 @@
-// import 'package:lam7a/features/messaging/model/contact.dart';
-// import 'package:lam7a/features/messaging/model/conversation.dart';
-// import 'package:lam7a/features/messaging/model/chat_message.dart';
-// import 'package:lam7a/features/messaging/services/chats_api_service.dart';
+// mock_dms_api_service.dart
+import 'dart:async';
+import 'dart:math';
 
-// class ChatsApiServiceMock implements ChatsApiService {
-//   @override
-//   Future<List<Conversation>> getConversations() {
-//     return Future.delayed(const Duration(seconds: 2), () {
-//       return [
-//         Conversation(
-//           id: '1',
-//           name: 'Lujain Hariri',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//           lastMessage: 'The presentation slides are ready to review.',
-//           lastMessageTime: DateTime(2025, 10, 14, 10, 32),
-//         ),
-//         Conversation(
-//           id: '2',
-//           name: 'ByteLab Developers',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//           lastMessage: 'Server maintenance scheduled for midnight ⚙️',
-//           lastMessageTime: DateTime(2025, 10, 13, 18, 20),
-//         ),
-//         Conversation(
-//           id: '3',
-//           name: 'Khaled M. Taha',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//           lastMessage: 'Can you confirm the final logo colors?',
-//           lastMessageTime: DateTime(2025, 10, 12, 9, 41),
-//         ),
-//         Conversation(
-//           id: '4',
-//           name: 'UrbanTaste Café',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//           lastMessage: 'Your order #4932 has been confirmed ☕️',
-//           lastMessageTime: DateTime(2025, 10, 11, 15, 05),
-//         ),
-//         Conversation(
-//           id: '5',
-//           name: 'Aya Rashed',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//           lastMessage: 'Can we move the call to 8:30?',
-//           lastMessageTime: DateTime(2025, 10, 10, 21, 17),
-//         ),
-//         Conversation(
-//           id: '6',
-//           name: 'Tariq Works',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//           lastMessage: 'The 3D model looks amazing 🔥',
-//           lastMessageTime: DateTime(2025, 10, 8, 11, 45),
-//         ),
-//         Conversation(
-//           id: '7',
-//           name: 'QuickBank Support',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//           lastMessage: 'Your verification is now complete ✅',
-//           lastMessageTime: DateTime(2025, 10, 6, 14, 22),
-//         ),
-//         Conversation(
-//           id: '8',
-//           name: 'Nourhan El-Masry',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//           lastMessage: 'Thanks for the help earlier!',
-//           lastMessageTime: DateTime(2025, 10, 5, 16, 33),
-//         ),
-//       ];
-//     });
-//   }
+import 'package:lam7a/features/common/dtos/api_response.dart';
+import 'package:lam7a/features/messaging/dtos/conversation_dto.dart';
+import 'package:lam7a/features/messaging/dtos/messages_dtos.dart';
+import 'package:lam7a/features/messaging/dtos/message_socket_dtos.dart';
+import 'package:lam7a/features/messaging/model/contact.dart';
+import 'package:lam7a/features/messaging/services/dms_api_service.dart';
 
-//   @override
-//   Future<List<Contact>> getContacts() {
-//     return Future.delayed(const Duration(seconds: 5), () {
-//       return [
-//         Contact(
-//           id: '1',
-//           name: 'Lujain Hariri',
-//           handle: '@lujain.dev',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//         ),
-//         Contact(
-//           id: '2',
-//           name: 'ByteLab Developers',
-//           handle: '@bytelab_io',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//         ),
-//         Contact(
-//           id: '3',
-//           name: 'Khaled M. Taha',
-//           handle: '@khaledmt',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//         ),
-//         Contact(
-//           id: '4',
-//           name: 'UrbanTaste Café',
-//           handle: '@urbantaste',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//         ),
-//         Contact(
-//           id: '5',
-//           name: 'Aya Rashed',
-//           handle: '@ayarash',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//         ),
-//         Contact(
-//           id: '6',
-//           name: 'Tariq Works',
-//           handle: '@tariqworks',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//         ),
-//         Contact(
-//           id: '7',
-//           name: 'QuickBank Support',
-//           handle: '@quickbank',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//         ),
-//         Contact(
-//           id: '8',
-//           name: 'Nourhan El-Masry',
-//           handle: '@nourhanem',
-//           avatarUrl: 'https://avatar.iran.liara.run/public',
-//         ),
-//       ];
-//     });
-//   }
-// @override
-// Future<List<ChatMessage>> getMessages(String conversationId) {
-//   return Future.delayed(const Duration(seconds: 3), () {
-//     return [
-//       ChatMessage(id: 1, text: "Hi!", time: DateTime(2023, 6, 18, 10, 31), isMine: true),
-//       ChatMessage(id: 2, text: "Ziad!", time: DateTime(2023, 6, 18, 10, 31), isMine: true),
-//       ChatMessage(id: 3, text: "How are you?", time: DateTime(2023, 6, 18, 10, 31), isMine: false),
-//       ChatMessage(id: 4, text: "Good, you?", time: DateTime(2023, 6, 18, 10, 32), isMine: true),
-//       ChatMessage(id: 5, text: "Fine! Just busy with work.", time: DateTime(2023, 6, 18, 10, 33), isMine: false),
-//       ChatMessage(id: 6, text: "Yeah same here.", time: DateTime(2023, 6, 18, 10, 35), isMine: true),
-//       ChatMessage(id: 7, text: "We should catch up sometime.", time: DateTime(2023, 6, 18, 10, 36), isMine: false),
-//       ChatMessage(id: 8, text: "Definitely. Maybe this weekend?", time: DateTime(2023, 6, 18, 10, 37), isMine: true),
+class MockDMsApiService implements DMsApiService {
+  final Duration latency;
+  final int pageLimit;
+  final Random _rand = Random();
 
-//       // Afternoon
-//       ChatMessage(id: 9, text: "Hey, did you check the files I sent?", time: DateTime(2023, 6, 18, 15, 12), isMine: false),
-//       ChatMessage(id: 10, text: "Not yet, I’ll review them after lunch.", time: DateTime(2023, 6, 18, 15, 15), isMine: true),
-//       ChatMessage(id: 11, text: "Alright, no rush.", time: DateTime(2023, 6, 18, 15, 16), isMine: false),
+  final List<Contact> _contacts = [];
+  final List<ConversationDto> _conversations = [];
+  final Map<int, List<MessageDto>> _messagesByConversation = {};
 
-//       // Next day
-//       ChatMessage(id: 12, text: "Morning!", time: DateTime(2023, 6, 19, 8, 55), isMine: false),
-//       ChatMessage(id: 13, text: "Morning ☀️", time: DateTime(2023, 6, 19, 8, 56), isMine: true),
-//       ChatMessage(id: 14, text: "Fine!", time: DateTime(2023, 6, 19, 9, 0), isMine: false),
-//       ChatMessage(id: 15, text: "Great!", time: DateTime(2023, 6, 19, 9, 5), isMine: true),
-//       ChatMessage(id: 16, text: "Talk later.", time: DateTime(2023, 6, 19, 22, 0), isMine: false),
+  int _nextConversationId = 1000;
+  int _nextMessageId = 5000;
 
-//       // New day (June 20)
-//       ChatMessage(id: 17, text: "Hey, about tomorrow’s meeting...", time: DateTime(2023, 6, 20, 11, 30), isMine: false),
-//       ChatMessage(id: 18, text: "Yes?", time: DateTime(2023, 6, 20, 11, 31), isMine: true),
-//       ChatMessage(id: 19, text: "Can we move it to 3 PM?", time: DateTime(2023, 6, 20, 11, 31), isMine: false),
-//       ChatMessage(id: 20, text: "Sure, works for me.", time: DateTime(2023, 6, 20, 11, 33), isMine: true),
-//       ChatMessage(id: 21, text: "Thanks!", time: DateTime(2023, 6, 20, 11, 34), isMine: false),
+  /// Create and auto-generate dummy data immediately
+  MockDMsApiService({this.latency = const Duration(milliseconds: 120), this.pageLimit = 20}) {
+    _generateDummyData();
+  }
 
-//       // Later that day
-//       ChatMessage(id: 22, text: "By the way, check your email.", time: DateTime(2023, 6, 20, 17, 42), isMine: false),
-//       ChatMessage(id: 23, text: "Okay, I’ll do that now.", time: DateTime(2023, 6, 20, 17, 43), isMine: true),
-//       ChatMessage(id: 24, text: "Got it. Looks good.", time: DateTime(2023, 6, 20, 17, 49), isMine: true),
-//       ChatMessage(id: 25, text: "Perfect 👍", time: DateTime(2023, 6, 20, 17, 50), isMine: false),
+  // -----------------------
+  // Public helpers (optional)
+  // -----------------------
 
-//       // Another day (June 21)
-//       ChatMessage(id: 26, text: "You there?", time: DateTime(2023, 6, 21, 13, 15), isMine: false),
-//       ChatMessage(id: 27, text: "Yep, just got back from lunch.", time: DateTime(2023, 6, 21, 13, 16), isMine: true),
-//       ChatMessage(id: 28, text: "Cool. The report is final now.", time: DateTime(2023, 6, 21, 13, 17), isMine: false),
-//       ChatMessage(id: 29, text: "Great news!", time: DateTime(2023, 6, 21, 13, 18), isMine: true),
+  /// Add a message to a conversation (keeps stateful mock useful for UI tests)
+  MessageDto addMessage(int conversationId, {required int senderId, required String text, DateTime? createdAt}) {
+    final dto = MessageDto(
+      id: _nextMessageId++,
+      senderId: senderId,
+      conversationId: conversationId,
+      text: text,
+      createdAt: createdAt ?? DateTime.now(),
+      updatedAt: createdAt ?? DateTime.now(),
+    );
 
-//       // Night chat
-//       ChatMessage(id: 30, text: "Long day 😪", time: DateTime(2023, 6, 21, 22, 11), isMine: false),
-//       ChatMessage(id: 31, text: "Tell me about it 😅", time: DateTime(2023, 6, 21, 22, 12), isMine: true),
-//       ChatMessage(id: 32, text: "Goodnight!", time: DateTime(2023, 6, 21, 22, 13), isMine: false),
-//       ChatMessage(id: 33, text: "Night 🌙", time: DateTime(2023, 6, 21, 22, 14), isMine: true),
-//     ];
-//   });
-// }
+    _messagesByConversation.putIfAbsent(conversationId, () => []);
+    _messagesByConversation[conversationId]!.add(dto);
 
-// }
+    // update conversation lastMessage and updatedAt if exists
+    final idx = _conversations.indexWhere((c) => c.id == conversationId);
+    if (idx != -1) {
+      _conversations[idx] = _conversations[idx].copyWith(lastMessage: dto, updatedAt: dto.updatedAt ?? DateTime.now());
+    }
+
+    return dto;
+  }
+
+  // -----------------------
+  // Implementation
+  // -----------------------
+
+  @override
+  Future<ApiResponse<List<ConversationDto>>> getConversations() async {
+    await Future.delayed(latency);
+    final sorted = List<ConversationDto>.from(_conversations)
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
+    // Build metadata using your Metadata class if ApiResponse expects it:
+    // Since your ApiResponse is a freezed generic with Metadata, construct it normally.
+    final meta = Metadata(
+      totalItems: sorted.length,
+      page: 1,
+      limit: sorted.length,
+      totalPages: 1,
+    );
+
+    return ApiResponse<List<ConversationDto>>(
+      status: 'success',
+      data: sorted,
+      metadata: meta,
+    );
+  }
+
+  @override
+  Future<int> createConversation(int userId) async {
+    await Future.delayed(latency);
+    final contact = _contacts.firstWhere((c) => c.id == userId, orElse: () {
+      // If not found, create a minimal contact so the conversation can exist
+      final newContact = Contact(
+        id: userId,
+        name: 'User $userId',
+        handle: 'user$userId',
+        avatarUrl: null,
+        bio: null,
+        totalFollowers: 0,
+      );
+      _contacts.add(newContact);
+      return newContact;
+    });
+
+    final convId = _nextConversationId++;
+    final conv = ConversationDto(
+      id: convId,
+      createdAt: DateTime.now().toIso8601String(),
+      updatedAt: DateTime.now(),
+      lastMessage: null,
+      user: UserDto(
+        id: contact.id,
+        username: contact.handle,
+        profileImageUrl: contact.avatarUrl,
+        displayName: contact.name,
+      ),
+    );
+
+    _conversations.add(conv);
+    _messagesByConversation[convId] = [];
+    return convId;
+  }
+
+  @override
+  Future<MessagesResponseDto> getMessageHistory(int conversationId, int? lastMessageId) async {
+    await Future.delayed(latency);
+    final messages = _messagesByConversation[conversationId] ?? [];
+
+    if (messages.isEmpty) {
+      return MessagesResponseDto(
+        status: 'success',
+        data: <MessageDto>[],
+        metadata: MessagesMetadataDto(totalItems: 0, limit: pageLimit, hasMore: false, lastMessageId: null),
+      );
+    }
+
+    // messages are ordered by createdAt ascending in this mock
+    // Pagination by lastMessageId: return up to pageLimit messages BEFORE the message with lastMessageId.
+    List<MessageDto> page;
+    if (lastMessageId == null) {
+      final start = (messages.length - pageLimit).clamp(0, messages.length);
+      page = messages.sublist(start);
+    } else {
+      final idx = messages.indexWhere((m) => m.id == lastMessageId);
+      final end = idx == -1 ? messages.length : idx;
+      final start = (end - pageLimit).clamp(0, end);
+      page = messages.sublist(start, end);
+    }
+
+    final hasMore = messages.isNotEmpty && page.isNotEmpty && messages.first.id != page.first.id;
+    final lastId = page.isNotEmpty ? page.first.id : null;
+
+    final metadata = MessagesMetadataDto(
+      totalItems: messages.length,
+      limit: pageLimit,
+      hasMore: hasMore,
+      lastMessageId: lastId,
+    );
+
+    return MessagesResponseDto(status: 'success', data: page, metadata: metadata);
+  }
+
+  @override
+  Future<List<Contact>> searchForContacts(String query, int page, [int limit = 20]) async {
+    await Future.delayed(latency);
+    final q = query.trim().toLowerCase();
+    final matches = _contacts.where((c) => c.name.toLowerCase().contains(q) || c.handle.toLowerCase().contains(q)).toList();
+
+    final start = (page - 1) * limit;
+    if (start >= matches.length) return <Contact>[];
+
+    final end = (start + limit) > matches.length ? matches.length : (start + limit);
+    return matches.sublist(start, end);
+  }
+
+  @override
+  Future<Contact> getContactByUserId(int userId) async {
+    await Future.delayed(latency);
+    final contact = _contacts.firstWhere((c) => c.id == userId, orElse: () => throw StateError('Contact not found for id $userId'));
+    return contact;
+  }
+
+  // -----------------------
+  // Private data generation
+  // -----------------------
+
+  void _generateDummyData() {
+    final now = DateTime.now();
+    final names = [
+      'Alice Smith',
+      'Bob Johnson',
+      'Charlie King',
+      'Dana Lee',
+      'Eva Brown',
+      'Frank Green',
+      'Grace White',
+      'Henry Black',
+      'Isla Blue',
+      'Jack Grey',
+    ];
+
+    // Contacts
+    for (int i = 0; i < names.length; i++) {
+      final name = names[i];
+      _contacts.add(Contact(
+        id: i + 1,
+        name: name,
+        handle: name.split(' ').first.toLowerCase(),
+        avatarUrl: 'https://i.pravatar.cc/150?img=${(i % 70) + 1}',
+        bio: 'This is ${name.split(' ').first}\'s bio.',
+        totalFollowers: _rand.nextInt(5000),
+      ));
+    }
+
+    // Conversations + messages
+    for (int i = 0; i < 6; i++) {
+      final contact = _contacts[_rand.nextInt(_contacts.length)];
+      final convId = _nextConversationId++;
+      final msgCount = 10 + _rand.nextInt(25);
+
+      final messages = <MessageDto>[];
+      for (int j = 0; j < msgCount; j++) {
+        final isMe = j % 2 == 0;
+        final senderId = isMe ? 0 : contact.id;
+        final created = now.subtract(Duration(minutes: (msgCount - j) * 7));
+        messages.add(MessageDto(
+          id: _nextMessageId++,
+          senderId: senderId,
+          conversationId: convId,
+          text: isMe ? 'Me: message #$j' : '${contact.name.split(' ').first}: reply #$j',
+          createdAt: created,
+          updatedAt: created,
+        ));
+      }
+
+      _messagesByConversation[convId] = messages;
+
+      final lastMsg = messages.isNotEmpty ? messages.last : null;
+      _conversations.add(ConversationDto(
+        id: convId,
+        createdAt: now.subtract(Duration(days: _rand.nextInt(30))).toIso8601String(),
+        updatedAt: lastMsg?.createdAt ?? now,
+        lastMessage: lastMsg,
+        user: UserDto(
+          id: contact.id,
+          username: contact.handle,
+          profileImageUrl: contact.avatarUrl,
+          displayName: contact.name,
+        ),
+      ));
+    }
+  }
+}
