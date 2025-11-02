@@ -19,13 +19,11 @@ abstract class DMsApiService {
 
   Future<ApiResponse<List<ConversationDto>>> getConversations();
 
-  Future<List<Contact>> getContacts();
-
-  Future<List<ChatMessage>> getMessages(String conversationId);
-
   Future<int> createConversation(int userId);
 
   Future<MessagesResponseDto> getMessageHistory(int conversationId, int? lastMessageId);
 
   Future<List<Contact>> searchForContacts(String query, int page, [int limit = 20]);
+
+  Future<Contact> getContactByUserId(int userId);
 }

@@ -8,6 +8,7 @@ abstract class Conversation with _$Conversation {
   const factory Conversation({
     required int id,
     required String name,
+    required int userId,
     String? avatarUrl,
     String? lastMessage,
     DateTime? lastMessageTime,

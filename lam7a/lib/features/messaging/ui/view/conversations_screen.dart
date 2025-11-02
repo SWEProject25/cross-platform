@@ -4,10 +4,10 @@ import 'package:lam7a/core/app_icons.dart';
 import 'package:lam7a/core/widgets/app_svg_icon.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
+import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
 import 'package:lam7a/features/messaging/utils.dart';
 import 'package:lam7a/features/messaging/ui/view/find_contacts_screen.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/conversations_viewmodel.dart';
-import 'package:lam7a/features/messaging/ui/widgets/dm_app_bar.dart';
 
 class ConversationsScreen extends ConsumerWidget {
   static const routeName = '/dm';
@@ -90,10 +90,7 @@ class _ChatListTile extends StatelessWidget {
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      leading: CircleAvatar(
-        radius: 28,
-        backgroundImage: NetworkImage(chat.avatarUrl ?? ""),
-      ),
+      leading: NetworkAvatar(url: chat.avatarUrl, radius:  28,),
       title: Row(
         children: [
           Expanded(
@@ -134,7 +131,7 @@ class _ChatListTile extends StatelessWidget {
         // TODO: Navigate to chat detail page
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => ChatScreen(conversationId: chat.id),
+            builder: (context) => ChatScreen(userId: chat.userId, conversationId: chat.id),
           ),
         );
       },

@@ -83,7 +83,7 @@ class _MessagesListViewState extends State<MessagesListView> {
                       ),
                     ),
                     child: Text(
-                      "${message.id}: ${message.text}",
+                      "${message.text}",
                       style: TextStyle(
                         color: message.isMine ? Colors.white : Colors.black,
                       ),

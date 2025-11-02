@@ -29,6 +29,7 @@ class ConversationsRepository {
     var conversations = conversationsDto.data!.map((x) {
       return Conversation(
         id: x.id,
+        userId: x.user.id,
         name: x.user.displayName,
         avatarUrl: x.user.profileImageUrl,
         lastMessage: x.lastMessage?.text,
@@ -39,15 +40,15 @@ class ConversationsRepository {
     return conversations;
   }
 
-  Future<List<Contact>> fetchContacts() async {
-    return await _apiService.getContacts();
-  }
-
   Future<int> getConversationIdByUserId(int userId) async{
     return await _apiService.createConversation(userId);
   }
 
   Future<List<Contact>> searchForContacts(String query, int page, [int limit = 20]) async {
     return await _apiService.searchForContacts(query, page, limit);
+  }
+
+  Future<Contact> getContactByUserId(int userId) async {
+    return await _apiService.getContactByUserId(userId);
   }
 }

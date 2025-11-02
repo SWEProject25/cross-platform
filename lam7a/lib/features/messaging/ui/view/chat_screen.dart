@@ -4,6 +4,7 @@ import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/chat_viewmodel.dart';
 import 'package:lam7a/features/messaging/ui/widgets/chat_input_bar.dart';
 import 'package:lam7a/features/messaging/ui/widgets/messages_list_view.dart';
+import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
 import 'package:lam7a/features/messaging/utils.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -11,32 +12,46 @@ class ChatScreen extends ConsumerWidget {
   static const routeName = '/chat';
 
   final int? conversationId;
-  final int? userId;
+  final int userId;
   final Contact? contact;
 
-  const ChatScreen({super.key, this.conversationId, this.userId, this.contact});
+  const ChatScreen({
+    super.key,
+    this.conversationId,
+    required this.userId,
+    this.contact,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var chatState = ref.watch(chatViewModelProvider(conversationId: conversationId, userId: userId));
-    var chatViewModel = ref.read(chatViewModelProvider(conversationId: conversationId, userId: userId).notifier);
+    var chatState = ref.watch(
+      chatViewModelProvider(conversationId: conversationId, userId: userId),
+    );
+    var chatViewModel = ref.read(
+      chatViewModelProvider(
+        conversationId: conversationId,
+        userId: userId,
+      ).notifier,
+    );
     return GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: _buildAppBar(context, chatState.contact),
-      
+
         // Body
         body: Column(
           children: [
             Expanded(
               child: chatState.messages.when(
                 data: (messages) => RefreshIndicator(
-                  onRefresh: ()=>chatViewModel.refresh(),
+                  onRefresh: () => chatViewModel.refresh(),
                   child: MessagesListView(
                     messages: messages,
-                    leading: chatState.hasMoreMessages? null : _buildProfileInfo(chatState.contact),
-                    loadMore: ()=> chatViewModel.loadMoreMessages(),
+                    leading: chatState.hasMoreMessages
+                        ? null
+                        : _buildProfileInfo(chatState.contact),
+                    loadMore: () => chatViewModel.loadMoreMessages(),
                   ),
                 ),
                 loading: () => Center(child: CircularProgressIndicator()),
@@ -44,11 +59,19 @@ class ChatScreen extends ConsumerWidget {
                     Center(child: Text('Error: $error')),
               ),
             ),
-      
+
             Container(
               color: Colors.white,
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-              child: Row(children: [Expanded(child: ChatInputBar(onSend: (m)=>chatViewModel.sendMessage(m),))]),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ChatInputBar(
+                      onSend: (m) => chatViewModel.sendMessage(m),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -65,11 +88,14 @@ class ChatScreen extends ConsumerWidget {
         child: Row(
           children: [
             CircleAvatar(
-              backgroundColor: Colors.transparent,
-              child: CircleAvatar(
-                backgroundColor: Colors.transparent,
-                backgroundImage: NetworkImage(
-                  contact.value?.avatarUrl ?? "https://avatar.iran.liara.run/public",
+              child: ClipOval(
+                child: Image.network(
+                  contact.value?.avatarUrl ?? '',
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.person, size: 24),
                 ),
               ),
             ),
@@ -103,11 +129,7 @@ class ChatScreen extends ConsumerWidget {
       child: Column(
         children: [
           const SizedBox(height: 32),
-          CircleAvatar(
-            radius: 32,
-            backgroundColor: Colors.transparent,
-            backgroundImage: NetworkImage(contact.value?.avatarUrl ?? "https://avatar.iran.liara.run/public"),
-          ),
+          NetworkAvatar(url: contact.value?.avatarUrl, radius: 32),
           const SizedBox(height: 8),
           Text(
             contact.value?.name ?? "",
@@ -115,7 +137,8 @@ class ChatScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            contact.value?.bio ?? 'Official NA Twitter Support. You can connect with PlayStation Support for assistance with',
+            contact.value?.bio ??
+                'Official NA Twitter Support. You can connect with PlayStation Support for assistance with',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey, fontSize: 13),
           ),
@@ -130,4 +153,3 @@ class ChatScreen extends ConsumerWidget {
     );
   }
 }
-

@@ -16,7 +16,7 @@ part 'chat_viewmodel.g.dart';
 class ChatViewModel extends _$ChatViewModel {  
   final Logger _logger = getLogger(ChatViewModel);
   late int? _conversationId;
-  late final int? _userId;
+  late final int _userId;
 
   late ConversationsRepository _conversationsRepository;
   late MessagesRepository _messagesRepository;
@@ -25,7 +25,7 @@ class ChatViewModel extends _$ChatViewModel {
   StreamSubscription<void>? _newMessagesSub;
 
   @override
-  ChatState build({ int? conversationId, int? userId}) {
+  ChatState build({required int userId, int? conversationId}) {
     _userId = userId;
     _conversationId = conversationId;
 
@@ -40,7 +40,7 @@ class ChatViewModel extends _$ChatViewModel {
 
       _newMessagesSub = _messagesRepository.onMessageRecieved(state.conversationId).listen((_)=>_onNewMessagesArrive());
       _messagesRepository.joinConversation(state.conversationId);
-      _loadContant();
+      _loadContact();
       _loadMessages();
 
       await loadMoreMessages();
@@ -78,25 +78,16 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
-  Future<void> _loadContant() async {
-    // var chatsRepository = await ref.read(chatsRepositoryProvider.future);
+  Future<void> _loadContact() async {
 
-    // if (_user != null) return;
-    // try {
-    //   // final contact = await _chatsRepository.fetchContactById(_userId);
-    //   // _user = contact;
-
-    //   _user = Contact(
-    //     id: _userId,
-    //     name: "Test User",
-    //     handle: "@testuser",
-    //     avatarUrl: "https://avatar.iran.liara.run/public",
-    //   );
-    //   await Future.delayed(const Duration(seconds: 10)); // simulate delay
-    //   state = state.copyWith(contact: AsyncData(_user!));
-    // } catch (e) {
-    //   // handle error if needed
-    // }
+    state = state.copyWith(contact: const AsyncLoading());
+    try {
+      final contact = await _conversationsRepository.getContactByUserId(_userId);
+      state = state.copyWith(contact: AsyncData(contact));
+    } catch (e,st) {
+      state = state.copyWith(contact: AsyncError(e,st));
+      _logger.e(e);
+    }
   }
 
   Future<void> _loadMessages() async {

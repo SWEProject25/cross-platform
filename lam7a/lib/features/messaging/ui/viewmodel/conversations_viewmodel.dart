@@ -20,13 +20,20 @@ class ConversationsViewModel extends _$ConversationsViewModel {
     _conversationsRepository = ref.read(conversationsRepositoryProvider);
     _messagesRepository = ref.read(messagesRepositoryProvider.notifier);
 
+    ref.onDispose(()=>_onDispose());
+
     Future.microtask(() async {
       await _loadConversations();
-      await _loadContacts();
       setUpNewMessageListeners();
     });
+    
 
     return const ConversationsState();
+  }
+
+  void _onDispose(){
+    newMessageSub.forEach((i,x)=>newMessageSub[i]?.cancel());
+    newMessageSub.forEach((i,x)=>newMessageSub[i] = null);
   }
 
   Future<void> _loadConversations() async {
@@ -38,17 +45,6 @@ class ConversationsViewModel extends _$ConversationsViewModel {
     } catch (e, st) {
       state = state.copyWith(conversations: AsyncError(e, st));
     }
-  }
-
-  Future<void> _loadContacts() async {
-
-    state = state.copyWith(contacts: const AsyncLoading());
-    // try {
-    //   final data = await _conversationsRepository.searchForContacts("", 1);
-    //   state = state.copyWith(contacts: AsyncData(data));
-    // } catch (e, st) {
-    //   state = state.copyWith(contacts: AsyncError(e, st));
-    // }
   }
 
   void setUpNewMessageListeners() {
@@ -119,7 +115,6 @@ class ConversationsViewModel extends _$ConversationsViewModel {
   Future<void> refresh() async {
     await Future.wait([
       _loadConversations(),
-      _loadContacts(),
     ]);
   }
 
