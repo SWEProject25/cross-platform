@@ -11,6 +11,7 @@ import 'package:lam7a/features/navigation/ui/viewmodel/navigation_viewmodel.dart
 import 'package:lam7a/features/navigation/ui/widgets/list_memeber.dart';
 import 'package:lam7a/features/navigation/ui/widgets/profile_block.dart';
 import 'package:lam7a/features/navigation/utils/models/user_main_data.dart';
+import 'package:lam7a/features/settings/ui/view/main_settings_page.dart';
 
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
@@ -112,11 +113,12 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                   ),
                   title: Text("Settinga&Care"),
                   children: [
-                    ListMember(
-                      "Settings and privacy",
-                      () {},
-                      icon: Icons.settings,
-                    ),
+                    ListMember("Settings and privacy", () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (ctx) => MainSettingsPage()),
+                      );
+                    }, icon: Icons.settings),
                     ListMember("Help Center", () {}, icon: Icons.help_center),
                   ],
                 ),
