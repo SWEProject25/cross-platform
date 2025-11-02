@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../models/users_model.dart';
+import '../../../../core/models/user_model.dart';
 
 enum Style { muted, blocked }
 
 class StatusUserTile extends StatelessWidget {
-  final User user;
+  final UserModel user;
   final Style style;
   final VoidCallback onCliked;
 
@@ -28,7 +28,7 @@ class StatusUserTile extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: CircleAvatar(
-              backgroundImage: NetworkImage(user.profilePic),
+              backgroundImage: NetworkImage(user.profileImageUrl!),
               radius: 18, // smaller radius
             ),
           ),
@@ -40,7 +40,7 @@ class StatusUserTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  user.displayName,
+                  user.name!,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -49,12 +49,12 @@ class StatusUserTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  user.handle,
+                  user.username!,
                   style: const TextStyle(color: Colors.grey, fontSize: 13),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  user.bio,
+                  user.bio!,
                   style: TextStyle(
                     color: Colors.grey.shade200, // 2️⃣ slightly whiter
                     fontSize: 14, // 2️⃣ bigger font

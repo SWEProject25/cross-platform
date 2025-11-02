@@ -26,7 +26,7 @@ class AccountInformationPage extends ConsumerWidget {
               ),
             ),
             Text(
-              state.handle,
+              state.email!,
               style: theme.textTheme.bodyMedium!.copyWith(
                 color: theme.textTheme.bodySmall!.color,
                 fontSize: 16,
@@ -40,7 +40,7 @@ class AccountInformationPage extends ConsumerWidget {
           Divider(color: theme.dividerColor, height: 1),
           AccountInfoTile(
             title: 'Username',
-            value: state.handle,
+            value: state.username!,
             onTap: () {
               Navigator.push(
                 context,
@@ -50,7 +50,7 @@ class AccountInformationPage extends ConsumerWidget {
           ),
           AccountInfoTile(
             title: 'Email',
-            value: state.email,
+            value: state.email!,
             onTap: () {
               Navigator.push(
                 context,
@@ -58,7 +58,7 @@ class AccountInformationPage extends ConsumerWidget {
               );
             },
           ),
-          AccountInfoTile(title: 'Country', value: state.country),
+          AccountInfoTile(title: 'Country', value: state.location!),
           _buildLogoutTile(context),
         ],
       ),

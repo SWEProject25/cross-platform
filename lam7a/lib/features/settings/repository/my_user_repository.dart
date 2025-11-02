@@ -1,24 +1,30 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../models/account_model.dart';
+import '../../../core/models/user_model.dart';
 import '../services/account_api_service.dart';
 
 part 'my_user_repository.g.dart';
 
 @riverpod
-MyUserRepository myUserRepository(Ref ref) {
-  return MyUserRepository(ref.read(accountApiServiceProvider));
+AccountSettingsRepository myUserRepository(Ref ref) {
+  return AccountSettingsRepository(ref.read(accountApiServiceImplProvider));
 }
 
-class MyUserRepository {
+class AccountSettingsRepository {
   final AccountApiService _api;
 
-  MyUserRepository(this._api);
+  AccountSettingsRepository(this._api);
 
-  Future<AccountModel> fetchMyInfo() => _api.getMyInfo();
+  Future<UserModel> fetchMyInfo() => _api.getMyInfo();
   Future<void> changeEmail(String newEmail) => _api.changeEmail(newEmail);
-  Future<void> changePassword(String newPassword) =>
-      _api.changePassword(newPassword);
+  Future<void> changePassword(String oldPassword, String newPassword) =>
+      _api.changePassword(oldPassword, newPassword);
   Future<void> changeUsername(String newUsername) =>
       _api.changeUsername(newUsername);
   Future<void> deactivateAccount() => _api.deactivateAccount();
+  Future<bool> validatePassword(String password) =>
+      _api.validatePassword(password);
+  Future<bool> checkEmailExists(String email) => _api.checkEmailExists(email);
+  Future<bool> validateOtp(String email, String otp) =>
+      _api.validateOtp(email, otp);
+  Future<void> sendOtp(String email) => _api.sendOtp(email);
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../viewmodel/change_password_viewmodel.dart';
 import '../../../widgets/settings_textfield.dart';
 import '../../../viewmodel/account_viewmodel.dart';
+import './forget_password_view.dart/send_otp_view.dart';
 
 class ChangePasswordView extends ConsumerWidget {
   const ChangePasswordView({super.key});
@@ -11,7 +12,7 @@ class ChangePasswordView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(changePasswordProvider);
     final notifier = ref.read(changePasswordProvider.notifier);
-    final username = ref.read(accountProvider).handle;
+    final username = ref.read(accountProvider).username;
     final theme = Theme.of(context);
     final blueXColor = const Color(0xFF1D9BF0);
 
@@ -19,7 +20,7 @@ class ChangePasswordView extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
         title: Text(
-          username,
+          username!,
           style: theme.textTheme.bodySmall!.copyWith(fontSize: 14),
         ),
       ),
@@ -72,7 +73,7 @@ class ChangePasswordView extends ConsumerWidget {
                   ),
                 ),
                 onPressed: state.isValid
-                    ? () => notifier.validateCurrentPassword(context)
+                    ? () => notifier.ChangePassword(context)
                     : null,
                 child: const Text(
                   'Update password',
@@ -80,6 +81,21 @@ class ChangePasswordView extends ConsumerWidget {
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (ctx) => const SendOtpView()),
+                  );
+                },
+                child: Text(
+                  'Forgot password?',
+                  style: theme.textTheme.bodySmall!,
                 ),
               ),
             ),

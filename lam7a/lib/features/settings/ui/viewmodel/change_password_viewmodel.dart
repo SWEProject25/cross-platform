@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart';
 import '../state/change_password_state.dart';
 import 'account_viewmodel.dart';
+import '../../repository/my_user_repository.dart';
 
 class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
-  late final String currentPassword;
-
   @override
   ChangePasswordState build() {
-    final account = ref.read(accountProvider);
-    currentPassword = account.password;
-
     final currentController = TextEditingController();
     final newController = TextEditingController();
     final confirmController = TextEditingController();
@@ -82,6 +79,8 @@ class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
       error = 'Enter a new password';
     } else if (newPass.length < 8) {
       error = 'Password must be at least 8 characters';
+    } else {
+      error = null;
     }
 
     state = state.copyWith(newPasswordError: error);
@@ -99,6 +98,8 @@ class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
       error = 'Password must be at least 8 characters';
     } else if (confirmPass != newPass) {
       error = 'Passwords do not match';
+    } else {
+      error = null;
     }
 
     state = state.copyWith(confirmPasswordError: error);
@@ -106,22 +107,15 @@ class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
   }
 
   // Simulate backend password check
-  Future<void> validateCurrentPassword(BuildContext context) async {
+  Future<void> ChangePassword(BuildContext context) async {
     final current = state.currentController.text.trim();
+    final newPassword = state.newController.text.trim();
 
-    // Mock backend: pretend correct password is "12345678"
-    if (current != currentPassword) {
+    final accountRepo = ref.read(myUserRepositoryProvider);
+    try {
+      await accountRepo.changePassword(current, newPassword);
+    } catch (e) {
       _showErrorDialog(context);
-    } else {
-      // Proceed with success (you can show a Snackbar, etc.)
-      Future.delayed(const Duration(milliseconds: 500));
-      ref
-          .read(accountProvider.notifier)
-          .updatePassword(state.newController.text.trim());
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Password updated successfully ✅")),
-      );
     }
   }
 

@@ -1,18 +1,11 @@
-import '../../models/users_model.dart';
+import '../../../../core/models/user_model.dart';
 
 class BlockedUsersState {
-  final List<User> blockedUsers;
-  final bool isLoading;
+  final List<UserModel> blockedUsers;
 
-  const BlockedUsersState({
-    this.blockedUsers = const [],
-    this.isLoading = false,
-  });
+  const BlockedUsersState({this.blockedUsers = const []});
 
-  BlockedUsersState copyWith({List<User>? blockedUsers, bool? isLoading}) {
-    return BlockedUsersState(
-      blockedUsers: blockedUsers ?? this.blockedUsers,
-      isLoading: isLoading ?? this.isLoading,
-    );
+  BlockedUsersState copyWith({List<UserModel>? blockedUsers}) {
+    return BlockedUsersState(blockedUsers: blockedUsers ?? this.blockedUsers);
   }
 }

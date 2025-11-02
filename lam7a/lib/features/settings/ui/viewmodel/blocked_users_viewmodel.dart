@@ -2,30 +2,39 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../repository/users_repository.dart';
 import '../state/blocked_users_state.dart';
 
-class BlockedUsersViewModel extends Notifier<BlockedUsersState> {
-  late final UsersRepository _repo;
+class BlockedUsersViewModel extends AsyncNotifier<BlockedUsersState> {
+  late final UserRelationsRepository _repo;
 
   @override
-  BlockedUsersState build() {
+  Future<BlockedUsersState> build() async {
     _repo = ref.read(usersRepositoryProvider);
-    _loadUsers();
-    return const BlockedUsersState(isLoading: true);
-  }
-
-  Future<void> _loadUsers() async {
     final users = await _repo.fetchBlockedUsers();
-    state = state.copyWith(isLoading: false, blockedUsers: users);
+    return BlockedUsersState(blockedUsers: users);
   }
 
   Future<void> unblockUser(String userId) async {
-    await _repo.unblockUser(userId);
-    state = state.copyWith(
-      blockedUsers: state.blockedUsers.where((u) => u.id != userId).toList(),
-    );
+    final previousState = state.asData?.value;
+    if (previousState == null) return;
+
+    try {
+      await _repo.unblockUser(userId);
+
+      // Update the list only after success
+      final updatedList = previousState.blockedUsers
+          .where((user) => user.id != userId)
+          .toList();
+
+      // Keep isLoading false (you can use a separate field if you want a small spinner)
+      state = AsyncData(previousState.copyWith(blockedUsers: updatedList));
+    } catch (e, st) {
+      // Keep the old data but reflect the error if needed
+      state = AsyncError(e, st);
+      state = AsyncData(previousState);
+    }
   }
 }
 
 final blockedUsersProvider =
-    NotifierProvider<BlockedUsersViewModel, BlockedUsersState>(
+    AsyncNotifierProvider<BlockedUsersViewModel, BlockedUsersState>(
       BlockedUsersViewModel.new,
     );

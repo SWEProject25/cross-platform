@@ -15,11 +15,11 @@ const myUserRepositoryProvider = MyUserRepositoryProvider._();
 final class MyUserRepositoryProvider
     extends
         $FunctionalProvider<
-          MyUserRepository,
-          MyUserRepository,
-          MyUserRepository
+          AccountSettingsRepository,
+          AccountSettingsRepository,
+          AccountSettingsRepository
         >
-    with $Provider<MyUserRepository> {
+    with $Provider<AccountSettingsRepository> {
   const MyUserRepositoryProvider._()
     : super(
         from: null,
@@ -36,21 +36,22 @@ final class MyUserRepositoryProvider
 
   @$internal
   @override
-  $ProviderElement<MyUserRepository> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<AccountSettingsRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
 
   @override
-  MyUserRepository create(Ref ref) {
+  AccountSettingsRepository create(Ref ref) {
     return myUserRepository(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(MyUserRepository value) {
+  Override overrideWithValue(AccountSettingsRepository value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<MyUserRepository>(value),
+      providerOverride: $SyncValueProvider<AccountSettingsRepository>(value),
     );
   }
 }
 
-String _$myUserRepositoryHash() => r'd7647acb7660b1555a9741dce988b50122170093';
+String _$myUserRepositoryHash() => r'c8a8b89c1f44ea86dbd9d6ff59ebd00bff89a656';

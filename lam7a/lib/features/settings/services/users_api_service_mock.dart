@@ -1,45 +1,45 @@
 import 'dart:async';
-import '../models/users_model.dart';
 import 'users_api_service.dart';
+import '../../../core/models/user_model.dart';
 
 class UsersApiServiceMock implements UsersApiService {
-  final List<User> _mockMuted = [
-    const User(
+  final List<UserModel> _mockMuted = [
+    const UserModel(
       id: '1',
-      handle: '@john_doe',
-      displayName: 'John Doe',
+      username: '@john_doe',
+      name: 'John Doe',
       bio: 'Coffee lover ☕',
-      profilePic: 'https://cdn-icons-png.flaticon.com/512/147/147144.png',
+      profileImageUrl: 'https://cdn-icons-png.flaticon.com/512/147/147144.png',
     ),
-    const User(
+    const UserModel(
       id: '2',
-      handle: '@jane_doe',
-      displayName: 'Jane Doe',
+      username: '@jane_doe',
+      name: 'Jane Doe',
       bio: 'Traveler ✈️ | Writer ✍️',
-      profilePic: 'https://cdn-icons-png.flaticon.com/512/194/194938.png',
+      profileImageUrl: 'https://cdn-icons-png.flaticon.com/512/194/194938.png',
     ),
   ];
 
-  final List<User> _mockBlocked = [
-    const User(
+  final List<UserModel> _mockBlocked = [
+    const UserModel(
       id: '3',
-      handle: '@mark_coder',
-      displayName: 'Mark Coder',
+      username: '@mark_coder',
+      name: 'Mark Coder',
       bio: 'Tech enthusiast 💻',
-      profilePic: 'https://cdn-icons-png.flaticon.com/512/147/147140.png',
+      profileImageUrl: 'https://cdn-icons-png.flaticon.com/512/147/147140.png',
     ),
   ];
 
   @override
-  Future<List<User>> getMutedUsers() async {
+  Future<List<UserModel>> getMutedUsers() async {
     await Future.delayed(const Duration(seconds: 1));
-    return List<User>.from(_mockMuted);
+    return List<UserModel>.from(_mockMuted);
   }
 
   @override
-  Future<List<User>> getBlockedUsers() async {
+  Future<List<UserModel>> getBlockedUsers() async {
     await Future.delayed(const Duration(seconds: 1));
-    return List<User>.from(_mockBlocked);
+    return List<UserModel>.from(_mockBlocked);
   }
 
   @override

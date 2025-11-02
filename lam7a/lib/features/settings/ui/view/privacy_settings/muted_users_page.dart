@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../viewmodel/muted_users_viewmodel.dart';
-import '../../../models/users_model.dart';
-import '../../widgets/Status_user_listTile.dart';
+import '../../widgets/status_user_listtile.dart';
+import '../../../../../core/models/user_model.dart';
 
 class MutedUsersView extends ConsumerWidget {
   const MutedUsersView({super.key});
@@ -14,21 +14,31 @@ class MutedUsersView extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Muted Users')),
-      body: state.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : state.mutedUsers.isEmpty
-          ? _buildEmptyMessage()
-          : ListView.builder(
-              itemCount: state.mutedUsers.length,
-              itemBuilder: (context, index) {
-                final user = state.mutedUsers[index];
-                return StatusUserTile(
-                  user: user,
-                  style: Style.muted,
-                  onCliked: () => _showUnmuteDialog(context, user, viewModel),
+      body: state.when(
+        data: (data) {
+          return data.mutedUsers.isEmpty
+              ? _buildEmptyMessage()
+              : ListView.builder(
+                  itemCount: data.mutedUsers.length,
+                  itemBuilder: (context, index) {
+                    final user = data.mutedUsers[index];
+                    return StatusUserTile(
+                      user: user,
+                      style: Style.muted,
+                      onCliked: () =>
+                          _showUnmuteDialog(context, user, viewModel),
+                    );
+                  },
                 );
-              },
-            ),
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(
+          child: Text(
+            'Something went wrong: $error',
+            style: const TextStyle(color: Colors.red),
+          ),
+        ),
+      ),
     );
   }
 
@@ -62,13 +72,13 @@ class MutedUsersView extends ConsumerWidget {
 
   void _showUnmuteDialog(
     BuildContext context,
-    User user,
+    UserModel user,
     MutedUsersViewModel viewModel,
   ) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Unmute ${user.displayName}?'),
+        title: Text('Unmute ${user.name!} ?'),
         content: const Text('They will be able to interact with you again.'),
         actions: [
           TextButton(
@@ -77,7 +87,7 @@ class MutedUsersView extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () {
-              viewModel.unmuteUser(user.id);
+              viewModel.unmuteUser(user.id!);
               Navigator.pop(context);
             },
             child: const Text('Unmute'),

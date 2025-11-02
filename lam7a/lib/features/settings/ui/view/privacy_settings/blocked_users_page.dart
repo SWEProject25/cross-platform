@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../viewmodel/blocked_users_viewmodel.dart';
-import '../../../models/users_model.dart';
-import '../../widgets/Status_user_listTile.dart';
+import '../../widgets/status_user_listtile.dart';
+import '../../../../../core/models/user_model.dart';
 
 class BlockedUsersView extends ConsumerWidget {
   const BlockedUsersView({super.key});
@@ -14,21 +14,31 @@ class BlockedUsersView extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Blocked Users')),
-      body: state.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : state.blockedUsers.isEmpty
-          ? _buildEmptyMessage()
-          : ListView.builder(
-              itemCount: state.blockedUsers.length,
-              itemBuilder: (context, index) {
-                final user = state.blockedUsers[index];
-                return StatusUserTile(
-                  user: user,
-                  style: Style.blocked,
-                  onCliked: () => _showUnblockDialog(context, user, viewModel),
+      body: state.when(
+        data: (data) {
+          return data.blockedUsers.isEmpty
+              ? _buildEmptyMessage()
+              : ListView.builder(
+                  itemCount: data.blockedUsers.length,
+                  itemBuilder: (context, index) {
+                    final user = data.blockedUsers[index];
+                    return StatusUserTile(
+                      user: user,
+                      style: Style.blocked,
+                      onCliked: () =>
+                          _showUnblockDialog(context, user, viewModel),
+                    );
+                  },
                 );
-              },
-            ),
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(
+          child: Text(
+            'Something went wrong: $error',
+            style: const TextStyle(color: Colors.red),
+          ),
+        ),
+      ),
     );
   }
 
@@ -62,13 +72,13 @@ class BlockedUsersView extends ConsumerWidget {
 
   void _showUnblockDialog(
     BuildContext context,
-    User user,
+    UserModel user,
     BlockedUsersViewModel viewModel,
   ) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Unblock ${user.displayName}?'),
+        title: Text('Unblock ${user.name!}?'),
         content: const Text('They will be able to interact with you again.'),
         actions: [
           TextButton(
@@ -77,7 +87,7 @@ class BlockedUsersView extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () {
-              viewModel.unblockUser(user.id);
+              viewModel.unblockUser(user.id!);
               Navigator.pop(context);
             },
             child: const Text('Unblock'),

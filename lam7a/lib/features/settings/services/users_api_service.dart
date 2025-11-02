@@ -1,5 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../models/users_model.dart';
+import '../../../core/models/user_model.dart';
 import 'users_api_service_mock.dart';
 
 part 'users_api_service.g.dart';
@@ -10,8 +10,8 @@ UsersApiService usersApiService(Ref ref) {
 }
 
 abstract class UsersApiService {
-  Future<List<User>> getMutedUsers();
-  Future<List<User>> getBlockedUsers();
+  Future<List<UserModel>> getMutedUsers();
+  Future<List<UserModel>> getBlockedUsers();
   Future<void> unmuteUser(String userId);
   Future<void> unblockUser(String userId);
 }

@@ -1,15 +1,11 @@
-import '../../models/users_model.dart';
+import '../../../../core/models/user_model.dart';
 
 class MutedUsersState {
-  final List<User> mutedUsers;
-  final bool isLoading;
+  final List<UserModel> mutedUsers;
 
-  const MutedUsersState({this.mutedUsers = const [], this.isLoading = false});
+  const MutedUsersState({this.mutedUsers = const []});
 
-  MutedUsersState copyWith({List<User>? mutedUsers, bool? isLoading}) {
-    return MutedUsersState(
-      mutedUsers: mutedUsers ?? this.mutedUsers,
-      isLoading: isLoading ?? this.isLoading,
-    );
+  MutedUsersState copyWith({List<UserModel>? mutedUsers}) {
+    return MutedUsersState(mutedUsers: mutedUsers ?? this.mutedUsers);
   }
 }

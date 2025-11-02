@@ -6,7 +6,12 @@ class ChangeUsernameViewModel extends Notifier<ChangeUsernameState> {
   @override
   ChangeUsernameState build() {
     final account = ref.read(accountProvider);
-    return ChangeUsernameState(currentUsername: account.handle);
+    return ChangeUsernameState(
+      currentUsername: account.email!,
+      newUsername: '',
+      isValid: false,
+      isLoading: false,
+    );
   }
 
   void updateUsername(String value) {
@@ -25,7 +30,7 @@ class ChangeUsernameViewModel extends Notifier<ChangeUsernameState> {
     await Future.delayed(const Duration(seconds: 1));
 
     // 🔗 Update global account provider
-    ref.read(accountProvider.notifier).updateHandle(state.newUsername);
+    ref.read(accountProvider.notifier).changeEmail(state.newUsername);
 
     // 🔄 Update local state
     state = state.copyWith(

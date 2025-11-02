@@ -31,7 +31,7 @@ class YourAccountSettings extends ConsumerWidget {
               ),
             ),
             Text(
-              state.handle,
+              state.username!,
               style: theme.textTheme.bodyMedium!.copyWith(
                 color: theme.textTheme.bodySmall!.color,
                 fontSize: 16,
