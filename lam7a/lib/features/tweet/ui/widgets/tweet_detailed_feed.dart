@@ -44,6 +44,9 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
   }
     
  void _handlerepost() {
+    // Guard against null tweet
+    if (widget.tweetState.tweet.value == null) return;
+    
  ref.read(tweetViewModelProvider(widget.tweetState.tweet.value!.id).notifier)
         .handleRepost(
           controllerRepost: _controllerRepost,
@@ -82,6 +85,11 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
   }
   @override
   Widget build(BuildContext context) {
+    // Handle null tweet (e.g., 404 error)
+    if (widget.tweetState.tweet.value == null) {
+      return const SizedBox.shrink();
+    }
+    
     final postId =widget.tweetState.tweet.value!.id;
     final tweetState = ref.watch(tweetViewModelProvider(postId));
     final tweet =tweetState.whenData((tweetState) => tweetState.tweet);
@@ -91,6 +99,8 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
     String qoutesNumStr='';
     String bookmarksNumStr='';
     tweet.whenData((tweet) {
+      if (tweet.value == null) return;
+      
       final viewModel = ref.read(
         tweetViewModelProvider(postId).notifier,
       );
@@ -112,6 +122,9 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
     }
 
     void showRepostQuoteOptions(BuildContext context) {
+    // Guard against null tweet
+    if (widget.tweetState.tweet.value == null) return;
+    
     if(!ref.read(tweetViewModelProvider(widget.tweetState.tweet.value!.id).notifier).getisReposted())
     {showModalBottomSheet(
       context: context,
@@ -164,7 +177,7 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             tweet.when(
-              data: (tweet) => Padding(
+              data: (tweet) => tweet.value != null ? Padding(
                 padding: const EdgeInsets.only(left: 10),
                 child: Text(
                   formatDate(tweet.value!.date),
@@ -174,8 +187,8 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                     color: Colors.grey,
                   ),
                 ),
-              ),
-              loading: () => CircularProgressIndicator(),
+              ) : const SizedBox.shrink(),
+              loading: () => const CircularProgressIndicator(),
               error: (e ,st)=> Text('Error $e'),
             ),
             Text(
@@ -187,7 +200,7 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
               ),
             ),
             tweet.when(
-              data: (tweet) => Padding(
+              data: (tweet) => tweet.value != null ? Padding(
                 padding: const EdgeInsets.only(left: 0),
                 child: Text(
                   DateFormat('d MMM yy').format(tweet.value!.date),
@@ -197,8 +210,8 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                     color: Colors.grey,
                   ),
                 ),
-              ),
-              loading: () => CircularProgressIndicator(),
+              ) : const SizedBox.shrink(),
+              loading: () => const CircularProgressIndicator(),
                error: (e ,st)=> Text('Error $e'),
             ),
             Text(
@@ -384,10 +397,13 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                   onTap:  () {
                 showRepostQuoteOptions(context);
                 },
-                  child:
-                      widget.tweetState.isReposted
-                      ? Icon(Icons.loop, color: Colors.green)
-                      : Icon(Icons.loop, color: Colors.grey),
+                  child: tweetState.when(
+                    data: (state) => state.isReposted
+                        ? Icon(Icons.loop, color: Colors.green)
+                        : Icon(Icons.loop, color: Colors.grey),
+                    loading: () => Icon(Icons.loop, color: Colors.grey),
+                    error: (_, __) => Icon(Icons.loop, color: Colors.grey),
+                  ),
                 ),
               ),
             ),
@@ -404,11 +420,13 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                         .read(tweetViewModelProvider(postId).notifier)
                         .handleLike(controller: _controller);
                   },
-                  child:
-                      
-                          widget.tweetState.isLiked
-                      ? Icon(Icons.favorite, color: Colors.red)
-                      : Icon(Icons.favorite_border, color: Colors.grey),
+                  child: tweetState.when(
+                    data: (state) => state.isLiked
+                        ? Icon(Icons.favorite, color: Colors.red)
+                        : Icon(Icons.favorite_border, color: Colors.grey),
+                    loading: () => Icon(Icons.favorite_border, color: Colors.grey),
+                    error: (_, __) => Icon(Icons.favorite_border, color: Colors.grey),
+                  ),
                 ),
               ),
             ),
