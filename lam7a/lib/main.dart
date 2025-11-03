@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/services/api_service.dart';
+import 'package:lam7a/core/services/socket_service.dart';
 import 'package:lam7a/core/theme/theme.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authentication_login_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
+import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
 import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
@@ -18,7 +19,10 @@ void main() async {
   final container = ProviderContainer();
   await Future.wait([container.read(apiServiceProvider).initialize()]);
   await container.read(authenticationProvider.notifier).isAuthenticated();
-  print(container.read(authenticationProvider).isAuthenticated);
+
+  container.listen(socketInitializerProvider, (_,_)=>{});
+  container.read(messagesSocketServiceProvider).setUpListners();
+
   runApp(UncontrolledProviderScope(child: MyApp(), container: container));
 
   // TO TEST ADD TWEET SCREEN ONLY (No auth): Uncomment lines below

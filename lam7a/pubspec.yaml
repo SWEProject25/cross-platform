@@ -43,9 +43,11 @@ dependencies:
   image_picker: ^1.2.0
   skeletonizer: ^2.1.0+1
   timeago: ^3.7.1
+  socket_io_client: ^3.1.2
 
   #cashing
   shared_preferences: ^2.5.3
+  logger: ^2.6.2
   
 dev_dependencies:
   freezed: ^3.1.0
