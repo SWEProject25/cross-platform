@@ -43,6 +43,8 @@ class ChangeEmailViewModel extends Notifier<ChangeEmailState> {
 
   Future<void> goToOtpVerification(BuildContext context) async {
     try {
+      state = state.copyWith(isLoading: true);
+
       if (Validators.isValidEmail(state.email)) {
         final accountRepo = ref.read(myUserRepositoryProvider);
         if (!await accountRepo.checkEmailExists(state.email)) {
@@ -53,7 +55,10 @@ class ChangeEmailViewModel extends Notifier<ChangeEmailState> {
         throw Exception("wrong email form");
       }
     } catch (e) {
-      // later
+      // handle error later
+      _showErrorDialog(context);
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -77,6 +82,16 @@ class ChangeEmailViewModel extends Notifier<ChangeEmailState> {
 
   Future<void> saveEmail() async {
     ref.read(accountProvider.notifier).changeEmail(state.email);
+  }
+
+  Future<void> ResendOtp() async {
+    try {
+      final accountRepo = ref.read(myUserRepositoryProvider);
+      await accountRepo.sendOtp(state.email);
+    } catch (e) {
+      // Handle error
+      print('Error resending OTP in viewmodel');
+    }
   }
 
   Future<bool> validatePassword(BuildContext context) async {

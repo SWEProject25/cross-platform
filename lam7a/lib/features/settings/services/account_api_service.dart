@@ -27,4 +27,5 @@ abstract class AccountApiService {
   Future<bool> checkEmailExists(String email);
   Future<bool> validateOtp(String email, String otp);
   Future<void> sendOtp(String email);
+  Future<void> resendOtp(String email);
 }

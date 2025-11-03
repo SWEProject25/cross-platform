@@ -14,12 +14,14 @@ class AccountApiServiceImpl implements AccountApiService {
     // return _mockUser;
     try {
       final result = await _api.get<UserModel>(
-        endpoint: ServerConstant.me, // dummy endpoint for now
-        fromJson: (data) => UserModel.fromJson(data['data']),
+        endpoint: ServerConstant.me,
+        fromJson: (data) => UserModel.fromJson(data['data']['user']),
       );
+      print('Fetched User Info: $result');
       return result;
     } catch (e) {
       // Handle error
+      print('Error fetching user info: $e');
       rethrow;
     }
   }
@@ -27,12 +29,13 @@ class AccountApiServiceImpl implements AccountApiService {
   @override
   Future<void> changeEmail(String newEmail) async {
     try {
-      await _api.post(
-        endpoint: ServerConstant.checkEmailEndPoint,
+      await _api.patch(
+        endpoint: ServerConstant.updateEmail,
         data: {'email': newEmail},
       );
     } catch (e) {
-      // Handle error
+      print('Error changing email in api service');
+      rethrow;
     }
   }
 
@@ -60,12 +63,13 @@ class AccountApiServiceImpl implements AccountApiService {
   @override
   Future<void> changeUsername(String newUsername) async {
     try {
-      await _api.post(
+      await _api.patch(
         endpoint: ServerConstant.changeUsername,
         data: {'username': newUsername},
       );
     } catch (e) {
-      // Handle error
+      print('Error changing username in api service');
+      rethrow;
     }
   }
 
@@ -73,12 +77,14 @@ class AccountApiServiceImpl implements AccountApiService {
   Future<bool> validatePassword(String password) async {
     try {
       final response = await _api.post<Map<String, dynamic>>(
-        endpoint: '/user/validate-password',
+        endpoint: ServerConstant.validatePassword,
         data: {'password': password},
       );
-      return response['isValid'] ?? false;
+
+      // Extract the 'isValid' field safely from response['data']
+      return response['data']?['isValid'] ?? false;
     } catch (e) {
-      // Handle error
+      print('Error validating password in api service');
       return false;
     }
   }
@@ -93,7 +99,7 @@ class AccountApiServiceImpl implements AccountApiService {
       return response['exists'] ?? false;
     } catch (e) {
       // Handle error
-      return false;
+      return true;
     }
   }
 
@@ -104,7 +110,7 @@ class AccountApiServiceImpl implements AccountApiService {
         endpoint: ServerConstant.verifyOTP,
         data: {'email': email, 'otp': otp},
       );
-      return response['isValid'] ?? false;
+      return response['status'] == 'success';
     } catch (e) {
       // Handle error
       return false;
@@ -119,7 +125,19 @@ class AccountApiServiceImpl implements AccountApiService {
         data: {'email': email},
       );
     } catch (e) {
-      // Handle error
+      print('Error sending OTP in api service');
+    }
+  }
+
+  @override
+  Future<void> resendOtp(String email) async {
+    try {
+      await _api.post(
+        endpoint: ServerConstant.resendOTP,
+        data: {'email': email},
+      );
+    } catch (e) {
+      print('Error sending re-send OTP in api service');
     }
   }
 }

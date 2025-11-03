@@ -14,6 +14,8 @@ class YourAccountSettings extends ConsumerWidget {
     final theme = Theme.of(context);
     final state = ref.watch(accountProvider);
 
+    print('Account State: $state');
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -24,16 +26,16 @@ class YourAccountSettings extends ConsumerWidget {
           children: [
             Text(
               'Your account',
-              style: theme.textTheme.titleLarge!.copyWith(
-                color: theme.textTheme.titleLarge!.color,
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: theme.textTheme.titleLarge?.color,
                 fontWeight: FontWeight.w500,
                 fontSize: 20,
               ),
             ),
             Text(
               state.username!,
-              style: theme.textTheme.bodyMedium!.copyWith(
-                color: theme.textTheme.bodySmall!.color,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.textTheme.bodySmall?.color,
                 fontSize: 16,
               ),
             ),
@@ -49,8 +51,8 @@ class YourAccountSettings extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12.0),
               child: Text(
                 'See information about your account, download an archive of your data or learn about your account deactivation options.',
-                style: theme.textTheme.bodyMedium!.copyWith(
-                  color: theme.textTheme.bodySmall!.color,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.textTheme.bodySmall?.color,
                   height: 1.4,
                 ),
               ),

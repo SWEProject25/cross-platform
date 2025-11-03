@@ -18,14 +18,14 @@ class ChangeEmailView extends ConsumerWidget {
         children: [
           const SizedBox(height: 80),
           const Text(
-            'Change email',
+            'Change Email',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
           Text(
-            'Your current email address is ${originalState.email}.\n'
+            'Your current email address is ${originalState.email}.'
             'What would you like to update it to?',
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.start,
             style: const TextStyle(color: Colors.grey),
           ),
           const SizedBox(height: 20),

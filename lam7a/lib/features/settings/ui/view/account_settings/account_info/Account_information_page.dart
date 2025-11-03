@@ -26,7 +26,7 @@ class AccountInformationPage extends ConsumerWidget {
               ),
             ),
             Text(
-              state.email!,
+              state.username!,
               style: theme.textTheme.bodyMedium!.copyWith(
                 color: theme.textTheme.bodySmall!.color,
                 fontSize: 16,
@@ -58,7 +58,7 @@ class AccountInformationPage extends ConsumerWidget {
               );
             },
           ),
-          AccountInfoTile(title: 'Country', value: state.location!),
+          AccountInfoTile(title: 'Country', value: state.location ?? "Egypt"),
           _buildLogoutTile(context),
         ],
       ),

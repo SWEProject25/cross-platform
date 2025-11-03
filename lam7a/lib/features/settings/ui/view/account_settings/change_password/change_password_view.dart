@@ -36,7 +36,7 @@ class ChangePasswordView extends ConsumerWidget {
               obscureText: true,
               showToggleIcon: true,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             SettingsTextField(
               label: 'New password',
               hint: 'At least 8 characters',
@@ -47,7 +47,7 @@ class ChangePasswordView extends ConsumerWidget {
               obscureText: true,
               showToggleIcon: true,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             SettingsTextField(
               label: 'Confirm password',
               hint: 'At least 8 characters',
@@ -58,7 +58,7 @@ class ChangePasswordView extends ConsumerWidget {
               obscureText: true,
               showToggleIcon: true,
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
 
             Center(
               child: FilledButton(
@@ -73,7 +73,7 @@ class ChangePasswordView extends ConsumerWidget {
                   ),
                 ),
                 onPressed: state.isValid
-                    ? () => notifier.ChangePassword(context)
+                    ? () => notifier.changePassword(context)
                     : null,
                 child: const Text(
                   'Update password',
@@ -84,7 +84,7 @@ class ChangePasswordView extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             Center(
               child: TextButton(
                 onPressed: () {
@@ -95,7 +95,7 @@ class ChangePasswordView extends ConsumerWidget {
                 },
                 child: Text(
                   'Forgot password?',
-                  style: theme.textTheme.bodySmall!,
+                  style: theme.textTheme.bodyMedium!,
                 ),
               ),
             ),

@@ -7,7 +7,7 @@ class ChangeUsernameViewModel extends Notifier<ChangeUsernameState> {
   ChangeUsernameState build() {
     final account = ref.read(accountProvider);
     return ChangeUsernameState(
-      currentUsername: account.email!,
+      currentUsername: account.username!,
       newUsername: '',
       isValid: false,
       isLoading: false,
@@ -20,25 +20,30 @@ class ChangeUsernameViewModel extends Notifier<ChangeUsernameState> {
   }
 
   bool _validateUsername(String username) {
-    return username.isNotEmpty && username.startsWith('@');
+    return username.isNotEmpty;
   }
 
   Future<void> saveUsername() async {
-    if (!state.isValid) return;
-
     state = state.copyWith(isLoading: true);
-    await Future.delayed(const Duration(seconds: 1));
 
+    try {
+      await ref
+          .read(accountProvider.notifier)
+          .changeUsername(state.newUsername);
+
+      state = state.copyWith(
+        currentUsername: state.newUsername,
+        newUsername: '',
+        isValid: false,
+        isLoading: false,
+      );
+    } catch (e) {
+      // Handle error (e.g., show a snackbar)
+      print('Error changing username: $e');
+    }
     // 🔗 Update global account provider
-    ref.read(accountProvider.notifier).changeEmail(state.newUsername);
 
     // 🔄 Update local state
-    state = state.copyWith(
-      currentUsername: state.newUsername,
-      newUsername: '',
-      isValid: false,
-      isLoading: false,
-    );
   }
 }
 

@@ -17,6 +17,6 @@ class UserRelationsRepository {
   Future<List<UserModel>> fetchMutedUsers() => _api.getMutedUsers();
   Future<List<UserModel>> fetchBlockedUsers() => _api.getBlockedUsers();
 
-  Future<void> unmuteUser(String userId) => _api.unmuteUser(userId);
-  Future<void> unblockUser(String userId) => _api.unblockUser(userId);
+  Future<void> unmuteUser(int userId) => _api.unmuteUser(userId);
+  Future<void> unblockUser(int userId) => _api.unblockUser(userId);
 }

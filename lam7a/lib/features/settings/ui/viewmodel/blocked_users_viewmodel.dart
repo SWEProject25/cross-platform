@@ -12,7 +12,7 @@ class BlockedUsersViewModel extends AsyncNotifier<BlockedUsersState> {
     return BlockedUsersState(blockedUsers: users);
   }
 
-  Future<void> unblockUser(String userId) async {
+  Future<void> unblockUser(int userId) async {
     final previousState = state.asData?.value;
     if (previousState == null) return;
 

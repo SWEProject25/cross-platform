@@ -27,4 +27,5 @@ class AccountSettingsRepository {
   Future<bool> validateOtp(String email, String otp) =>
       _api.validateOtp(email, otp);
   Future<void> sendOtp(String email) => _api.sendOtp(email);
+  Future<void> resendOtp(String email) => _api.resendOtp(email);
 }

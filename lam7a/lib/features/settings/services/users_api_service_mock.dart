@@ -5,14 +5,14 @@ import '../../../core/models/user_model.dart';
 class UsersApiServiceMock implements UsersApiService {
   final List<UserModel> _mockMuted = [
     const UserModel(
-      id: '1',
+      id: 1,
       username: '@john_doe',
       name: 'John Doe',
       bio: 'Coffee lover ☕',
       profileImageUrl: 'https://cdn-icons-png.flaticon.com/512/147/147144.png',
     ),
     const UserModel(
-      id: '2',
+      id: 2,
       username: '@jane_doe',
       name: 'Jane Doe',
       bio: 'Traveler ✈️ | Writer ✍️',
@@ -22,7 +22,7 @@ class UsersApiServiceMock implements UsersApiService {
 
   final List<UserModel> _mockBlocked = [
     const UserModel(
-      id: '3',
+      id: 3,
       username: '@mark_coder',
       name: 'Mark Coder',
       bio: 'Tech enthusiast 💻',
@@ -43,12 +43,12 @@ class UsersApiServiceMock implements UsersApiService {
   }
 
   @override
-  Future<void> unmuteUser(String userId) async {
+  Future<void> unmuteUser(int userId) async {
     _mockMuted.removeWhere((u) => u.id == userId);
   }
 
   @override
-  Future<void> unblockUser(String userId) async {
+  Future<void> unblockUser(int userId) async {
     _mockBlocked.removeWhere((u) => u.id == userId);
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/models/user_model.dart';
 import 'users_api_service_mock.dart';
@@ -12,6 +14,6 @@ UsersApiService usersApiService(Ref ref) {
 abstract class UsersApiService {
   Future<List<UserModel>> getMutedUsers();
   Future<List<UserModel>> getBlockedUsers();
-  Future<void> unmuteUser(String userId);
-  Future<void> unblockUser(String userId);
+  Future<void> unmuteUser(int userId);
+  Future<void> unblockUser(int userId);
 }

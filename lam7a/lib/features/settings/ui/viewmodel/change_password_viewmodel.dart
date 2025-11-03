@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path/path.dart';
 import '../state/change_password_state.dart';
-import 'account_viewmodel.dart';
 import '../../repository/my_user_repository.dart';
+import '../../utils/validators.dart';
 
 class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
   @override
@@ -80,9 +79,24 @@ class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
     } else if (newPass.length < 8) {
       error = 'Password must be at least 8 characters';
     } else {
-      error = null;
-    }
+      final strength = Validators.getPasswordStrength(newPass);
 
+      switch (strength) {
+        case PasswordStrength.weak:
+          error = 'Password is too weak — add more variety and length.';
+          break;
+        case PasswordStrength.medium:
+          error =
+              'please add at least one uppercase letter, lowercase letter, number, and symbol';
+          break;
+        case PasswordStrength.strong:
+          error = null; // acceptable strength
+          break;
+        case PasswordStrength.veryStrong:
+          error = null; // best case
+          break;
+      }
+    }
     state = state.copyWith(newPasswordError: error);
     _updateButtonState();
   }
@@ -101,19 +115,23 @@ class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
     } else {
       error = null;
     }
-
     state = state.copyWith(confirmPasswordError: error);
     _updateButtonState();
   }
 
   // Simulate backend password check
-  Future<void> ChangePassword(BuildContext context) async {
+  Future<void> changePassword(BuildContext context) async {
     final current = state.currentController.text.trim();
     final newPassword = state.newController.text.trim();
 
     final accountRepo = ref.read(myUserRepositoryProvider);
     try {
       await accountRepo.changePassword(current, newPassword);
+      // On success, you might want to show a success message or navigate away
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password changed successfully')),
+      );
+      Navigator.of(context).pop(); // Go back after successful change
     } catch (e) {
       _showErrorDialog(context);
     }

@@ -9,7 +9,7 @@ class SettingsTextField extends StatefulWidget {
   final FocusNode? focusNode;
   final String? errorText;
   final bool obscureText;
-  final bool showToggleIcon; // 👈 new parameter
+  final bool showToggleIcon;
 
   const SettingsTextField({
     super.key,
@@ -21,7 +21,7 @@ class SettingsTextField extends StatefulWidget {
     this.focusNode,
     this.errorText,
     this.obscureText = false,
-    this.showToggleIcon = false, // 👈 default: false
+    this.showToggleIcon = false,
   });
 
   @override
@@ -78,10 +78,10 @@ class _SettingsTextFieldState extends State<SettingsTextField> {
               borderSide: BorderSide(color: Colors.redAccent),
             ),
             contentPadding: const EdgeInsets.symmetric(
-              vertical: 10.0,
+              vertical: 8,
               horizontal: 0,
             ),
-            // 👇 Add suffix icon if showToggleIcon is true
+
             suffixIcon: widget.showToggleIcon
                 ? IconButton(
                     icon: Icon(

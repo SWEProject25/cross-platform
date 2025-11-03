@@ -71,4 +71,9 @@ class AccountApiServiceMock implements AccountApiService {
   Future<void> sendOtp(String email) async {
     await Future.delayed(const Duration(seconds: 1));
   }
+
+  @override
+  Future<void> resendOtp(String email) async {
+    await Future.delayed(const Duration(seconds: 1));
+  }
 }

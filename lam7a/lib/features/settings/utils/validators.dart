@@ -15,34 +15,34 @@ class Validators {
   }
 
   static PasswordStrength getPasswordStrength(String password) {
+    // Rule 1: too short
     if (password.length < 8) {
       return PasswordStrength.weak;
     }
 
-    final hasUppercase = password.contains(RegExp(r'[A-Z]'));
-    final hasLowercase = password.contains(RegExp(r'[a-z]'));
-    final hasNumber = password.contains(RegExp(r'\d'));
-    final hasSpecial = password.contains(RegExp(r'[\W_]'));
+    // Count occurrences of each type
+    final upperCount = RegExp(r'[A-Z]').allMatches(password).length;
+    final lowerCount = RegExp(r'[a-z]').allMatches(password).length;
+    final numberCount = RegExp(r'\d').allMatches(password).length;
+    final specialCount = RegExp(r'[\W_]').allMatches(password).length;
 
-    final strengthCriteria = [
-      hasUppercase,
-      hasLowercase,
-      hasNumber,
-      hasSpecial,
-    ];
-    final metCriteria = strengthCriteria.where((criteria) => criteria).length;
-
-    switch (metCriteria) {
-      case 1:
-        return PasswordStrength.weak;
-      case 2:
-        return PasswordStrength.medium;
-      case 3:
-        return PasswordStrength.strong;
-      case 4:
-        return PasswordStrength.veryStrong;
-      default:
-        return PasswordStrength.weak;
+    // Rule 4: at least two of each → very strong
+    if (upperCount >= 2 &&
+        lowerCount >= 2 &&
+        numberCount >= 2 &&
+        specialCount >= 2) {
+      return PasswordStrength.veryStrong;
     }
+
+    // Rule 3: at least one of each → strong
+    if (upperCount >= 1 &&
+        lowerCount >= 1 &&
+        numberCount >= 1 &&
+        specialCount >= 1) {
+      return PasswordStrength.strong;
+    }
+
+    // Rule 2: length ok but missing something → medium
+    return PasswordStrength.medium;
   }
 }

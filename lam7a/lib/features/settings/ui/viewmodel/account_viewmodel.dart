@@ -83,7 +83,8 @@ class AccountViewModel extends Notifier<UserModel> {
 
       updateUsernameLocalState(newUsername);
     } catch (e) {
-      // handle or rethrow error
+      print("error in account view model change username");
+      rethrow;
     }
   }
 

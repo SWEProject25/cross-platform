@@ -5,11 +5,13 @@ class ChangeEmailState {
   final String password;
   final String email;
   final String otp;
+  final bool isLoading;
 
   const ChangeEmailState({
     this.currentPage = ChangeEmailPage.verifyPassword,
     this.password = '',
     this.email = '',
+    this.isLoading = false,
     this.otp = '',
   });
 
@@ -18,12 +20,14 @@ class ChangeEmailState {
     String? password,
     String? email,
     String? otp,
+    bool? isLoading,
   }) {
     return ChangeEmailState(
       currentPage: currentPage ?? this.currentPage,
       password: password ?? this.password,
       email: email ?? this.email,
       otp: otp ?? this.otp,
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 

@@ -12,7 +12,7 @@ class MutedUsersViewModel extends AsyncNotifier<MutedUsersState> {
     return MutedUsersState(mutedUsers: users);
   }
 
-  Future<void> unmuteUser(String userId) async {
+  Future<void> unmuteUser(int userId) async {
     try {
       final currentState = state.value;
       if (currentState == null) return;
