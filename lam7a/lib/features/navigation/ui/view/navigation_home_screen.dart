@@ -161,7 +161,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           bottomNavigationBar: AnimatedContainer(
             duration: const Duration(milliseconds: 350),
             curve: Curves.easeInOut,
-            height: _isVisible ? MediaQuery.of(context).size.height * 0.07 : 0,
+            height: _isVisible ? MediaQuery.of(context).size.height * 0.09 : 0,
             child: AnimatedOpacity(
               duration: const Duration(milliseconds: 350),
               curve: Curves.easeInOut,
