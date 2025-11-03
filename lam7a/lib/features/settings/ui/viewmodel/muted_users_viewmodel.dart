@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../repository/users_repository.dart';
+import '../../repository/user_releations_repository.dart';
 import '../state/muted_users_state.dart';
 
 class MutedUsersViewModel extends AsyncNotifier<MutedUsersState> {
@@ -7,7 +7,7 @@ class MutedUsersViewModel extends AsyncNotifier<MutedUsersState> {
 
   @override
   Future<MutedUsersState> build() async {
-    _repo = ref.read(usersRepositoryProvider);
+    _repo = ref.read(userRelationsRepositoryProvider);
     final users = await _repo.fetchMutedUsers();
     return MutedUsersState(mutedUsers: users);
   }

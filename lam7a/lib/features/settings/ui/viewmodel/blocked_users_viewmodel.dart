@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../repository/users_repository.dart';
+import '../../repository/user_releations_repository.dart';
 import '../state/blocked_users_state.dart';
 
 class BlockedUsersViewModel extends AsyncNotifier<BlockedUsersState> {
@@ -7,7 +7,7 @@ class BlockedUsersViewModel extends AsyncNotifier<BlockedUsersState> {
 
   @override
   Future<BlockedUsersState> build() async {
-    _repo = ref.read(usersRepositoryProvider);
+    _repo = ref.read(userRelationsRepositoryProvider);
     final users = await _repo.fetchBlockedUsers();
     return BlockedUsersState(blockedUsers: users);
   }

@@ -2,10 +2,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/models/user_model.dart';
 import '../services/account_api_service.dart';
 
-part 'my_user_repository.g.dart';
+part 'account_settings_repository.g.dart';
 
 @riverpod
-AccountSettingsRepository myUserRepository(Ref ref) {
+AccountSettingsRepository accountSettingsRepo(Ref ref) {
   return AccountSettingsRepository(ref.read(accountApiServiceImplProvider));
 }
 

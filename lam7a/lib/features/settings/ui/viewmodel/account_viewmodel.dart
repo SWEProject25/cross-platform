@@ -1,13 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/models/user_model.dart';
-import '../../repository/my_user_repository.dart';
+import '../../repository/account_settings_repository.dart';
 
 class AccountViewModel extends Notifier<UserModel> {
   late final AccountSettingsRepository _repo;
 
   @override
   UserModel build() {
-    _repo = ref.read(myUserRepositoryProvider);
+    _repo = ref.read(accountSettingsRepoProvider);
 
     // initial empty state before data is loaded
     _loadAccountInfo();

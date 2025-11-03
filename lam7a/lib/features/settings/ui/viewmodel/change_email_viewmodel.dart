@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/change_email_state.dart';
 import 'account_viewmodel.dart';
 import '../../utils/validators.dart';
-import '../../repository/my_user_repository.dart';
+import '../../repository/account_settings_repository.dart';
 
 class ChangeEmailViewModel extends Notifier<ChangeEmailState> {
   @override
@@ -46,7 +46,7 @@ class ChangeEmailViewModel extends Notifier<ChangeEmailState> {
       state = state.copyWith(isLoading: true);
 
       if (Validators.isValidEmail(state.email)) {
-        final accountRepo = ref.read(myUserRepositoryProvider);
+        final accountRepo = ref.read(accountSettingsRepoProvider);
         if (!await accountRepo.checkEmailExists(state.email)) {
           state = state.copyWith(currentPage: ChangeEmailPage.verifyOtp);
           await accountRepo.sendOtp(state.email);
@@ -70,7 +70,7 @@ class ChangeEmailViewModel extends Notifier<ChangeEmailState> {
   ///           api service
   /////////////////////////////////////////////////////////////////////
   Future<void> validateOtp(BuildContext context) async {
-    final accountVM = ref.read(myUserRepositoryProvider);
+    final accountVM = ref.read(accountSettingsRepoProvider);
     final validOtp = await accountVM.validateOtp(state.email, state.otp);
     if (validOtp) {
       saveEmail();
@@ -86,7 +86,7 @@ class ChangeEmailViewModel extends Notifier<ChangeEmailState> {
 
   Future<void> ResendOtp() async {
     try {
-      final accountRepo = ref.read(myUserRepositoryProvider);
+      final accountRepo = ref.read(accountSettingsRepoProvider);
       await accountRepo.sendOtp(state.email);
     } catch (e) {
       // Handle error
@@ -95,7 +95,7 @@ class ChangeEmailViewModel extends Notifier<ChangeEmailState> {
   }
 
   Future<bool> validatePassword(BuildContext context) async {
-    final accountRepo = ref.read(myUserRepositoryProvider);
+    final accountRepo = ref.read(accountSettingsRepoProvider);
     final isValid = await accountRepo.validatePassword(state.password);
     if (!isValid) {
       _showErrorDialog(context);

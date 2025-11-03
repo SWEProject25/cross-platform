@@ -2,10 +2,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/models/user_model.dart';
 import '../services/users_api_service.dart';
 
-part 'users_repository.g.dart';
+part 'user_releations_repository.g.dart';
 
 @riverpod
-UserRelationsRepository usersRepository(Ref ref) {
+UserRelationsRepository userRelationsRepository(Ref ref) {
   return UserRelationsRepository(ref.read(usersApiServiceProvider));
 }
 
