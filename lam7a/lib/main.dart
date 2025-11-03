@@ -46,7 +46,7 @@ class _MyAppState extends ConsumerState<MyApp> {
         return MaterialApp(
           title: 'lam7a',
           theme: AppTheme.light,
-          darkTheme: xDarkTheme,
+          darkTheme: AppTheme.dark, // xDarkTheme to test settings
           themeMode: ThemeMode.dark,
           routes: {
             FirstTimeScreen.routeName: (context) => FirstTimeScreen(),
