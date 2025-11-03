@@ -7,10 +7,12 @@ import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
+import 'package:lam7a/features/messaging/ui/view/conversations_screen.dart';
 import 'package:lam7a/features/navigation/ui/viewmodel/navigation_viewmodel.dart';
 import 'package:lam7a/features/navigation/ui/widgets/list_memeber.dart';
 import 'package:lam7a/features/navigation/ui/widgets/profile_block.dart';
 import 'package:lam7a/features/navigation/utils/models/user_main_data.dart';
+import 'package:lam7a/features/notifications/ui/views/notifications_screen.dart';
 
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
@@ -32,12 +34,10 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         final viewmodel = ref.watch(navigationViewModelProvider.notifier);
         UserModel? user = ref.watch(authenticationProvider).user;
         List<Widget> pages = [
+          Center(child: Text("Home Screen")),
           Center(child: Text("Search Screen")),
-          Center(child: Text("Friends Screen")),
-          Center(child: Text("Notifications Screen")),
-          Center(child: Text("Messages Screen")),
-          Center(child: Text("Messages Screen")),
-          Center(child: Text("Messages Screen")),
+          Center(child: NotificationsScreen()),
+          Center(child: ConversationsScreen()),
         ];
         List<Widget> drawerItems = [
           ListMember("Profile", () {}, iconPath: AppAssets.ProfileIcon),
@@ -198,10 +198,6 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                       BottomNavigationBarItem(
                         icon: Icon(Icons.search),
                         label: "search",
-                      ),
-                      BottomNavigationBarItem(
-                        icon: ImageIcon(AssetImage(AppAssets.friendsIcon)),
-                        label: "friends",
                       ),
                       BottomNavigationBarItem(
                         icon: ImageIcon(

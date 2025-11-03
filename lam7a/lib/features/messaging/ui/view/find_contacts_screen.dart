@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/features/messaging/model/contact.dart';
+import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
+import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
+import 'package:path/path.dart';
 import '../viewmodel/conversations_viewmodel.dart';
 
 class FindContactsScreen extends ConsumerWidget {
@@ -7,16 +11,14 @@ class FindContactsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var theme = Theme.of(context);
-    final conversationsViewModel = ref.watch(conversationsViewModelProvider);
+    final state = ref.watch(conversationsViewModelProvider);
+    final viewModel = ref.read(conversationsViewModelProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Direct Message',
-        ),
+        title: Text('Direct Message'),
         centerTitle: false,
         elevation: 0,
-
       ),
       body: Column(
         children: [
@@ -24,12 +26,13 @@ class FindContactsScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: TextField(
-              
+              onChanged: viewModel.onQueryChanged,
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search),
                 hintStyle: TextStyle(color: Colors.grey[600]),
                 contentPadding: const EdgeInsets.all(12),
                 fillColor: theme.colorScheme.surface,
+                errorText: state.searchQueryError,
               ),
             ),
           ),
@@ -43,51 +46,42 @@ class FindContactsScreen extends ConsumerWidget {
             ),
             title: const Text(
               'Create a group',
-              style: TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
             ),
             onTap: () {},
           ),
 
           // Conversation list
           Expanded(
-            child: conversationsViewModel.contacts.when(
+            child: state.contacts.when(
               data: (conversations) => ListView.separated(
-              itemCount: conversations.length,
-              separatorBuilder: (_, __) => const Divider(height: 0),
-              itemBuilder: (context, index) {
-                final c = conversations[index];
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: NetworkImage(c.avatarUrl),
-                    radius: 19,
-                  ),
-                  title: Text(
-                    c.name,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: Text(
-                    c.handle,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
+                itemCount: conversations.length,
+                separatorBuilder: (_, __) => const Divider(height: 0),
+                itemBuilder: (context, index) {
+                  final c = conversations[index];
+                  return ListTile(
+                    leading: NetworkAvatar(url: c.avatarUrl, radius: 19),
+                    title: Text(
+                      c.name,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
-                  ),
-                  onTap: () {
-                    // Signal navigation (can be triggered from ViewModel)
-                    Navigator.pushNamed(context, '/chat', arguments: c);
-                  },
-                );
-              },
-            ),
-              error: (error, stack) => Center(
-                child: Text('Error: $error'),
+                    subtitle: Text(
+                      c.handle,
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    ),
+                    onTap: () {
+                      // Signal navigation (can be triggered from ViewModel)
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => ChatScreen(userId: c.id),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
-              loading: () => const Center(
-                child: CircularProgressIndicator(),
-              ),
+              error: (error, stack) => Center(child: Text('Error: $error')),
+              loading: () => const Center(child: CircularProgressIndicator()),
             ),
           ),
         ],
@@ -95,3 +89,4 @@ class FindContactsScreen extends ConsumerWidget {
     );
   }
 }
+

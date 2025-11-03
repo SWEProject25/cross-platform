@@ -4,10 +4,10 @@ import 'package:lam7a/core/app_icons.dart';
 import 'package:lam7a/core/widgets/app_svg_icon.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
+import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
 import 'package:lam7a/features/messaging/utils.dart';
 import 'package:lam7a/features/messaging/ui/view/find_contacts_screen.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/conversations_viewmodel.dart';
-import 'package:lam7a/features/messaging/ui/widgets/dm_app_bar.dart';
 
 class ConversationsScreen extends ConsumerWidget {
   static const routeName = '/dm';
@@ -19,10 +19,10 @@ class ConversationsScreen extends ConsumerWidget {
     var theme = Theme.of(context);
     final dMListPageViewModel = ref.watch(conversationsViewModelProvider);
     return Scaffold(
-      appBar: DMAppBar(title: 'Direct Message'),
+      // appBar: DMAppBar(title: 'Direct Message'),
       body: dMListPageViewModel.conversations.when(
         data: (data) {
-          return data.length == 0? 
+          return data.isEmpty? 
           Padding(
             padding: const EdgeInsets.all(32.0),
             child: Column(
@@ -56,7 +56,7 @@ class ConversationsScreen extends ConsumerWidget {
         },
         error: (error, stack) {
           return Center(
-            child: Text('Error: $error'),
+            child: Text('Error: $error $stack'),
           );
         },
         loading: () {
@@ -90,10 +90,7 @@ class _ChatListTile extends StatelessWidget {
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      leading: CircleAvatar(
-        radius: 28,
-        backgroundImage: NetworkImage(chat.avatarUrl),
-      ),
+      leading: NetworkAvatar(url: chat.avatarUrl, radius:  28,),
       title: Row(
         children: [
           Expanded(
@@ -117,23 +114,24 @@ class _ChatListTile extends StatelessWidget {
               ],
             ),
           ),
-          Text(
-            " ${timeToTimeAgo(chat.lastMessageTime)}",
-            style: theme.textTheme.bodyMedium,
-          ),
+          if (chat.lastMessage != null)
+            Text(
+              " ${timeToTimeAgo(chat.lastMessageTime!)}",
+              style: theme.textTheme.bodyMedium,
+            ),
         ],
       ),
-      subtitle: Text(
-        chat.lastMessage,
+      subtitle: (chat.lastMessage != null) ? Text(
+        chat.lastMessage!,
         style: theme.textTheme.bodyMedium,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-      ),
+      ) : null,
       onTap: () {
         // TODO: Navigate to chat detail page
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => ChatScreen(id: chat.id),
+            builder: (context) => ChatScreen(userId: chat.userId, conversationId: chat.id),
           ),
         );
       },
