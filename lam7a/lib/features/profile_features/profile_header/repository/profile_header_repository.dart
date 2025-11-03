@@ -1,4 +1,4 @@
-import '../../../profile/model/profile_model.dart';
+import '../../profile/model/profile_model.dart';
 import '../../services/mock_profile_api_service.dart';
 
 class ProfileRepository {

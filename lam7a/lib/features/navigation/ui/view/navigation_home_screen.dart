@@ -15,6 +15,7 @@ import 'package:lam7a/features/navigation/utils/models/user_main_data.dart';
 import 'package:lam7a/features/notifications/ui/views/notifications_screen.dart';
 import 'package:lam7a/features/settings/ui/view/main_settings_page.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
+import 'package:lam7a/features/profile_features/profile_header/ui/widgets/profile_header_widget.dart';
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
 
@@ -41,7 +42,17 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           Center(child: ConversationsScreen()),
         ];
         List<Widget> drawerItems = [
-          ListMember("Profile", () {}, iconPath: AppAssets.ProfileIcon),
+          ListMember("Profile", 
+                      () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfileHeaderWidget(
+                      userId: 'hossam_dev', 
+                    ),
+                  ),
+                );
+              }, iconPath: AppAssets.ProfileIcon),
           ListMember("Chat", () {}, iconPath: AppAssets.chatIcon),
           ListMember(
             "Logout",

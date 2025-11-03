@@ -1,26 +1,28 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/features/profile_features/profile/model/profile_model.dart';
 import '../../repository/edit_profile_repository.dart';
-import '../../model/edit_profile_model.dart';
-import '../../../services/mock_edit_profile_api_service.dart';
+import '../../../services/mock_profile_api_service.dart';
 
 final editProfileRepositoryProvider = Provider<EditProfileRepository>(
-  (ref) => EditProfileRepository(mockService: MockEditProfileAPIService()),
+  (ref) => EditProfileRepository(
+    mockService: MockProfileAPIService(),
+  ),
 );
 
 final editProfileViewModelProvider =
-    AsyncNotifierProvider<EditProfileViewModel, EditProfileModel>(
+    AsyncNotifierProvider<EditProfileViewModel, ProfileHeaderModel>(
         EditProfileViewModel.new);
 
-class EditProfileViewModel extends AsyncNotifier<EditProfileModel> {
+class EditProfileViewModel extends AsyncNotifier<ProfileHeaderModel> {
   late final EditProfileRepository _repository;
 
   @override
-  Future<EditProfileModel> build() async {
+  Future<ProfileHeaderModel> build() async {
     _repository = ref.read(editProfileRepositoryProvider);
-    return await _repository.getProfile();
+    return await _repository.getProfile('hossam_dev');
   }
 
-  Future<void> saveProfile(EditProfileModel updated) async {
+  Future<void> saveProfile(ProfileHeaderModel updated) async {
     state = const AsyncLoading();
     try {
       final updatedProfile = await _repository.updateProfile(updated);

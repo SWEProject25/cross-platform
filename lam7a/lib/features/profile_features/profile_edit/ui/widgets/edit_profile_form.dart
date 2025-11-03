@@ -1,24 +1,26 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../model/edit_profile_model.dart';
-import '../viewmodel/edit_profile_viewmodel.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../../profile/model/profile_model.dart';
 
 class EditProfileForm extends ConsumerStatefulWidget {
-  final EditProfileModel profile;
+  final ProfileHeaderModel profile;
 
-  const EditProfileForm({
-    super.key,
-    required this.profile,
-  });
+  const EditProfileForm({super.key, required this.profile});
 
   @override
-  ConsumerState<EditProfileForm> createState() => _EditProfileFormState();
+  EditProfileFormState createState() => EditProfileFormState();
 }
 
-class _EditProfileFormState extends ConsumerState<EditProfileForm> {
+class EditProfileFormState extends ConsumerState<EditProfileForm> {
   late TextEditingController nameController;
   late TextEditingController bioController;
   late TextEditingController locationController;
+  late TextEditingController birthdayController;
+
+  File? newBanner;
+  File? newAvatar;
 
   @override
   void initState() {
@@ -26,6 +28,7 @@ class _EditProfileFormState extends ConsumerState<EditProfileForm> {
     nameController = TextEditingController(text: widget.profile.displayName);
     bioController = TextEditingController(text: widget.profile.bio);
     locationController = TextEditingController(text: widget.profile.location);
+    birthdayController = TextEditingController(text: widget.profile.joinedDate);
   }
 
   @override
@@ -33,91 +36,112 @@ class _EditProfileFormState extends ConsumerState<EditProfileForm> {
     nameController.dispose();
     bioController.dispose();
     locationController.dispose();
+    birthdayController.dispose();
     super.dispose();
+  }
+
+  Future<void> pickBanner() async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() => newBanner = File(picked.path));
+    }
+  }
+
+  Future<void> pickAvatar() async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() => newAvatar = File(picked.path));
+    }
+  }
+
+  Future<ProfileHeaderModel?> saveProfile() async {
+    final updated = widget.profile.copyWith(
+      displayName: nameController.text,
+      bio: bioController.text,
+      location: locationController.text,
+      bannerImage:
+          newBanner != null ? newBanner!.path : widget.profile.bannerImage,
+      avatarImage:
+          newAvatar != null ? newAvatar!.path : widget.profile.avatarImage,
+    );
+    return updated;
+  }
+
+  ImageProvider<Object> _imageProvider(String path) {
+    if (path.startsWith('http') || path.startsWith('https')) {
+      return NetworkImage(path);
+    } else {
+      return FileImage(File(path));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = ref.watch(editProfileViewModelProvider.notifier);
-    final profileState = ref.watch(editProfileViewModelProvider);
+    final bannerProvider = newBanner != null
+        ? FileImage(newBanner!)
+        : _imageProvider(widget.profile.bannerImage);
+
+    final avatarProvider = newAvatar != null
+        ? FileImage(newAvatar!)
+        : _imageProvider(widget.profile.avatarImage);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           Stack(
             clipBehavior: Clip.none,
             children: [
-              Image.network(
-                widget.profile.bannerImage,
-                width: double.infinity,
-                height: 120,
-                fit: BoxFit.cover,
+              GestureDetector(
+                onTap: pickBanner,
+                child: Image(
+                  image: bannerProvider,
+                  width: double.infinity,
+                  height: 180,
+                  fit: BoxFit.cover,
+                ),
               ),
               Positioned(
-                left: 16,
-                bottom: -40,
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundImage: NetworkImage(widget.profile.avatarImage),
+                bottom: -50,
+                left: 20,
+                child: GestureDetector(
+                  onTap: pickAvatar,
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.white,
+                    backgroundImage: avatarProvider,
+                  ),
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 60),
-
-          _buildTextField(nameController, 'Display Name'),
-          _buildTextField(bioController, 'Bio', maxLines: 3),
-          _buildTextField(locationController, 'Location'),
-
-          const SizedBox(height: 16),
-
-          profileState.when(
-            loading: () => const CircularProgressIndicator(),
-            error: (error, _) => Text('❌ Error: $error'),
-            data: (_) => ElevatedButton(
-              onPressed: () async {
-                final updatedProfile = EditProfileModel(
-                  displayName: nameController.text,
-                  bio: bioController.text,
-                  location: locationController.text,
-                  avatarImage: widget.profile.avatarImage,
-                  bannerImage: widget.profile.bannerImage,
-                );
-
-                await viewModel.saveProfile(updatedProfile);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('✅ Profile saved successfully!')),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-              ),
-              child: const Text('Save Changes'),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: bioController,
+                  decoration: const InputDecoration(labelText: 'Bio'),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: locationController,
+                  decoration: const InputDecoration(labelText: 'Location'),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: birthdayController,
+                  decoration: const InputDecoration(labelText: 'Joined Date'),
+                ),
+              ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String label,
-      {int maxLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: TextField(
-        controller: controller,
-        maxLines: maxLines,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-        ),
       ),
     );
   }

@@ -1,16 +1,16 @@
-import '../../services/mock_edit_profile_api_service.dart';
-import '../model/edit_profile_model.dart';
+import '../../profile/model/profile_model.dart';
+import '../../services/mock_profile_api_service.dart';
 
 class EditProfileRepository {
-  final MockEditProfileAPIService mockService;
+  final MockProfileAPIService mockService;
 
   EditProfileRepository({required this.mockService});
 
-  Future<EditProfileModel> getProfile() async {
-    return await mockService.fetchProfile();
+  Future<ProfileHeaderModel> getProfile(String username) async {
+    return await mockService.fetchProfile(username);
   }
 
-  Future<EditProfileModel> updateProfile(EditProfileModel profile) async {
+  Future<ProfileHeaderModel> updateProfile(ProfileHeaderModel profile) async {
     return await mockService.updateProfile(profile);
   }
 }

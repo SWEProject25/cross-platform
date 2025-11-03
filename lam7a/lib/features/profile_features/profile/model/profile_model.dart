@@ -13,6 +13,7 @@ abstract class ProfileHeaderModel with _$ProfileHeaderModel {
     required String bannerImage,
     @Default(false) bool isVerified,
     required String location,
+    required String birthday,
     required String joinedDate,
     required int followersCount,
     required int followingCount,

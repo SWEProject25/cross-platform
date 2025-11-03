@@ -1,64 +1,48 @@
 import 'package:flutter/material.dart';
-import '../../../../profile/model/profile_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../profile/model/profile_model.dart';
+import '../widgets/edit_profile_form.dart';
 
-class EditProfilePage extends StatefulWidget {
+class EditProfilePage extends ConsumerStatefulWidget {
   final ProfileHeaderModel profile;
 
   const EditProfilePage({super.key, required this.profile});
 
   @override
-  State<EditProfilePage> createState() => _EditProfilePageState();
+  ConsumerState<EditProfilePage> createState() => _EditProfilePageState();
 }
 
-class _EditProfilePageState extends State<EditProfilePage> {
-  late TextEditingController nameController;
-  late TextEditingController bioController;
-
-  @override
-  void initState() {
-    super.initState();
-    nameController = TextEditingController(text: widget.profile.displayName);
-    bioController = TextEditingController(text: widget.profile.bio);
-  }
-
-  @override
-  void dispose() {
-    nameController.dispose();
-    bioController.dispose();
-    super.dispose();
-  }
+class _EditProfilePageState extends ConsumerState<EditProfilePage> {
+  // Key to access the form’s state (so we can trigger save from AppBar)
+  final GlobalKey<EditProfileFormState> _formKey =
+      GlobalKey<EditProfileFormState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Profile')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Display Name'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: bioController,
-              maxLines: 3,
-              decoration: const InputDecoration(labelText: 'Bio'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                final updatedProfile = widget.profile.copyWith(
-                  displayName: nameController.text,
-                  bio: bioController.text,
-                );
+      appBar: AppBar(
+        title: const Text('Edit Profile'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              final updatedProfile = await _formKey.currentState?.saveProfile();
+              if (updatedProfile != null && context.mounted) {
                 Navigator.pop(context, updatedProfile);
-              },
-              child: const Text('Save'),
+              }
+            },
+            child: const Text(
+              'Save',
+              style: TextStyle(
+                color: Colors.blueAccent,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
+      body: EditProfileForm(
+        key: _formKey,
+        profile: widget.profile,
       ),
     );
   }
