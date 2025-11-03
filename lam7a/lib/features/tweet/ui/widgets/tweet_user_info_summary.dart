@@ -54,17 +54,25 @@ class _TweetUserSummaryInfoState extends ConsumerState<TweetUserSummaryInfo> {
               : null,
         ),
         const SizedBox(width: 10, height: 5),
-        Text(
-          displayName,
-          style: const TextStyle(color: Colors.white, fontSize: 20),
+        SizedBox(
+          width: 160,
+          child: Text(
+            displayName,
+            style: const TextStyle(color: Colors.white, fontSize: 20),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
         const SizedBox(width: 10),
-        Text(
+         SizedBox(
+          width: 80,
+        child: Text(
           '@$username',
           style: TextStyle(
             color: Theme.of(context).colorScheme.onPrimary,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
+         ),
         const SizedBox(width: 10),
         Text('${daysPosted}d'),
         const SizedBox(width: 10),

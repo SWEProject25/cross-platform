@@ -57,11 +57,13 @@ class TweetSummaryWidget extends ConsumerWidget {
                       tweetState: tweetState,
                       daysPosted: daysPosted,
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.rocket),
-                      onPressed: () => ref
-                          .read(tweetViewModelProvider(tweet.id).notifier)
-                          .summarizeBody(),
+                    Expanded(
+                      child: IconButton(
+                        icon: const Icon(Icons.rocket),
+                        onPressed: () => ref
+                            .read(tweetViewModelProvider(tweet.id).notifier)
+                            .summarizeBody(),
+                      ),
                     ),
                   ],
                 ),
