@@ -84,6 +84,7 @@ class _VerificationCodeState extends State<VerificationCode> {
             ),
             SizedBox(height: 20),
             TextInputField(
+              key: Key("otpCodeTextField"),
               labelTextField: "verification code",
               flex: 12,
               textType: TextInputType.numberWithOptions(

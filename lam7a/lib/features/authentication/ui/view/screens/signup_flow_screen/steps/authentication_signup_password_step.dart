@@ -49,6 +49,7 @@ class PasswordScreen extends StatelessWidget {
             ),
             SizedBox(height: 20),
             TextInputField(
+              key: Key("passwordSignupTextField"),
               labelTextField: "password",
               isLimited: false,
               flex: 12,

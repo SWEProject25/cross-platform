@@ -37,6 +37,7 @@ class _UserDataSignUp extends State {
             ),
             SizedBox(height: 50),
             TextInputField(
+              key: Key("nameTextField"),
               content: state.name,
               labelTextField: "Name",
               isLimited: true,
@@ -46,6 +47,7 @@ class _UserDataSignUp extends State {
               isValid: state.isValidName,
             ),
             TextInputField(
+              key: Key("emailSignupTextField"),
               content:state.email,
               labelTextField: "Email",
               flex: 8,
@@ -54,13 +56,14 @@ class _UserDataSignUp extends State {
               isValid: state.isValidEmail,
             ),
             TextInputField(
+              key: Key("datePickerTextField"),
               content: state.date,
               labelTextField: "Date picker",
                       flex: 8,
               textType: TextInputType.datetime,
               onChangeEffect: viewModel.updateDateTime,
               isValid: true,
-              isDate: true,
+              isDate: true,// make it false for testing purposes
             ),
           ],
         );
