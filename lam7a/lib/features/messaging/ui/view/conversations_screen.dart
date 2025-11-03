@@ -4,10 +4,10 @@ import 'package:lam7a/core/app_icons.dart';
 import 'package:lam7a/core/widgets/app_svg_icon.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
+import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
 import 'package:lam7a/features/messaging/utils.dart';
 import 'package:lam7a/features/messaging/ui/view/find_contacts_screen.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/conversations_viewmodel.dart';
-import 'package:lam7a/features/messaging/ui/widgets/dm_app_bar.dart';
 
 class ConversationsScreen extends ConsumerWidget {
   static const routeName = '/dm';
@@ -19,59 +19,61 @@ class ConversationsScreen extends ConsumerWidget {
     var theme = Theme.of(context);
     final dMListPageViewModel = ref.watch(conversationsViewModelProvider);
     return Scaffold(
-      appBar: DMAppBar(title: 'Direct Message'),
+      // appBar: DMAppBar(title: 'Direct Message'),
       body: dMListPageViewModel.conversations.when(
         data: (data) {
-          return data.isEmpty? 
-          Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Welcome to your\ninbox!", style: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),),
-                SizedBox(height: 10),
-                Text("Drop a line, share posts and more with private conversations between you and onthers on X.", style: Theme.of(context).textTheme.bodyMedium),
-                SizedBox(height: 30),
-                FilledButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => FindContactsScreen(),
+          return data.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Welcome to your\ninbox!",
+                        style: theme.textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    );
+                      SizedBox(height: 10),
+                      Text(
+                        "Drop a line, share posts and more with private conversations between you and onthers on X.",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      SizedBox(height: 30),
+                      FilledButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => FindContactsScreen(),
+                            ),
+                          );
+                        },
+                        child: Text("Write a message"),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: data.length,
+                  itemBuilder: (context, index) {
+                    final chat = data[index];
+                    return _ChatListTile(chat: chat);
                   },
-                  child: Text("Write a message", ),
-                ),
-              ],
-            ),
-          )
-          : ListView.builder(
-            itemCount: data.length,
-            itemBuilder: (context, index) {
-              final chat = data[index];
-              return _ChatListTile(chat: chat);
-            },
-          );
+                );
         },
         error: (error, stack) {
-          return Center(
-            child: Text('Error: $error'),
-          );
+          return Center(child: Text('Error: $error $stack'));
         },
         loading: () {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const Center(child: CircularProgressIndicator());
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => FindContactsScreen(),
-            ),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (context) => FindContactsScreen()));
         },
         child: AppSvgIcon(AppIcons.add_message),
       ),
@@ -90,10 +92,7 @@ class _ChatListTile extends StatelessWidget {
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      leading: CircleAvatar(
-        radius: 28,
-        backgroundImage: NetworkImage(chat.avatarUrl),
-      ),
+      leading: NetworkAvatar(url: chat.avatarUrl, radius: 28),
       title: Row(
         children: [
           Expanded(
@@ -105,35 +104,38 @@ class _ChatListTile extends StatelessWidget {
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
-            
                 ),
                 Expanded(
                   child: Text(
-                  " @${chat.name.toLowerCase().replaceAll(' ', '')}",
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium,
+                    " @${chat.name.toLowerCase().replaceAll(' ', '')}",
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium,
                   ),
                 ),
               ],
             ),
           ),
-          Text(
-            " ${timeToTimeAgo(chat.lastMessageTime)}",
-            style: theme.textTheme.bodyMedium,
-          ),
+          if (chat.lastMessage != null)
+            Text(
+              " ${timeToTimeAgo(chat.lastMessageTime!)}",
+              style: theme.textTheme.bodyMedium,
+            ),
         ],
       ),
-      subtitle: Text(
-        chat.lastMessage,
-        style: theme.textTheme.bodyMedium,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
+      subtitle: (chat.lastMessage != null)
+          ? Text(
+              chat.lastMessage!,
+              style: theme.textTheme.bodyMedium,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            )
+          : null,
       onTap: () {
         // TODO: Navigate to chat detail page
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => ChatScreen(id: chat.id),
+            builder: (context) =>
+                ChatScreen(userId: chat.userId, conversationId: chat.id),
           ),
         );
       },

@@ -6,10 +6,11 @@ import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps/password_login_step.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps/unique_identifier_step.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
-import 'package:lam7a/features/navigation/view/screens/navigation_home_screen.dart';
+import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 
 List<Widget> loginFlow = [UniqueIdentifier(), PasswordLogin()];
 
@@ -32,9 +33,10 @@ class _loginFlowtate extends State<LogInScreen> {
         ref.listen(authenticationProvider, (previous, next) {
           if (next.isAuthenticated && !(previous?.isAuthenticated ?? false)) {
             if (!context.mounted) return;
+            // Navigate to transmission screen (after auth page) instead of directly to home
             Navigator.pushNamedAndRemoveUntil(
               context,
-              NavigationHomeScreen.routeName,
+              AuthenticationTransmissionScreen.routeName,
               (route) => false,
             );
           }
@@ -90,15 +92,16 @@ class _loginFlowtate extends State<LogInScreen> {
                                 flex: 2,
                                 child: AuthenticationStepButton(
                                   enable: viewmodel.shouldEnableNextLogin(),
-                                  label: loginButtonLabels[currentIndex],
+                                  label: AuthenticationConstants.loginButtonLabels[currentIndex],
                                   onPressedEffect: () {
-                                    if (currentIndex == finishLogin) {
+                                    if (currentIndex == AuthenticationConstants.finishLogin) {
                                       viewmodel.login();
                                       if (authenticationState.isAuthenticated) {
                                         Navigator.pop(context);
+                                        // Navigate to transmission screen (after auth page)
                                         Navigator.pushNamedAndRemoveUntil(
                                           context,
-                                          NavigationHomeScreen.routeName,
+                                          AuthenticationTransmissionScreen.routeName,
                                           (route) => false,
                                         );
                                       }

@@ -5,7 +5,7 @@ import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/profile_picture/profile_picture.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
-import 'package:lam7a/features/navigation/view/screens/navigation_home_screen.dart';
+import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 import 'package:path/path.dart';
 
 class AuthenticationTransmissionScreen extends StatelessWidget {
@@ -71,9 +71,10 @@ class AuthenticationTransmissionScreen extends StatelessWidget {
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pushReplacementNamed(
+                        Navigator.pushNamedAndRemoveUntil(
                           context,
                           NavigationHomeScreen.routeName,
+                          (route) => false,
                         );
                       },
                       style: ElevatedButton.styleFrom(

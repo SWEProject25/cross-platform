@@ -1,5 +1,4 @@
 class ServerConstant {
-  static String domain = "https://hankers-backend.myaddr.tools/api/v1.0";
   static String registrationEndPoint = "/auth/register";
   static String checkEmailEndPoint = "/auth/check-email";
   static String verificationOTP = "/auth/verification-otp";
@@ -10,5 +9,11 @@ class ServerConstant {
   static String refreshToken = "/auth/refresh-token";
   static String forgotPassword = "/auth/forgot-password";
   static String resetPassword = "/auth/reset-password";
-  static String serverURL = "http://backend-code.duckdns.org/dev";
+  static String changePassword = "/auth/changePassword";
+  static String changeUsername = "/auth/update-username";
+  static String validatePassword = "/auth/verifyPassword";
+  static String updateEmail = "/auth/update-email";
+  static String me = "/auth/me";
+  static String apiPrefix = "/api/v1.0";
+  static String serverURL = "https://api.hankers.myaddr.tools";
 }

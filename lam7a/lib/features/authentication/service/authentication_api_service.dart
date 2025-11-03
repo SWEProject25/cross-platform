@@ -1,84 +1,81 @@
-import 'dart:convert';
-
-import 'package:dio/dio.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/constants/server_constant.dart';
 import 'package:lam7a/core/services/api_service.dart';
-import 'package:lam7a/core/utils.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 // import 'package:lam7a/features/authentication/model/user_data_model.dart';
+part 'authentication_api_service.g.dart';
+
+@riverpod
+AuthenticationApiService authenticationApiService(Ref ref) {
+  return AuthenticationApiService(ref.read(apiServiceProvider));
+}
 
 class AuthenticationApiService {
-  Future<Map<String, dynamic>> checkEmail(
-    String email,
-    final apiService,
-  ) async {
+  ApiService apiService;
+  AuthenticationApiService(this.apiService);
+  Future<Map<String, dynamic>> checkEmail(String email) async {
     return await apiService.post(
-      endpoint: ServerConstant.domain + ServerConstant.checkEmailEndPoint,
+      endpoint: ServerConstant.checkEmailEndPoint,
       data: {'email': email},
     );
   }
 
-  Future<Map<String, dynamic>> verificationOTP(
-    String email,
-    final apiService,
-  ) async {
+  Future<Map<String, dynamic>> verificationOTP(String email) async {
     return await apiService.post(
-      endpoint: ServerConstant.domain + ServerConstant.verificationOTP,
+      endpoint: ServerConstant.verificationOTP,
       data: {'email': email},
     );
   }
 
-  Future<Map<String, dynamic>> resendOTP(
-    String email,
-    final apiService,
-  ) async {
+  Future<Map<String, dynamic>> resendOTP(String email) async {
     return await apiService.post(
-      endpoint: ServerConstant.domain + ServerConstant.resendOTP,
+      endpoint: ServerConstant.resendOTP,
       data: {'email': email},
     );
   }
 
-  Future<Map<String, dynamic>> verifyOTP(
-    String email,
-    String OTP,
-    final apiService,
-  ) async {
+  Future<Map<String, dynamic>> verifyOTP(String email, String OTP) async {
     return await apiService.post(
-      endpoint: ServerConstant.domain + ServerConstant.verifyOTP,
+      endpoint: ServerConstant.verifyOTP,
       data: {'email': email, 'otp': OTP},
     );
   }
 
-  Future<Map<String, dynamic>> register(AuthenticationUserDataModel user, final apiService) async {
-   
+  Future<Map<String, dynamic>> register(
+    AuthenticationUserDataModel user,
+  ) async {
     return await apiService.post(
-      endpoint: ServerConstant.domain + ServerConstant.registrationEndPoint,
+      endpoint: ServerConstant.registrationEndPoint,
       data: user.toJson(),
     );
   }
 
-  Future<Map<String, dynamic>> Login(AuthenticationUserCredentialsModel userCredentials,final apiService) async {
+  Future<Map<String, dynamic>> Login(
+    AuthenticationUserCredentialsModel userCredentials,
+  ) async {
+    print("the user credentials are : ${userCredentials.toJson()}");
     return await apiService.post(
-      endpoint: ServerConstant.domain + ServerConstant.login,
+      endpoint: ServerConstant.login,
       data: userCredentials.toJson(),
     );
+    
   }
 
-    Future<void> test(final apiService) async
-    {
-        Map<String, dynamic> res =  await apiService.get(
-      endpoint: ServerConstant.domain + "/auth/me",
+  Future<void> test() async {
+    Map<String, dynamic> res = await apiService.get(
+      endpoint: ServerConstant.me,
     );
-      print(res[status]);
-    }
-    Future<bool> logout(final apiService) async {
-    Map<String, dynamic> res =  await apiService.post(
-      endpoint: ServerConstant.domain + "/auth/logout",
+    print(res[AuthenticationConstants.status]);
+  }
+
+  Future<bool> logout() async {
+    Map<String, dynamic> res = await apiService.post(
+      endpoint: ServerConstant.logout,
     );
-      print(res[status]);
-      return res[status]==success;
-    }
+    print(res[AuthenticationConstants.status]);
+    return res[AuthenticationConstants.status] == AuthenticationConstants.success;
+  }
 }

@@ -25,7 +25,7 @@ class PasswordScreen extends StatelessWidget {
                 Expanded(
                   flex: 9,
                   child: const Text(
-                    passwordSignupHeaderText,
+                    AuthenticationConstants.passwordSignupHeaderText,
                     style: TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
@@ -41,7 +41,7 @@ class PasswordScreen extends StatelessWidget {
                 Expanded(
                   flex: 9,
                   child: const Text(
-                    passwordSignupInstructionsText,
+                    AuthenticationConstants.passwordSignupInstructionsText,
                     style: TextStyle(color: Pallete.subtitleText),
                   ),
                 ),

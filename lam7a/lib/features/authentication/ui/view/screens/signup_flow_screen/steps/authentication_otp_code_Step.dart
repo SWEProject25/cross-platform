@@ -60,7 +60,7 @@ class _VerificationCodeState extends State<VerificationCode> {
                 Expanded(
                   flex: 9,
                   child: const Text(
-                    otpCodeHeaderText,
+                    AuthenticationConstants.otpCodeHeaderText,
                     style: TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
@@ -76,7 +76,7 @@ class _VerificationCodeState extends State<VerificationCode> {
                 Expanded(
                   flex: 9,
                   child: const Text(
-                    otpCodeDesText,
+                    AuthenticationConstants.otpCodeDesText,
                     style: TextStyle(color: Pallete.subtitleText),
                   ),
                 ),
@@ -108,7 +108,7 @@ class _VerificationCodeState extends State<VerificationCode> {
                     }
                   },
                   child: const Text(
-                    otpCodeResendText,
+                    AuthenticationConstants.otpCodeResendText,
                     style: TextStyle(color: Pallete.borderHover),
                   ),
                 ),
