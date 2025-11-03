@@ -9,6 +9,10 @@ class ServerConstant {
   static String refreshToken = "/auth/refresh-token";
   static String forgotPassword = "/auth/forgot-password";
   static String resetPassword = "/auth/reset-password";
+  static String changePassword = "/auth/changePassword";
+  static String changeUsername = "/auth/update-username";
+  static String validatePassword = "/auth/verifyPassword";
+  static String updateEmail = "/auth/update-email";
   static String me = "/auth/me";
   static String apiPrefix = "/api/v1.0";
   static String serverURL = "https://api.hankers.myaddr.tools";

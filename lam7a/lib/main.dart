@@ -24,10 +24,10 @@ void main() async {
   container.read(messagesSocketServiceProvider).setUpListners();
 
   runApp(UncontrolledProviderScope(child: MyApp(), container: container));
-  
+
   // TO TEST ADD TWEET SCREEN ONLY (No auth): Uncomment lines below
   // runApp(ProviderScope(child: TestAddTweetApp()));
-  
+
   // TO TEST HOME WITH FAB (No auth): Uncomment lines below
   // runApp(ProviderScope(child: TestTweetHomeApp()));
 }
@@ -50,8 +50,8 @@ class _MyAppState extends ConsumerState<MyApp> {
         return MaterialApp(
           title: 'lam7a',
           theme: AppTheme.light,
-          darkTheme: AppTheme.dark,
-          themeMode: ThemeMode.light,
+          darkTheme: AppTheme.dark, // xDarkTheme to test settings
+          themeMode: ThemeMode.dark,
           routes: {
             FirstTimeScreen.routeName: (context) => FirstTimeScreen(),
             SignUpFlow.routeName: (context) => SignUpFlow(),
@@ -95,9 +95,7 @@ class TestAddTweetApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),
-      home: const AddTweetScreen(
-        userId: 123,
-      ),
+      home: const AddTweetScreen(userId: 123),
     );
   }
 }

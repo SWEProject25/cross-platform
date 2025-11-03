@@ -51,10 +51,7 @@ class DMAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: ()=>{},
-          ),
+          IconButton(icon: const Icon(Icons.settings), onPressed: () => {}),
         ],
       ),
     );

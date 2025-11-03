@@ -22,56 +22,58 @@ class ConversationsScreen extends ConsumerWidget {
       // appBar: DMAppBar(title: 'Direct Message'),
       body: dMListPageViewModel.conversations.when(
         data: (data) {
-          return data.isEmpty? 
-          Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Welcome to your\ninbox!", style: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),),
-                SizedBox(height: 10),
-                Text("Drop a line, share posts and more with private conversations between you and onthers on X.", style: Theme.of(context).textTheme.bodyMedium),
-                SizedBox(height: 30),
-                FilledButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => FindContactsScreen(),
+          return data.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Welcome to your\ninbox!",
+                        style: theme.textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    );
+                      SizedBox(height: 10),
+                      Text(
+                        "Drop a line, share posts and more with private conversations between you and onthers on X.",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      SizedBox(height: 30),
+                      FilledButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => FindContactsScreen(),
+                            ),
+                          );
+                        },
+                        child: Text("Write a message"),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: data.length,
+                  itemBuilder: (context, index) {
+                    final chat = data[index];
+                    return _ChatListTile(chat: chat);
                   },
-                  child: Text("Write a message", ),
-                ),
-              ],
-            ),
-          )
-          : ListView.builder(
-            itemCount: data.length,
-            itemBuilder: (context, index) {
-              final chat = data[index];
-              return _ChatListTile(chat: chat);
-            },
-          );
+                );
         },
         error: (error, stack) {
-          return Center(
-            child: Text('Error: $error $stack'),
-          );
+          return Center(child: Text('Error: $error $stack'));
         },
         loading: () {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const Center(child: CircularProgressIndicator());
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => FindContactsScreen(),
-            ),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (context) => FindContactsScreen()));
         },
         child: AppSvgIcon(AppIcons.add_message),
       ),
@@ -90,7 +92,7 @@ class _ChatListTile extends StatelessWidget {
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      leading: NetworkAvatar(url: chat.avatarUrl, radius:  28,),
+      leading: NetworkAvatar(url: chat.avatarUrl, radius: 28),
       title: Row(
         children: [
           Expanded(
@@ -102,13 +104,12 @@ class _ChatListTile extends StatelessWidget {
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
-            
                 ),
                 Expanded(
                   child: Text(
-                  " @${chat.name.toLowerCase().replaceAll(' ', '')}",
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium,
+                    " @${chat.name.toLowerCase().replaceAll(' ', '')}",
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium,
                   ),
                 ),
               ],
@@ -121,17 +122,20 @@ class _ChatListTile extends StatelessWidget {
             ),
         ],
       ),
-      subtitle: (chat.lastMessage != null) ? Text(
-        chat.lastMessage!,
-        style: theme.textTheme.bodyMedium,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ) : null,
+      subtitle: (chat.lastMessage != null)
+          ? Text(
+              chat.lastMessage!,
+              style: theme.textTheme.bodyMedium,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            )
+          : null,
       onTap: () {
         // TODO: Navigate to chat detail page
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => ChatScreen(userId: chat.userId, conversationId: chat.id),
+            builder: (context) =>
+                ChatScreen(userId: chat.userId, conversationId: chat.id),
           ),
         );
       },
