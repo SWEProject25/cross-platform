@@ -14,7 +14,7 @@ import 'package:lam7a/features/navigation/ui/widgets/profile_block.dart';
 import 'package:lam7a/features/navigation/utils/models/user_main_data.dart';
 import 'package:lam7a/features/notifications/ui/views/notifications_screen.dart';
 import 'package:lam7a/features/settings/ui/view/main_settings_page.dart';
-
+import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
 
@@ -128,7 +128,13 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                   width: double.infinity,
                   padding: EdgeInsets.only(left: 20),
                   child: IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const TweetHomeScreen(),
+                    ),
+                  );
+                     },
                     icon: Icon(Icons.light_mode_outlined, size: 35),
                     alignment: Alignment.centerLeft,
                   ),
