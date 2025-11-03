@@ -51,7 +51,7 @@ class _MyAppState extends ConsumerState<MyApp> {
           title: 'lam7a',
           theme: AppTheme.light,
           darkTheme: AppTheme.dark, // xDarkTheme to test settings
-          themeMode: ThemeMode.dark,
+          themeMode: ThemeMode.light,
           routes: {
             FirstTimeScreen.routeName: (context) => FirstTimeScreen(),
             SignUpFlow.routeName: (context) => SignUpFlow(),
