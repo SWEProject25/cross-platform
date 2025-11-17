@@ -74,6 +74,7 @@ class _SignUpFlowState extends State<SignUpFlow> {
             }
           },
           child: Scaffold(
+            key: Key("signUpScreen"),
             appBar: AppBar(
               title: const ImageIcon(AssetImage(AppAssets.xIcon)),
               // taping on back button

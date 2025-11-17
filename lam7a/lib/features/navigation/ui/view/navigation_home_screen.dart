@@ -6,7 +6,6 @@ import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
-import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 import 'package:lam7a/features/messaging/ui/view/conversations_screen.dart';
 import 'package:lam7a/features/navigation/ui/viewmodel/navigation_viewmodel.dart';
 import 'package:lam7a/features/navigation/ui/widgets/list_memeber.dart';
@@ -61,6 +60,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         ];
 
         return Scaffold(
+          key: Key("homeScreen"),
           appBar: AppBar(
             title: const ImageIcon(AssetImage(AppAssets.xIcon)),
             leading: Builder(
