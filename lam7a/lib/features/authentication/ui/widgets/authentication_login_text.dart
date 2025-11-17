@@ -18,7 +18,7 @@ class LoginText extends StatelessWidget {
                 TextSpan(text: "Have an account already?"),
                 WidgetSpan(
                   child: InkWell(
-                    key: Key("loginButton"),
+                    key: ValueKey("loginButton"),
                     onTap: () {
                       Navigator.pushReplacementNamed(
                         context,

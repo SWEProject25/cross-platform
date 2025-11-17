@@ -1,3 +1,10 @@
+
+import 'package:another_flushbar/flushbar.dart';
+import 'package:another_flushbar/flushbar_helper.dart';
+import 'package:another_flushbar/flushbar_route.dart';
+import 'package:flutter/material.dart';
+import 'package:lam7a/core/theme/app_pallete.dart';
+
 class AuthenticationConstants {
   static const int userData = 0;
   static const int finishLogin = 1;
@@ -30,4 +37,12 @@ class AuthenticationConstants {
   static const String token = 'email';
   static const String success = 'success';
   static const String status = 'status';
+  static void flushMessage(String message, BuildContext context, String key) async
+  {
+                await Flushbar(
+                  key: ValueKey(key),
+                  message:  message,
+                  duration:  Duration(seconds: 2),
+                ).show(context);
+  }
 }

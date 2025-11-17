@@ -32,11 +32,12 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   late Authentication authController;
   // the initial state of my state is signup
   @override
-  AuthenticationState build(){ 
+  AuthenticationState build() {
     repo = ref.read(authenticationImplRepositoryProvider);
     authController = ref.read(authenticationProvider.notifier);
     return const AuthenticationState.signup();
   }
+
   // check for the validation to enable step button
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
@@ -46,12 +47,15 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         state.isValidName &&
         state.isValidDate) {
       return true;
-    } else if (state.currentSignupStep ==AuthenticationConstants.OTPCode && state.isValidCode) {
+    } else if (state.currentSignupStep == AuthenticationConstants.OTPCode &&
+        state.isValidCode) {
       return true;
-    } else if (state.currentSignupStep == AuthenticationConstants.passwordScreen &&
+    } else if (state.currentSignupStep ==
+            AuthenticationConstants.passwordScreen &&
         state.isValidSignupPassword) {
       return true;
-    } else if (state.currentSignupStep == AuthenticationConstants.transisionScreen) {
+    } else if (state.currentSignupStep ==
+        AuthenticationConstants.transisionScreen) {
       return true;
     }
     return false;
@@ -84,10 +88,12 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           if (genrateStatus) {
             state = state.map(
               login: (login) => login,
-              signup: (signup) => signup.copyWith(isLoadingSignup: false),
+              signup: (signup) => signup.copyWith(
+                isLoadingSignup: false,
+                toastMessage: "email sent to your account",
+              ),
             );
             gotoNextSignupStep();
-            showToastMessage("code sent to your email");
           }
         } else {
           showToastMessage("this email is already taken");
@@ -95,6 +101,9 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
             login: (login) => login,
             signup: (signup) => AuthenticationState.signup(),
           );
+          signup:
+          (signup) =>
+              signup.copyWith(toastMessage: "this email is already taken");
         }
       }
     } catch (e) {
@@ -102,7 +111,10 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       showToastMessage("this email is already taken");
       state = state.map(
         login: (login) => login,
-        signup: (signup) => signup.copyWith(isLoadingSignup: false),
+        signup: (signup) => signup.copyWith(
+          isLoadingSignup: false,
+          toastMessage: "this email is already taken",
+        ),
       );
     }
   }
@@ -123,7 +135,11 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         if (isValidCode) {
           gotoNextSignupStep();
         } else {
-          showToastMessage("the code is wrong");
+          state = state.map(
+            login: (login) => login,
+            signup: (signup) =>
+                signup.copyWith(toastMessage: "the code is wrong"),
+          );
         }
         state = state.map(
           login: (login) => login,
@@ -133,10 +149,13 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       }
     } catch (e) {
       print(e);
-          showToastMessage("the code is wrong");
+      showToastMessage("the code is wrong");
       state = state.map(
         login: (login) => login,
-        signup: (signup) => signup.copyWith(isLoadingSignup: false),
+        signup: (signup) => signup.copyWith(
+          isLoadingSignup: false,
+          toastMessage: "the code is wrong",
+        ),
       );
     }
   }
@@ -149,9 +168,17 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   Future<void> resendOTP() async {
     bool isSuccessed = await repo.resendOTP(state.email);
     if (!isSuccessed) {
-      showToastMessage("this service isn't available now");
+      state = state.map(
+        login: (login) => login,
+        signup: (signup) =>
+            signup.copyWith(toastMessage: "this service isn't available"),
+      );
     } else {
-      showToastMessage("the code is sent to your accont");
+      signup:
+      (signup) => signup.copyWith(
+        isLoadingSignup: false,
+        toastMessage: "email sent to your account",
+      );
     }
   }
 
@@ -174,10 +201,8 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
             password: state.passwordSignup,
             birthDate: state.date,
           ),
-          
         );
         if (user != null) {
-
           showToastMessage("user signed up successfully");
           authController.authenticateUser(user);
         }
@@ -200,14 +225,24 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   Future<void> registrationProgress() async {
     switch (state.currentSignupStep) {
       case AuthenticationConstants.userData:
-        checkValidEmail();
+        await checkValidEmail();
         break;
       case AuthenticationConstants.OTPCode:
-        checkValidCode();
+        await checkValidCode();
         break;
       case AuthenticationConstants.passwordScreen:
         await newUser();
+        break;
     }
+  }
+
+  void clearMessage() {
+    state = state.map(
+      login: (login) => login,
+      signup: (signup) {
+        return signup.copyWith(toastMessage: null);
+      },
+    );
   }
 
   ////////////////////////////////////////////////////////////////////////
@@ -229,7 +264,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         ),
       );
       if (myUser.name != null) {
-         authController.authenticateUser(myUser);
+        authController.authenticateUser(myUser);
         print(myUser);
         state = state.map(
           login: (login) => login.copyWith(
@@ -241,7 +276,12 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         );
         isSuccessed = true;
       } else {
-        showToastMessage("the email or password is wrong");
+        state = state.map(
+          login: (login) => login.copyWith(
+            toastMessageLogin: "the email or password is wrong",
+          ),
+          signup: (signup) => signup,
+        );
       }
       state = state.map(
         login: (login) => login.copyWith(isLoadingLogin: false),
@@ -252,7 +292,10 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       print(e);
       showToastMessage("the email or password is wrong");
       state = state.map(
-        login: (login) => login.copyWith(isLoadingLogin: false),
+        login: (login) => login.copyWith(
+          isLoadingLogin: false,
+          toastMessageLogin: "the email or password is wrong",
+        ),
         signup: (signup) => signup,
       );
       return false;
@@ -308,19 +351,19 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       },
     );
   }
+
   ////////////////////////////////////////////////////////////////////////
-  bool shouldEnableNextLogin()
-  {
-    if (state.currentLoginStep == 0 && validator.validateEmail(state.identifier))
-    {
+  bool shouldEnableNextLogin() {
+    if (state.currentLoginStep == 0 &&
+        validator.validateEmail(state.identifier)) {
       return true;
-    }
-    else if (state.currentLoginStep == 1 && validator.validatePassword(state.passwordLogin))
-    {
+    } else if (state.currentLoginStep == 1 &&
+        validator.validatePassword(state.passwordLogin)) {
       return true;
     }
     return false;
   }
+
   void gotoNextLoginStep() {
     state = state.map(
       signup: (signupState) {

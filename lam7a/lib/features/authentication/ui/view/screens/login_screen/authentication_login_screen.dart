@@ -91,12 +91,17 @@ class _loginFlowtate extends State<LogInScreen> {
                               Expanded(
                                 flex: 2,
                                 child: AuthenticationStepButton(
-                                  key: Key("loginNextButton"),
+                                  key: ValueKey("loginNextButton"),
                                   enable: viewmodel.shouldEnableNextLogin(),
                                   label: AuthenticationConstants.loginButtonLabels[currentIndex],
-                                  onPressedEffect: () {
+                                  onPressedEffect: () async{
                                     if (currentIndex == AuthenticationConstants.finishLogin) {
-                                      viewmodel.login();
+                                      await viewmodel.login();
+                                      String? message = ref.read(authenticationViewmodelProvider).toastMessageLogin;
+                                      if (message != null)
+                                      {
+                                        AuthenticationConstants.flushMessage(message, context, "loginMessage");
+                                      }
                                       if (authenticationState.isAuthenticated) {
                                         Navigator.pop(context);
                                         // Navigate to transmission screen (after auth page)

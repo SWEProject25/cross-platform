@@ -37,7 +37,7 @@ class _UserDataSignUp extends State {
             ),
             SizedBox(height: 50),
             TextInputField(
-              key: Key("nameTextField"),
+              key: ValueKey("nameTextField"),
               content: state.name,
               labelTextField: "Name",
               isLimited: true,
@@ -47,7 +47,7 @@ class _UserDataSignUp extends State {
               isValid: state.isValidName,
             ),
             TextInputField(
-              key: Key("emailSignupTextField"),
+              key: ValueKey("emailSignupTextField"),
               content:state.email,
               labelTextField: "Email",
               flex: 8,
@@ -56,7 +56,7 @@ class _UserDataSignUp extends State {
               isValid: state.isValidEmail,
             ),
             TextInputField(
-              key: Key("datePickerTextField"),
+              key: ValueKey("datePickerTextField"),
               content: state.date,
               labelTextField: "Date picker",
                       flex: 8,
