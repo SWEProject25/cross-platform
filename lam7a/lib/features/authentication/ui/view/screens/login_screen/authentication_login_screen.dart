@@ -91,7 +91,7 @@ class _loginFlowtate extends State<LogInScreen> {
                               Expanded(
                                 flex: 2,
                                 child: AuthenticationStepButton(
-                                  key: Key("loginNextButton"),
+                                  key: ValueKey("loginNextButton"),
                                   enable: viewmodel.shouldEnableNextLogin(),
                                   label: AuthenticationConstants.loginButtonLabels[currentIndex],
                                   onPressedEffect: () {

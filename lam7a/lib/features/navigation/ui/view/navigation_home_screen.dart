@@ -60,7 +60,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         ];
 
         return Scaffold(
-          key: Key("homeScreen"),
+          key: ValueKey("homeScreen"),
           appBar: AppBar(
             title: const ImageIcon(AssetImage(AppAssets.xIcon)),
             leading: Builder(

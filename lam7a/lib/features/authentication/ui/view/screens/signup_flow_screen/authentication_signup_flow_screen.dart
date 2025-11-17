@@ -74,7 +74,7 @@ class _SignUpFlowState extends State<SignUpFlow> {
             }
           },
           child: Scaffold(
-            key: Key("signUpScreen"),
+            key: ValueKey("signUpScreen"),
             appBar: AppBar(
               title: const ImageIcon(AssetImage(AppAssets.xIcon)),
               // taping on back button
@@ -126,7 +126,7 @@ class _SignUpFlowState extends State<SignUpFlow> {
                               Expanded(
                                 flex: 6,
                                 child: AuthenticationStepButton(
-                                  key: Key("nextSignupStepButton"),
+                                  key: ValueKey("nextSignupStepButton"),
                                   enable: viewmodel.shouldEnableNext(),
                                   label: AuthenticationConstants.nextLabels[currentIndex],
                                   onPressedEffect: () async {
