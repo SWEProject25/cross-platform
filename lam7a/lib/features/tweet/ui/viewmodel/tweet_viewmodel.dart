@@ -19,19 +19,24 @@ FutureOr<TweetState> build(String tweetId) async {
   // The service stores these after fetching the tweet from backend
   final apiService = ref.read(tweetsApiServiceProvider);
   final interactionFlags = await apiService.getInteractionFlags(tweetId);
+  final localViewsOverride = apiService.getLocalViews(tweetId);
   
-  bool isLiked = interactionFlags?['isLikedByMe'] ?? false;
-  bool isReposted = interactionFlags?['isRepostedByMe'] ?? false;
-  
+  final bool isLiked = interactionFlags?['isLikedByMe'] ?? false;
+  final bool isReposted = interactionFlags?['isRepostedByMe'] ?? false;
+  final bool isViewed = interactionFlags?['isViewedByMe'] ?? false;
 
+  print('   ✅ isLiked: $isLiked, isReposted: $isReposted, isViewed: $isViewed (from flags), localViewsOverride=$localViewsOverride');
 
-  print('   ✅ isLiked: $isLiked, isReposted: $isReposted (from backend)');
+  // If we have a locally stored views override, ensure views never go below it
+  final effectiveTweet = (localViewsOverride != null && localViewsOverride > tweet.views)
+      ? tweet.copyWith(views: localViewsOverride)
+      : tweet;
 
   return TweetState(
     isLiked: isLiked,
     isReposted: isReposted,
-    isViewed: false,
-    tweet: AsyncData(tweet),
+    isViewed: isViewed,
+    tweet: AsyncData(effectiveTweet),
   );
 }
 
@@ -195,22 +200,62 @@ FutureOr<TweetState> build(String tweetId) async {
   }
 
   Future<void> handleViews() async {
-    final current = state.value!;
-    final tweet = state.value!.tweet.value!;
+    // Views are currently provided by the backend only (if available).
+    // Do not modify them locally to avoid counts changing back after reload.
     
-    if (!current.isViewed) {
-      // Update local state immediately (views are typically not synced to backend)
-      final updated = tweet.copyWith(views: tweet.views + 1);
-      final updatedState = current.copyWith(tweet: AsyncData(updated), isViewed: true);
-      state = AsyncData(updatedState);
-      
-      // Note: Backend doesn't have a view tracking endpoint yet
-      // If backend adds view tracking, call it here
+    // Ensure state and tweet are loaded
+    if (!state.hasValue || state.value == null) {
+      print('⚠️ Cannot handle views: state not loaded');
+      return;
     }
+
+    final currentState = state.value!;
+    if (!currentState.tweet.hasValue || currentState.tweet.value == null) {
+      print('⚠️ Cannot handle views: tweet not loaded');
+      return;
+    }
+
+    // If already marked as viewed for this user, do nothing
+    if (currentState.isViewed) {
+      print('ℹ️ Views already recorded for this tweet, skipping increment');
+      return;
+    }
+
+    final currentTweet = currentState.tweet.value!;
+    final currentViews = currentTweet.views;
+    final updatedViews = currentViews + 1;
+
+    final updatedTweet = currentTweet.copyWith(views: updatedViews);
+
+    // Optimistically update local state
+    state = AsyncData(
+      currentState.copyWith(
+        isViewed: true,
+        tweet: AsyncData(updatedTweet),
+      ),
+    );
+
+    try {
+      // Persist updated views to backend (if endpoint exists)
+      final repo = ref.read(tweetRepositoryProvider);
+      await repo.updateTweet(updatedTweet);
+
+      print('👁️  View recorded on backend: $updatedViews views for tweet ${currentTweet.id}');
+    } catch (e) {
+      // If backend does not yet support updating views, keep the optimistic value
+      print('❌ Error updating views on backend (keeping local value): $e');
+    }
+
+    // Store interaction flag so we don't increment again on next open
+    final apiService = ref.read(tweetsApiServiceProvider);
+    apiService.updateInteractionFlag(currentTweet.id, 'isViewedByMe', true);
+    // Persist local views override so views don't drop after refresh/restart
+    apiService.setLocalViews(currentTweet.id, updatedViews);
   }
 
   void handleComment() {
-    // TODO: add comment logic
+    // Navigation to the reply composer is handled in the UI layer
+    // This method is a hook for the UI to know that comment was tapped
   }
 
   void summarizeBody() {

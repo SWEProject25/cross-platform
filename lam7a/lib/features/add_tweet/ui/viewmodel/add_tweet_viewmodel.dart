@@ -1,6 +1,7 @@
 import 'package:lam7a/features/add_tweet/ui/state/add_tweet_state.dart';
 import 'package:lam7a/features/add_tweet/services/add_tweet_api_service_impl.dart';
 import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_home_viewmodel.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'add_tweet_viewmodel.g.dart';
@@ -57,6 +58,22 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
     return state.isValidBody && !state.isLoading;
   }
 
+  // Configure this viewmodel to create a reply to a specific post
+  void setReplyTo(int parentPostId) {
+    state = state.copyWith(
+      parentPostId: parentPostId,
+      postType: 'REPLY',
+    );
+  }
+
+  // Configure this viewmodel to create a quote of a specific post
+  void setQuoteTo(int parentPostId) {
+    state = state.copyWith(
+      parentPostId: parentPostId,
+      postType: 'QUOTE',
+    );
+  }
+
   // Post the tweet
   Future<void> postTweet() async {
     if (!canPostTweet()) {
@@ -90,12 +107,14 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
       // Use real backend implementation with authentication
       final apiService = ref.read(addTweetApiServiceProvider);
       
-      // Create tweet with media files (service handles upload and returns URLs)
+      // Create tweet or reply with media files (service handles upload and returns URLs)
       final createdTweet = await apiService.createTweet(
         userId: id,
         content: state.body.trim(),
         mediaPicPath: state.mediaPicPath,
         mediaVideoPath: state.mediaVideoPath,
+        type: state.postType,
+        parentPostId: state.parentPostId,
       );
 
       print('📝 Tweet created:');
@@ -103,6 +122,15 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
       print('   Body: ${createdTweet.body}');
       print('   Media Pic URL: ${createdTweet.mediaPic ?? "None"}');
       print('   Media Video URL: ${createdTweet.mediaVideo ?? "None"}');
+      
+      var tweetForFeed = createdTweet;
+      if (user != null) {
+        tweetForFeed = createdTweet.copyWith(
+          username: user.username,
+          authorName: user.name ?? user.username,
+          authorProfileImage: user.profileImageUrl,
+        );
+      }
       
       // Note: Backend already persisted the tweet, no need to call repository again
       // The repository's addTweet would make a duplicate backend call
@@ -113,6 +141,9 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
         isLoading: false,
         isTweetPosted: true,
       );
+
+      final homeVm = ref.read(tweetHomeViewModelProvider.notifier);
+      homeVm.upsertTweetLocally(tweetForFeed);
     } catch (e) {
       print('❌ Error posting tweet: $e');
       state = state.copyWith(

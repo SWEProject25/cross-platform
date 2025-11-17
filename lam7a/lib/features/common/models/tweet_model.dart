@@ -24,6 +24,9 @@ abstract class TweetModel with _$TweetModel {
     String? username,
     String? authorName,
     String? authorProfileImage,
+    @Default(false) bool isRepost,
+    @Default(false) bool isQuote,
+    TweetModel? originalTweet,
   }) = _TweetModel;
 
   /// Empty factory constructor

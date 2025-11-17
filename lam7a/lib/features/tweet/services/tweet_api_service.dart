@@ -26,4 +26,10 @@ abstract class TweetsApiService {
   Future<Map<String, bool>?> getInteractionFlags(String tweetId);
   /// Update interaction flag after toggle operation
   void updateInteractionFlag(String tweetId, String flagName, bool value);
+  /// Get locally stored views override for a tweet, if any
+  int? getLocalViews(String tweetId);
+  /// Set locally stored views override for a tweet
+  void setLocalViews(String tweetId, int views);
+  /// Get replies for a given post
+  Future<List<TweetModel>> getRepliesForPost(String postId);
 }
