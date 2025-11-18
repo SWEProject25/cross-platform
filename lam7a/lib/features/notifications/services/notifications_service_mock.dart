@@ -1,7 +1,7 @@
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/notifications/models/notification_model.dart';
 import 'package:lam7a/features/notifications/services/notifications_service.dart';
-import 'package:lam7a/features/profile_features/profile/model2/profile_model.dart';
+import 'package:lam7a/features/profile_summary/model/profile_model.dart';
 
 class NotificationsAPIServiceMock implements NotificationsAPIService {
 
