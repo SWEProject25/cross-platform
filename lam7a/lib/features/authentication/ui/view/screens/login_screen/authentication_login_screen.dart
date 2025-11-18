@@ -9,6 +9,7 @@ import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
+import 'package:lam7a/features/authentication/ui/widgets/loading_circle.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 
@@ -94,6 +95,8 @@ class _loginFlowtate extends State<LogInScreen> {
                                   key: ValueKey("loginNextButton"),
                                   enable: viewmodel.shouldEnableNextLogin(),
                                   label: AuthenticationConstants.loginButtonLabels[currentIndex],
+                                  bgColor: Theme.of(context).colorScheme.onSurface,
+                                  textColor: Theme.of(context).colorScheme.surface,
                                   onPressedEffect: () async{
                                     if (currentIndex == AuthenticationConstants.finishLogin) {
                                       await viewmodel.login();
@@ -124,7 +127,7 @@ class _loginFlowtate extends State<LogInScreen> {
                     ],
                   )
                 : Center(
-                    child: CircularProgressIndicator(color: Pallete.blackColor),
+                    child: LoadingCircle(),
                   ),
           ),
         );

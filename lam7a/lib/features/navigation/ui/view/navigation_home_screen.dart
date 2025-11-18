@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
@@ -10,9 +11,11 @@ import 'package:lam7a/features/messaging/ui/view/conversations_screen.dart';
 import 'package:lam7a/features/navigation/ui/viewmodel/navigation_viewmodel.dart';
 import 'package:lam7a/features/navigation/ui/widgets/list_memeber.dart';
 import 'package:lam7a/features/navigation/ui/widgets/profile_block.dart';
+import 'package:lam7a/features/navigation/ui/widgets/search_bar.dart';
 import 'package:lam7a/features/navigation/utils/models/user_main_data.dart';
 import 'package:lam7a/features/notifications/ui/views/notifications_screen.dart';
 import 'package:lam7a/features/settings/ui/view/main_settings_page.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
@@ -29,6 +32,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Consumer(
       builder: (context, ref, child) {
         final viewmodel = ref.watch(navigationViewModelProvider.notifier);
@@ -40,8 +44,8 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           Center(child: ConversationsScreen()),
         ];
         List<Widget> drawerItems = [
-          ListMember("Profile", () {}, iconPath: AppAssets.ProfileIcon),
-          ListMember("Chat", () {}, iconPath: AppAssets.chatIcon),
+          ListMember("Profile", () {}, iconPath: AppAssets.ProfileIcon, color: Theme.of(context).colorScheme.onSurface,),
+          ListMember("Chat", () {}, iconPath: AppAssets.chatIcon, color: Theme.of(context).colorScheme.onSurface,),
           ListMember(
             "Logout",
             () async {
@@ -62,7 +66,9 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         return Scaffold(
           key: Key("homeScreen"),
           appBar: AppBar(
-            title: const ImageIcon(AssetImage(AppAssets.xIcon)),
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            elevation: 0,
+            title: getCurrentAppbar(),
             leading: Builder(
               builder: (context) {
                 return IconButton(
@@ -79,6 +85,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           ),
           drawer: Drawer(
             width: 300,
+            backgroundColor: isDark ? Color.fromARGB(255, 26, 26, 26) : Theme.of(context).colorScheme.surface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.only(
                 topRight: Radius.circular(0),
@@ -118,8 +125,8 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                         context,
                         MaterialPageRoute(builder: (ctx) => MainSettingsPage()),
                       );
-                    }, icon: Icons.settings),
-                    ListMember("Help Center", () {}, icon: Icons.help_center),
+                    }, icon: Icons.settings ,color: Theme.of(context).colorScheme.onSurface,),
+                    ListMember("Help Center", () {}, icon: Icons.help_center, color: Theme.of(context).colorScheme.onSurface,),
                   ],
                 ),
                 SizedBox(height: 20),
@@ -161,7 +168,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           bottomNavigationBar: AnimatedContainer(
             duration: const Duration(milliseconds: 350),
             curve: Curves.easeInOut,
-            height: _isVisible ? MediaQuery.of(context).size.height * 0.09 : 0,
+            // height: _isVisible ? MediaQuery.of(context).size.height * 0.07 : 0,
             child: AnimatedOpacity(
               duration: const Duration(milliseconds: 350),
               curve: Curves.easeInOut,
@@ -177,13 +184,13 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                 ),
                 child: Theme(
                   data: ThemeData(
-                    canvasColor: Pallete.whiteColor,
+                    canvasColor: Theme.of(context).colorScheme.surface,
                     splashColor: Colors.transparent,
                   ),
                   child: BottomNavigationBar(
                     currentIndex: _currentIndex,
                     type: BottomNavigationBarType.fixed,
-                    selectedItemColor: Pallete.blackColor,
+                    selectedItemColor: Theme.of(context).colorScheme.onSurface,
                     unselectedItemColor: Pallete.greyColor,
                     elevation: 0,
                     showSelectedLabels: false,
@@ -196,7 +203,8 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                     },
                     items: [
                       BottomNavigationBarItem(
-                        icon: ImageIcon(AssetImage(AppAssets.homeIcon)),
+                        icon: SvgPicture.asset(AppAssets.homeIcon, height: 20, width: 20, color: Pallete.greyColor),
+                        activeIcon: SvgPicture.asset(AppAssets.homeIcon, height: 20, width: 20, color: Theme.of(context).colorScheme.onSurface),
                         label: "home",
                       ),
                       BottomNavigationBarItem(
@@ -204,13 +212,14 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                         label: "search",
                       ),
                       BottomNavigationBarItem(
-                        icon: ImageIcon(
-                          AssetImage(AppAssets.notificationsIcon),
-                        ),
+                        icon: SvgPicture.asset(AppAssets.notificationsIcon, height: 20, width: 20, color: Pallete.greyColor),
+                        activeIcon: SvgPicture.asset(AppAssets.notificationsIcon, height: 20, width: 20, color: Theme.of(context).colorScheme.onSurface),
+                        
                         label: "notifications",
                       ),
                       BottomNavigationBarItem(
-                        icon: ImageIcon(AssetImage(AppAssets.messagesIcon)),
+                        icon: SvgPicture.asset(AppAssets.messagesIcon, height: 20, width: 20, color: Pallete.greyColor),
+                        activeIcon: SvgPicture.asset(AppAssets.messagesIcon, height: 20, width: 20, color: Theme.of(context).colorScheme.onSurface),
                         label: "messages",
                       ),
                     ],
@@ -222,5 +231,19 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         );
       },
     );
+  }
+  Widget getCurrentAppbar()
+  {
+    switch(_currentIndex){
+      case 0:
+      return ImageIcon(AssetImage(AppAssets.xIcon));
+      case 1:
+      return SearchBarCustomized();
+      case 2:
+      return Text("Notifications", style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w600, fontSize: 20 ),);
+      case 3:
+      return SearchBarCustomized();
+    }
+    return ImageIcon(AssetImage(AppAssets.xIcon));
   }
 }

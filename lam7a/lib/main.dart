@@ -48,10 +48,11 @@ class _MyAppState extends ConsumerState<MyApp> {
         print(state.isAuthenticated);
 
         return MaterialApp(
+          debugShowCheckedModeBanner: false,
           title: 'lam7a',
           theme: AppTheme.light,
           darkTheme: AppTheme.dark, // xDarkTheme to test settings
-          themeMode: ThemeMode.light,
+          themeMode: ThemeMode.dark,
           routes: {
             FirstTimeScreen.routeName: (context) => FirstTimeScreen(),
             SignUpFlow.routeName: (context) => SignUpFlow(),

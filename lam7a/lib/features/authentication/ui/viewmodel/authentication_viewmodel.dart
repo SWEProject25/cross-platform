@@ -90,30 +90,30 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
               login: (login) => login,
               signup: (signup) => signup.copyWith(
                 isLoadingSignup: false,
-                toastMessage: "email sent to your account",
+                toastMessage:  AuthenticationConstants.otpSentMessage,
               ),
             );
             gotoNextSignupStep();
           }
         } else {
-          showToastMessage("this email is already taken");
+          // showToastMessage("this email is already taken");
           state = state.map(
             login: (login) => login,
             signup: (signup) => AuthenticationState.signup(),
           );
           signup:
           (signup) =>
-              signup.copyWith(toastMessage: "this email is already taken");
+              signup.copyWith(toastMessage: AuthenticationConstants.errorEmailMessage);
         }
       }
     } catch (e) {
       print(e);
-      showToastMessage("this email is already taken");
+      // showToastMessage("this email is already taken");
       state = state.map(
         login: (login) => login,
         signup: (signup) => signup.copyWith(
           isLoadingSignup: false,
-          toastMessage: "this email is already taken",
+          toastMessage: AuthenticationConstants.errorEmailMessage,
         ),
       );
     }
@@ -138,7 +138,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           state = state.map(
             login: (login) => login,
             signup: (signup) =>
-                signup.copyWith(toastMessage: "the code is wrong"),
+                signup.copyWith(toastMessage: AuthenticationConstants.wrongOtpMessage),
           );
         }
         state = state.map(
@@ -149,12 +149,12 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       }
     } catch (e) {
       print(e);
-      showToastMessage("the code is wrong");
+      // showToastMessage("the code is wrong");
       state = state.map(
         login: (login) => login,
         signup: (signup) => signup.copyWith(
           isLoadingSignup: false,
-          toastMessage: "the code is wrong",
+          toastMessage: AuthenticationConstants.wrongOtpMessage,
         ),
       );
     }
@@ -177,7 +177,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       signup:
       (signup) => signup.copyWith(
         isLoadingSignup: false,
-        toastMessage: "email sent to your account",
+        toastMessage: AuthenticationConstants.otpSentMessage,
       );
     }
   }
@@ -203,7 +203,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           ),
         );
         if (user != null) {
-          showToastMessage("user signed up successfully");
+          // showToastMessage("user signed up successfully");
           authController.authenticateUser(user);
         }
         state = state.map(
@@ -290,7 +290,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       return isSuccessed;
     } catch (e) {
       print(e);
-      showToastMessage("the email or password is wrong");
+      // showToastMessage("the email or password is wrong");
       state = state.map(
         login: (login) => login.copyWith(
           isLoadingLogin: false,
