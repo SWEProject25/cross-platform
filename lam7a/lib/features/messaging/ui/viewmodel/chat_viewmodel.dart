@@ -41,6 +41,7 @@ class ChatViewModel extends _$ChatViewModel {
 
       _newMessagesSub = _messagesRepository.onMessageRecieved(state.conversationId).listen((_)=>_onNewMessagesArrive());
       _userTypingSub = _messagesRepository.onUserTyping(state.conversationId).listen(((isTyping)=> _onOtherTyping(isTyping)));
+      
       _messagesRepository.joinConversation(state.conversationId);
       _loadContact();
       _loadMessages();
@@ -138,7 +139,7 @@ class ChatViewModel extends _$ChatViewModel {
 
   Future<void> sendMessage() async {
     _messagesRepository.sendMessage(_authState.user!.id!, state.conversationId, state.draftMessage.trim());
-  
+    _messagesRepository.updateTypingStatus(state.conversationId, false);
     state = state.copyWith(draftMessage: "");
   }
 

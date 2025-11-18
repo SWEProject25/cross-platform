@@ -31,6 +31,7 @@ class ConversationsRepository {
         id: x.id,
         userId: x.user.id,
         name: x.user.displayName,
+        username: x.user.username,
         avatarUrl: x.user.profileImageUrl,
         lastMessage: x.lastMessage?.text,
         lastMessageTime: x.updatedAt,

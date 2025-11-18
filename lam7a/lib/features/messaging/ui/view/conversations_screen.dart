@@ -107,7 +107,7 @@ class _ChatListTile extends StatelessWidget {
                 ),
                 Expanded(
                   child: Text(
-                    " @${chat.name.toLowerCase().replaceAll(' ', '')}",
+                    " @${chat.username.toLowerCase().replaceAll(' ', '')}",
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium,
                   ),

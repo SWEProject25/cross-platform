@@ -27,8 +27,10 @@ class MessagesRepository extends _$MessagesRepository {
   StreamSubscription<MessageDto>? _incomingNotifSub;
   StreamSubscription<TypingEventDto>? _typingSub;
   StreamSubscription<TypingEventDto>? _stopTypingSub;
+  StreamSubscription<void>? _reconnectedSub;
 
   final Map<int, StreamController<bool>> _typingNotifier = {};
+  final Set<int> _joinedConversations = {};
 
   @override
   void build() {
@@ -42,13 +44,23 @@ class MessagesRepository extends _$MessagesRepository {
     _incomingNotifSub = _socket.incomingMessagesNotifications.listen(_onReceivedMessage);
     _typingSub = _socket.userTyping.listen(_onUserTypingEvent);
     _stopTypingSub = _socket.userStoppedTyping.listen(_onUserStoppedTypingEvent);
+    _reconnectedSub = _socket.onConnected.listen((_) => _onReconnected());
 
     ref.onDispose(() {
       _logger.i("Disposing MessagesRepository");
       _incomingSub?.cancel();
       _incomingNotifSub?.cancel();
 
-      // close and clear all controllers
+      _typingSub?.cancel();
+      _stopTypingSub?.cancel();
+
+      _reconnectedSub?.cancel();
+
+      for (final ctrl in _typingNotifier.values) {
+        if (!ctrl.isClosed) ctrl.close();
+      }
+      _typingNotifier.clear();
+
       for (final ctrl in _notifier.values) {
         if (!ctrl.isClosed) ctrl.close();
       }
@@ -57,7 +69,19 @@ class MessagesRepository extends _$MessagesRepository {
 
   }
 
+  void _onReconnected() {
+    _logger.i("Socket reconnected, rejoining conversations");
+    for (var conversationId in _joinedConversations) {
+      _socket.joinConversation(conversationId);
+    }
+
+    for (var conversationId in _joinedConversations) {
+      _reSyncMessageHistory(conversationId);
+    }
+  }
+
   void _onReceivedMessage(MessageDto data) {
+    _logger.d("Received message on socket: ${data.toJson()}");
     var message = ChatMessage(
       conversationId: data.conversationId,
       id: data.id ?? -1,
@@ -88,11 +112,14 @@ class MessagesRepository extends _$MessagesRepository {
   Stream<bool> onUserTyping(int conversationId) => _getTypingNotifier(conversationId).stream;
   StreamController<bool> _getTypingNotifier(int conversationId) => _typingNotifier.putIfAbsent(conversationId, ()=>StreamController<bool>.broadcast());
 
+  Stream<void> onConnected() => _socket.onConnected;
+
   List<ChatMessage> fetchMessage(int chatId) {
     return _cache.getMessages(chatId);
   }
 
   void updateTypingStatus(int conversationId, bool isTyping) {
+    _logger.d("Updating typing status to $isTyping for conversation $conversationId");
     if(isTyping){
       _socket.sendTypingEvent(TypingRequest(conversationId: conversationId));
     } else {
@@ -112,6 +139,19 @@ class MessagesRepository extends _$MessagesRepository {
     _socket.sendMessage(request);
   }
 
+  Future<bool> _reSyncMessageHistory(int conversationId) async{
+    _logger.i("Re-syncing Messages for conversation id {$conversationId}");
+
+    var messagesDto = await _apiService.getMessageHistory(conversationId, null);
+
+    var messages = messagesDto.data.map((x)=> ChatMessage.fromDto(x, currentUserId: _authState.user!.id!)).toList();
+  
+    _cache.addMessages(conversationId, messages);
+    _getNotifier(conversationId).add(null);
+
+    return messagesDto.metadata.hasMore;
+  }
+
   Future<bool> loadMessageHistory(int conversationId) async{
 
     int? lastMessageId = _cache.getMessages(conversationId).firstOrNull?.id;
@@ -129,9 +169,11 @@ class MessagesRepository extends _$MessagesRepository {
 
   void joinConversation(int conversationId) {
     _socket.joinConversation(conversationId);
+    _joinedConversations.add(conversationId);
   }
 
   void leaveConversation(int conversationId) {
     _socket.leaveConversation(conversationId);
+    _joinedConversations.remove(conversationId);
   }
 }

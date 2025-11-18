@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/services/socket_service.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/chat_viewmodel.dart';
 import 'package:lam7a/features/messaging/ui/widgets/chat_input_bar.dart';
@@ -25,6 +26,7 @@ class ChatScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    var connectionState = ref.watch(socketConnectionProvider);
     var chatState = ref.watch(
       chatViewModelProvider(conversationId: conversationId, userId: userId),
     );
@@ -38,7 +40,7 @@ class ChatScreen extends ConsumerWidget {
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: _buildAppBar(context, chatState.contact),
+        appBar: _buildAppBar(connectionState, context, chatState.contact),
 
         // Body
         body: Column(
@@ -89,7 +91,7 @@ class ChatScreen extends ConsumerWidget {
     );
   }
 
-  AppBar _buildAppBar(BuildContext context, AsyncValue<Contact> contact) {
+  AppBar _buildAppBar(AsyncValue<bool> connectionState, BuildContext context, AsyncValue<Contact> contact) {
     return AppBar(
       elevation: 0,
       backgroundColor: Colors.white,
@@ -97,7 +99,13 @@ class ChatScreen extends ConsumerWidget {
         enabled: contact.isLoading,
         child: Row(
           children: [
-            CircleAvatar(
+            Container(   
+              width: 36,           
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Theme.of(context).primaryColor,
+              ),
               child: ClipOval(
                 child: Image.network(
                   contact.value?.avatarUrl ?? '',
@@ -130,6 +138,19 @@ class ChatScreen extends ConsumerWidget {
           ],
         ),
       ),
+
+
+
+
+      actions: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: CircleAvatar(
+            radius: 16,
+            backgroundColor: !connectionState.hasValue || !connectionState.value! ? Colors.red : Colors.green,
+          ),
+        )
+      ],
     );
   }
 

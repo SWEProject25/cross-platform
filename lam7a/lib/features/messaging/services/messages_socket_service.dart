@@ -21,6 +21,7 @@ class MessagesSocketService {
   final StreamController<MessageDto> _incomingMessagesNotificationsController = StreamController<MessageDto>.broadcast();
   final StreamController<TypingEventDto> _userTypingController = StreamController<TypingEventDto>.broadcast();
   final StreamController<TypingEventDto> _userStoppedTypingController = StreamController<TypingEventDto>.broadcast();
+  final StreamController<void> _connectedController = StreamController<void>.broadcast();
 
   MessagesSocketService(this._socket){
     _logger.w("Create MessagesSocketService");
@@ -31,6 +32,13 @@ class MessagesSocketService {
     _listenToMessagesNotifications();
     _listenToTypingEvents();
     _listenToStopTypingEvents();
+    _listenForReconnected();
+  }
+
+  void _listenForReconnected() {
+    _socket.on("connect", (_) {
+      _connectedController.add(null);
+    });
   }
 
   void _listenToMessages() {
@@ -88,6 +96,8 @@ class MessagesSocketService {
   Stream<TypingEventDto> get userTyping => _userTypingController.stream;
 
   Stream<TypingEventDto> get userStoppedTyping => _userStoppedTypingController.stream;
+
+  Stream<void> get onConnected => _connectedController.stream;
 
   void sendMessage(CreateMessageRequest request) {
     _socket.emit("createMessage", request.toJson());

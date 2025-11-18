@@ -9,6 +9,7 @@ abstract class Conversation with _$Conversation {
     required int id,
     required String name,
     required int userId,
+    required String username,
     String? avatarUrl,
     String? lastMessage,
     DateTime? lastMessageTime,
