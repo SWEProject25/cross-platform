@@ -1,3 +1,4 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'ui/widgets/profile_header_widget.dart';
@@ -10,11 +11,14 @@ class ProfileHeaderMain extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile Header Demo'),
+        title: const Text('Profile Header Demo'),
         centerTitle: true,
       ),
-      // Just render the ProfileHeaderWidget and pass the user ID
-      body: ProfileHeaderWidget(userId: 'hossam_dev'),
+    
+      body: const ProfileHeaderWidget(
+        userId: 'hossam_dev',
+        isOwnProfile: true, // Change to false to see other user's profile
+      ),
     );
   }
 }

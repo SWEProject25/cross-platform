@@ -1,10 +1,11 @@
+// lib/features/profile/ui/view/edit_profile_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../model/profile_model.dart';
 import '../widgets/edit_profile_form.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
-  final ProfileHeaderModel profile;
+  final ProfileModel profile;
 
   const EditProfilePage({super.key, required this.profile});
 
@@ -13,7 +14,6 @@ class EditProfilePage extends ConsumerStatefulWidget {
 }
 
 class _EditProfilePageState extends ConsumerState<EditProfilePage> {
-  // Key to access the form’s state (so we can trigger save from AppBar)
   final GlobalKey<EditProfileFormState> _formKey =
       GlobalKey<EditProfileFormState>();
 

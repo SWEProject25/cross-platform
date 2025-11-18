@@ -14,7 +14,7 @@ import 'package:lam7a/features/navigation/utils/models/user_main_data.dart';
 import 'package:lam7a/features/notifications/ui/views/notifications_screen.dart';
 import 'package:lam7a/features/settings/ui/view/main_settings_page.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
-import 'package:lam7a/features/profile_features/profile/ui/widgets/profile_header_widget.dart';
+import 'package:lam7a/features/profile/ui/widgets/profile_header_widget.dart';
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
 

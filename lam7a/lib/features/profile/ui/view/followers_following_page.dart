@@ -1,8 +1,9 @@
+// lib/ui/view/followers_following_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lam7a/features/profile_features/profile/ui/widgets/profile_card.dart';
-import 'package:lam7a/features/profile_features/profile/model2/profile_model.dart';
-import 'package:lam7a/features/profile_features/profile/ui/viewmodel/profile_viewmodel.dart';
+import '../widgets/profile_card.dart';
+import '../../model/profile_model.dart';
+import '../viewmodel/profile_viewmodel.dart';
 
 class FollowersFollowingPage extends ConsumerStatefulWidget {
   final String username;
@@ -33,7 +34,8 @@ class _FollowersFollowingPageState
 
   @override
   Widget build(BuildContext context) {
-    final profileState = ref.watch(profileViewModelProvider);
+    final profileAsync = ref.watch(profileListViewModelProvider);
+    final profileState = ref.watch(profileListStateProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
@@ -65,13 +67,21 @@ class _FollowersFollowingPageState
           ),
         ),
       ),
-      body: profileState.when(
+      body: profileAsync.when(
         data: (profiles) {
-          // Split into two lists
-          final followers = profiles
+          // Initialize state if not set
+          if (profileState == null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ref.read(profileListStateProvider.notifier).state = profiles;
+            });
+          }
+
+          final effectiveProfiles = profileState ?? profiles;
+          
+          final followers = effectiveProfiles
               .where((p) => p.stateFollow == ProfileStateOfFollow.notfollowing)
               .toList();
-          final following = profiles
+          final following = effectiveProfiles
               .where((p) => p.stateFollow == ProfileStateOfFollow.following)
               .toList();
 

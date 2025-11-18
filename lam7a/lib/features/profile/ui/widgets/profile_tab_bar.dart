@@ -1,6 +1,7 @@
+// lib/features/profile/ui/widgets/profile_tab_bar.dart
 import 'package:flutter/material.dart';
 
-class ProfileTabBar extends StatefulWidget {
+class ProfileTabBar extends StatelessWidget {
   final Function(int) onTabSelected;
   final int selectedIndex;
 
@@ -11,21 +12,16 @@ class ProfileTabBar extends StatefulWidget {
   });
 
   @override
-  State<ProfileTabBar> createState() => _ProfileTabBarState();
-}
-
-class _ProfileTabBarState extends State<ProfileTabBar> {
-  final List<String> tabs = [
-    'Posts',
-    'Replies',
-    'Highlights',
-    'Articles',
-    'Media',
-    'Likes',
-  ];
-
-  @override
   Widget build(BuildContext context) {
+    final tabs = [
+      'Posts',
+      'Replies',
+      'Highlights',
+      'Articles',
+      'Media',
+      'Likes',
+    ];
+
     return Container(
       color: Colors.white,
       child: SingleChildScrollView(
@@ -33,9 +29,9 @@ class _ProfileTabBarState extends State<ProfileTabBar> {
         physics: const BouncingScrollPhysics(),
         child: Row(
           children: List.generate(tabs.length, (index) {
-            final isSelected = widget.selectedIndex == index;
+            final isSelected = selectedIndex == index;
             return GestureDetector(
-              onTap: () => widget.onTabSelected(index),
+              onTap: () => onTabSelected(index),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 child: Column(

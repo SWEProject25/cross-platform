@@ -1,10 +1,9 @@
+// lib/ui/widgets/profile_card.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../model2/profile_model.dart';
+import '../../model/profile_model.dart';
 import '../viewmodel/profile_viewmodel.dart';
-import '../../../../../core/widgets/app_dialog.dart';
-import '../../../../../core/widgets/app_outlined_button.dart';
-import '../view/other_user_profile_screen.dart';
+import '../widgets/profile_header_widget.dart';
 
 class ProfileCard extends ConsumerWidget {
   final ProfileModel profile;
@@ -13,7 +12,6 @@ class ProfileCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final viewModel = ref.read(profileViewModelProvider.notifier);
     final isFollowing = profile.stateFollow == ProfileStateOfFollow.following;
 
     return Container(
@@ -22,15 +20,16 @@ class ProfileCard extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ========== LEFT SIDE: CLICKABLE USER INFO ==========
+          // LEFT SIDE: CLICKABLE USER INFO
           Expanded(
             child: InkWell(
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => OtherUserProfileScreen(
-                      userId: profile.username, // or profile.id
+                    builder: (_) => ProfileHeaderWidget(
+                      userId: profile.handle,
+                      isOwnProfile: false,
                     ),
                   ),
                 );
@@ -38,15 +37,11 @@ class ProfileCard extends ConsumerWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Profile picture
                   CircleAvatar(
-                    backgroundImage: NetworkImage(profile.imageUrl),
+                    backgroundImage: NetworkImage(profile.avatarImage),
                     radius: 25,
                   ),
-
                   const SizedBox(width: 12),
-
-                  // Text info takes flexible space
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,7 +50,7 @@ class ProfileCard extends ConsumerWidget {
                           children: [
                             Expanded(
                               child: Text(
-                                profile.name,
+                                profile.displayName,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -69,7 +64,7 @@ class ProfileCard extends ConsumerWidget {
                           ],
                         ),
                         Text(
-                          profile.username,
+                          '@${profile.handle}',
                           style: const TextStyle(color: Colors.grey),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -93,34 +88,55 @@ class ProfileCard extends ConsumerWidget {
 
           const SizedBox(width: 12),
 
-          // ========== RIGHT SIDE: FOLLOW BUTTON ==========
-          AppOutlinedButton(
-            text: isFollowing ? 'Following' : 'Follow',
+          // RIGHT SIDE: FOLLOW BUTTON
+          OutlinedButton(
             onPressed: () async {
               if (isFollowing) {
-                final confirmed = await showConfirmDialog(
-                  context,
-                  title: 'Unfollow ${profile.name}?',
-                  message:
-                      'Their posts will no longer appear in your timeline.',
-                  confirmText: 'Unfollow',
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: Text('Unfollow ${profile.displayName}?'),
+                    content: const Text(
+                        'Their posts will no longer appear in your timeline.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text('Unfollow'),
+                      ),
+                    ],
+                  ),
                 );
                 if (confirmed == true) {
-                  viewModel.toggleFollow(profile.username);
+                  ref.toggleFollowInList(profile.handle);
                 }
               } else {
-                viewModel.toggleFollow(profile.username);
+                ref.toggleFollowInList(profile.handle);
               }
             },
-            backgroundColor: isFollowing ? Colors.white : Colors.black,
-            textColor: isFollowing ? Colors.black : Colors.white,
-            borderColor: isFollowing
-                ? const Color.fromRGBO(207, 217, 222, 1)
-                : Colors.black,
+            style: OutlinedButton.styleFrom(
+              backgroundColor: isFollowing ? Colors.white : Colors.black,
+              foregroundColor: isFollowing ? Colors.black : Colors.white,
+              side: BorderSide(
+                color: isFollowing
+                    ? const Color.fromRGBO(207, 217, 222, 1)
+                    : Colors.black,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            child: Text(
+              isFollowing ? 'Following' : 'Follow',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
     );
   }
 }
-
