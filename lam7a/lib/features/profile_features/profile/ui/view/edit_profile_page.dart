@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../profile/model/profile_model.dart';
+import '../../model/profile_model.dart';
 import '../widgets/edit_profile_form.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {

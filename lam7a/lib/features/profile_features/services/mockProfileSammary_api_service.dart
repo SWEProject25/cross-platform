@@ -1,5 +1,5 @@
 
-import 'package:lam7a/features/profile_features/profile_summary/model/profile_model.dart';
+import 'package:lam7a/features/profile_features/profile/model2/profile_model.dart';
 
 class MockAPIService {
   Future<List<ProfileModel>> fetchProfiles() async {

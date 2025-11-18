@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../profile/model/profile_model.dart';
-import '../../repository/profile_header_repository.dart';
+import '../../model/profile_model.dart';
+import '../../repositery/profile_header_repository.dart';
 import '../../../services/mock_profile_api_service.dart';
 
 /// Provide the repository — use mock or real service

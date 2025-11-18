@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/profile_features/profile/model/profile_model.dart';
-import '../../repository/edit_profile_repository.dart';
+import '../../repositery/edit_profile_repository.dart';
 import '../../../services/mock_profile_api_service.dart';
 
 final editProfileRepositoryProvider = Provider<EditProfileRepository>(
