@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lam7a/features/messaging/model/chat_message.dart';
+import 'package:lam7a/features/messaging/ui/widgets/message_tile.dart';
 
 class MessagesListView extends StatefulWidget {
   final List<ChatMessage> messages;
@@ -8,17 +9,19 @@ class MessagesListView extends StatefulWidget {
 
   final Function()? loadMore;
 
-  const MessagesListView({super.key, required this.messages, this.leading, this.loadMore});
+  const MessagesListView({
+    super.key,
+    required this.messages,
+    this.leading,
+    this.loadMore,
+  });
 
   @override
   State<MessagesListView> createState() => _MessagesListViewState();
 }
 
 class _MessagesListViewState extends State<MessagesListView> {
-
-
   ScrollController _scrollController = ScrollController();
-
 
   @override
   void initState() {
@@ -38,76 +41,43 @@ class _MessagesListViewState extends State<MessagesListView> {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-          controller: _scrollController,
-          reverse: true, // 👈 newest messages at bottom
-          padding: const EdgeInsets.all(12),
-          itemCount: widget.messages.length,
-          itemBuilder: (context, index) {
-            index = widget.messages.length - 1 - index; // reverse index for display
-            final message = widget.messages[index];
-            final previousMessage = index > 0 ? widget.messages[index - 1] : null;
-            final nextMessage = index < widget.messages.length - 1 ? widget.messages[index + 1] : null;
+      controller: _scrollController,
+      reverse: true, 
+      itemCount: widget.messages.length,
+      itemBuilder: (context, index) {
+        index = widget.messages.length - 1 - index; 
+        final message = widget.messages[index];
+        final previousMessage = index > 0 ? widget.messages[index - 1] : null;
+        final nextMessage = index < widget.messages.length - 1
+            ? widget.messages[index + 1]
+            : null;
 
-            final bool showDate = previousMessage == null ||
-                !_isSameDay(message.time, previousMessage.time);
+        final bool showDate =
+            previousMessage == null ||
+            !_isSameDay(message.time, previousMessage.time);
 
-            final bool showTime = nextMessage == null || nextMessage.isMine != message.isMine ||
-                !_isSameMinute(message.time, nextMessage.time);
+        final bool showTime =
+            nextMessage == null ||
+            nextMessage.isMine != message.isMine ||
+            !_isSameMinute(message.time, nextMessage.time);
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if(index == 0)
-                  widget.leading ?? SizedBox.shrink(),
-                
-                if (showDate) ...[
-                  _DateSeparator(date: message.time),
-                ],
-                Align(
-                  alignment: message.isMine
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: message.isMine
-                          ? Colors.blueAccent
-                          : Colors.grey.shade300,
-                      borderRadius: !showTime ? BorderRadius.circular(16) : BorderRadius.only(
-                        topLeft: const Radius.circular(16),
-                        topRight: const Radius.circular(16),
-                        bottomLeft: Radius.circular(message.isMine ? 16 : 0),
-                        bottomRight: Radius.circular(message.isMine ? 0 : 16),
-                      ),
-                    ),
-                    child: Text(
-                      "${message.text}",
-                      style: TextStyle(
-                        color: message.isMine ? Colors.white : Colors.black,
-                      ),
-                    ),
-                  ),
-                ),
-                if (showTime)
-                  Align(
-                    alignment: message.isMine
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Text(
-                        DateFormat('h:mm a').format(message.time),
-                        style:
-                            const TextStyle(fontSize: 11, color: Colors.grey),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (index == 0) widget.leading ?? SizedBox.shrink(),
+
+            if (showDate) ...[_DateSeparator(date: message.time)],
+            MessageTile(
+              text: message.text,
+              isMine: message.isMine,
+              timeText: showTime
+                  ? DateFormat('h:mm a').format(message.time)
+                  : null,
+            ),
+          ],
         );
+      },
+    );
   }
 
   bool _isSameDay(DateTime a, DateTime b) {

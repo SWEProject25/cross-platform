@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/chat_viewmodel.dart';
 import 'package:lam7a/features/messaging/ui/widgets/chat_input_bar.dart';
+import 'package:lam7a/features/messaging/ui/widgets/message_tile.dart';
 import 'package:lam7a/features/messaging/ui/widgets/messages_list_view.dart';
 import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
 import 'package:lam7a/features/messaging/utils.dart';
@@ -41,6 +42,7 @@ class ChatScreen extends ConsumerWidget {
 
         // Body
         body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
               child: chatState.messages.when(
@@ -60,14 +62,22 @@ class ChatScreen extends ConsumerWidget {
               ),
             ),
 
+            if (chatState.isTyping)
+              MessageTile(
+                isMine: false,
+                showTypingIndicator: true,
+              ),
+
             Container(
               color: Colors.white,
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
               child: Row(
                 children: [
                   Expanded(
                     child: ChatInputBar(
-                      onSend: (m) => chatViewModel.sendMessage(m),
+                      onSend: () => chatViewModel.sendMessage(),
+                      onUpdate: (draft) => chatViewModel.updateDraftMessage(draft),
+                      draftMessage: chatState.draftMessage,
                     ),
                   ),
                 ],

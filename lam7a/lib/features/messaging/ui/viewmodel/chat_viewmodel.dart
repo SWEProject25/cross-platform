@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/utils/logger.dart';
-import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/repository/conversations_repositories.dart';
 import 'package:lam7a/features/messaging/repository/messages_repository.dart';
 import 'package:lam7a/features/messaging/ui/state/chat_state.dart';
@@ -16,13 +15,15 @@ part 'chat_viewmodel.g.dart';
 class ChatViewModel extends _$ChatViewModel {  
   final Logger _logger = getLogger(ChatViewModel);
   late int? _conversationId;
-  late final int _userId;
+  late int _userId;
 
   late ConversationsRepository _conversationsRepository;
   late MessagesRepository _messagesRepository;
   late AuthState _authState;
 
   StreamSubscription<void>? _newMessagesSub;
+  StreamSubscription<bool>? _userTypingSub;
+  Timer? _typingTimer;
 
   @override
   ChatState build({required int userId, int? conversationId}) {
@@ -39,13 +40,12 @@ class ChatViewModel extends _$ChatViewModel {
       await _getConvId();
 
       _newMessagesSub = _messagesRepository.onMessageRecieved(state.conversationId).listen((_)=>_onNewMessagesArrive());
+      _userTypingSub = _messagesRepository.onUserTyping(state.conversationId).listen(((isTyping)=> _onOtherTyping(isTyping)));
       _messagesRepository.joinConversation(state.conversationId);
       _loadContact();
       _loadMessages();
 
       await loadMoreMessages();
-      
-
 
     });
   
@@ -58,13 +58,18 @@ class ChatViewModel extends _$ChatViewModel {
 
     _newMessagesSub?.cancel();
     _newMessagesSub = null;
+
+    _userTypingSub?.cancel();
+    _userTypingSub = null;
+    _typingTimer?.cancel();
+    _typingTimer = null;
   }
 
 
   Future<void> _getConvId() async{
     if(_conversationId == null){
       _logger.d("Getting ConvId from UserId {$_userId}");
-      int convId = await _conversationsRepository.getConversationIdByUserId(_userId!);
+      int convId = await _conversationsRepository.getConversationIdByUserId(_userId);
 
       if(convId == -1){
         _logger.e("UserId {$_userId} conversion got {$convId}");
@@ -104,6 +109,10 @@ class ChatViewModel extends _$ChatViewModel {
     _refreshMessages();
   }
 
+  void _onOtherTyping (bool isTyping) {
+    state = state.copyWith(isTyping: isTyping);
+  }
+
   void _refreshMessages() {
     try {
       final data = _messagesRepository.fetchMessage(state.conversationId);
@@ -113,8 +122,24 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
-  Future<void> sendMessage(String message) async {
-    _messagesRepository.sendMessage(_authState.user!.id!, state.conversationId, message.trim());
+  void updateDraftMessage(String draft){
+    state = state.copyWith(draftMessage: draft);
+
+    _messagesRepository.updateTypingStatus(state.conversationId, true);
+    if (_typingTimer?.isActive ?? false) {
+      _typingTimer!.cancel();
+    }
+
+    _typingTimer = Timer(const Duration(seconds: 3), () {
+      _messagesRepository.updateTypingStatus(state.conversationId, false);
+      _typingTimer = null;
+    });
+  }
+
+  Future<void> sendMessage() async {
+    _messagesRepository.sendMessage(_authState.user!.id!, state.conversationId, state.draftMessage.trim());
+  
+    state = state.copyWith(draftMessage: "");
   }
 
 

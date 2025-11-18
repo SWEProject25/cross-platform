@@ -19,6 +19,8 @@ class MessagesSocketService {
 
   final StreamController<MessageDto> _incomingMessagesController = StreamController<MessageDto>.broadcast();
   final StreamController<MessageDto> _incomingMessagesNotificationsController = StreamController<MessageDto>.broadcast();
+  final StreamController<TypingEventDto> _userTypingController = StreamController<TypingEventDto>.broadcast();
+  final StreamController<TypingEventDto> _userStoppedTypingController = StreamController<TypingEventDto>.broadcast();
 
   MessagesSocketService(this._socket){
     _logger.w("Create MessagesSocketService");
@@ -27,6 +29,8 @@ class MessagesSocketService {
   void setUpListners(){
     _listenToMessages();
     _listenToMessagesNotifications();
+    _listenToTypingEvents();
+    _listenToStopTypingEvents();
   }
 
   void _listenToMessages() {
@@ -53,9 +57,37 @@ class MessagesSocketService {
     });
   }
 
+  void _listenToTypingEvents() {
+    _socket.on("userTyping", (data) {
+      try {
+        _logger.i("Recieved typing event on socket: $data");
+        final typingEvent = TypingEventDto.fromJson(Map<String, dynamic>.from(data));
+        _userTypingController.add(typingEvent);
+      } catch (e) {
+        _logger.e("Error parsing typing event: $e");
+      }
+    });
+  }
+
+  void _listenToStopTypingEvents() {
+    _socket.on("userStoppedTyping", (data) {
+      try {
+        _logger.i("Recieved stop typing event on socket: $data");
+        final typingEvent = TypingEventDto.fromJson(Map<String, dynamic>.from(data));
+        _userStoppedTypingController.add(typingEvent);
+      } catch (e) {
+        _logger.e("Error parsing stop typing event: $e");
+      }
+    });
+  }
+
   Stream<MessageDto> get incomingMessages => _incomingMessagesController.stream;
 
   Stream<MessageDto> get incomingMessagesNotifications => _incomingMessagesNotificationsController.stream;
+  
+  Stream<TypingEventDto> get userTyping => _userTypingController.stream;
+
+  Stream<TypingEventDto> get userStoppedTyping => _userStoppedTypingController.stream;
 
   void sendMessage(CreateMessageRequest request) {
     _socket.emit("createMessage", request.toJson());
@@ -66,7 +98,15 @@ class MessagesSocketService {
   }
   
   void leaveConversation(int conversationId) {
-    _socket.emit("joinConversation", conversationId);
+    _socket.emit("leaveConversation", conversationId);
+  }
+
+  void sendTypingEvent(TypingRequest request) {
+     _socket.emit("typing", request.toJson());
+  }
+
+  void sendStopTypingEvent(TypingRequest request) {
+    _socket.emit("stopTyping", request.toJson());
   }
 
   void dispose() {

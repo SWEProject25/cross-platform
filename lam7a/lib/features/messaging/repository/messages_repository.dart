@@ -25,6 +25,10 @@ class MessagesRepository extends _$MessagesRepository {
   final Map<int, StreamController<void>> _notifier = {};
   StreamSubscription<MessageDto>? _incomingSub;
   StreamSubscription<MessageDto>? _incomingNotifSub;
+  StreamSubscription<TypingEventDto>? _typingSub;
+  StreamSubscription<TypingEventDto>? _stopTypingSub;
+
+  final Map<int, StreamController<bool>> _typingNotifier = {};
 
   @override
   void build() {
@@ -36,6 +40,8 @@ class MessagesRepository extends _$MessagesRepository {
     _logger.w("Create MessagesRepository");
     _incomingSub = _socket.incomingMessages.listen(_onReceivedMessage);
     _incomingNotifSub = _socket.incomingMessagesNotifications.listen(_onReceivedMessage);
+    _typingSub = _socket.userTyping.listen(_onUserTypingEvent);
+    _stopTypingSub = _socket.userStoppedTyping.listen(_onUserStoppedTypingEvent);
 
     ref.onDispose(() {
       _logger.i("Disposing MessagesRepository");
@@ -66,14 +72,37 @@ class MessagesRepository extends _$MessagesRepository {
     _getNotifier(message.conversationId ?? -1).add(null);
   }
 
+  void _onUserTypingEvent(TypingEventDto event) {
+    _logger.i("User ${event.userId} is typing in conversation ${event.conversationId}");
+    _getTypingNotifier(event.conversationId).add(true);
+  }
+  
+  void _onUserStoppedTypingEvent(TypingEventDto event) {
+    _logger.i("User ${event.userId} stopped typing in conversation ${event.conversationId}");
+    _getTypingNotifier(event.conversationId).add(false);
+  }
+
   Stream<void> onMessageRecieved(int conversationId) => _getNotifier(conversationId).stream;
   StreamController<void> _getNotifier(int conversationId) => _notifier.putIfAbsent(conversationId, ()=>StreamController<void>.broadcast());
+
+  Stream<bool> onUserTyping(int conversationId) => _getTypingNotifier(conversationId).stream;
+  StreamController<bool> _getTypingNotifier(int conversationId) => _typingNotifier.putIfAbsent(conversationId, ()=>StreamController<bool>.broadcast());
 
   List<ChatMessage> fetchMessage(int chatId) {
     return _cache.getMessages(chatId);
   }
 
+  void updateTypingStatus(int conversationId, bool isTyping) {
+    if(isTyping){
+      _socket.sendTypingEvent(TypingRequest(conversationId: conversationId));
+    } else {
+      _socket.sendStopTypingEvent(TypingRequest(conversationId: conversationId));
+    }
+  }
+
   void sendMessage(int senderId, int conversationId, String message) {
+    _logger.i("Sending message to conversation $conversationId: $message");
+
     CreateMessageRequest request = CreateMessageRequest(
       conversationId: conversationId,
       senderId: senderId,

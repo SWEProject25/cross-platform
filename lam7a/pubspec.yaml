@@ -48,6 +48,7 @@ dependencies:
   #cashing
   shared_preferences: ^2.5.3
   logger: ^2.6.2
+  flutter_typing_indicator: ^0.0.4
   
 dev_dependencies:
   freezed: ^3.1.0
