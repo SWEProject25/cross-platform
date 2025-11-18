@@ -13,6 +13,7 @@ class AuthenticationTransmissionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: ValueKey("transmissionAfterLogin"),
       appBar: AppBar(title: const ImageIcon(AssetImage(AppAssets.xIcon))),
       body: Consumer(
         builder: (context, ref, child) {

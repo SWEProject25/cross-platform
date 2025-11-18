@@ -26,6 +26,7 @@ class IconedButtonCentered extends StatelessWidget {
           Expanded(
             flex: 8,
             child: ElevatedButton(
+              key: key,
               onPressed: (){pressEffect!();},
               style: ElevatedButton.styleFrom(
                 alignment: Alignment.center,

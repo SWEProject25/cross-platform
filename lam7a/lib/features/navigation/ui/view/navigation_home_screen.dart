@@ -6,7 +6,6 @@ import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
-import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 import 'package:lam7a/features/messaging/ui/view/conversations_screen.dart';
 import 'package:lam7a/features/navigation/ui/viewmodel/navigation_viewmodel.dart';
 import 'package:lam7a/features/navigation/ui/widgets/list_memeber.dart';
@@ -14,6 +13,7 @@ import 'package:lam7a/features/navigation/ui/widgets/profile_block.dart';
 import 'package:lam7a/features/navigation/utils/models/user_main_data.dart';
 import 'package:lam7a/features/notifications/ui/views/notifications_screen.dart';
 import 'package:lam7a/features/settings/ui/view/main_settings_page.dart';
+import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
 
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
@@ -35,7 +35,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         final viewmodel = ref.watch(navigationViewModelProvider.notifier);
         UserModel? user = ref.watch(authenticationProvider).user;
         List<Widget> pages = [
-          Center(child: Text("Home Screen")),
+          Center(child: TweetHomeScreen()),
           Center(child: Text("Search Screen")),
           Center(child: NotificationsScreen()),
           Center(child: ConversationsScreen()),
@@ -61,6 +61,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         ];
 
         return Scaffold(
+          key: ValueKey("homeScreen"),
           appBar: AppBar(
             title: const ImageIcon(AssetImage(AppAssets.xIcon)),
             leading: Builder(
@@ -159,7 +160,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           bottomNavigationBar: AnimatedContainer(
             duration: const Duration(milliseconds: 350),
             curve: Curves.easeInOut,
-            height: _isVisible ? 60 : 0,
+            height: _isVisible ? MediaQuery.of(context).size.height * 0.09 : 0,
             child: AnimatedOpacity(
               duration: const Duration(milliseconds: 350),
               curve: Curves.easeInOut,

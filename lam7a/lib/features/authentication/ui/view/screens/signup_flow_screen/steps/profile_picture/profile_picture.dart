@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProfilePicture extends StatefulWidget {

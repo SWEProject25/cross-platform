@@ -20,7 +20,7 @@ void main() async {
   await Future.wait([container.read(apiServiceProvider).initialize()]);
   await container.read(authenticationProvider.notifier).isAuthenticated();
 
-  container.listen(socketInitializerProvider, (_,_)=>{});
+  container.listen(socketInitializerProvider, (_, _) => {});
   container.read(messagesSocketServiceProvider).setUpListners();
 
   runApp(UncontrolledProviderScope(child: MyApp(), container: container));
