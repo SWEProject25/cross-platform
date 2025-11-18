@@ -107,7 +107,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
         endpoint: ApiConfig.postsEndpoint,
         queryParameters: {
           'limit': 100, // Limit to 50 most recent tweets
-          'page': 1,   // First page
+          'page': 29,   // First page
           'sort': 'desc', // Sort by newest first (if backend supports it)
         },
       );

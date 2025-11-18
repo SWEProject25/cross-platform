@@ -3,6 +3,7 @@ import 'package:lam7a/core/theme/app_pallete.dart';
 
 // ignore: must_be_immutable
 class TextInputField extends StatefulWidget {
+  
   String labelTextField;
   bool isLimited;
   bool isPassword;
@@ -64,6 +65,7 @@ class _TextInputFieldState extends State<TextInputField> {
               children: [
                 Container(
                   child: TextFormField(
+                    key: widget.key,
                     enabled: widget.enabled,
                     onChanged: (value) {
                       widget.onChangeEffect(value);
@@ -182,6 +184,7 @@ class _TextInputFieldState extends State<TextInputField> {
     final pickedDate = await showDatePicker(
       
       context: context,
+      
       firstDate: DateTime(1930, 1, 1),
       lastDate: DateTime.now(),
       initialDate: DateTime(2000, 1, 1),

@@ -17,6 +17,7 @@ class FirstTimeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: Key("firstScreen"),
       appBar: AppBar(title: ImageIcon(AssetImage(AppAssets.xIcon))),
       body: Consumer(
         builder: (context, ref, child) {
@@ -53,12 +54,14 @@ class FirstTimeScreen extends StatelessWidget {
               Column(
                 children: [
                   IconedButtonCentered(
+                    key: Key("googleOAuthButton"),
                     buttonLabel: AuthenticationConstants.oAuthWithGoogleText,
                     imgPath: AppAssets.googleIcon,
                     backGroundColor: Pallete.whiteColor,
                     textColor: Pallete.blackColor,
                   ),
                   IconedButtonCentered(
+                    key: Key("githubOAuthButton"),
                     buttonLabel: AuthenticationConstants.oAuthWithGithubText,
                     imgPath: AppAssets.githubIcon,
                     backGroundColor: Pallete.whiteColor,
@@ -92,6 +95,7 @@ class FirstTimeScreen extends StatelessWidget {
                     ],
                   ),
                   IconedButtonCentered(
+                    key: Key("createAccountButton"),
                     buttonLabel: "Create account",
                     backGroundColor: Pallete.blackColor,
                     textColor: Pallete.whiteColor,

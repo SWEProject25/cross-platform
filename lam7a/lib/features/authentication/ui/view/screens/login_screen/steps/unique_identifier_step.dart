@@ -36,6 +36,7 @@ class UniqueIdentifier extends StatelessWidget
             ),
             SizedBox(height: 20),
             TextInputField(
+              key: ValueKey("emailLoginTextField"),
               labelTextField: "Phone, email address or username",
               isLimited: false,
               flex: 12,
