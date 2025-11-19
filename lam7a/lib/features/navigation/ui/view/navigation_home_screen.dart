@@ -17,6 +17,7 @@ import 'package:lam7a/features/notifications/ui/views/notifications_screen.dart'
 import 'package:lam7a/features/settings/ui/view/main_settings_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
+
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
 
@@ -29,13 +30,13 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
   int valueFromDropdown = 0;
   bool _isVisible = true;
   double _lastOffset = 0;
+    String? themeMode;
 
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Consumer(
       builder: (context, ref, child) {
-        final viewmodel = ref.watch(navigationViewModelProvider.notifier);
         UserModel? user = ref.watch(authenticationProvider).user;
         List<Widget> pages = [
           Center(child: TweetHomeScreen()),
@@ -58,7 +59,9 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           ),
           ListMember(
             "Logout",
-            (){showLogoutDialog(ref);},
+            () {
+              showLogoutDialog(ref);
+            },
             icon: Icons.logout,
             color: Pallete.errorColor,
           ),
@@ -96,7 +99,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
               ),
             ),
             child: Column(
-              // crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 50),
                 ProfileBlock(
@@ -146,14 +149,20 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                 ),
                 SizedBox(height: 20),
 
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.only(left: 20),
-                  child: IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.light_mode_outlined, size: 35),
-                    alignment: Alignment.centerLeft,
-                  ),
+                StatefulBuilder(
+                  builder: (context, modelSetState) {
+                    return Container(
+                      width: 80,
+                      padding: EdgeInsets.only(left: 20),
+                      child: IconButton(
+                        onPressed: () {
+                          showThemeModeBottomSheet(isDark);
+                        },
+                        icon: Icon(Icons.light_mode_outlined, size: 35),
+                        alignment: Alignment.center,
+                      ),
+                    );
+                  },
                 ),
                 SizedBox(height: 20),
               ],
@@ -301,7 +310,9 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
     bool isDark = Theme.of(context).colorScheme.brightness == Brightness.dark;
     final viewmodel = ref.watch(navigationViewModelProvider.notifier);
     Widget dialog = AlertDialog(
-      backgroundColor: isDark ?  const Color.fromARGB(255, 71, 71, 71) : Theme.of(context).colorScheme.surface,
+      backgroundColor: isDark
+          ? const Color.fromARGB(255, 71, 71, 71)
+          : Theme.of(context).colorScheme.surface,
       title: const Text('Logout'),
       content: const Text('Are you sure you want to logout'),
       actions: <Widget>[
@@ -311,19 +322,105 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         ),
         TextButton(
           onPressed: () async {
-              bool isloggedOut = await viewmodel.logoutButtonPressed();
-              if (isloggedOut) {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  FirstTimeScreen.routeName,
-                  (route) => false,
-                );
+            bool isloggedOut = await viewmodel.logoutButtonPressed();
+            if (isloggedOut) {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                FirstTimeScreen.routeName,
+                (route) => false,
+              );
             }
           },
-          child: Text('Logout', style: TextStyle(color:  Pallete.errorColor),),
+          child: Text('Logout', style: TextStyle(color: Pallete.errorColor)),
         ),
       ],
     );
-    showDialog<String>(context: context, builder:  (BuildContext context) => dialog);
+    showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => dialog,
+    );
+  }
+
+  void showThemeModeBottomSheet(bool isDark) {
+    showModalBottomSheet<void>(
+      context: context, // Your correct context from Builder
+      backgroundColor: isDark
+          ? const Color.fromARGB(255, 71, 71, 71)
+          : Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext modalContext) {
+        return StatefulBuilder(
+          // ✅ This is the key!
+          builder: (BuildContext context, StateSetter modalSetState) {
+            return SizedBox(
+              height: 300, // A bit taller for better UX
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Select Theme Mode",
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    RadioGroup<String>(
+                      groupValue: themeMode, // Your state variable
+                      onChanged: (value) {
+                        modalSetState(
+                          () => themeMode = value,
+                        );
+                        setState(
+                          () {},
+                        ); 
+                      },
+                      child: Column(
+                        children: [
+                          RadioListTile<String>(
+                            title: Row(
+                              children: [
+                                Icon(
+                                  Icons.dark_mode,
+                                  color: Pallete.greyColor,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                const Text('Dark Mode'),
+                              ],
+                            ),
+                            value: 'dark',
+                          ),
+                          RadioListTile<String>(
+                            title: Row(
+                              children: [
+                                Icon(
+                                  Icons.light_mode,
+                                  color: Pallete.greyColor,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                const Text('Light Mode'),
+                              ],
+                            ),
+                            value: 'light',
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),]
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 }
