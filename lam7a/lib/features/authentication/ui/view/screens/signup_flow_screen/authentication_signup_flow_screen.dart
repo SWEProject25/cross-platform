@@ -12,6 +12,7 @@ import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/authentication_otp_code_Step.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
+import 'package:lam7a/features/authentication/ui/widgets/loading_circle.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 
 final List<Widget> signupFlowSteps = [
@@ -126,12 +127,20 @@ class _SignUpFlowState extends State<SignUpFlow> {
                               Expanded(
                                 flex: 6,
                                 child: AuthenticationStepButton(
+                                  bgColor: Theme.of(context).colorScheme.onSurface,
                                   key: ValueKey("nextSignupStepButton"),
                                   enable: viewmodel.shouldEnableNext(),
                                   label: AuthenticationConstants.nextLabels[currentIndex],
+                                  textColor: Theme.of(context).colorScheme.surface,
                                   onPressedEffect: () async {
                                     if (viewmodel.shouldEnableNext()) {
                                       await viewmodel.registrationProgress();
+                                      String? message = ref.read(authenticationViewmodelProvider).toastMessage;
+                                      if (message != null)
+                                      {
+                                          AuthenticationConstants.flushMessage(message, context, "signupMessage");
+                                          ref.read(authenticationViewmodelProvider.notifier).clearMessage();
+                                      }
                                       if (authenticationState.isAuthenticated)
                                       {
                                         Navigator.pop(context);
@@ -148,10 +157,7 @@ class _SignUpFlowState extends State<SignUpFlow> {
                     ],
                   )
                 : Center(
-                    child: CircularProgressIndicator(
-                      backgroundColor: Pallete.transparentColor,
-                      color: Pallete.blackColor,
-                    ),
+                    child: LoadingCircle(),
                   ),
           ),
         );

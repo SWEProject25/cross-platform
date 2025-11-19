@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
@@ -10,11 +11,13 @@ import 'package:lam7a/features/messaging/ui/view/conversations_screen.dart';
 import 'package:lam7a/features/navigation/ui/viewmodel/navigation_viewmodel.dart';
 import 'package:lam7a/features/navigation/ui/widgets/list_memeber.dart';
 import 'package:lam7a/features/navigation/ui/widgets/profile_block.dart';
+import 'package:lam7a/features/navigation/ui/widgets/search_bar.dart';
 import 'package:lam7a/features/navigation/utils/models/user_main_data.dart';
 import 'package:lam7a/features/notifications/ui/views/notifications_screen.dart';
 import 'package:lam7a/features/settings/ui/view/main_settings_page.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
-import 'package:lam7a/features/profile/ui/widgets/profile_header_widget.dart';
+
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
 
@@ -27,12 +30,13 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
   int valueFromDropdown = 0;
   bool _isVisible = true;
   double _lastOffset = 0;
+    String? themeMode;
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Consumer(
       builder: (context, ref, child) {
-        final viewmodel = ref.watch(navigationViewModelProvider.notifier);
         UserModel? user = ref.watch(authenticationProvider).user;
         List<Widget> pages = [
           Center(child: TweetHomeScreen()),
@@ -41,29 +45,22 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           Center(child: ConversationsScreen()),
         ];
         List<Widget> drawerItems = [
-          ListMember("Profile", 
-                      () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProfileHeaderWidget(
-                      userId: 'hossam_dev', 
-                    ),
-                  ),
-                );
-              }, iconPath: AppAssets.ProfileIcon),
-          ListMember("Chat", () {}, iconPath: AppAssets.chatIcon),
+          ListMember(
+            "Profile",
+            () {},
+            iconPath: AppAssets.ProfileIcon,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          ListMember(
+            "Chat",
+            () {},
+            iconPath: AppAssets.chatIcon,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           ListMember(
             "Logout",
-            () async {
-              bool isloggedOut = await viewmodel.logoutButtonPressed();
-              if (isloggedOut) {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  FirstTimeScreen.routeName,
-                  (route) => false,
-                );
-              }
+            () {
+              showLogoutDialog(ref);
             },
             icon: Icons.logout,
             color: Pallete.errorColor,
@@ -73,7 +70,9 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         return Scaffold(
           key: ValueKey("homeScreen"),
           appBar: AppBar(
-            title: const ImageIcon(AssetImage(AppAssets.xIcon)),
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            elevation: 0,
+            title: getCurrentAppbar(),
             leading: Builder(
               builder: (context) {
                 return IconButton(
@@ -90,6 +89,9 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           ),
           drawer: Drawer(
             width: 300,
+            backgroundColor: isDark
+                ? Pallete.darkItemBackground
+                : Theme.of(context).colorScheme.surface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.only(
                 topRight: Radius.circular(0),
@@ -97,7 +99,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
               ),
             ),
             child: Column(
-              // crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 50),
                 ProfileBlock(
@@ -124,27 +126,43 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                   ),
                   title: Text("Settinga&Care"),
                   children: [
-                    ListMember("Settings and privacy", () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (ctx) => MainSettingsPage()),
-                      );
-                    }, icon: Icons.settings),
-                    ListMember("Help Center", () {}, icon: Icons.help_center),
+                    ListMember(
+                      "Settings and privacy",
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (ctx) => MainSettingsPage(),
+                          ),
+                        );
+                      },
+                      icon: Icons.settings,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    ListMember(
+                      "Help Center",
+                      () {},
+                      icon: Icons.help_center,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ],
                 ),
                 SizedBox(height: 20),
 
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.only(left: 20),
-                  child: IconButton(
-                    onPressed: () {
-
-                     },
-                    icon: Icon(Icons.light_mode_outlined, size: 35),
-                    alignment: Alignment.centerLeft,
-                  ),
+                StatefulBuilder(
+                  builder: (context, modelSetState) {
+                    return Container(
+                      width: 80,
+                      padding: EdgeInsets.only(left: 20),
+                      child: IconButton(
+                        onPressed: () {
+                          showThemeModeBottomSheet(isDark);
+                        },
+                        icon: Icon(Icons.light_mode_outlined, size: 35),
+                        alignment: Alignment.center,
+                      ),
+                    );
+                  },
                 ),
                 SizedBox(height: 20),
               ],
@@ -172,7 +190,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           bottomNavigationBar: AnimatedContainer(
             duration: const Duration(milliseconds: 350),
             curve: Curves.easeInOut,
-            height: _isVisible ? MediaQuery.of(context).size.height * 0.09 : 0,
+            // height: _isVisible ? MediaQuery.of(context).size.height * 0.07 : 0,
             child: AnimatedOpacity(
               duration: const Duration(milliseconds: 350),
               curve: Curves.easeInOut,
@@ -188,13 +206,13 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                 ),
                 child: Theme(
                   data: ThemeData(
-                    canvasColor: Pallete.whiteColor,
+                    canvasColor: Theme.of(context).colorScheme.surface,
                     splashColor: Colors.transparent,
                   ),
                   child: BottomNavigationBar(
                     currentIndex: _currentIndex,
                     type: BottomNavigationBarType.fixed,
-                    selectedItemColor: Pallete.blackColor,
+                    selectedItemColor: Theme.of(context).colorScheme.onSurface,
                     unselectedItemColor: Pallete.greyColor,
                     elevation: 0,
                     showSelectedLabels: false,
@@ -207,7 +225,18 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                     },
                     items: [
                       BottomNavigationBarItem(
-                        icon: ImageIcon(AssetImage(AppAssets.homeIcon)),
+                        icon: SvgPicture.asset(
+                          AppAssets.homeIcon,
+                          height: 20,
+                          width: 20,
+                          color: Pallete.greyColor,
+                        ),
+                        activeIcon: SvgPicture.asset(
+                          AppAssets.homeIcon,
+                          height: 20,
+                          width: 20,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                         label: "home",
                       ),
                       BottomNavigationBarItem(
@@ -215,13 +244,34 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                         label: "search",
                       ),
                       BottomNavigationBarItem(
-                        icon: ImageIcon(
-                          AssetImage(AppAssets.notificationsIcon),
+                        icon: SvgPicture.asset(
+                          AppAssets.notificationsIcon,
+                          height: 20,
+                          width: 20,
+                          color: Pallete.greyColor,
                         ),
+                        activeIcon: SvgPicture.asset(
+                          AppAssets.notificationsIcon,
+                          height: 20,
+                          width: 20,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+
                         label: "notifications",
                       ),
                       BottomNavigationBarItem(
-                        icon: ImageIcon(AssetImage(AppAssets.messagesIcon)),
+                        icon: SvgPicture.asset(
+                          AppAssets.messagesIcon,
+                          height: 20,
+                          width: 20,
+                          color: Pallete.greyColor,
+                        ),
+                        activeIcon: SvgPicture.asset(
+                          AppAssets.messagesIcon,
+                          height: 20,
+                          width: 20,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                         label: "messages",
                       ),
                     ],
@@ -230,6 +280,145 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget getCurrentAppbar() {
+    switch (_currentIndex) {
+      case 0:
+        return ImageIcon(AssetImage(AppAssets.xIcon));
+      case 1:
+        return SearchBarCustomized();
+      case 2:
+        return Text(
+          "Notifications",
+          style: GoogleFonts.outfit(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+        );
+      case 3:
+        return SearchBarCustomized();
+    }
+    return ImageIcon(AssetImage(AppAssets.xIcon));
+  }
+
+  void showLogoutDialog(WidgetRef ref) {
+    bool isDark = Theme.of(context).colorScheme.brightness == Brightness.dark;
+    final viewmodel = ref.watch(navigationViewModelProvider.notifier);
+    Widget dialog = AlertDialog(
+      backgroundColor: isDark
+          ? const Color.fromARGB(255, 71, 71, 71)
+          : Theme.of(context).colorScheme.surface,
+      title: const Text('Logout'),
+      content: const Text('Are you sure you want to logout'),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.pop(context, 'Cancel'),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () async {
+            bool isloggedOut = await viewmodel.logoutButtonPressed();
+            if (isloggedOut) {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                FirstTimeScreen.routeName,
+                (route) => false,
+              );
+            }
+          },
+          child: Text('Logout', style: TextStyle(color: Pallete.errorColor)),
+        ),
+      ],
+    );
+    showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => dialog,
+    );
+  }
+
+  void showThemeModeBottomSheet(bool isDark) {
+    showModalBottomSheet<void>(
+      context: context, // Your correct context from Builder
+      backgroundColor: isDark
+          ? const Color.fromARGB(255, 71, 71, 71)
+          : Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext modalContext) {
+        return StatefulBuilder(
+          // ✅ This is the key!
+          builder: (BuildContext context, StateSetter modalSetState) {
+            return SizedBox(
+              height: 300, // A bit taller for better UX
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Select Theme Mode",
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    RadioGroup<String>(
+                      groupValue: themeMode, // Your state variable
+                      onChanged: (value) {
+                        modalSetState(
+                          () => themeMode = value,
+                        );
+                        setState(
+                          () {},
+                        ); 
+                      },
+                      child: Column(
+                        children: [
+                          RadioListTile<String>(
+                            title: Row(
+                              children: [
+                                Icon(
+                                  Icons.dark_mode,
+                                  color: Pallete.greyColor,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                const Text('Dark Mode'),
+                              ],
+                            ),
+                            value: 'dark',
+                          ),
+                          RadioListTile<String>(
+                            title: Row(
+                              children: [
+                                Icon(
+                                  Icons.light_mode,
+                                  color: Pallete.greyColor,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                const Text('Light Mode'),
+                              ],
+                            ),
+                            value: 'light',
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),]
+                ),
+              ),
+            );
+          },
         );
       },
     );

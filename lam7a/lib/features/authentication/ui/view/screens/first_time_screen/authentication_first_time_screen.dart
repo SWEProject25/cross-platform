@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
@@ -29,7 +30,7 @@ class FirstTimeScreen extends StatelessWidget {
                 flex: 4,
                 //this is the container of the greeting text for the first time opening the application
                 child: Container(
-                  child: const Row(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Spacer(flex: 1),
@@ -37,10 +38,10 @@ class FirstTimeScreen extends StatelessWidget {
                         flex: 8,
                         child: Text(
                           AuthenticationConstants.firstTimeScreenText,
-                          style: TextStyle(
+                          style: GoogleFonts.outfit(
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
-                            color: Pallete.blackColor,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -59,6 +60,7 @@ class FirstTimeScreen extends StatelessWidget {
                     imgPath: AppAssets.googleIcon,
                     backGroundColor: Pallete.whiteColor,
                     textColor: Pallete.blackColor,
+                    isBorder: true,
                   ),
                   IconedButtonCentered(
                     key: Key("githubOAuthButton"),
@@ -66,6 +68,7 @@ class FirstTimeScreen extends StatelessWidget {
                     imgPath: AppAssets.githubIcon,
                     backGroundColor: Pallete.whiteColor,
                     textColor: Pallete.blackColor,
+                    isBorder: true,
                   ),
                   const Row(
                     children: [
@@ -97,8 +100,8 @@ class FirstTimeScreen extends StatelessWidget {
                   IconedButtonCentered(
                     key: Key("createAccountButton"),
                     buttonLabel: "Create account",
-                    backGroundColor: Pallete.blackColor,
-                    textColor: Pallete.whiteColor,
+                    backGroundColor: Theme.of(context).colorScheme.onSurface,
+                    textColor: Theme.of(context).colorScheme.surface,
                     pressEffect: () {
                       Navigator.pushNamed(context, SignUpFlow.routeName);
                       viewmodel.changeToSignup();

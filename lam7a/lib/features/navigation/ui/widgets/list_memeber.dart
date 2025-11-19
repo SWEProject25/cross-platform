@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 
 class ListMember extends StatelessWidget{
@@ -33,7 +34,7 @@ class ListMember extends StatelessWidget{
           : Icon(icon, size: 25),
       title: Text(
         title,
-        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+        style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w500,),
       ),
       onTap: () {
         TapEffect();
