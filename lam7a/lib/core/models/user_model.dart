@@ -1,69 +1,23 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:convert';
+import 'package:freezed_annotation/freezed_annotation.dart';
+part 'user_model.freezed.dart';
+part 'user_model.g.dart';
 
-class UserModel {
-  final String name;
-  final String email;
-  final String id;
-
-  UserModel({
-    required this.name,
-    required this.email,
-    required this.id,
-
-  });
-
-  UserModel copyWith({
-    String? name,
+@freezed
+abstract class UserModel with _$UserModel {
+  const factory UserModel({
+    int? id,
+    String? username,
     String? email,
-    String? id,
-  }) {
-    return UserModel(
-      name: name ?? this.name,
-      email: email ?? this.email,
-      id: id ?? this.id,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'name': name,
-      'email': email,
-      'id': id,
-    };
-  }
-
-  factory UserModel.fromMap(Map<String, dynamic> map) {
-    return UserModel(
-      name: map['name'] ?? '',
-      email: map['email'] ?? '',
-      id: map['id'] ?? '',
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory UserModel.fromJson(String source) =>
-      UserModel.fromMap(json.decode(source) as Map<String, dynamic>);
-
-  @override
-  String toString() {
-    return 'UserModel(name: $name, email: $email, id: $id)';
-  }
-
-  @override
-  bool operator ==(covariant UserModel other) {
-    if (identical(this, other)) return true;
-
-    return other.name == name &&
-        other.email == email &&
-        other.id == id;
-  }
-
-  @override
-  int get hashCode {
-    return name.hashCode ^
-        email.hashCode ^
-        id.hashCode;
-  }
+    String? role,
+    String? name,
+    String? birthDate,
+    String? profileImageUrl,
+    String? bannerImageUrl,
+    String? bio,
+    String? location,
+    String? website,
+    String? createdAt,
+  }) = _UserModel;
+  factory UserModel.fromJson(Map<String, dynamic> json) =>
+      _$UserModelFromJson(json);
 }
