@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
-import 'package:lam7a/features/tweet/ui/state/tweet_replies_provider.dart';
+import 'package:lam7a/features/tweet/services/tweet_replies_provider.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_detailed_body_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_detailed_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
