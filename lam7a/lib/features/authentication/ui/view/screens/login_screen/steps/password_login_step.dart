@@ -35,7 +35,7 @@ class PasswordLogin extends StatelessWidget {
             ),
             SizedBox(height: 20),
             TextInputField(
-              key: Key("emailLoginTextField"),
+              key: ValueKey("emailLoginTextField"),
               labelTextField: "",
               isLimited: false,
               flex: 12,
@@ -46,7 +46,7 @@ class PasswordLogin extends StatelessWidget {
               enabled: false,
             ),
             TextInputField(
-              key: Key("passwordLoginTextField"),
+              key: ValueKey("passwordLoginTextField"),
               labelTextField: "password",
               isLimited: false,
               flex: 12,

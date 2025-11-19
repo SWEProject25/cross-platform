@@ -17,7 +17,6 @@ import 'package:lam7a/features/notifications/ui/views/notifications_screen.dart'
 import 'package:lam7a/features/settings/ui/view/main_settings_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
-
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
 
@@ -66,7 +65,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         ];
 
         return Scaffold(
-          key: Key("homeScreen"),
+          key: ValueKey("homeScreen"),
           appBar: AppBar(
             backgroundColor: Theme.of(context).colorScheme.surface,
             elevation: 0,
