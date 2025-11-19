@@ -30,7 +30,3 @@ linter:
 analyzer:
   plugins:
     - custom_lint
-dependencies:
-  flutter:
-    sdk: flutter
-  flutter_riverpod: ^2.4.0
