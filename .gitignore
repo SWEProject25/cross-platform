@@ -1,9 +1,0 @@
-# Default ignored files
-/shelf/
-/workspace.xml
-/.idea
-openapitools.json
-/Lam7aApi
-
-*.g.dart
-*.freezed.dart
