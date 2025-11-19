@@ -20,4 +20,6 @@ abstract class Pallete {
   static const Color toastColor = Color.fromRGBO(218, 217, 217, 1);
   static const Color toastBgColor = Color.fromRGBO(204, 203, 203, 1);
   static const Color inactiveSeekColor = Colors.white38;
+  static const Color darkItemBackground = Color.fromARGB(255, 26, 26, 26);
+  static const Color searchBarBackGround = Color.fromRGBO(242, 242, 250, 1);
 }

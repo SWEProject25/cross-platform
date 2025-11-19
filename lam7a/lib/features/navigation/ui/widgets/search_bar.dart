@@ -31,20 +31,22 @@ class _SearchBarCustomizedState extends State<SearchBarCustomized> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Theme(
       data: Theme.of(context).copyWith(
         textSelectionTheme: TextSelectionThemeData(
-          cursorColor: Pallete.whiteColor, // Cursor color
+          cursorColor: Theme.of(context).colorScheme.primary, // Cursor color
           selectionColor: Pallete.whiteColor,
            // Text selection highlight
           selectionHandleColor: Pallete.whiteColor, // Selection handles
         ),
       ),
       child: SearchBar(
-        hintText: 'Search',
+
+        hintText: 'Search X',
         hintStyle: WidgetStatePropertyAll<TextStyle>(
           TextStyle(
-            color: const Color.fromARGB(255, 158, 158, 158),
+            color: Pallete.greyColor,
             fontSize: 14,
             fontWeight: FontWeight.w600,
             fontStyle: FontStyle.normal,
@@ -53,7 +55,7 @@ class _SearchBarCustomizedState extends State<SearchBarCustomized> {
         ),
         textStyle: WidgetStatePropertyAll<TextStyle>(
           TextStyle(
-            color: Pallete.whiteColor,
+            color: Theme.of(context).colorScheme.primary,
             fontSize: 14,
             fontWeight: FontWeight.w600,
             fontStyle: FontStyle.normal,
@@ -62,16 +64,15 @@ class _SearchBarCustomizedState extends State<SearchBarCustomized> {
         ),
 
         backgroundColor: WidgetStateColor.resolveWith(
-          (callback) => const Color.fromARGB(255, 105, 105, 105),
+          (callback) => !isDark ? Pallete.searchBarBackGround : const Color.fromARGB(255, 61, 61, 61),
         ),
         padding: const WidgetStatePropertyAll<EdgeInsets>(
-          EdgeInsets.only(right: 16.0, top: 2, bottom: 2, left: 16),
+          EdgeInsets.only(right: 5, top: 4, bottom: 4, left: 8),
         ),
-        constraints: BoxConstraints(maxHeight: 50, maxWidth: 400),
-        leading: const Icon(
-          Icons.search,
-          color: Color.fromARGB(255, 158, 158, 158),
-        ),
+        constraints: BoxConstraints(maxHeight: 50, maxWidth: 250),
+      
+        elevation: WidgetStatePropertyAll(0),
+
       ),
     );
   }
