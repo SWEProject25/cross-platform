@@ -1,4 +1,3 @@
-// lib/features/settings/view/change_username_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../viewmodel/change_username_viewmodel.dart';
@@ -33,7 +32,6 @@ class _ChangeUsernameViewState extends ConsumerState<ChangeUsernameView> {
     final vm = ref.read(changeUsernameProvider.notifier);
     final theme = Theme.of(context);
 
-    // Keep controller text synced with state
     if (_newController.text != state.newUsername) {
       _newController.text = state.newUsername;
       _newController.selection = TextSelection.fromPosition(
@@ -42,15 +40,19 @@ class _ChangeUsernameViewState extends ConsumerState<ChangeUsernameView> {
     }
 
     return Scaffold(
+      key: const ValueKey('changeUsernamePage'),
       appBar: AppBar(
+        key: const ValueKey('changeUsernameAppBar'),
         backgroundColor: theme.scaffoldBackgroundColor,
         leading: IconButton(
+          key: const ValueKey('changeUsernameBackButton'),
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Change username', style: theme.textTheme.titleLarge!),
       ),
       body: Padding(
+        key: const ValueKey('changeUsernameBody'),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,6 +63,7 @@ class _ChangeUsernameViewState extends ConsumerState<ChangeUsernameView> {
             ),
             const SizedBox(height: 4),
             Container(
+              key: const ValueKey('currentUsernameContainer'),
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 10.0),
               decoration: const BoxDecoration(
@@ -74,7 +77,9 @@ class _ChangeUsernameViewState extends ConsumerState<ChangeUsernameView> {
               ),
             ),
             const SizedBox(height: 28),
+
             SettingsTextField(
+              key: const ValueKey('newUsernameField'),
               label: 'New',
               hint: '@username',
               controller: _newController,
@@ -85,8 +90,8 @@ class _ChangeUsernameViewState extends ConsumerState<ChangeUsernameView> {
         ),
       ),
 
-      // 👇 Replace bottomNavigationBar with floating button
       floatingActionButton: BlueXButton(
+        key: const ValueKey('saveUsernameButton'),
         isActive: state.isValid,
         isLoading: state.isLoading,
         onPressed: () async {

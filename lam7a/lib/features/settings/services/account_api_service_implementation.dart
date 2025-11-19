@@ -47,7 +47,7 @@ class AccountApiServiceImpl implements AccountApiService {
         data: {"oldPassword": oldPassword, "newPassword": newPassword},
       );
     } catch (e) {
-      // Handle error
+      rethrow;
     }
   }
 

@@ -23,10 +23,10 @@ void main() async {
   container.listen(socketInitializerProvider, (_, _) => {});
   container.read(messagesSocketServiceProvider).setUpListners();
 
-  runApp(UncontrolledProviderScope(child: MyApp(), container: container));
+  runApp(UncontrolledProviderScope(container: container, child: MyApp()));
 
   // TO TEST ADD TWEET SCREEN ONLY (No auth): Uncomment lines below
-  // runApp(ProviderScope(child: TestAddTweetApp()));
+  //runApp(ProviderScope(child: TestAddTweetApp()));
 
   // TO TEST HOME WITH FAB (No auth): Uncomment lines below
   // runApp(ProviderScope(child: TestTweetHomeApp()));
@@ -48,10 +48,11 @@ class _MyAppState extends ConsumerState<MyApp> {
         print(state.isAuthenticated);
 
         return MaterialApp(
+          debugShowCheckedModeBanner: false,
           title: 'lam7a',
           theme: AppTheme.light,
           darkTheme: AppTheme.dark, // xDarkTheme to test settings
-          themeMode: ThemeMode.dark,
+          themeMode: ThemeMode.light,
           routes: {
             FirstTimeScreen.routeName: (context) => FirstTimeScreen(),
             SignUpFlow.routeName: (context) => SignUpFlow(),

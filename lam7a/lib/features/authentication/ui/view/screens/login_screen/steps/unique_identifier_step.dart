@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
@@ -23,12 +24,12 @@ class UniqueIdentifier extends StatelessWidget
                 Spacer(flex: 1),
                 Expanded(
                   flex: 20,
-                  child: const Text(
+                  child: Text(
                     "email",
-                    style: TextStyle(
+                    style: GoogleFonts.outfit(
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
-                      color: Pallete.blackColor,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),

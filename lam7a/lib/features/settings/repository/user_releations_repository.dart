@@ -6,6 +6,7 @@ part 'user_releations_repository.g.dart';
 
 @riverpod
 UserRelationsRepository userRelationsRepository(Ref ref) {
+  // return UserRelationsRepository(ref.read(usersApiServiceImplProvider));
   return UserRelationsRepository(ref.read(usersApiServiceProvider));
 }
 

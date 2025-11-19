@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../viewmodel/account_viewmodel.dart';
 import '../../../../viewmodel/forget_password_viewmodel.dart';
 
 class SendOtpView extends ConsumerWidget {

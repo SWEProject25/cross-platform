@@ -18,31 +18,52 @@ class TermsText extends StatelessWidget {
               children: [
                 TextSpan(text: "By signing up you agree to our"),
                 WidgetSpan(
+                  alignment: PlaceholderAlignment.baseline,
+                  baseline: TextBaseline.alphabetic,
                   child: InkWell(
                     onTap: () {},
                     child: Text(
                       " Terms",
-                      style: TextStyle(color: Pallete.linkColor),
+                      style: TextStyle(
+                        color: Pallete.linkColor,
+                        decoration: TextDecoration.underline,
+                        decorationColor: Pallete.linkColor,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ),
                 ),
                 TextSpan(text: ", "),
-                 WidgetSpan(
+                WidgetSpan(
+                  alignment: PlaceholderAlignment.baseline,
+                  baseline: TextBaseline.alphabetic,
                   child: InkWell(
                     onTap: () {},
                     child: Text(
                       " Privacy Policy",
-                      style: TextStyle(color: Pallete.linkColor),
+                      style: TextStyle(
+                        color: Pallete.linkColor,
+                        decoration: TextDecoration.underline,
+                        decorationColor: Pallete.linkColor,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ),
                 ),
                 TextSpan(text: " and "),
                 WidgetSpan(
+                  alignment: PlaceholderAlignment.baseline,
+                  baseline: TextBaseline.alphabetic,
                   child: InkWell(
                     onTap: () {},
                     child: Text(
                       " Cookies use",
-                      style: TextStyle(color: Pallete.linkColor),
+                      style: TextStyle(
+                        color: Pallete.linkColor,
+                        decoration: TextDecoration.underline,
+                        decorationColor: Pallete.linkColor,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ),
                 ),

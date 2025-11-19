@@ -1,3 +1,10 @@
+import 'package:another_flushbar/flushbar.dart';
+import 'package:another_flushbar/flushbar_helper.dart';
+import 'package:another_flushbar/flushbar_route.dart';
+import 'package:flutter/material.dart';
+import 'package:lam7a/core/theme/app_pallete.dart';
+import 'package:lam7a/core/utils/app_assets.dart';
+
 class AuthenticationConstants {
   static const int userData = 0;
   static const int finishLogin = 1;
@@ -30,4 +37,59 @@ class AuthenticationConstants {
   static const String token = 'email';
   static const String success = 'success';
   static const String status = 'status';
+  static const String errorEmailMessage = "this email is already taken";
+  static const String otpSentMessage = "the code is sent to your account";
+  static const String wrongOtpMessage = "the code is wrong";
+
+  static void flushMessage(
+    String message,
+    BuildContext context,
+    String key,
+  ) async {
+    await Flushbar(
+      key: ValueKey(key),
+      messageText: Text(
+        textAlign: TextAlign.center,
+        message,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.onTertiary,
+          letterSpacing: 0.3,
+          height: 1.4,
+          fontFamily: 'Inter', // or GoogleFonts.inter()
+        ),
+      ),
+      padding: EdgeInsets.all(10),
+      maxWidth: 200,
+
+      duration: Duration(seconds: 1),
+      backgroundColor: Theme.of(context).colorScheme.tertiary,
+      flushbarPosition: FlushbarPosition.BOTTOM,
+      margin: EdgeInsets.only(right: 50, left: 50, bottom: 250),
+      borderRadius: BorderRadius.circular(25),
+      flushbarStyle: FlushbarStyle.FLOATING,
+      icon: ImageIcon(
+        AssetImage(AppAssets.xIcon),
+        size: 17,
+        color: Theme.of(context).colorScheme.onTertiary,
+      ),
+      boxShadows: [
+        BoxShadow(
+          color: Color(0x04000000), // ~2.5% black
+          offset: Offset(0, 6),
+          blurRadius: 15,
+          spreadRadius: 4,
+        ),
+        BoxShadow(
+          color: Color(0x0A000000), // ~4% black
+          offset: Offset(0, 2),
+          blurRadius: 8,
+          spreadRadius: 4,
+        ),
+      ],
+    ).show(context);
+  }
+
+  
 }

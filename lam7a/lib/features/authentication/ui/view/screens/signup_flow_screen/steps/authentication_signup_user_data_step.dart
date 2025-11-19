@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_text_input_field.dart';
@@ -28,16 +29,16 @@ class _UserDataSignUp extends State {
             Center(
               child: Text(
                 AuthenticationConstants.userDataHeaderText,
-                style: TextStyle(
+                style: GoogleFonts.outfit(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
-                  color: Pallete.blackColor,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
             SizedBox(height: 50),
             TextInputField(
-              key: Key("nameTextField"),
+              key: ValueKey("nameTextField"),
               content: state.name,
               labelTextField: "Name",
               isLimited: true,
@@ -47,7 +48,7 @@ class _UserDataSignUp extends State {
               isValid: state.isValidName,
             ),
             TextInputField(
-              key: Key("emailSignupTextField"),
+              key: ValueKey("emailSignupTextField"),
               content:state.email,
               labelTextField: "Email",
               flex: 8,
@@ -56,7 +57,7 @@ class _UserDataSignUp extends State {
               isValid: state.isValidEmail,
             ),
             TextInputField(
-              key: Key("datePickerTextField"),
+              key: ValueKey("datePickerTextField"),
               content: state.date,
               labelTextField: "Date picker",
                       flex: 8,

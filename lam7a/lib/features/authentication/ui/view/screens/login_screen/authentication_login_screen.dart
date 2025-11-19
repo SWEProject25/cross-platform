@@ -9,8 +9,8 @@ import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
+import 'package:lam7a/features/authentication/ui/widgets/loading_circle.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
-import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 
 List<Widget> loginFlow = [UniqueIdentifier(), PasswordLogin()];
 
@@ -93,20 +93,24 @@ class _loginFlowtate extends State<LogInScreen> {
                                 child: AuthenticationStepButton(
                                   key: ValueKey("loginNextButton"),
                                   enable: viewmodel.shouldEnableNextLogin(),
-                                  label: AuthenticationConstants.loginButtonLabels[currentIndex],
+                                  label: AuthenticationConstants
+                                      .loginButtonLabels[currentIndex],
                                   onPressedEffect: () {
-                                    if (currentIndex == AuthenticationConstants.finishLogin) {
+                                    if (currentIndex ==
+                                        AuthenticationConstants.finishLogin) {
                                       viewmodel.login();
                                       if (authenticationState.isAuthenticated) {
                                         Navigator.pop(context);
                                         // Navigate to transmission screen (after auth page)
                                         Navigator.pushNamedAndRemoveUntil(
                                           context,
-                                          AuthenticationTransmissionScreen.routeName,
+                                          AuthenticationTransmissionScreen
+                                              .routeName,
                                           (route) => false,
                                         );
                                       }
-                                    } else if (viewmodel.shouldEnableNextLogin()){
+                                    } else if (viewmodel
+                                        .shouldEnableNextLogin()) {
                                       viewmodel.gotoNextLoginStep();
                                     }
                                   },
@@ -118,9 +122,7 @@ class _loginFlowtate extends State<LogInScreen> {
                       ),
                     ],
                   )
-                : Center(
-                    child: CircularProgressIndicator(color: Pallete.blackColor),
-                  ),
+                : Center(child: LoadingCircle()),
           ),
         );
       },

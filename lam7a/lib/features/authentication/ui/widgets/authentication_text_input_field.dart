@@ -3,7 +3,6 @@ import 'package:lam7a/core/theme/app_pallete.dart';
 
 // ignore: must_be_immutable
 class TextInputField extends StatefulWidget {
-  
   String labelTextField;
   bool isLimited;
   bool isPassword;
@@ -61,11 +60,12 @@ class _TextInputFieldState extends State<TextInputField> {
           Expanded(
             flex: widget.flex,
             child: Stack(
-              alignment: Alignment.centerRight,
+              alignment: Alignment.topRight,
               children: [
                 Container(
                   child: TextFormField(
                     key: widget.key,
+                    style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold),
                     enabled: widget.enabled,
                     onChanged: (value) {
                       widget.onChangeEffect(value);
@@ -92,7 +92,7 @@ class _TextInputFieldState extends State<TextInputField> {
                           }
                           return null;
                         },
-                    cursorColor: Pallete.blackColor,
+                    cursorColor: Theme.of(context).colorScheme.onSurface,
                     autofocus: false,
                     decoration: InputDecoration(
                       alignLabelWithHint: true,
@@ -107,7 +107,7 @@ class _TextInputFieldState extends State<TextInputField> {
                             )
                           : TextStyle(color: Pallete.subtitleText),
 
-                      fillColor: Pallete.whiteColor,
+                      fillColor: Theme.of(context).colorScheme.surface,
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Pallete.subtitleText),
                         borderRadius: BorderRadius.all(Radius.circular(5)),
@@ -135,6 +135,7 @@ class _TextInputFieldState extends State<TextInputField> {
                   children: [
                     widget.isPassword
                         ? Container(
+                          margin: EdgeInsets.only(top: 5),
                             child: isVisible
                                 ? IconButton(
                                     icon: Icon(Icons.visibility_sharp),
@@ -152,17 +153,19 @@ class _TextInputFieldState extends State<TextInputField> {
                                   ),
                           )
                         : Container(),
-                    (_isFocused && _controller.text.isNotEmpty && !widget.isLoginField)
+                    (_isFocused &&
+                            _controller.text.isNotEmpty &&
+                            !widget.isLoginField)
                         ? ((widget.isValid)
                               ? Container(
-                                  margin: EdgeInsets.only(right: 5),
+                                  margin: EdgeInsets.only(right: 5, top: !widget.isPassword ? 15 : 7),
                                   child: Icon(
                                     Icons.check_circle_sharp,
                                     color: Pallete.greenColor,
                                   ),
                                 )
                               : Container(
-                                  margin: EdgeInsets.only(right: 5),
+                                  margin: EdgeInsets.only(right: 5, top: !widget.isPassword ? 15 : 7),
                                   child: Icon(
                                     Icons.error,
                                     color: Pallete.errorColor,
@@ -181,13 +184,25 @@ class _TextInputFieldState extends State<TextInputField> {
   }
 
   Future<void> selectDate(BuildContext context) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final pickedDate = await showDatePicker(
-      
       context: context,
-      
       firstDate: DateTime(1930, 1, 1),
       lastDate: DateTime.now(),
       initialDate: DateTime(2000, 1, 1),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: isDark ? ColorScheme.dark(            
+            primary: Colors.blue, // Header background & selected date
+            onPrimary: Colors.white, // Header text color
+            surface: const Color.fromARGB(255, 44, 44, 44)!, // Calendar background
+            onSurface: const Color.fromARGB(255, 165, 165, 165), 
+            ): Theme.of(context).colorScheme
+          ) ,
+          child: child!,
+        );
+      },
     );
     if (pickedDate != null) {
       String formattedText =
