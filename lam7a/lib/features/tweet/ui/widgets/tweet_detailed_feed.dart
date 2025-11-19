@@ -2,9 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
-import 'package:lam7a/features/tweet/services/tweet_likers_provider.dart';
-import 'package:lam7a/features/tweet/services/tweet_replies_provider.dart';
-import 'package:lam7a/features/tweet/services/tweet_reposters_provider.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_likers_viewmodel.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_replies_viewmodel.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_reposters_viewmodel.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
@@ -99,7 +99,7 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
       builder: (context) {
         return Consumer(
           builder: (context, ref, _) {
-            final repostersAsync = ref.watch(tweetRepostersProvider(postId));
+            final repostersAsync = ref.watch(tweetRepostersViewModelProvider(postId));
 
             return SafeArea(
               child: Container(
@@ -221,7 +221,7 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
       builder: (context) {
         return Consumer(
           builder: (context, ref, _) {
-            final likersAsync = ref.watch(tweetLikersProvider(postId));
+            final likersAsync = ref.watch(tweetLikersViewModelProvider(postId));
 
             return SafeArea(
               child: Container(
@@ -672,7 +672,7 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                       );
 
                       // Refresh replies and parent tweet (comments count) after returning
-                      ref.invalidate(tweetRepliesProvider(postId));
+                      ref.invalidate(tweetRepliesViewModelProvider(postId));
                       ref.invalidate(tweetViewModelProvider(postId));
                     },
                   ),

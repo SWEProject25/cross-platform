@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
-import 'package:lam7a/features/tweet/services/tweet_replies_provider.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_replies_viewmodel.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_detailed_body_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_detailed_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
@@ -29,7 +29,7 @@ class TweetScreen extends ConsumerWidget {
         isViewed: false,
         tweet: AsyncValue.data(tweetData!),
       );
-      final repliesAsync = ref.watch(tweetRepliesProvider(tweetId));
+      final repliesAsync = ref.watch(tweetRepliesViewModelProvider(tweetId));
       
       return Scaffold(
         backgroundColor: Colors.black,
@@ -100,7 +100,7 @@ class TweetScreen extends ConsumerWidget {
     
     // Otherwise fetch using ViewModel (will fail with 404 if backend doesn't support it)
     final tweetAsync = ref.watch(tweetViewModelProvider(tweetId));
-    final repliesAsync = ref.watch(tweetRepliesProvider(tweetId));
+    final repliesAsync = ref.watch(tweetRepliesViewModelProvider(tweetId));
 
     return Scaffold(
       backgroundColor: Colors.black,
