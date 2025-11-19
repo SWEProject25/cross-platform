@@ -11,7 +11,7 @@ class AppTheme {
   static const Color _accent = Color(0xFFF91880);
   static const Color _success = Color(0xFF00BA7C);
   static const Color _warning = Color(0xFFFFD400);
-
+  static const Color _message = Color.fromARGB(255, 27, 30, 32);
   // 🌞 Light theme
   static ThemeData get light => ThemeData(
     useMaterial3: true,
@@ -27,6 +27,9 @@ class AppTheme {
       onSecondary: _foreground,
       onSurface: _foreground,
       onError: Colors.white,
+      tertiary: _background,
+      onTertiary: _foreground,
+      
     ),
 
     // AppBar
@@ -128,6 +131,8 @@ class AppTheme {
       onSecondary: Colors.white70,
       onSurface: Colors.white,
       onError: Colors.white,
+      tertiary: _message,
+      onTertiary: _background,
     ),
     appBarTheme: light.appBarTheme.copyWith(
       backgroundColor: const Color(0xFF000000),

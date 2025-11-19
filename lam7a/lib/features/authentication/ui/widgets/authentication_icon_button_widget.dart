@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
+
 ////////////////////////////////////////////////////////////////////////////////
 //       this concerns in the buttons that have images in it or not          //
 //////////////////////////////////////////////////////////////////////////////
@@ -8,13 +10,16 @@ class IconedButtonCentered extends StatelessWidget {
   String buttonLabel;
   Color backGroundColor;
   Color textColor;
-  Function? pressEffect = (){};
-  IconedButtonCentered({super.key, 
+  Function? pressEffect = () {};
+  bool isBorder;
+  IconedButtonCentered({
+    super.key,
     this.imgPath,
     required this.buttonLabel,
     required this.backGroundColor,
     required this.textColor,
     this.pressEffect,
+    this.isBorder = false,
   });
   @override
   Widget build(BuildContext context) {
@@ -22,23 +27,25 @@ class IconedButtonCentered extends StatelessWidget {
       margin: EdgeInsets.only(bottom: 4, top: 4),
       child: Row(
         children: [
-          Spacer(flex: 1,),
+          Spacer(flex: 1),
           Expanded(
             flex: 8,
             child: ElevatedButton(
               key: key,
-              onPressed: (){pressEffect!();},
+              onPressed: () {
+                pressEffect!();
+              },
               style: ElevatedButton.styleFrom(
                 alignment: Alignment.center,
                 backgroundColor: backGroundColor,
-                enableFeedback:  false,
+                enableFeedback: false,
                 elevation: 0,
                 shadowColor: Pallete.transparentColor,
-                overlayColor: Pallete.inactiveBottomBarItemColor,
+                overlayColor: Theme.of(context).colorScheme.secondary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadiusGeometry.all(Radius.circular(50)),
                   side: BorderSide(
-                    color: Pallete.inactiveBottomBarItemColor,
+                    color: !isBorder ? backGroundColor : Pallete.blackColor,
                     width: 1,
                   ),
                 ),
@@ -49,12 +56,20 @@ class IconedButtonCentered extends StatelessWidget {
                   (imgPath != null)
                       ? Image.asset(imgPath!, width: 50, height: 25)
                       : Container(),
-                  Text(buttonLabel, style: TextStyle(color: textColor)),
+                  Text(
+                    buttonLabel,
+                    style: GoogleFonts.manrope(
+                      // or Satoshi / Outfit
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                      color: textColor,
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
-          Spacer(flex: 1,)
+          Spacer(flex: 1),
         ],
       ),
     );

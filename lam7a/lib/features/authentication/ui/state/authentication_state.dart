@@ -10,6 +10,8 @@ class AuthenticationState with _$AuthenticationState {
     @Default("") String passwordLogin,
     @Default(0) int currentLoginStep,
     @Default(false) bool isLoadingLogin,
+    String? toastMessageLogin,
+
   }) = _LoginState;
 
   const factory AuthenticationState.signup({
@@ -29,6 +31,7 @@ class AuthenticationState with _$AuthenticationState {
     @Default(0) int currentSignupStep,
     @Default(false) bool isLoadingSignup,
     @Default(false) bool isNextEnabled,
+    String? toastMessage,
   }) = _SignupState;
   int get currentSignupStep {
     return mapOrNull(
@@ -128,6 +131,22 @@ class AuthenticationState with _$AuthenticationState {
           },
         ) ??
         "";
+  }
+    String? get toastMessage {
+    return mapOrNull(
+          signup: (signup) {
+            return signup.toastMessage;
+          },
+        ) ??
+        null;
+  }
+      String? get toastMessageLogin {
+    return mapOrNull(
+          login: (login) {
+            return login.toastMessageLogin;
+          },
+        ) ??
+        null;
   }
     String get passwordLogin {
     return mapOrNull(

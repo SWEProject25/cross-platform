@@ -44,7 +44,7 @@ class NotificationItem extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 18,
-                  backgroundImage: NetworkImage(actor.imageUrl),
+                  backgroundImage: NetworkImage(actor.avatarImage),
                 ),
                 Text.rich(
                   TextSpan(
@@ -54,7 +54,7 @@ class NotificationItem extends StatelessWidget {
                         style: TextStyle(color: Colors.grey),
                       ),
                       TextSpan(
-                        text: actor.username,
+                        text: actor.handle,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
