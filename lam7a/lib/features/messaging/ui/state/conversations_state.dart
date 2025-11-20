@@ -12,5 +12,6 @@ abstract class ConversationsState with _$ConversationsState {
     @Default(AsyncValue.loading()) AsyncValue<List<Contact>> contacts,
     @Default("") String searchQuery,
     @Default(null) String? searchQueryError,
+    @Default({}) Map<String, bool> isTyping,
   }) = _ConversationsState;
 }

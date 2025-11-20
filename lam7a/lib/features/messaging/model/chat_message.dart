@@ -1,21 +1,30 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:lam7a/features/messaging/dtos/message_socket_dtos.dart';
 
-class ChatMessage {
-  final int? conversationId;
-  final int id;
-  final String text;
-  final DateTime time;
-  final bool isMine;
+part 'chat_message.freezed.dart';
 
-  ChatMessage({this.conversationId, required this.id, required this.text, required this.time, required this.isMine});
+@freezed
+abstract class ChatMessage with _$ChatMessage {
+  const factory ChatMessage({
+    int? conversationId,
+    required int id,
+    required String text,
+    required DateTime time,
+    required bool isMine,
+    @Default(false) bool isSeen,
+    @Default(true) bool isDelivered,
+  }) = _ChatMessage;
+
+  const ChatMessage._();
 
   factory ChatMessage.fromDto(MessageDto dto, {required int currentUserId}) {
-      return ChatMessage(
-        conversationId: dto.conversationId,
-        id: dto.id ?? 0,
-        text: dto.text ?? '',
-        time: dto.createdAt ?? DateTime.now(),
-        isMine: dto.senderId == currentUserId,
-      );
+    return ChatMessage(
+      conversationId: dto.conversationId,
+      id: dto.id ?? 0,
+      text: dto.text ?? '',
+      time: dto.createdAt ?? DateTime.now(),
+      isMine: dto.senderId == currentUserId,
+      isSeen: dto.isSeen ?? false,
+    );
   }
 }
