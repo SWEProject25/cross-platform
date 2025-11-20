@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
@@ -13,6 +14,7 @@ class AuthenticationTransmissionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: ValueKey("transmissionAfterLogin"),
       appBar: AppBar(title: const ImageIcon(AssetImage(AppAssets.xIcon))),
       body: Consumer(
         builder: (context, ref, child) {
@@ -32,12 +34,12 @@ class AuthenticationTransmissionScreen extends StatelessWidget {
               SizedBox(height: 30),
               Container(
                 margin: EdgeInsets.only(left: 20),
-                child: const Text(
+                child: Text(
                   "See Who's on X",
-                  style: TextStyle(
+                  style: GoogleFonts.outfit(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
-                    color: Pallete.blackColor,
+                    color: Theme.of(context).colorScheme.onSurface
                   ),
                 ),
               ),
@@ -54,11 +56,11 @@ class AuthenticationTransmissionScreen extends StatelessWidget {
                 margin: EdgeInsets.only(left: 20),
                 child: Row(
                   children: [
-                    Icon(Icons.people, size: 50, color: Pallete.blackColor),
+                    Icon(Icons.people, size: 40, color: Theme.of(context).colorScheme.onSurface),
                     SizedBox(width: 20),
-                    const Text(
+                     Text(
                       "you decide who to follow",
-                      style: TextStyle(color: Pallete.blackColor, fontSize: 20),
+                      style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 20),
                     ),
                   ],
                 ),

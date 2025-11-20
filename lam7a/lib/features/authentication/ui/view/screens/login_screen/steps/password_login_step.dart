@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
@@ -21,12 +22,12 @@ class PasswordLogin extends StatelessWidget {
                 Spacer(flex: 1),
                 Expanded(
                   flex: 9,
-                  child: const Text(
+                  child: Text(
                     "Enter your password",
-                    style: TextStyle(
+                    style: GoogleFonts.outfit(
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
-                      color: Pallete.blackColor,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -34,7 +35,7 @@ class PasswordLogin extends StatelessWidget {
             ),
             SizedBox(height: 20),
             TextInputField(
-              key: Key("emailLoginTextField"),
+              key: ValueKey("emailLoginTextField"),
               labelTextField: "",
               isLimited: false,
               flex: 12,
@@ -45,7 +46,7 @@ class PasswordLogin extends StatelessWidget {
               enabled: false,
             ),
             TextInputField(
-              key: Key("passwordLoginTextField"),
+              key: ValueKey("passwordLoginTextField"),
               labelTextField: "password",
               isLimited: false,
               flex: 12,
