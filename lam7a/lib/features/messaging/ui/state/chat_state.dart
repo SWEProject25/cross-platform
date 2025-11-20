@@ -13,5 +13,7 @@ abstract class ChatState with _$ChatState {
     @Default(AsyncValue.loading()) AsyncValue<List<ChatMessage>> messages,
     @Default(true) bool hasMoreMessages,
     @Default(false) bool loadingMoreMessages,
+    @Default(false) bool isTyping,
+    @Default("") String draftMessage,
   }) = _ChatState;
 }

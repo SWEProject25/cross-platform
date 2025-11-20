@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lam7a/features/messaging/model/chat_message.dart';
+import 'package:lam7a/features/messaging/ui/widgets/message_tile.dart';
+import 'package:lam7a/features/messaging/ui_keys.dart';
 
 class MessagesListView extends StatefulWidget {
   final List<ChatMessage> messages;
@@ -20,7 +22,7 @@ class MessagesListView extends StatefulWidget {
 }
 
 class _MessagesListViewState extends State<MessagesListView> {
-  final ScrollController _scrollController = ScrollController();
+  ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -37,15 +39,23 @@ class _MessagesListViewState extends State<MessagesListView> {
     super.initState();
   }
 
+  int getLastMineMessageIndex() {
+    for (int i = widget.messages.length - 1; i >= 0; i--) {
+      if (widget.messages[i].isMine) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       controller: _scrollController,
-      reverse: true, // 👈 newest messages at bottom
-      padding: const EdgeInsets.all(12),
+      reverse: true, 
       itemCount: widget.messages.length,
       itemBuilder: (context, index) {
-        index = widget.messages.length - 1 - index; // reverse index for display
+        index = widget.messages.length - 1 - index; 
         final message = widget.messages[index];
         final previousMessage = index > 0 ? widget.messages[index - 1] : null;
         final nextMessage = index < widget.messages.length - 1
@@ -66,51 +76,18 @@ class _MessagesListViewState extends State<MessagesListView> {
           children: [
             if (index == 0) widget.leading ?? SizedBox.shrink(),
 
-            if (showDate) ...[_DateSeparator(date: message.time)],
-            Align(
-              alignment: message.isMine
-                  ? Alignment.centerRight
-                  : Alignment.centerLeft,
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: message.isMine
-                      ? Colors.blueAccent
-                      : Colors.grey.shade300,
-                  borderRadius: !showTime
-                      ? BorderRadius.circular(16)
-                      : BorderRadius.only(
-                          topLeft: const Radius.circular(16),
-                          topRight: const Radius.circular(16),
-                          bottomLeft: Radius.circular(message.isMine ? 16 : 0),
-                          bottomRight: Radius.circular(message.isMine ? 0 : 16),
-                        ),
-                ),
-                child: Text(
-                  message.text,
-                  style: TextStyle(
-                    color: message.isMine ? Colors.white : Colors.black,
-                  ),
-                ),
-              ),
+            if (showDate) ...[_DateSeparator(key: Key('${MessagingUIKeys.messageDateSeparator}${message.id}'), date: message.time)],
+            MessageTile(
+              key: Key('${MessagingUIKeys.messagesTile}${message.id}'),
+              text: message.text,
+              isMine: message.isMine,
+              timeText: DateFormat('h:mm a').format(message.time),
+              isDelivered: message.isDelivered,
+              isRead: message.isSeen,
+
+              showFooter: showTime,
+              showStatus: message.isMine && index == getLastMineMessageIndex(),
             ),
-            if (showTime)
-              Align(
-                alignment: message.isMine
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Text(
-                    DateFormat('h:mm a').format(message.time),
-                    style: const TextStyle(fontSize: 11, color: Colors.grey),
-                  ),
-                ),
-              ),
           ],
         );
       },
@@ -128,7 +105,7 @@ class _MessagesListViewState extends State<MessagesListView> {
 
 class _DateSeparator extends StatelessWidget {
   final DateTime date;
-  const _DateSeparator({required this.date});
+  const _DateSeparator({required Key key, required this.date}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

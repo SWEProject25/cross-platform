@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:lam7a/features/messaging/ui_keys.dart';
 
 class ChatInputBar extends StatefulWidget {
-  final void Function(String message)? onSend;
+  final String draftMessage;
+  final void Function()? onSend;
+  final void Function(String message)? onUpdate;
 
-  const ChatInputBar({Key? key, this.onSend}) : super(key: key);
-
+  const ChatInputBar({Key? key, required this.draftMessage, this.onSend, this.onUpdate}) : super(key: key);
 
   @override
   State<ChatInputBar> createState() => _ChatInputBarState();
@@ -19,8 +21,6 @@ class _ChatInputBarState extends State<ChatInputBar>
   final FocusNode _smallFocus = FocusNode();
   final FocusNode _largeFocus = FocusNode();
   bool _isFocused = false;
-
-  late final TextEditingController _textController = TextEditingController();
 
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -118,20 +118,6 @@ class _ChatInputBarState extends State<ChatInputBar>
               ),
             Row(
               children: [
-                // IconButton(
-                //   onPressed: () {},
-                //   splashColor: Colors.transparent,
-                //   highlightColor: Colors.transparent,
-                //   focusColor: Colors.transparent,
-                //   icon: const Icon(Icons.image_outlined, size: 28),
-                // ),
-                // IconButton(
-                //   onPressed: () {},
-                //   splashColor: Colors.transparent,
-                //   highlightColor: Colors.transparent,
-                //   focusColor: Colors.transparent,
-                //   icon: const Icon(Icons.gif_box_outlined, size: 28),
-                // ),
                 Expanded(
                   child: FadeTransition(
                     opacity: ReverseAnimation(_fadeOutAnimation),
@@ -140,19 +126,18 @@ class _ChatInputBarState extends State<ChatInputBar>
                         : const SizedBox.shrink(),
                   ),
                 ),
-                SizedBox(width: 8,),
+                SizedBox(width: 8),
                 CircleAvatar(
                   radius: 18,
                   child: IconButton(
-                    onPressed: _textController.value.text.isEmpty ? null : () {
-                      // Send message action
-                      widget.onSend?.call(_textController.value.text);
-                      _textController.clear();
-                    },
-                    icon: Icon(
-                      Icons.send,
-                      size: 22,
-                    ),
+                    key: Key(MessagingUIKeys.chatInputSendButton),
+                    onPressed: 
+                        widget.draftMessage.isEmpty
+                        ? null
+                        : () {
+                            widget.onSend?.call();
+                          },
+                    icon: Icon(Icons.send, size: 22),
                   ),
                 ),
               ],
@@ -169,9 +154,9 @@ class _ChatInputBarState extends State<ChatInputBar>
         _handleExpand();
       }),
       child: Text(
-        _textController.text.isEmpty
+        widget.draftMessage.isEmpty
             ? "Start a message..."
-            : _textController.text.replaceAll(RegExp(r'\s+'), ' ').trim(),
+            : widget.draftMessage.replaceAll(RegExp(r'\s+'), ' ').trim(),
         style: theme.inputDecorationTheme.hintStyle,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -181,7 +166,7 @@ class _ChatInputBarState extends State<ChatInputBar>
 
   TextField _buildTextField(FocusNode focusNode, bool isExpanded) {
     return TextField(
-      controller: _textController,
+      key: Key(MessagingUIKeys.chatInputTextField),
       focusNode: focusNode,
       style: const TextStyle(fontSize: 14),
       decoration: const InputDecoration(
@@ -192,7 +177,16 @@ class _ChatInputBarState extends State<ChatInputBar>
         isDense: true,
         fillColor: Colors.transparent,
       ),
-      onChanged: (value) => setState(() {}),
+      // controller: TextEditingController.fromValue(
+      //   TextEditingValue(
+      //     text: widget.draftMessage,
+      //   ),
+      // ),
+      controller: TextEditingController.fromValue(TextEditingValue(
+        text: widget.draftMessage,
+        selection: TextSelection.collapsed(offset: widget.draftMessage.length),
+      )),
+      onChanged: (value) => widget.onUpdate?.call(value),
       minLines: 1,
       maxLines: isExpanded ? 3 : 1,
     );
