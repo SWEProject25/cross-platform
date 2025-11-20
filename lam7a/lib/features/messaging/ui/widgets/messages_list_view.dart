@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lam7a/features/messaging/model/chat_message.dart';
 import 'package:lam7a/features/messaging/ui/widgets/message_tile.dart';
+import 'package:lam7a/features/messaging/ui_keys.dart';
 
 class MessagesListView extends StatefulWidget {
   final List<ChatMessage> messages;
@@ -75,8 +76,9 @@ class _MessagesListViewState extends State<MessagesListView> {
           children: [
             if (index == 0) widget.leading ?? SizedBox.shrink(),
 
-            if (showDate) ...[_DateSeparator(date: message.time)],
+            if (showDate) ...[_DateSeparator(key: Key('${MessagingUIKeys.messageDateSeparator}${message.id}'), date: message.time)],
             MessageTile(
+              key: Key('${MessagingUIKeys.messagesTile}${message.id}'),
               text: message.text,
               isMine: message.isMine,
               timeText: DateFormat('h:mm a').format(message.time),
@@ -103,7 +105,7 @@ class _MessagesListViewState extends State<MessagesListView> {
 
 class _DateSeparator extends StatelessWidget {
   final DateTime date;
-  const _DateSeparator({required this.date});
+  const _DateSeparator({required Key key, required this.date}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

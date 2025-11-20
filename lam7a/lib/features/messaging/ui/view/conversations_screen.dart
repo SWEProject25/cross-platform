@@ -8,6 +8,7 @@ import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
 import 'package:lam7a/features/messaging/utils.dart';
 import 'package:lam7a/features/messaging/ui/view/find_contacts_screen.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/conversations_viewmodel.dart';
+import 'package:lam7a/features/messaging/ui_keys.dart';
 
 class ConversationsScreen extends ConsumerWidget {
   static const routeName = '/dm';
@@ -42,6 +43,7 @@ class ConversationsScreen extends ConsumerWidget {
                       ),
                       SizedBox(height: 30),
                       FilledButton(
+                        key: Key(MessagingUIKeys.conversationsEmptyStateWriteButton),
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -55,6 +57,7 @@ class ConversationsScreen extends ConsumerWidget {
                   ),
                 )
               : ListView.builder(
+                  key: Key(MessagingUIKeys.conversationsListView),
                   itemCount: data.length,
                   itemBuilder: (context, index) {
                     final chat = data[index];
@@ -70,6 +73,7 @@ class ConversationsScreen extends ConsumerWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        key: Key(MessagingUIKeys.conversationsFab),
         onPressed: () {
           Navigator.of(
             context,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lam7a/features/messaging/ui_keys.dart';
 
 class ChatInputBar extends StatefulWidget {
   final String draftMessage;
@@ -129,6 +130,7 @@ class _ChatInputBarState extends State<ChatInputBar>
                 CircleAvatar(
                   radius: 18,
                   child: IconButton(
+                    key: Key(MessagingUIKeys.chatInputSendButton),
                     onPressed: 
                         widget.draftMessage.isEmpty
                         ? null
@@ -164,6 +166,7 @@ class _ChatInputBarState extends State<ChatInputBar>
 
   TextField _buildTextField(FocusNode focusNode, bool isExpanded) {
     return TextField(
+      key: Key(MessagingUIKeys.chatInputTextField),
       focusNode: focusNode,
       style: const TextStyle(fontSize: 14),
       decoration: const InputDecoration(

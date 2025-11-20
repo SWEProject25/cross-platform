@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/services/socket_service.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/chat_viewmodel.dart';
+import 'package:lam7a/features/messaging/ui_keys.dart';
 import 'package:lam7a/features/messaging/ui/widgets/chat_input_bar.dart';
 import 'package:lam7a/features/messaging/ui/widgets/message_tile.dart';
 import 'package:lam7a/features/messaging/ui/widgets/messages_list_view.dart';
@@ -49,8 +50,10 @@ class ChatScreen extends ConsumerWidget {
             Expanded(
               child: chatState.messages.when(
                 data: (messages) => RefreshIndicator(
+                  key: Key(MessagingUIKeys.chatScreenRefreshIndicator),
                   onRefresh: () => chatViewModel.refresh(),
                   child: MessagesListView(
+                    key: Key(MessagingUIKeys.messagesListView),
                     messages: messages,
                     leading: chatState.hasMoreMessages
                         ? null
@@ -66,6 +69,7 @@ class ChatScreen extends ConsumerWidget {
 
             if (chatState.isTyping)
               MessageTile(
+                key: Key(MessagingUIKeys.chatScreenTypingIndicator),
                 isMine: false,
                 showTypingIndicator: true,
               ),
@@ -77,6 +81,7 @@ class ChatScreen extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: ChatInputBar(
+                      key: Key(MessagingUIKeys.chatInputBar),
                       onSend: () => chatViewModel.sendMessage(),
                       onUpdate: (draft) => chatViewModel.updateDraftMessage(draft),
                       draftMessage: chatState.draftMessage,
@@ -146,6 +151,7 @@ class ChatScreen extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: CircleAvatar(
+            key: Key(MessagingUIKeys.chatScreenConnectionStatus),
             radius: 16,
             backgroundColor: !connectionState.hasValue || !connectionState.value! ? Colors.red : Colors.green,
           ),
