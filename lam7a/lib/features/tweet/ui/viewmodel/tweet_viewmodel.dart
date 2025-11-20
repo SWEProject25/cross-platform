@@ -8,38 +8,40 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'tweet_viewmodel.g.dart';
 
 @riverpod
+@Riverpod(keepAlive: true)
 class TweetViewModel extends _$TweetViewModel {
+  @override
+  FutureOr<TweetState> build(String tweetId) async {
+    final repo = ref.read(tweetRepositoryProvider);
+    final tweet = await repo.fetchTweetById(tweetId);
 
-@override
-FutureOr<TweetState> build(String tweetId) async {
-  final repo = ref.read(tweetRepositoryProvider);
-  final tweet = await repo.fetchTweetById(tweetId);
-  
-  // Get interaction flags from the API service
-  // The service stores these after fetching the tweet from backend
-  final apiService = ref.read(tweetsApiServiceProvider);
-  final interactionFlags = await apiService.getInteractionFlags(tweetId);
-  final localViewsOverride = apiService.getLocalViews(tweetId);
-  
-  final bool isLiked = interactionFlags?['isLikedByMe'] ?? false;
-  final bool isReposted = interactionFlags?['isRepostedByMe'] ?? false;
-  final bool isViewed = interactionFlags?['isViewedByMe'] ?? false;
+    // Get interaction flags from the API service
+    // The service stores these after fetching the tweet from backend
+    final apiService = ref.read(tweetsApiServiceProvider);
+    final interactionFlags = await apiService.getInteractionFlags(tweetId);
+    final localViewsOverride = apiService.getLocalViews(tweetId);
 
-  print('   ✅ isLiked: $isLiked, isReposted: $isReposted, isViewed: $isViewed (from flags), localViewsOverride=$localViewsOverride');
+    final bool isLiked = interactionFlags?['isLikedByMe'] ?? false;
+    final bool isReposted = interactionFlags?['isRepostedByMe'] ?? false;
+    final bool isViewed = interactionFlags?['isViewedByMe'] ?? false;
 
-  // If we have a locally stored views override, ensure views never go below it
-  final effectiveTweet = (localViewsOverride != null && localViewsOverride > tweet.views)
-      ? tweet.copyWith(views: localViewsOverride)
-      : tweet;
+    print(
+      '   ✅ isLiked: $isLiked, isReposted: $isReposted, isViewed: $isViewed (from flags), localViewsOverride=$localViewsOverride',
+    );
 
-  return TweetState(
-    isLiked: isLiked,
-    isReposted: isReposted,
-    isViewed: isViewed,
-    tweet: AsyncData(effectiveTweet),
-  );
-}
+    // If we have a locally stored views override, ensure views never go below it
+    final effectiveTweet =
+        (localViewsOverride != null && localViewsOverride > tweet.views)
+        ? tweet.copyWith(views: localViewsOverride)
+        : tweet;
 
+    return TweetState(
+      isLiked: isLiked,
+      isReposted: isReposted,
+      isViewed: isViewed,
+      tweet: AsyncData(effectiveTweet),
+    );
+  }
 
   //  Handle Like toggle
   Future<void> handleLike({required AnimationController controller}) async {
@@ -48,23 +50,25 @@ FutureOr<TweetState> build(String tweetId) async {
       print('⚠️ Cannot toggle like: state not loaded');
       return;
     }
-    
+
     final currentState = state.value!;
     if (!currentState.tweet.hasValue || currentState.tweet.value == null) {
       print('⚠️ Cannot toggle like: tweet not loaded');
       return;
     }
-    
+
     final currentTweet = currentState.tweet.value!;
     final currentIsLiked = currentState.isLiked;
-    
+
     // Trigger animation immediately
     controller.forward().then((_) => controller.reverse());
-    
+
     // Toggle state optimistically for instant UI feedback
     final newIsLiked = !currentIsLiked;
-    final newCount = newIsLiked ? currentTweet.likes + 1 : (currentTweet.likes > 0 ? currentTweet.likes - 1 : 0);
-    
+    final newCount = newIsLiked
+        ? currentTweet.likes + 1
+        : (currentTweet.likes > 0 ? currentTweet.likes - 1 : 0);
+
     // Update state immediately
     state = AsyncData(
       currentState.copyWith(
@@ -72,23 +76,31 @@ FutureOr<TweetState> build(String tweetId) async {
         tweet: AsyncData(currentTweet.copyWith(likes: newCount)),
       ),
     );
-    
+
     print('💚 Optimistic like update: isLiked=$newIsLiked, count=$newCount');
-    
+
     // Sync with backend
     try {
       final interactionsService = ref.read(postInteractionsServiceProvider);
-      
+
       // Toggle like on backend
-      final backendIsLiked = await interactionsService.toggleLike(currentTweet.id);
-      
+      final backendIsLiked = await interactionsService.toggleLike(
+        currentTweet.id,
+      );
+
       // Fetch actual count from backend
-      final actualCount = await interactionsService.getLikesCount(currentTweet.id);
-      
+      final actualCount = await interactionsService.getLikesCount(
+        currentTweet.id,
+      );
+
       // Update stored interaction flags in the service
       final apiService = ref.read(tweetsApiServiceProvider);
-      apiService.updateInteractionFlag(currentTweet.id, 'isLikedByMe', backendIsLiked);
-      
+      apiService.updateInteractionFlag(
+        currentTweet.id,
+        'isLikedByMe',
+        backendIsLiked,
+      );
+
       // Update with backend data
       state = AsyncData(
         currentState.copyWith(
@@ -96,8 +108,10 @@ FutureOr<TweetState> build(String tweetId) async {
           tweet: AsyncData(currentTweet.copyWith(likes: actualCount)),
         ),
       );
-      
-      print('✅ Backend like synced: isLiked=$backendIsLiked, count=$actualCount');
+
+      print(
+        '✅ Backend like synced: isLiked=$backendIsLiked, count=$actualCount',
+      );
     } catch (e) {
       print('❌ Error syncing like with backend: $e');
       // Revert to original state on error
@@ -111,29 +125,33 @@ FutureOr<TweetState> build(String tweetId) async {
   }
 
   // Handle Repost toggle
-  Future<void> handleRepost({required AnimationController controllerRepost}) async {
+  Future<void> handleRepost({
+    required AnimationController controllerRepost,
+  }) async {
     // Get current state
     if (!state.hasValue || state.value == null) {
       print('⚠️ Cannot toggle repost: state not loaded');
       return;
     }
-    
+
     final currentState = state.value!;
     if (!currentState.tweet.hasValue || currentState.tweet.value == null) {
       print('⚠️ Cannot toggle repost: tweet not loaded');
       return;
     }
-    
+
     final currentTweet = currentState.tweet.value!;
     final currentIsReposted = currentState.isReposted;
-    
+
     // Trigger animation immediately
     controllerRepost.forward().then((_) => controllerRepost.reverse());
-    
+
     // Toggle state optimistically for instant UI feedback
     final newIsReposted = !currentIsReposted;
-    final newCount = newIsReposted ? currentTweet.repost + 1 : (currentTweet.repost > 0 ? currentTweet.repost - 1 : 0);
-    
+    final newCount = newIsReposted
+        ? currentTweet.repost + 1
+        : (currentTweet.repost > 0 ? currentTweet.repost - 1 : 0);
+
     // Update state immediately
     state = AsyncData(
       currentState.copyWith(
@@ -141,23 +159,33 @@ FutureOr<TweetState> build(String tweetId) async {
         tweet: AsyncData(currentTweet.copyWith(repost: newCount)),
       ),
     );
-    
-    print('🔁 Optimistic repost update: isReposted=$newIsReposted, count=$newCount');
-    
+
+    print(
+      '🔁 Optimistic repost update: isReposted=$newIsReposted, count=$newCount',
+    );
+
     // Sync with backend
     try {
       final interactionsService = ref.read(postInteractionsServiceProvider);
-      
+
       // Toggle repost on backend
-      final backendIsReposted = await interactionsService.toggleRepost(currentTweet.id);
-      
+      final backendIsReposted = await interactionsService.toggleRepost(
+        currentTweet.id,
+      );
+
       // Fetch actual count from backend
-      final actualCount = await interactionsService.getRepostsCount(currentTweet.id);
-      
+      final actualCount = await interactionsService.getRepostsCount(
+        currentTweet.id,
+      );
+
       // Update stored interaction flags in the service
       final apiService = ref.read(tweetsApiServiceProvider);
-      apiService.updateInteractionFlag(currentTweet.id, 'isRepostedByMe', backendIsReposted);
-      
+      apiService.updateInteractionFlag(
+        currentTweet.id,
+        'isRepostedByMe',
+        backendIsReposted,
+      );
+
       // Update with backend data
       state = AsyncData(
         currentState.copyWith(
@@ -165,8 +193,10 @@ FutureOr<TweetState> build(String tweetId) async {
           tweet: AsyncData(currentTweet.copyWith(repost: actualCount)),
         ),
       );
-      
-      print('✅ Backend repost synced: isReposted=$backendIsReposted, count=$actualCount');
+
+      print(
+        '✅ Backend repost synced: isReposted=$backendIsReposted, count=$actualCount',
+      );
     } catch (e) {
       print('❌ Error syncing repost with backend: $e');
       // Revert to original state on error
@@ -202,7 +232,7 @@ FutureOr<TweetState> build(String tweetId) async {
   Future<void> handleViews() async {
     // Views are currently provided by the backend only (if available).
     // Do not modify them locally to avoid counts changing back after reload.
-    
+
     // Ensure state and tweet are loaded
     if (!state.hasValue || state.value == null) {
       print('⚠️ Cannot handle views: state not loaded');
@@ -229,10 +259,7 @@ FutureOr<TweetState> build(String tweetId) async {
 
     // Optimistically update local state
     state = AsyncData(
-      currentState.copyWith(
-        isViewed: true,
-        tweet: AsyncData(updatedTweet),
-      ),
+      currentState.copyWith(isViewed: true, tweet: AsyncData(updatedTweet)),
     );
 
     try {
@@ -240,7 +267,9 @@ FutureOr<TweetState> build(String tweetId) async {
       final repo = ref.read(tweetRepositoryProvider);
       await repo.updateTweet(updatedTweet);
 
-      print('👁️  View recorded on backend: $updatedViews views for tweet ${currentTweet.id}');
+      print(
+        '👁️  View recorded on backend: $updatedViews views for tweet ${currentTweet.id}',
+      );
     } catch (e) {
       // If backend does not yet support updating views, keep the optimistic value
       print('❌ Error updating views on backend (keeping local value): $e');
