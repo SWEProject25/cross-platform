@@ -182,6 +182,26 @@ class SocketService {
     }
   }
 
+  /// Emit an event and wait for server acknowledgement.
+  ///
+  /// Uses the underlying socket client's `emitWithAck` when available.
+  /// Returns the ack response or throws on timeout/error.
+  Future<dynamic> emitWithAck(String event, dynamic data, {Duration timeout = const Duration(seconds: 5)}) async {
+    if (_socket == null) {
+      _logger.w('Attempted to emitWithAck while socket is null. Event: $event');
+      throw StateError('Socket is not connected');
+    }
+    try {
+
+      final ack = await _socket!.emitWithAckAsync(event, data);
+      _logger.i('emitWithAck for "$event" received ack: $ack');
+      return ack;
+    } catch (e) {
+      _logger.e('emitWithAck failed for "$event": $e');
+      rethrow;
+    }
+  }
+
 
   void off(String event, [Function(dynamic)? callback]) {
     if (callback == null) {

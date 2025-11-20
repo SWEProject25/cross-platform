@@ -4,16 +4,27 @@ import 'package:flutter_typing_indicator/flutter_typing_indicator.dart';
 class MessageTile extends StatelessWidget {
   const MessageTile({
     super.key,
-    this.text = "",
     this.isMine = false,
-    this.timeText,
+    this.text = "",
+    this.timeText = "",
+    this.isRead = false,
+    this.isDelivered = true,
+
+    this.showStatus = false,
     this.showTypingIndicator = false,
+    this.showFooter = false,
   });
 
-  final String text;
+
   final bool isMine;
-  final String? timeText;
+  final String text;
+  final String timeText;
+  final bool isRead;
+  final bool isDelivered;
+
+  final bool showFooter;
   final bool showTypingIndicator;
+  final bool showStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +38,7 @@ class MessageTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: isMine ? Colors.blueAccent : Colors.grey.shade300,
-              borderRadius: timeText == null && !showTypingIndicator
+              borderRadius: !showFooter
                   ? BorderRadius.circular(16)
                   : BorderRadius.only(
                       topLeft: const Radius.circular(16),
@@ -49,16 +60,28 @@ class MessageTile extends StatelessWidget {
                     ),
                   ),
           ),
-          if (timeText != null)
+          if (showFooter)
             Padding(
               padding: const EdgeInsets.only(bottom: 6),
-              child: Text(
-                timeText ?? '',
+              child: Text( 
+                showStatus  && !isDelivered ? "Sending" :
+                timeText + (showStatus ? " · ${getStatusText()}" : ""),
                 style: const TextStyle(fontSize: 11, color: Colors.grey),
               ),
             ),
         ],
       ),
     );
+  }
+
+  String getStatusText() {
+    if (showStatus && isRead) {
+      return "Seen";
+    }else if (!isDelivered) {
+      return "Sending";
+    } else if ( isDelivered ) {
+      return "Sent";
+    } 
+    return "";
   }
 }

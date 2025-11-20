@@ -58,7 +58,7 @@ class ConversationsScreen extends ConsumerWidget {
                   itemCount: data.length,
                   itemBuilder: (context, index) {
                     final chat = data[index];
-                    return _ChatListTile(chat: chat);
+                    return _ChatListTile(isTyping: dMListPageViewModel.isTyping[chat.id.toString()] ?? false, chat: chat);
                   },
                 );
         },
@@ -83,8 +83,9 @@ class ConversationsScreen extends ConsumerWidget {
 
 class _ChatListTile extends StatelessWidget {
   final Conversation chat;
+  final bool isTyping;
 
-  const _ChatListTile({required this.chat});
+  const _ChatListTile({required this.isTyping, required this.chat});
 
   @override
   Widget build(BuildContext context) {
@@ -118,14 +119,14 @@ class _ChatListTile extends StatelessWidget {
           if (chat.lastMessage != null)
             Text(
               " ${timeToTimeAgo(chat.lastMessageTime!)}",
-              style: theme.textTheme.bodyMedium,
+              style: isTyping ? theme.textTheme.bodyMedium : theme.textTheme.bodyMedium,
             ),
         ],
       ),
       subtitle: (chat.lastMessage != null)
           ? Text(
-              chat.lastMessage!,
-              style: theme.textTheme.bodyMedium,
+              isTyping ? "Typing..." : chat.lastMessage!,
+              style: isTyping ? theme.textTheme.bodyMedium?.copyWith(color: Colors.green.shade900) : theme.textTheme.bodyMedium,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             )

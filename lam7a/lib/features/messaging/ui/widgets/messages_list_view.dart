@@ -38,6 +38,15 @@ class _MessagesListViewState extends State<MessagesListView> {
     super.initState();
   }
 
+  int getLastMineMessageIndex() {
+    for (int i = widget.messages.length - 1; i >= 0; i--) {
+      if (widget.messages[i].isMine) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
@@ -70,9 +79,12 @@ class _MessagesListViewState extends State<MessagesListView> {
             MessageTile(
               text: message.text,
               isMine: message.isMine,
-              timeText: showTime
-                  ? DateFormat('h:mm a').format(message.time)
-                  : null,
+              timeText: DateFormat('h:mm a').format(message.time),
+              isDelivered: message.isDelivered,
+              isRead: message.isSeen,
+
+              showFooter: showTime,
+              showStatus: message.isMine && index == getLastMineMessageIndex(),
             ),
           ],
         );

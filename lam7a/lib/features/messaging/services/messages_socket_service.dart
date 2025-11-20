@@ -22,6 +22,7 @@ class MessagesSocketService {
   final StreamController<TypingEventDto> _userTypingController = StreamController<TypingEventDto>.broadcast();
   final StreamController<TypingEventDto> _userStoppedTypingController = StreamController<TypingEventDto>.broadcast();
   final StreamController<void> _connectedController = StreamController<void>.broadcast();
+  final StreamController<MessagesSeenDto> _messagesSeenController = StreamController<MessagesSeenDto>.broadcast();
 
   MessagesSocketService(this._socket){
     _logger.w("Create MessagesSocketService");
@@ -32,6 +33,7 @@ class MessagesSocketService {
     _listenToMessagesNotifications();
     _listenToTypingEvents();
     _listenToStopTypingEvents();
+    _listenToMessagesSeen();
     _listenForReconnected();
   }
 
@@ -89,6 +91,18 @@ class MessagesSocketService {
     });
   }
 
+  void _listenToMessagesSeen() {
+    _socket.on("messagesSeen", (data) {
+      try {
+        _logger.i("Received messagesSeen event on socket: $data");
+        final dto = MessagesSeenDto.fromJson(Map<String, dynamic>.from(data));
+        _messagesSeenController.add(dto);
+      } catch (e) {
+        _logger.e("Error parsing messagesSeen event: $e");
+      }
+    });
+  }
+
   Stream<MessageDto> get incomingMessages => _incomingMessagesController.stream;
 
   Stream<MessageDto> get incomingMessagesNotifications => _incomingMessagesNotificationsController.stream;
@@ -99,8 +113,29 @@ class MessagesSocketService {
 
   Stream<void> get onConnected => _connectedController.stream;
 
-  void sendMessage(CreateMessageRequest request) {
-    _socket.emit("createMessage", request.toJson());
+  Stream<MessagesSeenDto> get messagesSeen => _messagesSeenController.stream;
+
+  Future<MessageDto?> sendMessage(CreateMessageRequest request) async {
+    try {
+      final resp = await _socket.emitWithAck("createMessage", request.toJson());
+      _logger.i("Socket response for sendMessage: $resp");
+
+      if (resp == null) return null;
+
+      var payload = resp;
+      if (resp is List && resp.isNotEmpty) payload = resp.first;
+
+      if (payload is Map) {
+        return MessageDto.fromJson(Map<String, dynamic>.from(payload["data"]));
+      }
+
+      // Unexpected format
+      _logger.w("Unexpected socket response format: $resp");
+      return null;
+    } catch (e) {
+      _logger.e("Failed to send message with ack: $e");
+      rethrow;
+    }
   }
 
   void joinConversation(int conversationId) {
@@ -119,10 +154,37 @@ class MessagesSocketService {
     _socket.emit("stopTyping", request.toJson());
   }
 
+  void markSeen(MarkSeenRequest request) {
+    _socket.emit('markSeen', request.toJson());
+  }
+
   void dispose() {
+    // Remove all attached listeners we registered
     _socket.off("messageCreated");
-    _socket.off("createMessageNotification");
-    _incomingMessagesController.close();
-    _incomingMessagesNotificationsController.close();
+    _socket.off("newMessageNotification");
+    _socket.off("userTyping");
+    _socket.off("userStoppedTyping");
+    _socket.off("messagesSeen");
+    _socket.off("connect");
+
+    // Close controllers
+    try {
+      _incomingMessagesController.close();
+    } catch (_) {}
+    try {
+      _incomingMessagesNotificationsController.close();
+    } catch (_) {}
+    try {
+      _userTypingController.close();
+    } catch (_) {}
+    try {
+      _userStoppedTypingController.close();
+    } catch (_) {}
+    try {
+      _connectedController.close();
+    } catch (_) {}
+    try {
+      _messagesSeenController.close();
+    } catch (_) {}
   }
 }

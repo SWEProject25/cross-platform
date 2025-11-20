@@ -43,6 +43,7 @@ class ChatViewModel extends _$ChatViewModel {
       _userTypingSub = _messagesRepository.onUserTyping(state.conversationId).listen(((isTyping)=> _onOtherTyping(isTyping)));
       
       _messagesRepository.joinConversation(state.conversationId);
+      _messagesRepository.sendMarkAsSeen(state.conversationId);
       _loadContact();
       _loadMessages();
 
@@ -108,6 +109,7 @@ class ChatViewModel extends _$ChatViewModel {
 
   void _onNewMessagesArrive(){
     _refreshMessages();
+    _messagesRepository.sendMarkAsSeen(state.conversationId);
   }
 
   void _onOtherTyping (bool isTyping) {
