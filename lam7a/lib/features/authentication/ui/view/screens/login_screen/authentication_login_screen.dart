@@ -11,6 +11,7 @@ import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmo
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
 import 'package:lam7a/features/authentication/ui/widgets/loading_circle.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
+import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 
 List<Widget> loginFlow = [UniqueIdentifier(), PasswordLogin()];
 
