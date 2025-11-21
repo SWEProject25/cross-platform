@@ -21,6 +21,8 @@ import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
 
+  const NavigationHomeScreen({super.key});
+
   @override
   State<NavigationHomeScreen> createState() => _NavigationHomeScreenState();
 }
@@ -30,7 +32,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
   int valueFromDropdown = 0;
   bool _isVisible = true;
   double _lastOffset = 0;
-    String? themeMode;
+  String? themeMode;
 
   @override
   Widget build(BuildContext context) {
@@ -374,12 +376,8 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                     RadioGroup<String>(
                       groupValue: themeMode, // Your state variable
                       onChanged: (value) {
-                        modalSetState(
-                          () => themeMode = value,
-                        );
-                        setState(
-                          () {},
-                        ); 
+                        modalSetState(() => themeMode = value);
+                        setState(() {});
                       },
                       child: Column(
                         children: [
@@ -414,7 +412,8 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),]
+                    const SizedBox(height: 16),
+                  ],
                 ),
               ),
             );

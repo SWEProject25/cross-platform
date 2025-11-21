@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/constants/server_constant.dart';
 import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/models/user_model.dart';
@@ -12,7 +10,7 @@ part 'authentication.g.dart';
 // this is under developing not finished yet
 @Riverpod(keepAlive: true)
 class Authentication extends _$Authentication {
- late ApiService _apiService;
+  late ApiService _apiService;
   @override
   AuthState build() {
     _apiService = ref.read(apiServiceProvider);
@@ -44,8 +42,7 @@ class Authentication extends _$Authentication {
       if (response['message'] == 'Logout successful') {
         prefs.remove('token');
         state = state.copyWith(user: null, isAuthenticated: false);
-      }
-      else {
+      } else {
         print("Logout failed");
       }
     } catch (e) {

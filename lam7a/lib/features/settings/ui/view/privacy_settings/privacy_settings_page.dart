@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../widgets/settings_listTile.dart';
+import '../../widgets/settings_listtile.dart';
 import 'blocked_users_page.dart';
 import 'muted_users_page.dart';
 

@@ -94,27 +94,40 @@ class _loginFlowtate extends State<LogInScreen> {
                                 child: AuthenticationStepButton(
                                   key: ValueKey("loginNextButton"),
                                   enable: viewmodel.shouldEnableNextLogin(),
-                                  label: AuthenticationConstants.loginButtonLabels[currentIndex],
-                                  bgColor: Theme.of(context).colorScheme.onSurface,
-                                  textColor: Theme.of(context).colorScheme.surface,
-                                  onPressedEffect: () async{
-                                    if (currentIndex == AuthenticationConstants.finishLogin) {
+                                  label: AuthenticationConstants
+                                      .loginButtonLabels[currentIndex],
+                                  bgColor: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                  textColor: Theme.of(
+                                    context,
+                                  ).colorScheme.surface,
+                                  onPressedEffect: () async {
+                                    if (currentIndex ==
+                                        AuthenticationConstants.finishLogin) {
                                       await viewmodel.login();
-                                      String? message = ref.read(authenticationViewmodelProvider).toastMessageLogin;
-                                      if (message != null)
-                                      {
-                                        AuthenticationConstants.flushMessage(message, context, "loginMessage");
+                                      String? message = ref
+                                          .read(authenticationViewmodelProvider)
+                                          .toastMessageLogin;
+                                      if (message != null) {
+                                        AuthenticationConstants.flushMessage(
+                                          message,
+                                          context,
+                                          "loginMessage",
+                                        );
                                       }
                                       if (authenticationState.isAuthenticated) {
                                         Navigator.pop(context);
                                         // Navigate to transmission screen (after auth page)
                                         Navigator.pushNamedAndRemoveUntil(
                                           context,
-                                          AuthenticationTransmissionScreen.routeName,
+                                          AuthenticationTransmissionScreen
+                                              .routeName,
                                           (route) => false,
                                         );
                                       }
-                                    } else if (viewmodel.shouldEnableNextLogin()){
+                                    } else if (viewmodel
+                                        .shouldEnableNextLogin()) {
                                       viewmodel.gotoNextLoginStep();
                                     }
                                   },
@@ -126,9 +139,7 @@ class _loginFlowtate extends State<LogInScreen> {
                       ),
                     ],
                   )
-                : Center(
-                    child: LoadingCircle(),
-                  ),
+                : Center(child: LoadingCircle()),
           ),
         );
       },

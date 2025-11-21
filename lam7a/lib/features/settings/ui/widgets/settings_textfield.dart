@@ -46,6 +46,8 @@ class _SettingsTextFieldState extends State<SettingsTextField> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final error = widget.validator?.call(widget.controller?.text);
+    final hasError = error != "";
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,19 +66,23 @@ class _SettingsTextFieldState extends State<SettingsTextField> {
             hintText: widget.hint,
             isDense: true,
             filled: false,
-            errorText: widget.errorText,
+            errorText: hasError ? error : null,
             enabledBorder: const UnderlineInputBorder(
               borderSide: BorderSide(color: Color(0xFF212426)),
             ),
             focusedBorder: const UnderlineInputBorder(
               borderSide: BorderSide(color: Color(0xFF4A90E2)),
             ),
-            errorBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.red),
-            ),
-            focusedErrorBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.redAccent),
-            ),
+            errorBorder: hasError
+                ? const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red),
+                  )
+                : null,
+            focusedErrorBorder: hasError
+                ? const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.redAccent),
+                  )
+                : null,
             contentPadding: const EdgeInsets.symmetric(
               vertical: 8,
               horizontal: 0,

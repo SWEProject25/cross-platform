@@ -17,6 +17,7 @@ class ChangePasswordView extends ConsumerWidget {
     final blueXColor = const Color(0xFF1D9BF0);
 
     return Scaffold(
+      key: const Key("change_password_page"),
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
         title: Text(
@@ -30,6 +31,7 @@ class ChangePasswordView extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SettingsTextField(
+              key: const Key("change_password_current_field"),
               label: 'Current password',
               controller: state.currentController,
               onChanged: notifier.updateCurrent,
@@ -38,34 +40,38 @@ class ChangePasswordView extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SettingsTextField(
+              key: const Key("change_password_new_field"),
               label: 'New password',
               hint: 'At least 8 characters',
               controller: state.newController,
               focusNode: state.newFocus,
-              errorText: state.newPasswordError,
+              validator: (_) => state.newPasswordError,
               onChanged: notifier.updateNew,
               obscureText: true,
               showToggleIcon: true,
             ),
             const SizedBox(height: 16),
             SettingsTextField(
+              key: const Key("change_password_confirm_field"),
               label: 'Confirm password',
               hint: 'At least 8 characters',
               controller: state.confirmController,
               focusNode: state.confirmFocus,
-              errorText: state.confirmPasswordError,
+              validator: (_) => state.confirmPasswordError,
               onChanged: notifier.updateConfirm,
               obscureText: true,
               showToggleIcon: true,
             ),
+
             const SizedBox(height: 20),
 
             Center(
               child: FilledButton(
+                key: const Key("change_password_submit_button"),
                 style: FilledButton.styleFrom(
                   backgroundColor: state.isValid
                       ? blueXColor
-                      : Color.fromARGB(151, 29, 156, 240),
+                      : const Color.fromARGB(151, 29, 156, 240),
                   shape: const StadiumBorder(),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 60,
@@ -84,9 +90,12 @@ class ChangePasswordView extends ConsumerWidget {
                 ),
               ),
             ),
+
             const SizedBox(height: 10),
+
             Center(
               child: TextButton(
+                key: const Key("change_password_forgot_button"),
                 onPressed: () {
                   Navigator.push(
                     context,

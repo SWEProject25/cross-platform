@@ -1,5 +1,4 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:lam7a/features/messaging/dtos/conversation_dto.dart';
 
 part 'api_response.freezed.dart';
 part 'api_response.g.dart';
@@ -18,7 +17,6 @@ abstract class ApiResponse<T> with _$ApiResponse<T> {
   ) => _$ApiResponseFromJson(json, fromJsonT);
 }
 
-
 class Metadata {
   final int totalItems;
   final int page;
@@ -33,16 +31,16 @@ class Metadata {
   });
 
   factory Metadata.fromJson(Map<String, dynamic> json) => Metadata(
-        totalItems: json['totalItems'],
-        page: json['page'],
-        limit: json['limit'],
-        totalPages: json['totalPages'],
-      );
+    totalItems: json['totalItems'],
+    page: json['page'],
+    limit: json['limit'],
+    totalPages: json['totalPages'],
+  );
 
   Map<String, dynamic> toJson() => {
-        'totalItems': totalItems,
-        'page': page,
-        'limit': limit,
-        'totalPages': totalPages,
-      };
+    'totalItems': totalItems,
+    'page': page,
+    'limit': limit,
+    'totalPages': totalPages,
+  };
 }

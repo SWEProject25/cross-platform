@@ -26,7 +26,7 @@ class ConversationsRepository {
 
     var conversationsDto = await _apiService.getConversations();
 
-    var conversations = conversationsDto.data!.map((x) {
+    var conversations = conversationsDto.data.map((x) {
       return Conversation(
         id: x.id,
         userId: x.user.id,
@@ -41,11 +41,15 @@ class ConversationsRepository {
     return conversations;
   }
 
-  Future<int> getConversationIdByUserId(int userId) async{
+  Future<int> getConversationIdByUserId(int userId) async {
     return await _apiService.createConversation(userId);
   }
 
-  Future<List<Contact>> searchForContacts(String query, int page, [int limit = 20]) async {
+  Future<List<Contact>> searchForContacts(
+    String query,
+    int page, [
+    int limit = 20,
+  ]) async {
     return await _apiService.searchForContacts(query, page, limit);
   }
 
