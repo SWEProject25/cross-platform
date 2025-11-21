@@ -1,7 +1,8 @@
 import 'dart:async';
 
+import 'package:lam7a/features/messaging/model/conversation.dart';
+import 'package:lam7a/features/messaging/providers/conversations_provider.dart';
 import 'package:lam7a/features/messaging/repository/conversations_repositories.dart';
-import 'package:lam7a/features/messaging/repository/messages_repository.dart';
 import 'package:lam7a/features/messaging/ui/state/conversations_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -9,101 +10,66 @@ part 'conversations_viewmodel.g.dart';
 
 @riverpod
 class ConversationsViewModel extends _$ConversationsViewModel {
-  
   late ConversationsRepository _conversationsRepository;
-  late MessagesRepository _messagesRepository;
-
+  // will listen to pagination provider updates instead of reading synchronously
   final Map<int, StreamSubscription<void>?> newMessageSub = {};
-  final Map<int, StreamSubscription<bool>?> _typingSub = {};
 
   @override
   ConversationsState build() {
     _conversationsRepository = ref.read(conversationsRepositoryProvider);
-    _messagesRepository = ref.read(messagesRepositoryProvider.notifier);
 
-    ref.onDispose(()=>_onDispose());
+    ref.listen<PaginationState<Conversation>>(conversationsProvider, (
+      previous,
+      next,
+    ) {
+      if (next.isLoading) {
+        state = state.copyWith(conversations: const AsyncLoading());
+      } else if (next.error != null) {
+        state = state.copyWith(
+          conversations: AsyncError(
+            next.error ?? 'Unknown',
+            StackTrace.current,
+          ),
+        );
+      } else {
+        state = state.copyWith(conversations: AsyncData(next.items));
+      }
+    }, fireImmediately: false);
 
-    Future.microtask(() async {
-      await _loadConversations();
-      setUpNewMessageListeners();
+    Future.microtask(() {
+      final current = ref.read(conversationsProvider);
+      if (current.items.isNotEmpty ||
+          current.isLoading ||
+          current.error != null) {
+        if (current.isLoading) {
+          state = state.copyWith(conversations: const AsyncLoading());
+        } else if (current.error != null) {
+          state = state.copyWith(
+            conversations: AsyncError(current.error!, StackTrace.current),
+          );
+        } else {
+          state = state.copyWith(conversations: AsyncData(current.items));
+        }
+      }
     });
-    
 
     return const ConversationsState();
   }
 
-  void _onDispose(){
-    newMessageSub.forEach((i,x)=>newMessageSub[i]?.cancel());
-    newMessageSub.forEach((i,x)=>newMessageSub[i] = null);
-    _typingSub.forEach((i,x)=>_typingSub[i]?.cancel());
-    _typingSub.forEach((i,x)=>_typingSub[i] = null);
-  }
+  // Future<void> _loadConversations() async {
 
-  Future<void> _loadConversations() async {
-
-    state = state.copyWith(conversations: const AsyncLoading());
-    try {
-      final data = await _conversationsRepository.fetchConversations();
-      state = state.copyWith(conversations: AsyncData(data));
-    } catch (e, st) {
-      state = state.copyWith(conversations: AsyncError(e, st));
-    }
-  }
-
-  void setUpNewMessageListeners() {
-    newMessageSub.forEach((i,x)=>newMessageSub[i]?.cancel());
-    newMessageSub.forEach((i,x)=>newMessageSub[i] = null);
-    _typingSub.forEach((i,x)=>_typingSub[i]?.cancel());
-    _typingSub.forEach((i,x)=>_typingSub[i] = null);
-
-    if(state.conversations.hasValue){
-      state.conversations.value!.forEach((x)=>{
-      });
-
-      for (var x in state.conversations.value!) {
-        newMessageSub[x.id] = _messagesRepository.onMessageRecieved(x.id).listen((_)=>_onNewMessageRecieved(x.id));
-        // subscribe to typing events for this conversation
-        _typingSub[x.id] = _messagesRepository.onUserTyping(x.id).listen((isTyping) => _onUserTypingChanged(x.id, isTyping));
-      }
-    }
-  }
-
-  void _onUserTypingChanged(int convId, bool isTyping) {
-    // update typing map in state
-    final typingMap = Map<String, bool>.from(state.isTyping);
-    typingMap[convId.toString()] = isTyping;
-    state = state.copyWith(isTyping: typingMap);
-  }
-
-  void _onNewMessageRecieved(int convId) {
-    final message = _messagesRepository.fetchMessage(convId).lastOrNull;
-    if (message == null) return;
-
-    final current = state.conversations;
-    if (!current.hasValue) return;
-
-    final conversations = current.value!;
-
-    final updated = conversations.map((c) {
-      if (c.id == convId) {
-        return c.copyWith(
-          lastMessage: message.text,
-          lastMessageTime: message.time,
-        );
-      }
-      return c;
-    }).toList();
-
-    state = state.copyWith(conversations: AsyncData(updated));
-  }
-
+  //   state = state.copyWith(conversations: const AsyncLoading());
+  //   try {
+  //     final data = await _conversationsRepository.fetchConversations();
+  //     state = state.copyWith(conversations: AsyncData(data));
+  //   } catch (e, st) {
+  //     state = state.copyWith(conversations: AsyncError(e, st));
+  //   }
+  // }
 
   void onQueryChanged(String v) {
-    state = state.copyWith(
-      searchQuery: v,
-      searchQueryError: _validateQuery(v),
-    );
-    
+    state = state.copyWith(searchQuery: v, searchQueryError: _validateQuery(v));
+
     updateSerch(v);
   }
 
@@ -114,7 +80,7 @@ class ConversationsViewModel extends _$ConversationsViewModel {
   }
 
   Future<void> updateSerch(String query) async {
-    if(state.searchQueryError != null){
+    if (state.searchQueryError != null) {
       return;
     }
 
@@ -128,10 +94,7 @@ class ConversationsViewModel extends _$ConversationsViewModel {
 
   Future<void> refresh() async {
     await Future.wait([
-      _loadConversations(),
+      // _loadConversations(),
     ]);
   }
-
 }
-
-

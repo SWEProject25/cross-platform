@@ -11,6 +11,7 @@ abstract class ChatMessage with _$ChatMessage {
     required String text,
     required DateTime time,
     required bool isMine,
+    required int senderId,
     @Default(false) bool isSeen,
     @Default(true) bool isDelivered,
   }) = _ChatMessage;
@@ -21,9 +22,10 @@ abstract class ChatMessage with _$ChatMessage {
     return ChatMessage(
       conversationId: dto.conversationId,
       id: dto.id ?? 0,
-      text: dto.text ?? '',
+      text: dto.text ?? '(Missing Message)',
       time: dto.createdAt ?? DateTime.now(),
       isMine: dto.senderId == currentUserId,
+      senderId: dto.senderId ?? 0,
       isSeen: dto.isSeen ?? false,
     );
   }

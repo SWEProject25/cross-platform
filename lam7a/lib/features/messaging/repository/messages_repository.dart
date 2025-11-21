@@ -112,14 +112,8 @@ class MessagesRepository extends _$MessagesRepository {
 
   void _onReceivedMessage(MessageDto data) {
     _logger.d("Received message on socket: ${data.toJson()}");
-    var message = ChatMessage(
-      conversationId: data.conversationId,
-      id: data.id ?? -1,
-      text: data.text ?? "(Missing Message)",
-      time: data.createdAt!,
-      isMine:
-          _authState.isAuthenticated && data.senderId == _authState.user!.id,
-    );
+
+    var message = ChatMessage.fromDto(data, currentUserId: _authState.user!.id!);
 
     _cache.addMessage(message.conversationId ?? -1, message);
 
@@ -191,6 +185,7 @@ class MessagesRepository extends _$MessagesRepository {
         isMine: true,
         isDelivered: false,
         isSeen: false,
+        senderId: _authState.user!.id!,
         conversationId: conversationId,
       ),
     );

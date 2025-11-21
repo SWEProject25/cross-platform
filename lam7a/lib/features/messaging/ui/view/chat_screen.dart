@@ -127,7 +127,7 @@ class ChatScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  contact.value?.name ?? 'Ask PlayStation',
+                  contact.isLoading? 'Ask PlayStation' : contact.value?.name ?? 'Unknown',
                   style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.w600,
@@ -135,7 +135,7 @@ class ChatScreen extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  contact.value?.handle ?? '@AskPlayStation',
+                  contact.isLoading? '@AskPlayStation' : contact.value?.handle ?? '@Unknown',
                   style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
               ],
@@ -169,19 +169,21 @@ class ChatScreen extends ConsumerWidget {
           NetworkAvatar(url: contact.value?.avatarUrl, radius: 32),
           const SizedBox(height: 8),
           Text(
-            contact.value?.name ?? "",
+            contact.isLoading? 'Ask PlayStation' : contact.value?.name ?? "Unknown",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 4),
+          
+          if(contact.isLoading || contact.value?.bio != null)
+            const SizedBox(height: 4),
+          if(contact.isLoading || contact.value?.bio != null)
           Text(
-            contact.value?.bio ??
-                'Official NA Twitter Support. You can connect with PlayStation Support for assistance with',
+            contact.isLoading? 'Official NA Twitter Support. You can connect with PlayStation Support for assistance with' : contact.value?.bio ?? '',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey, fontSize: 13),
           ),
           const SizedBox(height: 4),
           Text(
-            '${compressFollowerCount(contact.value?.totalFollowers ?? 1000000)} Followers',
+            contact.isLoading? '1,000,000 Followers' : '${compressFollowerCount(contact.value?.totalFollowers ?? 1000000)} Followers',
             style: TextStyle(color: Colors.black87, fontSize: 13),
           ),
           const SizedBox(height: 24),
