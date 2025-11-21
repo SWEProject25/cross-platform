@@ -8,11 +8,21 @@ import 'package:lam7a/features/add_tweet/ui/widgets/add_tweet_body_input_widget.
 import 'package:lam7a/features/add_tweet/ui/widgets/add_tweet_header_widget.dart';
 import 'package:lam7a/features/add_tweet/ui/widgets/add_tweet_toolbar_widget.dart';
 import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
 
 class AddTweetScreen extends ConsumerStatefulWidget {
   final int userId;
+  final int? parentPostId;
+  final bool isReply;
+  final bool isQuote;
 
-  const AddTweetScreen({super.key, required this.userId});
+  const AddTweetScreen({
+    super.key,
+    required this.userId,
+    this.parentPostId,
+    this.isReply = false,
+    this.isQuote = false,
+  });
 
   @override
   ConsumerState<AddTweetScreen> createState() => _AddTweetScreenState();
@@ -27,7 +37,15 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
     super.initState();
     // Reset state when screen opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(addTweetViewmodelProvider.notifier).reset();
+      final vm = ref.read(addTweetViewmodelProvider.notifier);
+      vm.reset();
+      if (widget.parentPostId != null) {
+        if (widget.isReply) {
+          vm.setReplyTo(widget.parentPostId!);
+        } else if (widget.isQuote) {
+          vm.setQuoteTo(widget.parentPostId!);
+        }
+      }
     });
   }
 
@@ -75,6 +93,11 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
 
   Future<void> _handleImagePick(ImageSource source) async {
     try {
+      final hasPermission = await _ensureMediaPermission(source);
+      if (!hasPermission) {
+        return;
+      }
+
       final XFile? image = await _imagePicker.pickImage(
         source: source,
         maxWidth: 1920,
@@ -83,6 +106,22 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
       );
 
       if (image != null) {
+        final file = File(image.path);
+        const maxSizeBytes = 100 * 1024 * 1024;
+        final fileSize = await file.length();
+        if (fileSize > maxSizeBytes) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Image is too large. Max size is 100MB'),
+                backgroundColor: Pallete.errorColor,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          return;
+        }
+
         // In a real app, you'd upload this to a server and get a URL
         // For now, we'll use the local path as a placeholder
         final viewmodel = ref.read(addTweetViewmodelProvider.notifier);
@@ -149,12 +188,33 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
 
   Future<void> _handleVideoPick(ImageSource source) async {
     try {
+      final hasPermission = await _ensureMediaPermission(source);
+      if (!hasPermission) {
+        return;
+      }
+
       final XFile? video = await _imagePicker.pickVideo(
         source: source,
         maxDuration: const Duration(minutes: 2),
       );
 
       if (video != null) {
+        final file = File(video.path);
+        const maxSizeBytes = 100 * 1024 * 1024;
+        final fileSize = await file.length();
+        if (fileSize > maxSizeBytes) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Video is too large. Max size is 100MB'),
+                backgroundColor: Pallete.errorColor,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          return;
+        }
+
         // In a real app, you'd upload this to a server and get a URL
         final viewmodel = ref.read(addTweetViewmodelProvider.notifier);
         viewmodel.updateMediaVideo(video.path);
@@ -180,6 +240,52 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
         );
       }
     }
+  }
+
+  Future<bool> _ensureMediaPermission(ImageSource source) async {
+    if (source == ImageSource.camera) {
+      final status = await Permission.camera.request();
+      if (!status.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Camera permission is required'),
+              backgroundColor: Pallete.errorColor,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return false;
+      }
+      return true;
+    }
+
+    PermissionStatus status;
+    if (Platform.isAndroid) {
+      // For Android, request storage/media permission for gallery access
+      status = await Permission.storage.request();
+    } else if (Platform.isIOS) {
+      // For iOS, request photo library access
+      status = await Permission.photos.request();
+    } else {
+      // Other platforms (web/desktop) currently don't use runtime permissions here
+      return true;
+    }
+
+    if (!status.isGranted) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gallery permission is required'),
+            backgroundColor: Pallete.errorColor,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+      return false;
+    }
+
+    return true;
   }
 
   void _handlePost() async {
@@ -232,6 +338,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
               onPost: _handlePost,
               canPost: viewmodel.canPostTweet(),
               isLoading: state.isLoading,
+              // You can update this widget to show different titles based on reply mode if needed
             ),
             
             SizedBox(height: responsive.padding(10)),
