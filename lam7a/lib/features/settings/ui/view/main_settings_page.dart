@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/settings_listTile.dart';
-import '../widgets/settings_searchBar.dart';
+import '../widgets/settings_search_bar.dart';
 import 'account_settings/account_settings_page.dart';
 import 'privacy_settings/privacy_settings_page.dart';
 

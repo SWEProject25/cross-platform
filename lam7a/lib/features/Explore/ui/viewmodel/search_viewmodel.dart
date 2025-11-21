@@ -154,6 +154,34 @@ class SearchViewModel extends _$SearchViewModel {
     await search(term);
   }
 
+  Future<void> getAutocompleteTerms(String term) async {
+    final prev = state.value ?? SearchState();
+    // update controller text (preserve controller instance)
+    prev.searchController.text = term;
+    // optionally move cursor to end
+    prev.searchController.selection = TextSelection.fromPosition(
+      TextPosition(offset: term.length),
+    );
+    // push the term into recents
+    addRecentTerm(term);
+    // run search
+    await search(term);
+  }
+
+  Future<void> getAutoCompleteUsers(String term) async {
+    final prev = state.value ?? SearchState();
+    // update controller text (preserve controller instance)
+    prev.searchController.text = term;
+    // optionally move cursor to end
+    prev.searchController.selection = TextSelection.fromPosition(
+      TextPosition(offset: term.length),
+    );
+    // push the term into recents
+    addRecentTerm(term);
+    // run search
+    await search(term);
+  }
+
   // Select a recent profile: put their display name into the search bar and add to recents
   Future<void> selectRecentProfile(UserModel profile) async {
     final prev = state.value ?? SearchState();

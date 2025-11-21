@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/explore_state.dart';
 import '../widgets/tab_button.dart';
-import 'search_page.dart';
+import 'search_and_auto_complete/recent_searchs_view.dart';
 import '../viewmodel/explore_viewmodel.dart';
 import 'for_you_view.dart';
 import 'trending_view.dart';
+import '../widgets/search_appbar.dart';
 
 class ExplorePage extends ConsumerWidget {
   const ExplorePage({super.key});
@@ -16,11 +17,10 @@ class ExplorePage extends ConsumerWidget {
     final vm = ref.read(exploreViewModelProvider.notifier);
 
     final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height;
-    final textScale = MediaQuery.of(context).textScaler;
+
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: _buildAppBar(context, width, textScale),
+      appBar: SearchAppbar(width: width, hintText: "Search X"),
 
       body: state.when(
         loading: () =>
@@ -70,58 +70,6 @@ class ExplorePage extends ConsumerWidget {
       ),
     );
   }
-}
-
-AppBar _buildAppBar(BuildContext context, double width, TextScaler textScale) {
-  return AppBar(
-    backgroundColor: Colors.black,
-    elevation: 0,
-    titleSpacing: 0,
-    title: Row(
-      children: [
-        IconButton(
-          iconSize: width * 0.06,
-          icon: const Icon(Icons.person_outline, color: Colors.white),
-          onPressed: () => Scaffold.of(context).openDrawer(),
-        ),
-
-        SizedBox(width: width * 0.04),
-
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const RecentView()),
-              );
-            },
-            child: Container(
-              height: 38.0,
-              padding: EdgeInsets.symmetric(horizontal: width * 0.04),
-              decoration: BoxDecoration(
-                color: Color(0xFF202328),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Search X",
-                style: TextStyle(color: Colors.white54, fontSize: 15),
-              ),
-            ),
-          ),
-        ),
-
-        SizedBox(width: width * 0.04),
-
-        IconButton(
-          padding: EdgeInsets.only(top: 4),
-          iconSize: width * 0.06,
-          icon: const Icon(Icons.settings_outlined, color: Colors.white),
-          onPressed: () {},
-        ),
-      ],
-    ),
-  );
 }
 
 Widget _tabs(ExploreViewModel vm, ExplorePageView selected, double width) {
