@@ -22,6 +22,8 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
     required String content,
     String? mediaPicPath,
     String? mediaVideoPath,
+    String type = 'POST',
+    int? parentPostId,
   }) async {
     try {
       print('📤 Creating tweet on backend...');
@@ -35,12 +37,19 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
 
       
       // Create FormData with fields first
-      final formData = FormData.fromMap({
+      final Map<String, dynamic> formFields = {
         'userId': userId, // Send as integer, not string
         'content': content,
-        'type': 'POST',
+        'type': type,
         'visibility': 'EVERY_ONE',
-      });
+      };
+
+      // Only include parentId when this is a reply/quote
+      if (parentPostId != null) {
+        formFields['parentId'] = parentPostId;
+      }
+
+      final formData = FormData.fromMap(formFields);
       
       // Add media files if they exist (as binary files, not URLs)
       if (mediaPicPath != null && mediaPicPath.isNotEmpty) {
@@ -102,7 +111,10 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
       print('      URL: ${ApiConfig.currentBaseUrl}${ApiConfig.postsEndpoint}');
       print('   📦 Request data:');
       print('      content: $content');
-      print('      type: POST');
+      print('      type: $type');
+      if (parentPostId != null) {
+        print('      parentId: $parentPostId');
+      }
       print('      visibility: EVERY_ONE');
       print('      media files: ${formData.files.length}');
       

@@ -33,7 +33,7 @@ class TweetSummaryWidget extends ConsumerWidget {
         alignment: Alignment.center,
         key: Key(tweetId),
         color: Colors.black,
-        padding: const EdgeInsets.only(left: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: tweetAsync.when(
           data: (tweetState) {
             final tweet = tweetState.tweet.value;
@@ -47,28 +47,31 @@ class TweetSummaryWidget extends ConsumerWidget {
             final daysPosted = DateTime.now().day - tweet.date.day;
 
             return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // === User row ===
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TweetUserSummaryInfo(
-                      tweetState: tweetState,
-                      daysPosted: daysPosted,
-                    ),
                     Expanded(
-                      child: IconButton(
-                        icon: const Icon(Icons.rocket),
-                        onPressed: () => ref
-                            .read(tweetViewModelProvider(tweet.id).notifier)
-                            .summarizeBody(),
+                      child: TweetUserSummaryInfo(
+                        tweetState: tweetState,
+                        daysPosted: daysPosted,
                       ),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.rocket,
+                        size: 20,
+                        color: Colors.blueAccent,
+                      ),
+                      onPressed: () => ref
+                          .read(tweetViewModelProvider(tweet.id).notifier)
+                          .summarizeBody(),
                     ),
                   ],
                 ),
-
-                // === Tweet body ===
+                const SizedBox(height: 4),
                 GestureDetector(
                   onTap: () {
                     ref
@@ -87,13 +90,12 @@ class TweetSummaryWidget extends ConsumerWidget {
                   },
                   child: TweetBodySummaryWidget(post: tweet),
                 ),
-
-                // === Tweet feed ===
+                const SizedBox(height: 6),
                 TweetFeed(tweetState: tweetState),
               ],
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const _TweetSkeleton(),
           error: (e, st) => Center(child: Text('Error: $e')),
         ),
       ),
@@ -111,29 +113,35 @@ class TweetSummaryWidget extends ConsumerWidget {
         alignment: Alignment.center,
         key: Key(tweetId),
         color: Colors.black,
-        padding: const EdgeInsets.only(left: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: tweetAsync.when(
           data: (tweetState) => Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // === User row ===
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TweetUserSummaryInfo(
-                    tweetState: tweetState,
-                    daysPosted: daysPosted,
+                  Expanded(
+                    child: TweetUserSummaryInfo(
+                      tweetState: tweetState,
+                      daysPosted: daysPosted,
+                      fallbackTweet: tweet,
+                    ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.rocket),
+                    icon: const Icon(
+                      Icons.rocket,
+                      size: 20,
+                      color: Colors.blueAccent,
+                    ),
                     onPressed: () => ref
                         .read(tweetViewModelProvider(tweet.id).notifier)
                         .summarizeBody(),
                   ),
                 ],
               ),
-
-              // === Tweet body ===
+              const SizedBox(height: 4),
               GestureDetector(
                 onTap: () {
                   ref
@@ -152,15 +160,83 @@ class TweetSummaryWidget extends ConsumerWidget {
                 },
                 child: TweetBodySummaryWidget(post: tweet),
               ),
-
-              // === Tweet feed ===
+              const SizedBox(height: 6),
               TweetFeed(tweetState: tweetState),
             ],
           ),
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const _TweetSkeleton(),
           error: (_, __) => const Center(child: Text('Error loading tweet')),
         ),
       ),
+    );
+  }
+}
+
+class _TweetSkeleton extends StatelessWidget {
+  const _TweetSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade800,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 12,
+                    width: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade800,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    height: 10,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade900,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    height: 10,
+                    width: MediaQuery.of(context).size.width * 0.6,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade900,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          height: 160,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade900,
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ],
     );
   }
 }

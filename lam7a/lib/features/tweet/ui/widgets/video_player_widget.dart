@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+
 class VideoPlayerWidget extends StatefulWidget {
   final String url;
   const VideoPlayerWidget({super.key, required this.url});
@@ -8,7 +9,8 @@ class VideoPlayerWidget extends StatefulWidget {
   State<VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
 }
 
-class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
+class _VideoPlayerWidgetState extends State<VideoPlayerWidget>
+    with AutomaticKeepAliveClientMixin<VideoPlayerWidget> {
   late VideoPlayerController _controller;
   late Future<void> _initializeVideoPlayerFuture;
 
@@ -17,7 +19,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     super.initState();
     _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
     _initializeVideoPlayerFuture = _controller.initialize();
-    _controller.play();        // 👈 Start playing
+    _controller.play(); //
     _controller.setLooping(true); // optional
   }
 
@@ -28,7 +30,11 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return FutureBuilder(
       future: _initializeVideoPlayerFuture,
       builder: (context, snapshot) {

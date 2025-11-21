@@ -12,5 +12,7 @@ abstract class AddTweetState with _$AddTweetState {
     String? mediaVideoPath,
     String? errorMessage,
     @Default(false) bool isTweetPosted,
+    int? parentPostId,
+    @Default('POST') String postType,
   }) = _AddTweetState;
 }

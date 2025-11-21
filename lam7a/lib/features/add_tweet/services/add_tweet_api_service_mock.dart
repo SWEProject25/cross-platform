@@ -16,12 +16,18 @@ class AddTweetApiServiceMock implements AddTweetApiService {
     required String content,
     String? mediaPicPath,
     String? mediaVideoPath,
+    String type = 'POST',
+    int? parentPostId,
   }) async {
     print('📤 [MOCK] Creating tweet...');
     print('   User ID: $userId');
     print('   Content: $content');
     print('   Image Path: ${mediaPicPath ?? "None"}');
     print('   Video Path: ${mediaVideoPath ?? "None"}');
+    print('   Type: $type');
+    if (parentPostId != null) {
+      print('   Parent Post ID: $parentPostId');
+    }
     
     // Simulate network delay (matching main service logic)
     await _simulateNetworkDelay();

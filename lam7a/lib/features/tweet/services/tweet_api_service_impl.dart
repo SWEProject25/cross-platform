@@ -15,7 +15,10 @@ class TweetsApiServiceImpl implements TweetsApiService {
   
   // Store interaction flags from backend responses
   final Map<String, Map<String, bool>> _interactionFlags = {};
+  // Store per-tweet local views override (e.g., after client-side increments)
+  final Map<String, int> _localViews = {};
   static const String _storageKey = 'tweet_interaction_flags';
+  static const String _viewsStorageKey = 'tweet_views_overrides';
   bool _isInitialized = false;
 
   TweetsApiServiceImpl({
@@ -46,6 +49,21 @@ class TweetsApiServiceImpl implements TweetsApiService {
         
         print('💾 Loaded ${_interactionFlags.length} stored interaction flags from disk');
       }
+
+      // Load stored views overrides
+      final storedViews = prefs.getString(_viewsStorageKey);
+      if (storedViews != null && storedViews.isNotEmpty) {
+        final decodedViews = jsonDecode(storedViews) as Map<String, dynamic>;
+        _localViews.clear();
+        decodedViews.forEach((key, value) {
+          final intVal = int.tryParse(value.toString());
+          if (intVal != null) {
+            _localViews[key] = intVal;
+          }
+        });
+
+        print('💾 Loaded ${_localViews.length} stored view overrides from disk');
+      }
       
       _isInitialized = true;
     } catch (e) {
@@ -58,9 +76,11 @@ class TweetsApiServiceImpl implements TweetsApiService {
   Future<void> _saveStoredFlags() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final encoded = jsonEncode(_interactionFlags);
-      await prefs.setString(_storageKey, encoded);
-      print('💾 Saved ${_interactionFlags.length} interaction flags to disk');
+      final encodedFlags = jsonEncode(_interactionFlags);
+      await prefs.setString(_storageKey, encodedFlags);
+      final encodedViews = jsonEncode(_localViews);
+      await prefs.setString(_viewsStorageKey, encodedViews);
+      print('💾 Saved ${_interactionFlags.length} interaction flags and ${_localViews.length} view overrides to disk');
     } catch (e) {
       print('⚠️ Error saving flags: $e');
     }
@@ -88,6 +108,19 @@ class TweetsApiServiceImpl implements TweetsApiService {
     // Persist to disk
     _saveStoredFlags();
   }
+
+  /// Get locally stored views override for a tweet, if any
+  @override
+  int? getLocalViews(String tweetId) {
+    return _localViews[tweetId];
+  }
+
+  /// Set locally stored views override for a tweet
+  @override
+  void setLocalViews(String tweetId, int views) {
+    _localViews[tweetId] = views;
+    _saveStoredFlags();
+  }
   
   @override
   Future<List<TweetModel>> getAllTweets() async {
@@ -97,57 +130,254 @@ class TweetsApiServiceImpl implements TweetsApiService {
     }
     
     try {
-      final url = '${ApiConfig.currentBaseUrl}${ApiConfig.postsEndpoint}';
-      print('📥 Fetching all tweets from backend...');
+      final url = '${ApiConfig.currentBaseUrl}${ApiConfig.postsEndpoint}/timeline/for-you';
+      print('📥 Fetching For You feed from backend...');
       print('   URL: $url');
 
-      
-      // Add query parameters to get latest tweets first with pagination
       final response = await _apiService.get<Map<String, dynamic>>(
-        endpoint: ApiConfig.postsEndpoint,
+        endpoint: '${ApiConfig.postsEndpoint}/timeline/for-you',
         queryParameters: {
-          'limit': 100, // Limit to 50 most recent tweets
-          'page': 29,   // First page
-          'sort': 'desc', // Sort by newest first (if backend supports it)
+          'limit': 100,
+          'page': 1,
         },
       );
-      
 
-      
-      final data = response['data'] as List;
+      // Backend returns: { status, message, data: { posts: [...] } }
+      final dataWrapper = response['data'];
+      final postsJson = (dataWrapper is Map && dataWrapper['posts'] is List)
+          ? (dataWrapper['posts'] as List)
+          : <dynamic>[];
 
-        
-        // Fetch each tweet individually using getTweetById to get complete data
-        // This ensures we get media, counts, and all other fields
-        final tweets = await Future.wait(data.map((json) async {
-          final tweetId = json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString();
+      List<TweetModel> tweets = [];
 
-          
-          try {
-            // Use getTweetById to get complete tweet data with media and counts
-            return await getTweetById(tweetId);
-          } catch (e) {
-            print('   ⚠️ Error fetching tweet $tweetId: $e');
-            // Fallback to basic parsing if getTweetById fails
-            return TweetModel(
-              id: tweetId,
-              userId: (json['user_id'] ?? json['userId'])?.toString() ?? '0',
-              body: (json['content'] ?? json['body'] ?? '').toString(),
-              date: json['createdAt'] != null 
-                  ? DateTime.parse(json['createdAt']) 
-                  : DateTime.now(),
-              likes: 0,
-              repost: 0,
-              comments: 0,
-              views: 0,
-              qoutes: 0,
-              bookmarks: 0,
-              mediaImages: [],
-              mediaVideos: [],
-            );
+      for (final raw in postsJson) {
+        if (raw is! Map) continue;
+        final json = raw as Map;
+
+        final tweetId = (json['postId'] ?? json['id'] ??
+                DateTime.now().millisecondsSinceEpoch)
+            .toString();
+
+        // Basic user info
+        final username = json['username']?.toString();
+        final authorName = json['name']?.toString();
+        final authorProfileImage = json['avatar']?.toString();
+
+        int parseInt(dynamic v) => v == null
+            ? 0
+            : (v is int
+                ? v
+                : int.tryParse(v.toString()) ?? 0);
+
+        // Counts from feed
+        final likes = parseInt(json['likesCount']);
+        final reposts = parseInt(json['retweetsCount']);
+        final comments = parseInt(json['commentsCount']);
+
+        // Interaction and repost metadata flags
+        final isLikedByMe = json['isLikedByMe'] ?? false;
+        final isRepostedByMe = json['isRepostedByMe'] ?? false;
+        final isRepost = json['isRepost'] ?? false;
+        final isQuote = json['isQuote'] ?? false;
+
+        // Original post data for reposts/quotes (to show nested parent tweet)
+        Map<String, dynamic>? originalTweetJson;
+        final original = json['originalPostData'];
+        if (original is Map) {
+          final o = original;
+
+          final originalId = (o['postId'] ?? o['id'] ??
+                  DateTime.now().millisecondsSinceEpoch)
+              .toString();
+
+          final originalUserId =
+              (o['userId'] ?? o['user_id'] ?? '0').toString();
+
+          final rawDate = o['date'] ?? o['createdAt'] ?? o['created_at'];
+          String originalDateString;
+          if (rawDate is String) {
+            originalDateString = rawDate;
+          } else if (rawDate is DateTime) {
+            originalDateString = rawDate.toIso8601String();
+          } else {
+            originalDateString = DateTime.now().toIso8601String();
           }
-        }).toList());
-        
+
+          final originalLikes = parseInt(o['likesCount']);
+          final originalReposts = parseInt(o['retweetsCount']);
+          final originalComments = parseInt(o['commentsCount']);
+
+          final originalImageUrls = <String>[];
+          final originalVideoUrls = <String>[];
+          if (o['media'] is List) {
+            for (final m in (o['media'] as List)) {
+              if (m is! Map) continue;
+              final url = m['url']?.toString();
+              final type = m['type']?.toString();
+              if (url == null || url.isEmpty) continue;
+              if (type == 'VIDEO') {
+                originalVideoUrls.add(url);
+              } else {
+                originalImageUrls.add(url);
+              }
+            }
+          }
+
+          originalTweetJson = <String, dynamic>{
+            'id': originalId,
+            'userId': originalUserId,
+            'body': (o['text'] ?? o['content'] ?? '').toString(),
+            'date': originalDateString,
+            'username': o['username']?.toString(),
+            'authorName': o['name']?.toString(),
+            'authorProfileImage': o['avatar']?.toString(),
+            'likes': originalLikes,
+            'repost': originalReposts,
+            'comments': originalComments,
+            'views': 0,
+            'qoutes': 0,
+            'bookmarks': 0,
+            'mediaImages': originalImageUrls,
+            'mediaVideos': originalVideoUrls,
+            'isRepost': false,
+            'isQuote': false,
+          };
+        }
+
+        // Media
+        final imageUrls = <String>[];
+        final videoUrls = <String>[];
+        if (json['media'] is List) {
+          for (final m in (json['media'] as List)) {
+            if (m is! Map) continue;
+            final url = m['url']?.toString();
+            final type = m['type']?.toString();
+            if (url == null || url.isEmpty) continue;
+            if (type == 'VIDEO') {
+              videoUrls.add(url);
+            } else {
+              imageUrls.add(url);
+            }
+          }
+        }
+
+        final mappedJson = <String, dynamic>{
+          'id': tweetId,
+          'userId': (json['userId'] ?? json['user_id'] ?? '0').toString(),
+          'body': (json['text'] ?? json['content'] ?? '').toString(),
+          'date': (json['date'] ?? json['createdAt'] ?? DateTime.now().toIso8601String())
+              .toString(),
+          'username': username,
+          'authorName': authorName,
+          'authorProfileImage': authorProfileImage,
+          'likes': likes,
+          'repost': reposts,
+          'comments': comments,
+          'views': 0,
+          'qoutes': 0,
+          'bookmarks': 0,
+          'mediaImages': imageUrls,
+          'mediaVideos': videoUrls,
+          'isRepost': isRepost,
+          'isQuote': isQuote,
+        };
+
+        if (originalTweetJson != null) {
+          mappedJson['originalTweet'] = originalTweetJson;
+        }
+
+        final tweet = TweetModel.fromJson(mappedJson);
+
+        // Store interaction flags and repost metadata for this tweet
+        final existingFlags = _interactionFlags[tweetId] ?? <String, bool>{};
+        _interactionFlags[tweetId] = {
+          ...existingFlags,
+          'isLikedByMe': isLikedByMe,
+          'isRepostedByMe': isRepostedByMe,
+          'isRepost': isRepost,
+          'isQuote': isQuote,
+        };
+
+        tweets.add(tweet);
+      }
+
+      // Also fetch the authenticated user's own posts from /posts/profile/me
+      // and merge them into the home feed so they persist after refresh.
+      try {
+        final profileResponse = await _apiService.get<Map<String, dynamic>>(
+          endpoint: '${ApiConfig.postsEndpoint}/profile/me',
+          queryParameters: {
+            'limit': 50,
+            'page': 1,
+          },
+        );
+
+        final profileData = profileResponse['data'];
+        List<dynamic> profilePostsJson = [];
+
+        if (profileData is List) {
+          profilePostsJson = profileData;
+        } else if (profileData is Map && profileData['posts'] is List) {
+          profilePostsJson = (profileData['posts'] as List);
+        }
+
+        // Track IDs already present from the For You feed
+        final existingIds = tweets.map((t) => t.id).toSet();
+        final idsToFetch = <String>[];
+        final quoteParentMap = <String, String>{};
+
+        for (final raw in profilePostsJson) {
+          if (raw is! Map) continue;
+          final map = raw as Map;
+          final postId = (map['id'] ?? map['postId'])?.toString();
+          if (postId == null) continue;
+          if (existingIds.contains(postId)) continue;
+
+          existingIds.add(postId);
+          idsToFetch.add(postId);
+
+          // Detect quotes and remember their parent IDs so we can attach
+          final type = map['type']?.toString();
+          final parentRaw = map['parent_id'] ?? map['parentId'];
+          final parentId = parentRaw != null ? parentRaw.toString() : null;
+          if (type == 'QUOTE' && parentId != null && parentId.isNotEmpty) {
+            quoteParentMap[postId] = parentId;
+          }
+        }
+
+        if (idsToFetch.isNotEmpty) {
+          final profileTweets = await Future.wait(
+            idsToFetch.map((id) => getTweetById(id)),
+          );
+
+          final enhancedProfileTweets = <TweetModel>[];
+
+          for (final tweet in profileTweets) {
+            final parentId = quoteParentMap[tweet.id];
+            if (parentId != null) {
+              try {
+                final parentTweet = await getTweetById(parentId);
+                enhancedProfileTweets.add(
+                  tweet.copyWith(
+                    isQuote: true,
+                    originalTweet: parentTweet,
+                  ),
+                );
+              } catch (e) {
+                print('⚠️ Error fetching parent tweet $parentId for quote ${tweet.id}: $e');
+                enhancedProfileTweets.add(tweet);
+              }
+            } else {
+              enhancedProfileTweets.add(tweet);
+            }
+          }
+
+          tweets.addAll(enhancedProfileTweets);
+        }
+      } catch (e) {
+        // If profile/me is unavailable or user is unauthenticated, just skip
+        print('⚠️ Error fetching profile posts for current user: $e');
+      }
 
       return tweets;
     } catch (e) {
@@ -196,9 +426,34 @@ class TweetsApiServiceImpl implements TweetsApiService {
           authorName = json['authorName']?.toString();
           authorProfileImage = json['authorProfileImage']?.toString();
         }
-        
 
-        
+        // Fallback avatar field used by some endpoints (e.g. transformed feeds)
+        authorProfileImage ??= json['avatar']?.toString();
+
+        int parseInt(dynamic v) => v == null ? 0 : int.tryParse(v.toString()) ?? 0;
+
+        // Engagement counts coming directly from backend
+        int likes = 0;
+        int reposts = 0;
+        int comments = 0;
+        int views = 0;
+        int quotes = 0;
+        int bookmarks = 0;
+
+        final countData = json['_count'];
+        if (countData is Map) {
+          likes = parseInt(countData['likes']);
+          reposts = parseInt(countData['repostedBy']);
+          comments = parseInt(countData['Replies']);
+        }
+
+        likes = parseInt(json['likes'] ?? likes);
+        reposts = parseInt(json['repost'] ?? json['reposts'] ?? reposts);
+        comments = parseInt(json['comments'] ?? comments);
+        views = parseInt(json['views'] ?? json['viewsCount'] ?? views);
+        quotes = parseInt(json['qoutes'] ?? json['quotes'] ?? quotes);
+        bookmarks = parseInt(json['bookmarks'] ?? bookmarks);
+
         final mappedJson = <String, dynamic>{
           'id': tweetId,
           'userId': (json['user_id'] ?? json['userId'])?.toString() ?? '0',
@@ -208,6 +463,13 @@ class TweetsApiServiceImpl implements TweetsApiService {
           'username': username,
           'authorName': authorName,
           'authorProfileImage': authorProfileImage,
+          // Engagement counts from backend
+          'likes': likes,
+          'repost': reposts,
+          'comments': comments,
+          'views': views,
+          'qoutes': quotes,
+          'bookmarks': bookmarks,
           // User interaction flags from backend
           'isLikedByMe': json['isLikedByMe'] ?? false,
           'isRepostedByMe': json['isRepostedByMe'] ?? false,
@@ -281,17 +543,6 @@ class TweetsApiServiceImpl implements TweetsApiService {
           mappedJson['mediaVideos'] = videoUrls;
         }
         
-        // Fetch real counts from interaction endpoints (if available)
-        try {
-          final counts = await _interactionsService.getPostCounts(tweetId);
-          mappedJson['likes'] = counts['likes'] ?? 0;
-          mappedJson['repost'] = counts['reposts'] ?? 0;
-        } catch (e) {
-          // Silently use defaults if endpoints not available
-          mappedJson['likes'] = 0;
-          mappedJson['repost'] = 0;
-        }
-        
       final tweet = TweetModel.fromJson(mappedJson);
       
       // Store interaction flags separately (not in TweetModel)
@@ -325,10 +576,13 @@ class TweetsApiServiceImpl implements TweetsApiService {
         print('   ⚠️ No interaction flags available, defaulting to false');
       }
       
-      _interactionFlags[tweetId] = {
+      final updatedFlags = <String, bool>{
+        ...?existingFlags,
         'isLikedByMe': isLikedByMe,
         'isRepostedByMe': isRepostedByMe,
       };
+
+      _interactionFlags[tweetId] = updatedFlags;
       
     
       return tweet;
@@ -370,6 +624,112 @@ class TweetsApiServiceImpl implements TweetsApiService {
     } catch (e) {
       print('❌ Error deleting tweet: $e');
       rethrow;
+    }
+  }
+
+  /// Get replies for a specific post
+  /// Uses backend endpoint: GET /posts/{postId}/replies
+  Future<List<TweetModel>> getRepliesForPost(String postId) async {
+    try {
+      final response = await _apiService.get<Map<String, dynamic>>(
+        endpoint: '${ApiConfig.postsEndpoint}/$postId/replies',
+        queryParameters: {
+          'page': 1,
+          'limit': 50,
+        },
+      );
+
+      final data = response['data'];
+      if (data is! List) {
+        return [];
+      }
+
+      List<TweetModel> replies = [];
+
+      for (final raw in data) {
+        if (raw is! Map) continue;
+        final json = raw as Map;
+
+        final replyId = (json['postId'] ?? json['id'] ??
+                DateTime.now().millisecondsSinceEpoch)
+            .toString();
+
+        // Basic user info (same style as feed)
+        String? username;
+        String? authorName;
+        String? authorProfileImage;
+
+        if (json['User'] != null && json['User'] is Map) {
+          final user = json['User'] as Map;
+          username = user['username']?.toString();
+
+          if (user['Profile'] != null && user['Profile'] is Map) {
+            final profile = user['Profile'] as Map;
+            authorName = profile['name']?.toString();
+            authorProfileImage = profile['profile_image_url']?.toString();
+          }
+        } else {
+          username = json['username']?.toString();
+          authorName = json['authorName']?.toString();
+          authorProfileImage = json['authorProfileImage']?.toString();
+        }
+
+        authorProfileImage ??= json['avatar']?.toString();
+
+        int parseInt(dynamic v) => v == null
+            ? 0
+            : (v is int
+                ? v
+                : int.tryParse(v.toString()) ?? 0);
+
+        final likes = parseInt(json['likes'] ?? json['likesCount']);
+        final reposts = parseInt(json['repost'] ?? json['reposts'] ?? json['retweetsCount']);
+        final comments = parseInt(json['comments'] ?? json['commentsCount']);
+
+        final imageUrls = <String>[];
+        final videoUrls = <String>[];
+
+        if (json['media'] is List) {
+          for (final m in (json['media'] as List)) {
+            if (m is! Map) continue;
+            final url = m['url']?.toString() ?? m['media_url']?.toString();
+            final type = m['type']?.toString();
+            if (url == null || url.isEmpty) continue;
+            if (type == 'VIDEO') {
+              videoUrls.add(url);
+            } else {
+              imageUrls.add(url);
+            }
+          }
+        }
+
+        final mappedJson = <String, dynamic>{
+          'id': replyId,
+          'userId': (json['userId'] ?? json['user_id'] ?? '0').toString(),
+          'body': (json['text'] ?? json['content'] ?? json['body'] ?? '').toString(),
+          'date': (json['createdAt'] ?? json['created_at'] ?? json['date'] ?? DateTime.now().toIso8601String())
+              .toString(),
+          'username': username,
+          'authorName': authorName,
+          'authorProfileImage': authorProfileImage,
+          'likes': likes,
+          'repost': reposts,
+          'comments': comments,
+          'views': parseInt(json['views'] ?? json['viewsCount']),
+          'qoutes': parseInt(json['qoutes'] ?? json['quotes']),
+          'bookmarks': parseInt(json['bookmarks']),
+          'mediaImages': imageUrls,
+          'mediaVideos': videoUrls,
+        };
+
+        final reply = TweetModel.fromJson(mappedJson);
+        replies.add(reply);
+      }
+
+      return replies;
+    } catch (e) {
+      print('❌ Error fetching replies for post $postId: $e');
+      return [];
     }
   }
 }

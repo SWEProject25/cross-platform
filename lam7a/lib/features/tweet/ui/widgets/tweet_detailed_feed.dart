@@ -2,6 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_likers_viewmodel.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_replies_viewmodel.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_reposters_viewmodel.dart';
+import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:intl/intl.dart';
 
@@ -83,6 +88,250 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
     _controller.dispose();
     super.dispose();
   }
+
+  void _showRepostersBottomSheet(String postId) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.black,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Consumer(
+          builder: (context, ref, _) {
+            final repostersAsync = ref.watch(tweetRepostersViewModelProvider(postId));
+
+            return SafeArea(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                height: 400,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[700],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const Text(
+                      'Reposted by',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: repostersAsync.when(
+                        data: (users) {
+                          if (users.isEmpty) {
+                            return const Center(
+                              child: Text(
+                                'No reposts yet',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            );
+                          }
+
+                          return ListView.separated(
+                            itemCount: users.length,
+                            separatorBuilder: (_, __) => Divider(
+                              color: Colors.grey.shade800,
+                              height: 1,
+                            ),
+                            itemBuilder: (_, index) {
+                              final user = users[index];
+                              final username = user.username ?? 'unknown';
+                              final displayName =
+                                  (user.name != null && user.name!.isNotEmpty)
+                                      ? user.name!
+                                      : username;
+                              final profileImage = user.profileImageUrl;
+
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  radius: 20,
+                                  backgroundColor: Colors.grey[700],
+                                  backgroundImage: profileImage != null &&
+                                          profileImage.isNotEmpty
+                                      ? NetworkImage(profileImage)
+                                      : null,
+                                  child: profileImage == null ||
+                                          profileImage.isEmpty
+                                      ? Text(
+                                          username.isNotEmpty
+                                              ? username[0].toUpperCase()
+                                              : '?',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                                title: Text(
+                                  displayName,
+                                  style:
+                                      const TextStyle(color: Colors.white),
+                                ),
+                                subtitle: Text(
+                                  '@$username',
+                                  style:
+                                      const TextStyle(color: Colors.grey),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        loading: () => const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                        error: (e, _) => const Center(
+                          child: Text(
+                            'Failed to load reposters',
+                            style: TextStyle(color: Colors.redAccent),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showLikersBottomSheet(String postId) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.black,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Consumer(
+          builder: (context, ref, _) {
+            final likersAsync = ref.watch(tweetLikersViewModelProvider(postId));
+
+            return SafeArea(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                height: 400,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[700],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const Text(
+                      'Liked by',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: likersAsync.when(
+                        data: (likers) {
+                          if (likers.isEmpty) {
+                            return const Center(
+                              child: Text(
+                                'No likes yet',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            );
+                          }
+
+                          return ListView.separated(
+                            itemCount: likers.length,
+                            separatorBuilder: (_, __) => Divider(
+                              color: Colors.grey.shade800,
+                              height: 1,
+                            ),
+                            itemBuilder: (_, index) {
+                              final user = likers[index];
+                              final username = user.username ?? 'unknown';
+                              final displayName =
+                                  (user.name != null && user.name!.isNotEmpty)
+                                      ? user.name!
+                                      : username;
+                              final profileImage = user.profileImageUrl;
+
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  radius: 20,
+                                  backgroundColor: Colors.grey[700],
+                                  backgroundImage: profileImage != null &&
+                                          profileImage.isNotEmpty
+                                      ? NetworkImage(profileImage)
+                                      : null,
+                                  child: profileImage == null ||
+                                          profileImage.isEmpty
+                                      ? Text(
+                                          username.isNotEmpty
+                                              ? username[0].toUpperCase()
+                                              : '?',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                                title: Text(
+                                  displayName,
+                                  style:
+                                      const TextStyle(color: Colors.white),
+                                ),
+                                subtitle: Text(
+                                  '@$username',
+                                  style:
+                                      const TextStyle(color: Colors.grey),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        loading: () => const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                        error: (e, _) => const Center(
+                          child: Text(
+                            'Failed to load likers',
+                            style: TextStyle(color: Colors.redAccent),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
   @override
   Widget build(BuildContext context) {
     // Handle null tweet (e.g., 404 error)
@@ -97,7 +346,6 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
     String likesNumStr = '';
     String repostsNumStr = '';
     String qoutesNumStr='';
-    String bookmarksNumStr='';
     tweet.whenData((tweet) {
       if (tweet.value == null) return;
       
@@ -109,12 +357,10 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
       final repostNum = tweetVal.repost.toDouble();
       final viewsNum = tweetVal.views.toDouble();
       final qoutesNum= tweetVal.qoutes.toDouble();
-      final bookmarksNum=tweetVal.bookmarks.toDouble();
       likesNumStr = viewModel.howLong(likesNum);
       repostsNumStr = viewModel.howLong(repostNum);
       veiwsNumStr = viewModel.howLong(viewsNum);
       qoutesNumStr=viewModel.howLong(qoutesNum);
-      bookmarksNumStr=viewModel.howLong(bookmarksNum);
     });
     String formatDate(DateTime date) {
       final formatter = DateFormat('hh:mm a');
@@ -150,9 +396,39 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                 ListTile(
                   leading: const Icon(Icons.format_quote, color: Colors.green),
                   title: const Text("Quote",style: TextStyle(color: Colors.white)),
-                  onTap: () {
-                    //
+                  onTap: () async {
+                    final authState = ref.read(authenticationProvider);
+                    final user = authState.user;
+                    if (user == null || user.id == null) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please log in to quote'),
+                          ),
+                        );
+                      }
+                      Navigator.pop(context);
+                      return;
+                    }
+
+                    final parentId = int.tryParse(postId);
+                    if (parentId == null) {
+                      Navigator.pop(context);
+                      return;
+                    }
+
                     Navigator.pop(context);
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AddTweetScreen(
+                          userId: user.id!,
+                          parentPostId: parentId,
+                          isQuote: true,
+                        ),
+                      ),
+                    );
+
+                    ref.invalidate(tweetViewModelProvider(postId));
                   },
                 ),
               ],
@@ -248,213 +524,265 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
           ],
         ),
         Divider(
-          thickness: 0.4, // line thickness
-          color: Color.fromARGB(255, 139, 139, 139), // line color
-          height: 20, // space above + below line
-          indent: 18, // left padding
-          endIndent: 18, // right padding
+          thickness: 0.3,
+          color: Colors.grey.shade800,
+          height: 20,
+          indent: 18,
+          endIndent: 18,
         ),
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            //reposts
-            tweet.when(
-              data: (tweet) =>  Padding(
-                padding: const EdgeInsets.only(left: 0),
-                child: Text(
-                  repostsNumStr,
-                  style: TextStyle(
-                    fontSize: 15,
-                    decoration: TextDecoration.none,
-                    color: Colors.white,
+            Expanded(
+              child: Row(
+                children: [
+                  tweet.when(
+                    data: (tweet) => Padding(
+                      padding: const EdgeInsets.only(left: 0),
+                      child: Text(
+                        repostsNumStr,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          decoration: TextDecoration.none,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    loading: () => const CircleAvatar(),
+                    error: (e, st) => Text('Error $e'),
                   ),
-                ),
-              ),
-              loading: () => CircleAvatar(),
-               error: (e ,st)=> Text('Error $e'),
-            ),
-            Text(
-              " Reposts",
-              style: TextStyle(
-                fontSize: 15,
-                decoration: TextDecoration.none,
-                color: Colors.grey,
-              ),
-            ),
-            SizedBox(width: 10,),
-                tweet.when(
-              data: (tweet) => Padding(
-                padding: const EdgeInsets.only(left: 10),
-                child: Text(
-                  qoutesNumStr,
-                  style: TextStyle(
-                    fontSize: 15,
-                    decoration: TextDecoration.none,
-                    color: Colors.white,
+                  const SizedBox(width: 4),
+                  const Text(
+                    "Reposts",
+                    style: TextStyle(
+                      fontSize: 15,
+                      decoration: TextDecoration.none,
+                      color: Colors.grey,
+                    ),
                   ),
-                ),
-              ),
-              loading: () => CircleAvatar(),
-               error: (e ,st)=> Text('Error $e'),
-            ),
-            Text(
-              " Quotes",
-              style: TextStyle(
-                fontSize: 15,
-                decoration: TextDecoration.none,
-                color: Colors.grey,
+                ],
               ),
             ),
-            SizedBox(width: 10,),
-                tweet.when(
-              data: (tweet) => Padding(
-                padding: const EdgeInsets.only(left: 10),
-                child: Text(
-                  likesNumStr,
-                  style: TextStyle(
-                    fontSize: 15,
-                    decoration: TextDecoration.none,
-                    color: Colors.white,
+            Expanded(
+              child: Row(
+                children: [
+                  tweet.when(
+                    data: (tweet) => Padding(
+                      padding: const EdgeInsets.only(left: 10),
+                      child: Text(
+                        qoutesNumStr,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          decoration: TextDecoration.none,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    loading: () => const CircleAvatar(),
+                    error: (e, st) => Text('Error $e'),
                   ),
-                ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    "Quotes",
+                    style: TextStyle(
+                      fontSize: 15,
+                      decoration: TextDecoration.none,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
               ),
-              loading: () => CircleAvatar(),
-               error: (e ,st)=> Text('Error $e'),
             ),
-            Text(
-              " Likes",
-              style: TextStyle(
-                fontSize: 15,
-                decoration: TextDecoration.none,
-                color: Colors.grey,
+            Expanded(
+              child: Row(
+                children: [
+                  tweet.when(
+                    data: (tweet) => Padding(
+                      padding: const EdgeInsets.only(left: 10),
+                      child: Text(
+                        likesNumStr,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          decoration: TextDecoration.none,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    loading: () => const CircleAvatar(),
+                    error: (e, st) => Text('Error $e'),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    "Likes",
+                    style: TextStyle(
+                      fontSize: 15,
+                      decoration: TextDecoration.none,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
               ),
             ),
-
           ],
         ),
-                   Divider(
-          thickness: 0.4, // line thickness
-          color: Color.fromARGB(255, 139, 139, 139), // line color
-          height: 20, // space above + below line
-          indent: 18, // left padding
-          endIndent: 18, // right padding
-        ),
-             Row( children: [  tweet.when(
-              data: (tweet) => Padding(
-                padding: const EdgeInsets.only(left: 10),
-                child: Text(
-                  bookmarksNumStr,
-                  style: TextStyle(
-                    fontSize: 15,
-                    decoration: TextDecoration.none,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              loading: () => CircleAvatar(),
-               error: (e ,st)=> Text('Error $e'),
-            ),
-            Text(
-              " Bookmarks",
-              style: TextStyle(
-                fontSize: 15,
-                decoration: TextDecoration.none,
-                color: Colors.grey,
-              ),
-            ),
-      ]),
-           Divider(
-          thickness: 0.4, // line thickness
-          color: Color.fromARGB(255, 139, 139, 139), // line color
-          height: 20, // space above + below line
-          indent: 18, // left padding
-          endIndent: 18, // right padding
-        ),
-        ////Comment
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            SizedBox(width: 15),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(
+                      Icons.mode_comment_outlined,
+                      color: Colors.grey,
+                      size: 22,
+                    ),
+                    onPressed: () async {
+                      final authState = ref.read(authenticationProvider);
+                      final user = authState.user;
+                      if (user == null || user.id == null) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please log in to reply'),
+                            ),
+                          );
+                        }
+                        return;
+                      }
 
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0, top: 3.0),
-              child: GestureDetector(
-                onTap: ref
-                    .read(tweetViewModelProvider(postId).notifier)
-                    .handleComment,
-                child: Icon(Icons.comment, color: Colors.grey),
-              ),
-            ),
+                      final parentId = int.tryParse(postId);
+                      if (parentId == null) {
+                        return;
+                      }
 
-            SizedBox(width: 50),
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AddTweetScreen(
+                            userId: user.id!,
+                            parentPostId: parentId,
+                            isReply: true,
+                          ),
+                        ),
+                      );
 
-            ///repost
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0, top: 3.0),
-              child: ScaleTransition(
-                scale: _scaleAnimationRepost,
-                child: GestureDetector(
-                  onTap:  () {
-                showRepostQuoteOptions(context);
-                },
-                  child: tweetState.when(
-                    data: (state) => state.isReposted
-                        ? Icon(Icons.loop, color: Colors.green)
-                        : Icon(Icons.loop, color: Colors.grey),
-                    loading: () => Icon(Icons.loop, color: Colors.grey),
-                    error: (_, __) => Icon(Icons.loop, color: Colors.grey),
+                      // Refresh replies and parent tweet (comments count) after returning
+                      ref.invalidate(tweetRepliesViewModelProvider(postId));
+                      ref.invalidate(tweetViewModelProvider(postId));
+                    },
                   ),
-                ),
+                ],
               ),
             ),
-
-            SizedBox(width: 50),
-            ///// Like
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0, top: 3.0),
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: GestureDetector(
-                  onTap: () {
-                    ref
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ScaleTransition(
+                    scale: _scaleAnimationRepost,
+                    child: GestureDetector(
+                      onLongPress: () => _showRepostersBottomSheet(postId),
+                      child: IconButton(
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: tweetState.when(
+                          data: (state) => Icon(
+                            Icons.repeat,
+                            color: state.isReposted
+                                ? Colors.green
+                                : Colors.grey,
+                            size: 22,
+                          ),
+                          loading: () => const Icon(
+                            Icons.repeat,
+                            color: Colors.grey,
+                            size: 22,
+                          ),
+                          error: (_, __) => const Icon(
+                            Icons.repeat,
+                            color: Colors.grey,
+                            size: 22,
+                          ),
+                        ),
+                        onPressed: () {
+                          showRepostQuoteOptions(context);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: GestureDetector(
+                      onLongPress: () => _showLikersBottomSheet(postId),
+                      child: IconButton(
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: tweetState.when(
+                          data: (state) => Icon(
+                            state.isLiked
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: state.isLiked
+                                ? Colors.redAccent
+                                : Colors.grey,
+                            size: 22,
+                          ),
+                          loading: () => const Icon(
+                            Icons.favorite_border,
+                            color: Colors.grey,
+                            size: 22,
+                          ),
+                          error: (_, __) => const Icon(
+                            Icons.favorite_border,
+                            color: Colors.grey,
+                            size: 22,
+                          ),
+                        ),
+                        onPressed: () {
+                          ref
+                              .read(tweetViewModelProvider(postId).notifier)
+                              .handleLike(controller: _controller);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(
+                      Icons.ios_share,
+                      color: Colors.grey,
+                      size: 22,
+                    ),
+                    onPressed: ref
                         .read(tweetViewModelProvider(postId).notifier)
-                        .handleLike(controller: _controller);
-                  },
-                  child: tweetState.when(
-                    data: (state) => state.isLiked
-                        ? Icon(Icons.favorite, color: Colors.red)
-                        : Icon(Icons.favorite_border, color: Colors.grey),
-                    loading: () => Icon(Icons.favorite_border, color: Colors.grey),
-                    error: (_, __) => Icon(Icons.favorite_border, color: Colors.grey),
+                        .handleShare,
                   ),
-                ),
+                ],
               ),
             ),
-
-            SizedBox(width: 50),
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0, top: 3.0),
-              child: GestureDetector(
-                onTap: ref
-                    .read(tweetViewModelProvider(postId).notifier)
-                    .handleBookmark,
-                child: Icon(Icons.bookmark_border, color: Colors.grey),
-              ),
-            ),
-
-            ///views
-            SizedBox(width: 50),
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0, top: 3.0),
-              child: GestureDetector(
-                onTap: ref
-                    .read(tweetViewModelProvider(postId).notifier)
-                    .handleShare,
-                child: Icon(Icons.share_outlined, color: Colors.grey),
-              ),
-            ),
-
-            SizedBox(width: 15),
           ],
         ),
  

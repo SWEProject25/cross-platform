@@ -26,4 +26,20 @@ class TweetHomeViewModel extends _$TweetHomeViewModel {
       return await _fetchAllTweets();
     });
   }
+
+  void upsertTweetLocally(TweetModel tweet) {
+    final current = state.value;
+
+    if (current == null) {
+      state = AsyncValue.data([tweet]);
+      return;
+    }
+
+    final updated = <TweetModel>[
+      tweet,
+      ...current.where((t) => t.id != tweet.id),
+    ];
+
+    state = AsyncValue.data(updated);
+  }
 }

@@ -44,6 +44,8 @@ dependencies:
   skeletonizer: ^2.1.0+1
   timeago: ^3.7.1
   socket_io_client: ^3.1.2
+  permission_handler: ^11.3.1
+
   another_flushbar: ^1.12.32
   google_fonts: ^6.3.2
   #cashing
