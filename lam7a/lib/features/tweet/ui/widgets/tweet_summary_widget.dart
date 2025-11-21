@@ -110,7 +110,7 @@ class TweetSummaryWidget extends ConsumerWidget {
       child: Container(
         alignment: Alignment.center,
         key: Key(tweetId),
-        color: Colors.black,
+        color: Theme.of(context).colorScheme.surface,
         padding: const EdgeInsets.only(left: 10),
         child: tweetAsync.when(
           data: (tweetState) => Column(

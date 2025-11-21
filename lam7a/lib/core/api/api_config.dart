@@ -1,7 +1,7 @@
 /// API Configuration for the application
 class ApiConfig {
   // Base URLs
-  static const String baseUrl = 'https://api.hankers.myaddr.tools/api/v1.0';
+  static const String baseUrl = 'https://api.hankers.tech/api/v1.0';
   static const String productionUrl = 'https://api.xclone.com/v1';
   
   // Use development or production

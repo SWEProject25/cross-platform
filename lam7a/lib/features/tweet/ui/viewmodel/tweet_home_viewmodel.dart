@@ -8,19 +8,27 @@ part 'tweet_home_viewmodel.g.dart';
 /// Manages fetching and displaying all tweets
 @riverpod
 class TweetHomeViewModel extends _$TweetHomeViewModel {
+  List<TweetModel>? _cahedTweets;
   @override
   Future<List<TweetModel>> build() async {
+    ref.keepAlive();
+    if (_cahedTweets != null) {
+      return _cahedTweets!;
+    }
     return await _fetchAllTweets();
   }
 
   /// Fetch all tweets from repository
   Future<List<TweetModel>> _fetchAllTweets() async {
     final repository = ref.read(tweetRepositoryProvider);
-    return await repository.fetchAllTweets();
+    final tweets =  await repository.fetchAllTweets();
+    _cahedTweets = tweets;
+    return tweets;
   }
 
   /// Refresh tweets (call this after posting a new tweet)
   Future<void> refreshTweets() async {
+    _cahedTweets = null;
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       return await _fetchAllTweets();

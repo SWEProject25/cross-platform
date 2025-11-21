@@ -45,7 +45,7 @@ class _TweetUserSummaryInfoState extends ConsumerState<TweetUserSummaryInfo> {
           child: profileImage == null || profileImage.isEmpty
               ? Text(
                   username.isNotEmpty ? username[0].toUpperCase() : '?',
-                  style: const TextStyle(
+                  style:  TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -58,7 +58,7 @@ class _TweetUserSummaryInfoState extends ConsumerState<TweetUserSummaryInfo> {
           width: 160,
           child: Text(
             displayName,
-            style: const TextStyle(color: Colors.white, fontSize: 20),
+            style:  TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 20),
             overflow: TextOverflow.ellipsis,
           ),
         ),

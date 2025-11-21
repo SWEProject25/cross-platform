@@ -23,10 +23,10 @@ class StyledTweetText extends StatelessWidget {
       overflow: overflow ?? TextOverflow.clip,
       softWrap: true,
       text: TextSpan(
-        children: _parseText(text),
+        children: _parseText(text, context),
         style: TextStyle(
           fontSize: fontSize,
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.onSurface,
           decoration: TextDecoration.none,
         ),
       ),
@@ -34,7 +34,7 @@ class StyledTweetText extends StatelessWidget {
   }
 
   /// Parse text and return list of TextSpans with appropriate styling
-  List<TextSpan> _parseText(String text) {
+  List<TextSpan> _parseText(String text, BuildContext context) {
     final List<TextSpan> spans = [];
     
     // Regex to match hashtags (#word) and mentions (@word)
@@ -47,7 +47,7 @@ class StyledTweetText extends StatelessWidget {
       if (match.start > lastMatchEnd) {
         spans.add(TextSpan(
           text: text.substring(lastMatchEnd, match.start),
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ));
       }
       
@@ -67,7 +67,7 @@ class StyledTweetText extends StatelessWidget {
     if (lastMatchEnd < text.length) {
       spans.add(TextSpan(
         text: text.substring(lastMatchEnd),
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
       ));
     }
     
