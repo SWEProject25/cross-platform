@@ -4,6 +4,7 @@ import '../../../../viewmodel/change_email_viewmodel.dart';
 import '../../../../state/change_email_state.dart';
 import 'change_email_view.dart';
 import 'verify_otp_view.dart';
+import 'verify_password_widget.dart';
 
 class VerifyPasswordView extends ConsumerWidget {
   const VerifyPasswordView({super.key});
@@ -14,6 +15,7 @@ class VerifyPasswordView extends ConsumerWidget {
     final vm = ref.read(changeEmailProvider.notifier);
 
     return Scaffold(
+      key: const ValueKey("verify_password_page"),
       appBar: AppBar(
         centerTitle: true,
         title: const Icon(Icons.close, size: 28),
@@ -27,12 +29,14 @@ class VerifyPasswordView extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             OutlinedButton(
+              key: const ValueKey("cancel_button"),
               onPressed: () {
                 Navigator.of(context).pop();
               },
               child: const Text('Cancel'),
             ),
             FilledButton(
+              key: const ValueKey("next_or_button"),
               style: FilledButton.styleFrom(
                 backgroundColor: state.password.isNotEmpty
                     ? const Color(0xFF1D9BF0)
@@ -84,13 +88,15 @@ class VerifyPasswordView extends ConsumerWidget {
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 600),
             child: switch (state.currentPage) {
-              ChangeEmailPage.verifyPassword => verifyPasswordWidget(
-                context,
-                vm,
-                state,
+              ChangeEmailPage.verifyPassword => const VerifyPasswordWidget(
+                key: ValueKey("verify_password_widget"),
               ),
-              ChangeEmailPage.changeEmail => ChangeEmailView(),
-              ChangeEmailPage.verifyOtp => VerifyOtpView(),
+              ChangeEmailPage.changeEmail => ChangeEmailView(
+                key: const ValueKey("change_email_view"),
+              ),
+              ChangeEmailPage.verifyOtp => VerifyOtpView(
+                key: const ValueKey("verify_otp_view"),
+              ),
             },
           ),
           if (state.isLoading)
@@ -102,65 +108,6 @@ class VerifyPasswordView extends ConsumerWidget {
             ),
         ],
       ),
-    );
-  }
-
-  Widget verifyPasswordWidget(
-    BuildContext context,
-    ChangeEmailViewModel vm,
-    ChangeEmailState state,
-  ) {
-    return StatefulBuilder(
-      builder: (context, setState) {
-        // 👇 Move the state variable *inside* the builder,
-        // so it persists across rebuilds of the parent widget.
-        // It will still reset only if this widget itself is rebuilt with a new key.
-        bool obscurePassword = true;
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 80),
-              const Text(
-                'Verify your password',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Re-enter your X password to continue.',
-                style: TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 20),
-              StatefulBuilder(
-                builder: (context, setInnerState) {
-                  return TextField(
-                    obscureText: obscurePassword,
-                    decoration: InputDecoration(
-                      hintText: 'Password',
-                      border: const OutlineInputBorder(),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          setInnerState(() {
-                            obscurePassword = !obscurePassword;
-                          });
-                        },
-                      ),
-                    ),
-                    onChanged: vm.updatePassword,
-                  );
-                },
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

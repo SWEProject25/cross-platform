@@ -3,6 +3,7 @@ import 'package:lam7a/features/tweet/ui/widgets/video_player_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/styled_tweet_text_widget.dart';
 import 'package:lam7a/core/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:lam7a/features/tweet/ui/widgets/full_screen_media_viewer.dart';
 
 class TweetDetailedBodyWidget extends StatelessWidget {
   final TweetState tweetState;
@@ -36,6 +37,7 @@ class TweetDetailedBodyWidget extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -54,7 +56,7 @@ class TweetDetailedBodyWidget extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: responsive.padding(10)),
+            SizedBox(height: responsive.padding(12)),
             // Display multiple images
             if (post.mediaImages.isNotEmpty)
               Column(
@@ -64,33 +66,45 @@ class TweetDetailedBodyWidget extends StatelessWidget {
                       horizontal: responsive.padding(8),
                       vertical: responsive.padding(4),
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.network(
-                        imageUrl,
-                        width: double.infinity,
-                        height: imageHeight,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return SizedBox(
-                            height: imageHeight,
-                            child: const Center(
-                              child: CircularProgressIndicator(),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => FullScreenMediaViewer(
+                              url: imageUrl,
+                              isVideo: false,
                             ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return SizedBox(
-                            height: imageHeight,
-                            child: const Center(
-                              child: Icon(
-                                Icons.error,
-                                color: Colors.red,
+                          ),
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          imageUrl,
+                          width: double.infinity,
+                          height: imageHeight,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return SizedBox(
+                              height: imageHeight,
+                              child: const Center(
+                                child: CircularProgressIndicator(),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return SizedBox(
+                              height: imageHeight,
+                              child: const Center(
+                                child: Icon(
+                                  Icons.error,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   );
@@ -105,8 +119,20 @@ class TweetDetailedBodyWidget extends StatelessWidget {
                       horizontal: responsive.padding(8),
                       vertical: responsive.padding(4),
                     ),
-                    child: VideoPlayerWidget(
-                      url: videoUrl,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => FullScreenMediaViewer(
+                              url: videoUrl,
+                              isVideo: true,
+                            ),
+                          ),
+                        );
+                      },
+                      child: VideoPlayerWidget(
+                        url: videoUrl,
+                      ),
                     ),
                   );
                 }).toList(),
@@ -115,27 +141,51 @@ class TweetDetailedBodyWidget extends StatelessWidget {
             if (post.mediaImages.isEmpty && post.mediaPic != null)
               Padding(
                 padding: EdgeInsets.all(responsive.padding(8)),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    post.mediaPic.toString(),
-                    width: double.infinity,
-                    height: imageHeight,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(Icons.error, color: Colors.red);
-                    },
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => FullScreenMediaViewer(
+                          url: post.mediaPic.toString(),
+                          isVideo: false,
+                        ),
+                      ),
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(
+                      post.mediaPic.toString(),
+                      width: double.infinity,
+                      height: imageHeight,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons.error, color: Colors.red);
+                      },
+                    ),
                   ),
                 ),
               ),
             if (post.mediaVideos.isEmpty && post.mediaVideo != null)
               Padding(
                 padding: EdgeInsets.all(responsive.padding(8)),
-                child: VideoPlayerWidget(url: post.mediaVideo.toString()),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => FullScreenMediaViewer(
+                          url: post.mediaVideo.toString(),
+                          isVideo: true,
+                        ),
+                      ),
+                    );
+                  },
+                  child: VideoPlayerWidget(url: post.mediaVideo.toString()),
+                ),
               ),
           ],
         );

@@ -20,13 +20,13 @@ void main() async {
   await Future.wait([container.read(apiServiceProvider).initialize()]);
   await container.read(authenticationProvider.notifier).isAuthenticated();
 
-  container.listen(socketInitializerProvider, (_,_)=>{});
+  container.listen(socketInitializerProvider, (_, _) => {});
   container.read(messagesSocketServiceProvider).setUpListners();
 
-  runApp(UncontrolledProviderScope(child: MyApp(), container: container));
+  runApp(UncontrolledProviderScope(container: container, child: MyApp()));
 
   // TO TEST ADD TWEET SCREEN ONLY (No auth): Uncomment lines below
-  // runApp(ProviderScope(child: TestAddTweetApp()));
+  //runApp(ProviderScope(child: TestAddTweetApp()));
 
   // TO TEST HOME WITH FAB (No auth): Uncomment lines below
   // runApp(ProviderScope(child: TestTweetHomeApp()));

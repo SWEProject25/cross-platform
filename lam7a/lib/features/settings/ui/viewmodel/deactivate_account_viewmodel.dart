@@ -27,7 +27,6 @@ class DeactivateAccountViewModel extends Notifier<DeactivateAccountState> {
       print('Incorrect password provided for deactivation.');
       return;
     }
-    ;
   }
 }
 

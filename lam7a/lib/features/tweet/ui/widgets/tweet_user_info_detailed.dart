@@ -29,8 +29,10 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
     // Use user data directly from tweet model (from backend)
     final tweetData = tweet.value!;
     final username = tweetData.username ?? 'unknown';
-    final displayName = tweetData.authorName ?? username;
-    final profileImage = tweetData.authorProfileImage;
+    final displayName = (tweetData.authorName != null && tweetData.authorName!.isNotEmpty)
+        ? tweetData.authorName!
+        : username;
+    final String? profileImage = tweetData.authorProfileImage;
     
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -38,10 +40,10 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
         CircleAvatar(
           radius: 25,
           backgroundColor: Colors.grey[700],
-          backgroundImage: profileImage != null && profileImage.isNotEmpty
-              ? NetworkImage(profileImage)
+          backgroundImage: profileImage != null && profileImage!.isNotEmpty
+              ? NetworkImage(profileImage!)
               : null,
-          child: profileImage == null || profileImage.isEmpty
+          child: profileImage == null || profileImage!.isEmpty
               ? Text(
                   username.isNotEmpty ? username[0].toUpperCase() : '?',
                   style: const TextStyle(
@@ -52,31 +54,35 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
                 )
               : null,
         ),
-        SizedBox(width: 10),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              displayName,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                decoration: TextDecoration.none,
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                displayName,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.none,
+                ),
               ),
-            ),
-            SizedBox(height: 2),
-            Text(
-              '@$username',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
-                fontSize: 15,
-                decoration: TextDecoration.none,
+              const SizedBox(height: 2),
+              Text(
+                '@$username',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  fontSize: 14,
+                  decoration: TextDecoration.none,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-       const Spacer(), // pushes the button to the right
+       const SizedBox(width: 8),
+       const Spacer(),
     Container(
       decoration: BoxDecoration(
         color: Colors.white,

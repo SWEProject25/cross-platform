@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../widgets/settings_listTile.dart';
+import '../../widgets/settings_listtile.dart';
 import 'account_info/Account_information_page.dart';
 import 'change_password/change_password_view.dart';
 import 'Deactivate_account/deactivate_account_view.dart';
@@ -17,6 +17,8 @@ class YourAccountSettings extends ConsumerWidget {
     print('Account State: $state');
 
     return Scaffold(
+      key: const ValueKey('yourAccountSettingsPage'),
+
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.appBarTheme.backgroundColor,
@@ -45,6 +47,8 @@ class YourAccountSettings extends ConsumerWidget {
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
         child: ListView(
+          key: const ValueKey('yourAccountSettingsList'),
+
           children: [
             const SizedBox(height: 8),
             Padding(
@@ -59,6 +63,8 @@ class YourAccountSettings extends ConsumerWidget {
             ),
             const SizedBox(height: 28),
             SettingsOptionTile(
+              key: const ValueKey('openAccountInformationTile'),
+
               icon: Icons.person_outline_rounded,
               title: 'Account information',
               subtitle:
@@ -67,12 +73,15 @@ class YourAccountSettings extends ConsumerWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (ctx) => const AccountInformationPage(),
+                    builder: (ctx) => AccountInformationPage(
+                      key: const ValueKey('accountInformationPage'),
+                    ),
                   ),
                 );
               },
             ),
             SettingsOptionTile(
+              key: const ValueKey('openChangePasswordTile'),
               icon: Icons.lock_outline_rounded,
               title: 'Change your password',
               subtitle: 'Change your password at any time.',
@@ -80,13 +89,16 @@ class YourAccountSettings extends ConsumerWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (ctx) => const ChangePasswordView(),
+                    builder: (ctx) => const ChangePasswordView(
+                      key: ValueKey('changePasswordPage'),
+                    ),
                   ),
                 );
               },
             ),
 
             SettingsOptionTile(
+              key: const ValueKey('openDeactivateAccountTile'),
               icon: Icons.favorite_border_rounded,
               title: 'Deactivate Account',
               subtitle: 'Find out how you can deactivate your account.',
@@ -94,7 +106,9 @@ class YourAccountSettings extends ConsumerWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (ctx) => const DeactivateAccountView(),
+                    builder: (ctx) => const DeactivateAccountView(
+                      key: ValueKey('deactivateAccountPage'),
+                    ),
                   ),
                 );
               },

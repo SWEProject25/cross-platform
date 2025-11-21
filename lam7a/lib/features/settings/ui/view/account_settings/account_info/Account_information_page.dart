@@ -4,6 +4,7 @@ import '../../../widgets/account_info_tile.dart';
 import 'change_username_view.dart';
 import '../../../viewmodel/account_viewmodel.dart';
 import 'change_email_views/verify_password_view.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 
 class AccountInformationPage extends ConsumerWidget {
   const AccountInformationPage({super.key});
@@ -12,8 +13,11 @@ class AccountInformationPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final state = ref.watch(accountProvider);
+
     return Scaffold(
+      key: const ValueKey('accountInformationPage'),
       appBar: AppBar(
+        key: const ValueKey('accountInformationAppBar'),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -36,45 +40,67 @@ class AccountInformationPage extends ConsumerWidget {
         ),
       ),
       body: ListView(
+        key: const ValueKey('accountInformationList'),
         children: [
           Divider(color: theme.dividerColor, height: 1),
+
           AccountInfoTile(
+            key: const ValueKey('usernameTile'),
             title: 'Username',
             value: state.username!,
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (ctx) => const ChangeUsernameView()),
+                MaterialPageRoute(
+                  builder: (ctx) => const ChangeUsernameView(
+                    key: ValueKey('changeUsernamePage'),
+                  ),
+                ),
               );
             },
           ),
+
           AccountInfoTile(
+            key: const ValueKey('emailTile'),
             title: 'Email',
             value: state.email!,
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (ctx) => const VerifyPasswordView()),
+                MaterialPageRoute(
+                  builder: (ctx) => const VerifyPasswordView(
+                    key: ValueKey('verifyPasswordPage'),
+                  ),
+                ),
               );
             },
           ),
-          AccountInfoTile(title: 'Country', value: state.location ?? "Egypt"),
-          _buildLogoutTile(context),
+
+          AccountInfoTile(
+            key: const ValueKey('countryTile'),
+            title: 'Country',
+            value: state.location ?? "Egypt",
+          ),
+
+          _buildLogoutTile(context, ref),
         ],
       ),
     );
   }
 
-  Widget _buildLogoutTile(BuildContext context) {
+  Widget _buildLogoutTile(BuildContext context, WidgetRef ref) {
     const logoutColor = Color.fromARGB(255, 255, 19, 19);
+    final auth = ref.read(authenticationProvider.notifier);
 
     return ListTile(
+      key: const ValueKey('logoutTile'),
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           GestureDetector(
+            key: const ValueKey('logoutText'),
             onTap: () {
-              // TODO: implement log out
+              auth.logout();
             },
             behavior: HitTestBehavior.translucent,
             child: const Text(
@@ -88,7 +114,6 @@ class AccountInformationPage extends ConsumerWidget {
           ),
         ],
       ),
-      // Disable the tile’s default splash and tap behavior
       onTap: null,
       enabled: false,
       contentPadding: const EdgeInsets.symmetric(

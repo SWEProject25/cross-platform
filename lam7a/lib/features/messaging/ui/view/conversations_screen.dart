@@ -8,6 +8,7 @@ import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
 import 'package:lam7a/features/messaging/utils.dart';
 import 'package:lam7a/features/messaging/ui/view/find_contacts_screen.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/conversations_viewmodel.dart';
+import 'package:lam7a/features/messaging/ui_keys.dart';
 
 class ConversationsScreen extends ConsumerWidget {
   static const routeName = '/dm';
@@ -42,6 +43,7 @@ class ConversationsScreen extends ConsumerWidget {
                       ),
                       SizedBox(height: 30),
                       FilledButton(
+                        key: Key(MessagingUIKeys.conversationsEmptyStateWriteButton),
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -55,10 +57,11 @@ class ConversationsScreen extends ConsumerWidget {
                   ),
                 )
               : ListView.builder(
+                  key: Key(MessagingUIKeys.conversationsListView),
                   itemCount: data.length,
                   itemBuilder: (context, index) {
                     final chat = data[index];
-                    return _ChatListTile(chat: chat);
+                    return _ChatListTile(isTyping: dMListPageViewModel.isTyping[chat.id.toString()] ?? false, chat: chat);
                   },
                 );
         },
@@ -70,6 +73,7 @@ class ConversationsScreen extends ConsumerWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        key: Key(MessagingUIKeys.conversationsFab),
         onPressed: () {
           Navigator.of(
             context,
@@ -83,8 +87,9 @@ class ConversationsScreen extends ConsumerWidget {
 
 class _ChatListTile extends StatelessWidget {
   final Conversation chat;
+  final bool isTyping;
 
-  const _ChatListTile({required this.chat});
+  const _ChatListTile({required this.isTyping, required this.chat});
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +112,7 @@ class _ChatListTile extends StatelessWidget {
                 ),
                 Expanded(
                   child: Text(
-                    " @${chat.name.toLowerCase().replaceAll(' ', '')}",
+                    " @${chat.username.toLowerCase().replaceAll(' ', '')}",
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium,
                   ),
@@ -118,14 +123,14 @@ class _ChatListTile extends StatelessWidget {
           if (chat.lastMessage != null)
             Text(
               " ${timeToTimeAgo(chat.lastMessageTime!)}",
-              style: theme.textTheme.bodyMedium,
+              style: isTyping ? theme.textTheme.bodyMedium : theme.textTheme.bodyMedium,
             ),
         ],
       ),
       subtitle: (chat.lastMessage != null)
           ? Text(
-              chat.lastMessage!,
-              style: theme.textTheme.bodyMedium,
+              isTyping ? "Typing..." : chat.lastMessage!,
+              style: isTyping ? theme.textTheme.bodyMedium?.copyWith(color: Colors.green.shade900) : theme.textTheme.bodyMedium,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             )

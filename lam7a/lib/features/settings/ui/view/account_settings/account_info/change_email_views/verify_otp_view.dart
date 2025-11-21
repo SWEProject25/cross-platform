@@ -61,49 +61,62 @@ class _VerifyOtpViewState extends ConsumerState<VerifyOtpView> {
           ),
           const SizedBox(height: 20),
           TextField(
+            key: const ValueKey("otp_textfield"),
             decoration: const InputDecoration(
               hintText: 'Verification code',
               border: OutlineInputBorder(),
             ),
             onChanged: vm.updateOtp,
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 15),
 
           // Resend button + cooldown text
-          Center(
-            child: Column(
-              children: [
-                TextButton(
-                  onPressed: _isButtonDisabled
-                      ? () {
-                          // Optional: give visual feedback if pressed while disabled
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Please wait, available in $_secondsRemaining seconds',
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                              duration: const Duration(seconds: 1),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              key: const ValueKey("resend_otp_button"),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.only(bottom: 10), // <-- THIS FIXES THE GAP
+                minimumSize: Size(0, 0), // optional: makes it shrink to text
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap, // optional
+              ),
+              onPressed: _isButtonDisabled
+                  ? () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          key: const ValueKey("resend_otp_snackbar"),
+                          content: Text(
+                            'Please wait, available in $_secondsRemaining seconds',
+                            style: const TextStyle(
+                              color: Color.fromARGB(255, 31, 31, 31),
                             ),
-                          );
-                        }
-                      : () async {
-                          await vm.ResendOtp();
-                          _startCooldown();
-                        },
-                  child: const Text(
-                    'Resend verification code',
-                    style: TextStyle(fontSize: 16, color: Color(0xFF1D9BF0)),
-                  ),
+                          ),
+                          duration: const Duration(seconds: 1),
+                        ),
+                      );
+                    }
+                  : () async {
+                      await vm.ResendOtp();
+                      _startCooldown();
+                    },
+              child: Text(
+                'Resend verification code',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: _isButtonDisabled
+                      ? Color.fromARGB(138, 29, 156, 240)
+                      : Color(0xFF1D9BF0),
                 ),
-                if (_isButtonDisabled)
-                  Text(
-                    'Available in $_secondsRemaining s',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-              ],
+              ),
             ),
           ),
+
+          if (_isButtonDisabled)
+            Text(
+              key: const ValueKey("resend_otp_cooldown_text"),
+              'Available in $_secondsRemaining s',
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            ),
         ],
       ),
     );

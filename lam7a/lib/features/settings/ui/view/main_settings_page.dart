@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../widgets/settings_listTile.dart';
-import '../widgets/settings_searchBar.dart';
+import '../widgets/settings_listtile.dart';
+import '../widgets/settings_search_bar.dart';
 import 'account_settings/account_settings_page.dart';
 import 'privacy_settings/privacy_settings_page.dart';
 
@@ -16,12 +16,7 @@ class MainSettingsPage extends StatelessWidget {
         'subtitle':
             'See information about your account, download an archive of your data or deactivate your account',
       },
-      {
-        'icon': Icons.lock_outline,
-        'title': 'Security and account access',
-        'subtitle':
-            'Manage your account’s security and keep track of your account’s usage.',
-      },
+
       {
         'icon': Icons.shield_outlined,
         'title': 'Privacy and safety',

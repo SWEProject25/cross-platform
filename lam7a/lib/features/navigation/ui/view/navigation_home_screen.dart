@@ -21,6 +21,8 @@ import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
 
+  const NavigationHomeScreen({super.key});
+
   @override
   State<NavigationHomeScreen> createState() => _NavigationHomeScreenState();
 }

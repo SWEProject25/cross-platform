@@ -14,6 +14,7 @@ class ConversationsViewModel extends _$ConversationsViewModel {
   late MessagesRepository _messagesRepository;
 
   final Map<int, StreamSubscription<void>?> newMessageSub = {};
+  final Map<int, StreamSubscription<bool>?> _typingSub = {};
 
   @override
   ConversationsState build() {
@@ -34,6 +35,8 @@ class ConversationsViewModel extends _$ConversationsViewModel {
   void _onDispose(){
     newMessageSub.forEach((i,x)=>newMessageSub[i]?.cancel());
     newMessageSub.forEach((i,x)=>newMessageSub[i] = null);
+    _typingSub.forEach((i,x)=>_typingSub[i]?.cancel());
+    _typingSub.forEach((i,x)=>_typingSub[i] = null);
   }
 
   Future<void> _loadConversations() async {
@@ -50,6 +53,8 @@ class ConversationsViewModel extends _$ConversationsViewModel {
   void setUpNewMessageListeners() {
     newMessageSub.forEach((i,x)=>newMessageSub[i]?.cancel());
     newMessageSub.forEach((i,x)=>newMessageSub[i] = null);
+    _typingSub.forEach((i,x)=>_typingSub[i]?.cancel());
+    _typingSub.forEach((i,x)=>_typingSub[i] = null);
 
     if(state.conversations.hasValue){
       state.conversations.value!.forEach((x)=>{
@@ -57,8 +62,17 @@ class ConversationsViewModel extends _$ConversationsViewModel {
 
       for (var x in state.conversations.value!) {
         newMessageSub[x.id] = _messagesRepository.onMessageRecieved(x.id).listen((_)=>_onNewMessageRecieved(x.id));
+        // subscribe to typing events for this conversation
+        _typingSub[x.id] = _messagesRepository.onUserTyping(x.id).listen((isTyping) => _onUserTypingChanged(x.id, isTyping));
       }
     }
+  }
+
+  void _onUserTypingChanged(int convId, bool isTyping) {
+    // update typing map in state
+    final typingMap = Map<String, bool>.from(state.isTyping);
+    typingMap[convId.toString()] = isTyping;
+    state = state.copyWith(isTyping: typingMap);
   }
 
   void _onNewMessageRecieved(int convId) {

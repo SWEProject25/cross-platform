@@ -219,9 +219,10 @@ final _mockTweets = <String, TweetModel>{
   ),
 };
 
-class TweetsApiServiceMock implements TweetsApiService {
+abstract class TweetsApiServiceMock implements TweetsApiService {
   final Map<String, TweetModel> _tweets = Map.of(_mockTweets);
   final Map<String, Map<String, bool>> _interactionFlags = {};
+  final Map<String, int> _localViews = {};
 
   Future<void> _simulateDelay() async =>
       Future.delayed(const Duration(milliseconds: 300));
@@ -245,7 +246,17 @@ class TweetsApiServiceMock implements TweetsApiService {
   }
 
   @override
-  Future<List<TweetModel>> getAllTweets() async {
+  int? getLocalViews(String tweetId) {
+    return _localViews[tweetId];
+  }
+
+  @override
+  void setLocalViews(String tweetId, int views) {
+    _localViews[tweetId] = views;
+  }
+
+  @override
+  Future<List<TweetModel>> getAllTweets(int limit, int page) async {
     // await _simulateDelay();
     return _tweets.values.toList();
   }
@@ -267,6 +278,13 @@ class TweetsApiServiceMock implements TweetsApiService {
     await _simulateDelay();
     _tweets.remove(id);
     print('🗑️ Tweet deleted: $id');
+  }
+
+  @override
+  Future<List<TweetModel>> getRepliesForPost(String postId) async {
+    // Simple mock: no replies
+    await _simulateDelay();
+    return [];
   }
 
   /// Helper method to get all tweet IDs (for debugging)
