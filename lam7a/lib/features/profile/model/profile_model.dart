@@ -1,31 +1,25 @@
-// lib/features/profile/model/profile_model.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'profile_model.freezed.dart';
 part 'profile_model.g.dart';
 
-/// Unified Profile Model that combines ProfileHeaderModel and ProfileModel
 @freezed
 abstract class ProfileModel with _$ProfileModel {
   const factory ProfileModel({
-    // Basic Info
+    required int id,
+    required int userId,
     required String displayName,
     required String handle,
-    required String bio,
-    required String avatarImage,
-    required String bannerImage,
+    @Default('') String bio,
+    @Default('') String avatarImage,
+    @Default('') String bannerImage,
     @Default(false) bool isVerified,
-    
-    // Additional Info
     @Default('') String location,
     @Default('') String birthday,
-    required String joinedDate,
-    
-    // Counts
-    required int followersCount,
-    required int followingCount,
-    
-    // States (for viewing other profiles)
+    @Default('') String joinedDate,
+    @Default(0) int followersCount,
+    @Default(0) int followingCount,
+    @Default('') String website,
     @Default(ProfileStateOfFollow.notfollowing) ProfileStateOfFollow stateFollow,
     @Default(ProfileStateOfMute.notmuted) ProfileStateOfMute stateMute,
     @Default(ProfileStateBlocked.notblocked) ProfileStateBlocked stateBlocked,

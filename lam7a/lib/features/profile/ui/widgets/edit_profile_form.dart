@@ -1,13 +1,12 @@
-// lib/features/profile/ui/widgets/edit_profile_form.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../model/profile_model.dart';
+import 'package:lam7a/features/profile/model/profile_model.dart';
+import 'package:lam7a/features/profile/repository/profile_repository.dart';
 
 class EditProfileForm extends ConsumerStatefulWidget {
   final ProfileModel profile;
-
   const EditProfileForm({super.key, required this.profile});
 
   @override
@@ -18,10 +17,11 @@ class EditProfileFormState extends ConsumerState<EditProfileForm> {
   late TextEditingController nameController;
   late TextEditingController bioController;
   late TextEditingController locationController;
-  late TextEditingController birthdayController;
+  late TextEditingController websiteController;
 
   File? newBanner;
   File? newAvatar;
+  bool saving = false;
 
   @override
   void initState() {
@@ -29,7 +29,7 @@ class EditProfileFormState extends ConsumerState<EditProfileForm> {
     nameController = TextEditingController(text: widget.profile.displayName);
     bioController = TextEditingController(text: widget.profile.bio);
     locationController = TextEditingController(text: widget.profile.location);
-    birthdayController = TextEditingController(text: widget.profile.joinedDate);
+    websiteController = TextEditingController(text: widget.profile.website);
   }
 
   @override
@@ -37,110 +37,80 @@ class EditProfileFormState extends ConsumerState<EditProfileForm> {
     nameController.dispose();
     bioController.dispose();
     locationController.dispose();
-    birthdayController.dispose();
+    websiteController.dispose();
     super.dispose();
   }
 
   Future<void> pickBanner() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() => newBanner = File(picked.path));
-    }
+    if (picked != null) setState(() => newBanner = File(picked.path));
   }
 
   Future<void> pickAvatar() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() => newAvatar = File(picked.path));
-    }
+    if (picked != null) setState(() => newAvatar = File(picked.path));
   }
 
   Future<ProfileModel?> saveProfile() async {
+    setState(() => saving = true);
+    final repo = ref.read(profileRepositoryProvider);
+
     final updated = widget.profile.copyWith(
       displayName: nameController.text,
       bio: bioController.text,
       location: locationController.text,
-      bannerImage:
-          newBanner != null ? newBanner!.path : widget.profile.bannerImage,
-      avatarImage:
-          newAvatar != null ? newAvatar!.path : widget.profile.avatarImage,
+      website: websiteController.text,
     );
-    return updated;
+
+    try {
+      final result = await repo.updateMyProfile(
+        updated,
+        avatarPath: newAvatar?.path,
+        bannerPath: newBanner?.path,
+      );
+      return result;
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+      return null;
+    } finally {
+      if (mounted) setState(() => saving = false);
+    }
   }
 
-  ImageProvider<Object> _imageProvider(String path) {
-    if (path.startsWith('http') || path.startsWith('https')) {
-      return NetworkImage(path);
-    } else {
-      return FileImage(File(path));
-    }
+  ImageProvider _imageProvider(String path) {
+    if (path.isEmpty) return const NetworkImage('https://via.placeholder.com/400x150');
+    if (path.startsWith('http')) return NetworkImage(path);
+    return FileImage(File(path));
   }
 
   @override
   Widget build(BuildContext context) {
-    final bannerProvider = newBanner != null
-        ? FileImage(newBanner!)
-        : _imageProvider(widget.profile.bannerImage);
-
-    final avatarProvider = newAvatar != null
-        ? FileImage(newAvatar!)
-        : _imageProvider(widget.profile.avatarImage);
+    final bannerImage = newBanner != null ? FileImage(newBanner!) : _imageProvider(widget.profile.bannerImage);
+    final avatarImage = newAvatar != null ? FileImage(newAvatar!) : _imageProvider(widget.profile.avatarImage);
 
     return SingleChildScrollView(
       child: Column(
         children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              GestureDetector(
-                onTap: pickBanner,
-                child: Image(
-                  image: bannerProvider,
-                  width: double.infinity,
-                  height: 180,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Positioned(
-                bottom: -50,
-                left: 20,
-                child: GestureDetector(
-                  onTap: pickAvatar,
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.white,
-                    backgroundImage: avatarProvider,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 60),
+          GestureDetector(onTap: pickBanner, child: Image(image: bannerImage, width: double.infinity, height: 180, fit: BoxFit.cover)),
+          const SizedBox(height: 12),
+          GestureDetector(onTap: pickAvatar, child: CircleAvatar(backgroundImage: avatarImage, radius: 48)),
+          const SizedBox(height: 12),
           Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Name'),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: bioController,
-                  decoration: const InputDecoration(labelText: 'Bio'),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: locationController,
-                  decoration: const InputDecoration(labelText: 'Location'),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: birthdayController,
-                  decoration: const InputDecoration(labelText: 'Joined Date'),
-                ),
-              ],
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(children: [
+              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Display name')),
+              TextField(controller: bioController, decoration: const InputDecoration(labelText: 'Bio')),
+              TextField(controller: locationController, decoration: const InputDecoration(labelText: 'Location')),
+              TextField(controller: websiteController, decoration: const InputDecoration(labelText: 'Website')),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: saving ? null : () async {
+                  final res = await saveProfile();
+                  if (res != null && mounted) Navigator.of(context).pop(res);
+                },
+                child: saving ? const CircularProgressIndicator() : const Text('Save'),
+              ),
+            ]),
           ),
         ],
       ),

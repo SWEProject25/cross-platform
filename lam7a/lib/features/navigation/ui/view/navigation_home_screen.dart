@@ -17,7 +17,7 @@ import 'package:lam7a/features/notifications/ui/views/notifications_screen.dart'
 import 'package:lam7a/features/settings/ui/view/main_settings_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
-
+import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
 
@@ -49,7 +49,16 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         List<Widget> drawerItems = [
           ListMember(
             "Profile",
-            () {},
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(
+                    username: user?.username ?? '',
+                  ),
+                ),
+              );
+            }, 
             iconPath: AppAssets.ProfileIcon,
             color: Theme.of(context).colorScheme.onSurface,
           ),

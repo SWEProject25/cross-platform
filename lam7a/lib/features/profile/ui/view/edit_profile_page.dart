@@ -1,12 +1,11 @@
 // lib/features/profile/ui/view/edit_profile_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../model/profile_model.dart';
+import 'package:lam7a/features/profile/model/profile_model.dart';
 import '../widgets/edit_profile_form.dart';
 
 class EditProfilePage extends ConsumerStatefulWidget {
   final ProfileModel profile;
-
   const EditProfilePage({super.key, required this.profile});
 
   @override
@@ -14,36 +13,26 @@ class EditProfilePage extends ConsumerStatefulWidget {
 }
 
 class _EditProfilePageState extends ConsumerState<EditProfilePage> {
-  final GlobalKey<EditProfileFormState> _formKey =
-      GlobalKey<EditProfileFormState>();
+  final GlobalKey<EditProfileFormState> _formKey = GlobalKey<EditProfileFormState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: const Text('Edit profile'),
         actions: [
           TextButton(
             onPressed: () async {
-              final updatedProfile = await _formKey.currentState?.saveProfile();
-              if (updatedProfile != null && context.mounted) {
-                Navigator.pop(context, updatedProfile);
+              final updated = await _formKey.currentState?.saveProfile();
+              if (updated != null && mounted) {
+                Navigator.pop(context, updated);
               }
             },
-            child: const Text(
-              'Save',
-              style: TextStyle(
-                color: Colors.blueAccent,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
+            child: const Text('Save', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+          )
         ],
       ),
-      body: EditProfileForm(
-        key: _formKey,
-        profile: widget.profile,
-      ),
+      body: EditProfileForm(key: _formKey, profile: widget.profile),
     );
   }
 }
