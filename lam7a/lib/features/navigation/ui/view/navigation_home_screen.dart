@@ -18,6 +18,7 @@ import 'package:lam7a/features/settings/ui/view/main_settings_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
+import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
 
