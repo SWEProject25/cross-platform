@@ -102,18 +102,18 @@ class TestAddTweetApp extends StatelessWidget {
 }
 
 /// Test app for TweetHomeScreen with FAB
-class TestTweetHomeApp extends StatelessWidget {
-  const TestTweetHomeApp({super.key});
+// class TestTweetHomeApp extends StatelessWidget {
+//   const TestTweetHomeApp({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(),
-      home: const TweetHomeScreen(),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       theme: ThemeData.dark(),
+//       home: const TweetHomeScreen(),
+//     );
+//   }
+// }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});

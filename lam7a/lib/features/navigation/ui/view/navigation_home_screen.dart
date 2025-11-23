@@ -82,7 +82,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
               curve: Curves.easeInOut,
               height: _isAppBarVisible ? _appBarHeight : 0,
               child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 300),
+                duration: const Duration(milliseconds: 200),
                 opacity: _isAppBarVisible ? 1.0 : 0.0,
                 child: AppBar(
                   backgroundColor: Theme.of(context).colorScheme.surface,
@@ -206,7 +206,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                     });
                   }
                   // Scroll up - show both bars
-                  else if (currentOffset < _lastOffset - 10 && !_isVisible) {
+                  else if (currentOffset < _lastOffset - 5 && !_isVisible) {
                     setState(() {
                       _isVisible = true;
                       _isAppBarVisible = true;
@@ -220,12 +220,12 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
               child: pages[_currentIndex],
             ),
           ),
-          bottomNavigationBar: AnimatedOpacity(
-            duration: const Duration(milliseconds: 300),
+          bottomNavigationBar: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
             curve: Curves.easeInOut,
-            opacity: _isVisible ? 1.00 : 0.0,
+            height: _isVisible ? 60 : 0.00,
             child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 300),
+              duration: const Duration(milliseconds: 100),
               curve: Curves.easeInOut,
               opacity: _isVisible ? 1.0 : 0.0,
               child: Container(

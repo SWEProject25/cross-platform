@@ -757,7 +757,7 @@ List<String> parseMedia(dynamic media) {
 Future<List<TweetModel>> getTweets(int limit, int page, String tweetsType) async {
   String endpoint = ServerConstant.tweetsForYou;
   Map<String, dynamic> response =
-      await _apiService.get(endpoint: tweetsType, queryParameters: {"limit" : limit, "page": page});
+      await _apiService.get(endpoint: "/posts/timeline/" + tweetsType, queryParameters: {"limit" : limit, "page": page});
 
   List<dynamic> postsJson = response['data']['posts'];
 

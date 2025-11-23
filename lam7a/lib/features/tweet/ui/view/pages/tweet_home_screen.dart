@@ -16,16 +16,18 @@ class TweetHomeScreen extends ConsumerStatefulWidget {
   ConsumerState<TweetHomeScreen> createState() => _TweetHomeScreenState();
 }
 
-class _TweetHomeScreenState extends ConsumerState<TweetHomeScreen>   with SingleTickerProviderStateMixin{
+class _TweetHomeScreenState extends ConsumerState<TweetHomeScreen>
+    with SingleTickerProviderStateMixin {
+  static const double _tabBarHeight = 50;
   final ScrollController _scrollController = ScrollController();
   late TabController _tabController;
   bool _isTabBarVisible = true;
   double _lastOffset = 0;
+  bool _isLoadingMore = false; // Add flag to prevent multiple loads
 
   @override
   void initState() {
     super.initState();
-    // Add scroll listener for pagination
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       print("Current tab is: ${_tabController.index}");
@@ -37,24 +39,42 @@ class _TweetHomeScreenState extends ConsumerState<TweetHomeScreen>   with Single
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
   /// Handle scroll events for pagination
   void _onScroll() {
-    // Load more when scrolled to 80% of the list
+    if (_isLoadingMore) return; // Prevent multiple simultaneous loads
+
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.position.pixels;
-    final threshold = maxScroll * 0.8;
-    final TabController controller = DefaultTabController.of(context);
+    final threshold = maxScroll * 0.7;
+    final viewModel = ref.read(tweetHomeViewModelProvider.notifier);
+
     if (currentScroll >= threshold) {
-      final viewModel = ref.read(tweetHomeViewModelProvider.notifier);
-      if (viewModel.hasMoreForYou && !viewModel.isLoadingMore && controller.index == 0) {
-        viewModel.loadMoreTweets('for-you');
+      if (_tabController.index == 0 &&
+          viewModel.hasMoreForYou &&
+          !viewModel.isLoadingMore) {
+        _loadMore('for-you', viewModel);
+      } else if (_tabController.index == 1 &&
+          viewModel.hasMoreFollowing &&
+          !viewModel.isLoadingMore) {
+        _loadMore('following', viewModel);
       }
-      else if(viewModel.hasMoreFollowing && !viewModel.isLoadingMore && controller.index == 1)
-      {
-        viewModel.loadMoreTweets('following');
+    }
+  }
+
+  /// Load more tweets with proper async handling
+  Future<void> _loadMore(String tab, TweetHomeViewModel viewModel) async {
+    if (_isLoadingMore) return;
+
+    setState(() => _isLoadingMore = true);
+    try {
+      await viewModel.loadMoreTweets(tab);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingMore = false);
       }
     }
   }
@@ -66,77 +86,111 @@ class _TweetHomeScreenState extends ConsumerState<TweetHomeScreen>   with Single
 
     return DefaultTabController(
       length: 2,
-
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
         body: Column(
           children: [
             // Animated TabBar
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              height: _isTabBarVisible ? 48 : 0,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 300),
-                opacity: _isTabBarVisible ? 1.0 : 0.0,
-                child: _buildTabBar(),
+            PreferredSize(
+              preferredSize: Size.fromHeight(_tabBarHeight),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: _isTabBarVisible ? _tabBarHeight : 0.00,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: _isTabBarVisible ? 1.00 : 0.00,
+                  child: _buildTabBar(),
+                ),
               ),
             ),
 
             Expanded(
-              child: NotificationListener<ScrollNotification>(
-                onNotification: (notification) {
-                  _handleScrollNotification(notification);
-                  return false;
-                },
-                child: RefreshIndicator(
-                  onRefresh: () async {
-                    await viewModel.refreshTweets();
-                  },
-                  child: tweetsAsync.when(
-                    data: (tweets) {
-                      if (tweets.isEmpty) {
-                        return const Center(
-                          child: Text(
-                            'No tweets yet. Tap + to create your first tweet!',
-                            textAlign: TextAlign.center,
-                          ),
-                        );
-                      }
-
-                      return TabBarView(
-                        children: [
-                          // For You tab
-                          _buildTweetList(tweets['for-you']!, viewModel),
-                          // Following tab (same for now, you can implement separate logic)
-                          _buildTweetList(tweets['following']!, viewModel),
-                        ],
-                      );
-                    },
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (error, _) => Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text("Error: $error"),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () => viewModel.refreshTweets(),
-                            child: const Text('Retry'),
-                          ),
-                        ],
+              child: tweetsAsync.when(
+                data: (tweets) {
+                  if (tweets.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No tweets yet. Tap + to create your first tweet!',
+                        textAlign: TextAlign.center,
                       ),
+                    );
+                  }
+
+                  return NotificationListener<ScrollNotification>(
+                    onNotification: (scroll) {
+                      if (scroll.metrics.axis != Axis.vertical) {
+                        return false;
+                      }
+                      if (scroll is ScrollUpdateNotification) {
+                        final currentOffset = scroll.metrics.pixels;
+
+                        // Scroll down - hide both bars
+                        if (currentOffset > _lastOffset + 10 &&
+                            _isTabBarVisible) {
+                          setState(() {
+                            _isTabBarVisible = false;
+                          });
+                        }
+                        // Scroll up - show both bars
+                        else if (currentOffset < _lastOffset - 5 &&
+                            !_isTabBarVisible) {
+                          setState(() {
+                            _isTabBarVisible = true;
+                          });
+                        }
+
+                        _lastOffset = currentOffset;
+                      }
+                      return false;
+                    },
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        // For You tab
+                        RefreshIndicator(
+                          onRefresh: () async {
+                            await viewModel.refreshTweets();
+                          },
+                          child: _buildTweetList(
+                            tweets['for-you']!,
+                            viewModel.hasMoreForYou,
+                          ),
+                        ),
+                        // Following tab
+                        RefreshIndicator(
+                          onRefresh: () async {
+                            await viewModel.refreshTweets();
+                          },
+                          child: _buildTweetList(
+                            tweets['following']!,
+                            viewModel.hasMoreFollowing,
+                          ),
+                        ),
+                      ],
                     ),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, _) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("Error: $error"),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => viewModel.refreshTweets(),
+                        child: const Text('Retry'),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
           ],
         ),
-        floatingActionButton: AnimatedOpacity(
+        floatingActionButton: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          opacity: _isTabBarVisible ? 1.0 : 0.0,
+          height: _isTabBarVisible ? 70 : 0.0,
           child: FloatingActionButton(
             onPressed: () async {
               final authState = ref.read(authenticationProvider);
@@ -161,31 +215,54 @@ class _TweetHomeScreenState extends ConsumerState<TweetHomeScreen>   with Single
                   builder: (context) => AddTweetScreen(userId: userId),
                 ),
               );
-              
+
               // Refresh tweets after posting
               viewModel.refreshTweets();
             },
             backgroundColor: Pallete.borderHover,
-            child: const Icon(Icons.add, color: Pallete.whiteColor),
+            child: Icon(
+              Icons.add,
+              color: Pallete.whiteColor,
+              size: _isTabBarVisible ? 20 : 0.00,
+            ),
           ),
         ),
       ),
     );
   }
 
-  /// Build tweet list with pagination loading indicator
-  Widget _buildTweetList(List<TweetModel> tweets, TweetHomeViewModel viewModel) {
+  Widget _buildTweetList(List<TweetModel> tweets, bool hasMore) {
+    if (tweets.isEmpty && !hasMore) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight,
+            ),
+            child: Center(
+              child: Text(
+                "There's no tweets press + to add more",
+                style: GoogleFonts.oxanium(
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
     return ListView.builder(
       controller: _scrollController,
-      itemCount: tweets.length + (viewModel.hasMoreForYou ? 1 : 0),
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: tweets.length + (hasMore ? 1 : 0),
       itemBuilder: (context, index) {
-        // Show loading indicator at the end
         if (index == tweets.length) {
           return const Padding(
             padding: EdgeInsets.all(16.0),
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -199,6 +276,7 @@ class _TweetHomeScreenState extends ConsumerState<TweetHomeScreen>   with Single
 
   TabBar _buildTabBar() {
     return TabBar(
+      controller: _tabController,
       labelColor: Colors.black,
       indicatorColor: Colors.blue,
       indicatorSize: TabBarIndicatorSize.tab,
@@ -222,21 +300,5 @@ class _TweetHomeScreenState extends ConsumerState<TweetHomeScreen>   with Single
         ),
       ],
     );
-  }
-
-  void _handleScrollNotification(ScrollNotification notification) {
-    if (notification.metrics.axis == Axis.vertical) {
-      if (notification is ScrollUpdateNotification) {
-        final currentOffset = notification.metrics.pixels;
-
-        if (currentOffset > _lastOffset + 10 && _isTabBarVisible) {
-          setState(() => _isTabBarVisible = false);
-        } else if (currentOffset < _lastOffset - 10 && !_isTabBarVisible) {
-          setState(() => _isTabBarVisible = true);
-        }
-
-        _lastOffset = currentOffset;
-      }
-    }
   }
 }
