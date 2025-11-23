@@ -1,13 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
-import 'package:lam7a/core/services/socket_service.dart';
 import 'package:lam7a/features/messaging/model/chat_message.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:lam7a/features/messaging/repository/conversations_repositories.dart';
-import 'package:lam7a/features/messaging/repository/messages_repository.dart';
 import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
 
 // ----- Example model -----
@@ -79,9 +75,9 @@ class Repository {
 final repositoryProvider = Provider<Repository>((ref) => Repository());
 
 // ----- Pagination notifier -----
-abstract class PaginationNotifier<T> extends StateNotifier<PaginationState<T>> {
+abstract class PaginationNotifier<T> extends Notifier<PaginationState<T>> {
   final int pageSize;
-  PaginationNotifier({this.pageSize = 20}) : super(PaginationState<T>());
+  PaginationNotifier({this.pageSize = 20}) : super();
 
   // initial load
   Future<void> loadInitial() async {
@@ -155,17 +151,15 @@ abstract class PaginationNotifier<T> extends StateNotifier<PaginationState<T>> {
 
 class ConversationsNotifier extends PaginationNotifier<Conversation> {
   late AuthState _authState;
-  final MessagesSocketService _socket;
-  final ConversationsRepository _conversationsRepository;
+  late MessagesSocketService _socket;
+  late ConversationsRepository _conversationsRepository;
 
-  ConversationsNotifier(
-    Ref ref,
-    MessagesSocketService socket,
-    MessagesRepository messagesRepository,
-    ConversationsRepository conversationsRepository,
-  ) : _socket = socket,
-      _conversationsRepository = conversationsRepository,
-      super(pageSize: 20) {
+  ConversationsNotifier() : super(pageSize: 20) {}
+
+  @override
+  PaginationState<Conversation> build() {
+    _socket = ref.read(messagesSocketServiceProvider);
+    _conversationsRepository = ref.read(conversationsRepositoryProvider);
     _authState = ref.watch(authenticationProvider);
 
     Future.microtask(() async {
@@ -188,10 +182,12 @@ class ConversationsNotifier extends PaginationNotifier<Conversation> {
       );
       onNewMessageReceived(message);
     });
+
+    return const PaginationState<Conversation>();
   }
 
   // on recived message check if it belongs to any conversation? if yes refresh that conversation and set last message else add new conversation
-  void onNewMessageReceived(ChatMessage message) async {
+  Future onNewMessageReceived(ChatMessage message) async {
     final conversationId = message.conversationId;
     final index = state.items.indexWhere((conv) => conv.id == conversationId);
     if (index != -1) {
@@ -255,15 +251,10 @@ class ConversationsNotifier extends PaginationNotifier<Conversation> {
     });
     return mergedList;
   }
+  
+
 }
 
 // Provider for the notifier
-final conversationsProvider =
-    StateNotifierProvider<ConversationsNotifier, PaginationState<Conversation>>(
-      (ref) => ConversationsNotifier(
-        ref,
-        ref.read(messagesSocketServiceProvider),
-        ref.read(messagesRepositoryProvider.notifier),
-        ref.read(conversationsRepositoryProvider),
-      ),
-    );
+final conversationsProvider = NotifierProvider<
+  ConversationsNotifier, PaginationState<Conversation>>(() => ConversationsNotifier());

@@ -24,6 +24,7 @@ class ChatViewModel extends _$ChatViewModel {
   StreamSubscription<void>? _newMessagesSub;
   StreamSubscription<bool>? _userTypingSub;
   Timer? _typingTimer;
+  bool _disposed = false;
 
   @override
   ChatState build({required int userId, int? conversationId}) {
@@ -33,7 +34,7 @@ class ChatViewModel extends _$ChatViewModel {
     ref.onDispose(_onDispose);
 
     _conversationsRepository = ref.read(conversationsRepositoryProvider);
-    _messagesRepository = ref.read(messagesRepositoryProvider.notifier);
+    _messagesRepository = ref.read(messagesRepositoryProvider);
     _authState = ref.watch(authenticationProvider);
 
     Future.microtask(() async {
@@ -52,7 +53,7 @@ class ChatViewModel extends _$ChatViewModel {
     });
   
 
-    return ChatState();
+    return ChatState(conversationId: conversationId ?? -1);
   }
 
   void _onDispose() {
@@ -65,6 +66,8 @@ class ChatViewModel extends _$ChatViewModel {
     _userTypingSub = null;
     _typingTimer?.cancel();
     _typingTimer = null;
+
+    _disposed = true;
   }
 
 
@@ -90,7 +93,9 @@ class ChatViewModel extends _$ChatViewModel {
     state = state.copyWith(contact: const AsyncLoading());
     try {
       final contact = await _conversationsRepository.getContactByUserId(_userId);
-      state = state.copyWith(contact: AsyncData(contact));
+
+      if(_disposed) return;
+        state = state.copyWith(contact: AsyncData(contact));
     } catch (e,st) {
       state = state.copyWith(contact: AsyncError(e,st));
       _logger.e(e);
@@ -100,7 +105,7 @@ class ChatViewModel extends _$ChatViewModel {
   Future<void> _loadMessages() async {
     state = state.copyWith(messages: const AsyncLoading());
     try {
-      final data = await _messagesRepository.fetchMessage(state.conversationId);
+      final data = _messagesRepository.fetchMessage(state.conversationId);
       state = state.copyWith(messages: AsyncData(data));
     } catch (e, st) {
       state = state.copyWith(messages: AsyncError(e, st));
@@ -156,6 +161,7 @@ class ChatViewModel extends _$ChatViewModel {
 
     var hasMore = await _messagesRepository.loadMessageHistory(state.conversationId);
 
+    if(_disposed) return;
     state = state.copyWith(loadingMoreMessages: false, hasMoreMessages: hasMore);
   }
 

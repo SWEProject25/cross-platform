@@ -17,60 +17,25 @@ class ConversationsViewModel extends _$ConversationsViewModel {
   @override
   ConversationsState build() {
     _conversationsRepository = ref.read(conversationsRepositoryProvider);
+    var conversations = ref.watch(conversationsProvider);
 
-    ref.listen<PaginationState<Conversation>>(conversationsProvider, (
-      previous,
-      next,
-    ) {
-      if (next.isLoading) {
-        state = state.copyWith(conversations: const AsyncLoading());
-      } else if (next.error != null) {
-        state = state.copyWith(
-          conversations: AsyncError(
-            next.error ?? 'Unknown',
-            StackTrace.current,
-          ),
+    AsyncValue<List<Conversation>> asyncConversation = const AsyncLoading();
+    if (conversations.error != null) {
+      asyncConversation = AsyncError(
+          conversations.error ?? 'Unknown',
+          StackTrace.current,
         );
-      } else {
-        state = state.copyWith(conversations: AsyncData(next.items));
-      }
-    }, fireImmediately: false);
+    } else {
+      asyncConversation = AsyncData(conversations.items);
+    }
 
-    Future.microtask(() {
-      final current = ref.read(conversationsProvider);
-      if (current.items.isNotEmpty ||
-          current.isLoading ||
-          current.error != null) {
-        if (current.isLoading) {
-          state = state.copyWith(conversations: const AsyncLoading());
-        } else if (current.error != null) {
-          state = state.copyWith(
-            conversations: AsyncError(current.error!, StackTrace.current),
-          );
-        } else {
-          state = state.copyWith(conversations: AsyncData(current.items));
-        }
-      }
-    });
-
-    return const ConversationsState();
+    return ConversationsState(conversations: asyncConversation);
   }
 
-  // Future<void> _loadConversations() async {
-
-  //   state = state.copyWith(conversations: const AsyncLoading());
-  //   try {
-  //     final data = await _conversationsRepository.fetchConversations();
-  //     state = state.copyWith(conversations: AsyncData(data));
-  //   } catch (e, st) {
-  //     state = state.copyWith(conversations: AsyncError(e, st));
-  //   }
-  // }
-
-  void onQueryChanged(String v) {
+  Future<void> onQueryChanged(String v) async {
     state = state.copyWith(searchQuery: v, searchQueryError: _validateQuery(v));
 
-    updateSerch(v);
+    await updateSerch(v);
   }
 
   String? _validateQuery(String v) {
