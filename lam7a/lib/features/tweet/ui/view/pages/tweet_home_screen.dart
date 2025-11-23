@@ -15,9 +15,9 @@ class TweetHomeScreen extends ConsumerWidget {
     final tweetsAsync = ref.watch(tweetHomeViewModelProvider);
 
     return Scaffold(
-      backgroundColor: Pallete.blackColor,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Pallete.blackColor,
+        backgroundColor:Theme.of(context).colorScheme.surface,
         title: const Text(
           'Home',
           style: TextStyle(color: Pallete.whiteColor),
