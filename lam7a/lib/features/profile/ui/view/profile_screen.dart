@@ -1,3 +1,132 @@
+// // lib/features/profile/ui/view/profile_screen.dart
+
+// import 'package:flutter/material.dart';
+// import 'package:flutter_riverpod/flutter_riverpod.dart';
+// import 'package:lam7a/features/profile/ui/viewmodel/profile_viewmodel.dart';
+// import 'package:lam7a/features/profile/model/profile_model.dart';
+// import 'package:lam7a/core/providers/authentication.dart';
+// import '../widgets/profile_header_widget.dart';
+
+// class ProfileScreen extends ConsumerWidget {
+//   final String username;
+
+//   const ProfileScreen({super.key, required this.username});
+
+//   @override
+//   Widget build(BuildContext context, WidgetRef ref) {
+//     final asyncProfile = ref.watch(profileViewModelProvider(username));
+
+//     return asyncProfile.when(
+//       loading: () => const Scaffold(
+//         body: Center(child: CircularProgressIndicator()),
+//       ),
+//       error: (err, _) => Scaffold(
+//         body: Center(child: Text("Error: $err")),
+//       ),
+//       data: (profile) => _ProfileLoaded(
+//         profile: profile,
+//         username: username,
+//       ),
+//     );
+//   }
+// }
+
+// class _ProfileLoaded extends ConsumerWidget {
+//   final ProfileModel profile;
+//   final String username;
+
+//   const _ProfileLoaded({
+//     required this.profile,
+//     required this.username,
+//   });
+
+//   @override
+//   Widget build(BuildContext context, WidgetRef ref) {
+//     final myUser = ref.watch(authenticationProvider).user;
+//     final bool isOwnProfile = myUser != null && myUser.id == profile.userId;
+
+//     void refreshProfile() {
+//       ref.invalidate(profileViewModelProvider(username));
+//     }
+
+//     return Scaffold(
+//       body: NestedScrollView(
+//         headerSliverBuilder: (_, __) {
+//           return [
+//             // ------------------- BANNER -------------------
+//             SliverAppBar(
+//               pinned: true,
+//               expandedHeight: 200,
+//               backgroundColor: Colors.white,
+//               leading: IconButton(
+//                 icon: const Icon(Icons.arrow_back),
+//                 onPressed: () => Navigator.pop(context),
+//               ),
+//               flexibleSpace: FlexibleSpaceBar(
+//                 background: profile.bannerImage.isNotEmpty
+//                     ? Image.network(profile.bannerImage, fit: BoxFit.cover)
+//                     : Container(color: Colors.grey.shade300),
+//               ),
+//             ),
+
+//             // ------------------- HEADER CONTENT (NO OVERFLOW) -------------------
+//             SliverToBoxAdapter(
+//               child: ProfileHeaderWidget(
+//                 profile: profile,
+//                 isOwnProfile: isOwnProfile,
+//                 onEdited: refreshProfile,
+//               ),
+//             ),
+//           ];
+//         },
+
+//         body: _buildTabView(),
+//       ),
+//     );
+//   }
+
+//   Widget _buildTabView() {
+//     return DefaultTabController(
+//       length: 6,
+//       child: Column(
+//         children: [
+//           const TabBar(
+//             isScrollable: true,
+//             labelColor: Colors.black,
+//             tabs: [
+//               Tab(text: "Posts"),
+//               Tab(text: "Replies"),
+//               Tab(text: "Highlights"),
+//               Tab(text: "Articles"),
+//               Tab(text: "Media"),
+//               Tab(text: "Likes"),
+//             ],
+//           ),
+//           Expanded(
+//             child: TabBarView(
+//               children: [
+//                 _fakeList("Posts"),
+//                 _fakeList("Replies"),
+//                 _fakeList("Highlights"),
+//                 _fakeList("Articles"),
+//                 _fakeList("Media"),
+//                 _fakeList("Likes"),
+//               ],
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _fakeList(String title) => ListView.builder(
+//         itemCount: 10,
+//         itemBuilder: (_, i) => ListTile(
+//           title: Text("$title item $i"),
+//           subtitle: const Text("This will later show real tweets."),
+//         ),
+//       );
+// }
 // lib/features/profile/ui/view/profile_screen.dart
 
 import 'package:flutter/material.dart';
@@ -17,158 +146,101 @@ class ProfileScreen extends ConsumerWidget {
     final asyncProfile = ref.watch(profileViewModelProvider(username));
 
     return asyncProfile.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, _) => Scaffold(body: Center(child: Text("Error: $err"))),
-      data: (profile) => _ProfileLoaded(profile: profile),
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+
+      error: (err, _) => Scaffold(
+        body: Center(child: Text("Error: $err")),
+      ),
+
+      data: (profile) => _ProfileLoaded(
+        profile: profile,
+        username: username,
+      ),
     );
   }
 }
 
 class _ProfileLoaded extends ConsumerWidget {
   final ProfileModel profile;
+  final String username;
 
-  const _ProfileLoaded({required this.profile});
+  const _ProfileLoaded({
+    required this.profile,
+    required this.username,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // FIX: Determine ownership from auth provider
     final myUser = ref.watch(authenticationProvider).user;
-    final isOwnProfile = myUser != null && myUser.id == profile.userId;
+    final bool isOwnProfile = myUser?.id == profile.userId;
+
+    void refresh() {
+      ref.invalidate(profileViewModelProvider(username));
+    }
 
     return Scaffold(
       body: NestedScrollView(
-        headerSliverBuilder: (_, __) {
-          return [
-            SliverAppBar(
-              pinned: true,
-              expandedHeight: 260,
-              backgroundColor: Colors.white,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.pop(context),
-              ),
-              actions: [
-                if (!isOwnProfile)
-                  IconButton(
-                    icon: const Icon(Icons.notifications_none),
-                    onPressed: () => _openNotificationSettings(context),
-                  ),
-                IconButton(
-                  icon: const Icon(Icons.more_vert),
-                  onPressed: () => _openOverflowMenu(context),
-                ),
-              ],
-              flexibleSpace: FlexibleSpaceBar(
-                background: ProfileHeaderWidget(
-                  profile: profile,
-                  isOwnProfile: isOwnProfile,
-                ),
-              ),
+        headerSliverBuilder: (_, __) => [
+          SliverAppBar(
+            pinned: true,
+            expandedHeight: 180,
+            backgroundColor: Colors.white,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.pop(context),
             ),
-          ];
-        },
-        body: _buildTabView(),
-      ),
-    );
-  }
-
-  Widget _buildTabView() {
-    return DefaultTabController(
-      length: 6,
-      child: Column(
-        children: [
-          const TabBar(
-            isScrollable: true,
-            labelColor: Colors.black,
-            tabs: [
-              Tab(text: "Posts"),
-              Tab(text: "Replies"),
-              Tab(text: "Highlights"),
-              Tab(text: "Articles"),
-              Tab(text: "Media"),
-              Tab(text: "Likes"),
-            ],
+            flexibleSpace: FlexibleSpaceBar(
+              background: profile.bannerImage.isNotEmpty
+                  ? Image.network(profile.bannerImage, fit: BoxFit.cover)
+                  : Container(color: Colors.grey.shade300),
+            ),
           ),
-          Expanded(
-            child: TabBarView(
-              children: [
-                _fakeList("Posts"),
-                _fakeList("Replies"),
-                _fakeList("Highlights"),
-                _fakeList("Articles"),
-                _fakeList("Media"),
-                _fakeList("Likes"),
-              ],
+
+          SliverToBoxAdapter(
+            child: ProfileHeaderWidget(
+              profile: profile,
+              isOwnProfile: isOwnProfile,
+              onEdited: refresh,
             ),
           ),
         ],
-      ),
-    );
-  }
 
-  Widget _fakeList(String title) => ListView.builder(
-        itemCount: 10,
-        itemBuilder: (_, i) => ListTile(
-          title: Text("$title item $i"),
-          subtitle: const Text("This will later show real tweets."),
-        ),
-      );
-
-  void _openOverflowMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      builder: (_) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _menuItem("Share"),
-            _menuItem("Turn off reposts"),
-            _menuItem("Add/remove from Lists"),
-            _menuItem("View Lists"),
-            _menuItem("Lists they're on"),
-            _menuItem("Mute"),
-            _menuItem("Block"),
-            _menuItem("Report"),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _menuItem(String title) => ListTile(title: Text(title), onTap: () {});
-
-  void _openNotificationSettings(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      builder: (_) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
+        body: DefaultTabController(
+          length: 6,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Don't miss a thing", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              Text("@${profile.handle}", style: const TextStyle(color: Colors.grey)),
-              const SizedBox(height: 20),
-              _radioTile("All Posts"),
-              _radioTile("All Posts & Replies"),
-              _radioTile("Only live video"),
-              _radioTile("Off", selected: true),
+              const TabBar(
+                isScrollable: true,
+                tabs: [
+                  Tab(text: "Posts"),
+                  Tab(text: "Replies"),
+                  Tab(text: "Highlights"),
+                  Tab(text: "Articles"),
+                  Tab(text: "Media"),
+                  Tab(text: "Likes"),
+                ],
+              ),
+
+              Expanded(
+                child: TabBarView(
+                  children: List.generate(
+                    6,
+                    (i) => ListView.builder(
+                      itemCount: 10,
+                      itemBuilder: (_, idx) => ListTile(
+                        title: Text("Item $idx"),
+                        subtitle: const Text("Content coming later"),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
-        );
-      },
-    );
-  }
-
-  Widget _radioTile(String text, {bool selected = false}) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(selected ? Icons.radio_button_checked : Icons.radio_button_off),
-      title: Text(text),
-      onTap: () {},
+        ),
+      ),
     );
   }
 }

@@ -1,3 +1,4 @@
+// lib/features/profile/repository/profile_repository.dart
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:lam7a/features/profile/dtos/profile_dto.dart';
 import 'package:lam7a/features/profile/model/profile_model.dart';
@@ -5,7 +6,7 @@ import 'package:lam7a/features/profile/services/profile_api_service.dart';
 
 part 'profile_repository.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 ProfileRepository profileRepository(Ref ref) {
   final api = ref.watch(profileApiServiceProvider);
   return ProfileRepository(api);
@@ -25,27 +26,33 @@ class ProfileRepository {
     return _mapDto(dto);
   }
 
-  Future<ProfileModel> updateMyProfile(ProfileModel profile, {String? avatarPath, String? bannerPath}) async {
+  Future<ProfileModel> updateMyProfile(
+    ProfileModel profile, {
+    String? avatarPath,
+    String? bannerPath,
+  }) async {
+
     String avatarUrl = profile.avatarImage;
     String bannerUrl = profile.bannerImage;
 
-    if (avatarPath != null && avatarPath.isNotEmpty && !avatarPath.startsWith('http')) {
+    if (avatarPath != null && !avatarPath.startsWith("http")) {
       avatarUrl = await _api.uploadProfilePicture(avatarPath);
     }
-    if (bannerPath != null && bannerPath.isNotEmpty && !bannerPath.startsWith('http')) {
+
+    if (bannerPath != null && !bannerPath.startsWith("http")) {
       bannerUrl = await _api.uploadBanner(bannerPath);
     }
 
-    final body = <String, dynamic>{
-      'name': profile.displayName,
-      'bio': profile.bio,
-      'location': profile.location,
-      if (avatarUrl.isNotEmpty) 'profileImageUrl': avatarUrl,
-      if (bannerUrl.isNotEmpty) 'bannerImageUrl': bannerUrl,
-      if (profile.website.isNotEmpty) 'website': profile.website,
-    };
+    final dto = await _api.updateMyProfile({
+      "name": profile.displayName,
+      "bio": profile.bio,
+      "location": profile.location,
+      "website": profile.website,
+      "birth_date": profile.birthday,
+      "profile_image_url": avatarUrl,
+      "banner_image_url": bannerUrl,
+    });
 
-    final dto = await _api.updateMyProfile(body);
     return _mapDto(dto);
   }
 
@@ -53,50 +60,54 @@ class ProfileRepository {
   Future<void> unfollowUser(int id) => _api.unfollowUser(id);
 
   Future<List<ProfileModel>> getFollowers(int id) async {
-    final raw = await _api.getFollowers(id);
-    return raw.map((m) => _mapRawToProfileModel(m)).toList();
+    final list = await _api.getFollowers(id);
+    return list.map(_mapRawToProfileModel).toList();
   }
 
   Future<List<ProfileModel>> getFollowing(int id) async {
-    final raw = await _api.getFollowing(id);
-    return raw.map((m) => _mapRawToProfileModel(m)).toList();
+    final list = await _api.getFollowing(id);
+    return list.map(_mapRawToProfileModel).toList();
   }
 
+  // --------------------- DTO -> ProfileModel -----------------------
   ProfileModel _mapDto(ProfileDto dto) {
     return ProfileModel(
       id: dto.id,
       userId: dto.userId,
       displayName: dto.name,
-      handle: dto.user?['username'] ?? '',
-      bio: dto.bio ?? '',
-      avatarImage: dto.profileImageUrl ?? '',
-      bannerImage: dto.bannerImageUrl ?? '',
-      isVerified: dto.isDeactivated == true ? false : false,
-      location: dto.location ?? '',
-      birthday: dto.birthDate ?? '',
-      joinedDate: dto.createdAt ?? '',
-      followersCount: 0,
-      followingCount: 0,
-      website: dto.website ?? '',
+      handle: dto.user?["username"] ?? "",
+      bio: dto.bio ?? "",
+      avatarImage: dto.profileImageUrl ?? "",
+      bannerImage: dto.bannerImageUrl ?? "",
+      location: dto.location ?? "",
+      birthday: dto.birthDate ?? "",
+      joinedDate: dto.createdAt ?? "",
+      website: dto.website ?? "",
+      isVerified: false, // backend doesn’t send this yet
+
+      followersCount: dto.followersCount ?? 0,
+      followingCount: dto.followingCount ?? 0,
+
+      stateFollow: (dto.isFollowedByMe ?? false)
+          ? ProfileStateOfFollow.following
+          : ProfileStateOfFollow.notfollowing,
     );
   }
 
+  // -------------------- FOLLOWERS RAW ---------------------
   ProfileModel _mapRawToProfileModel(Map<String, dynamic> raw) {
     return ProfileModel(
-      id: raw['id'] is int ? raw['id'] : int.tryParse(raw['id']?.toString() ?? '') ?? 0,
-      userId: raw['id'] is int ? raw['id'] : int.tryParse(raw['id']?.toString() ?? '') ?? 0,
-      displayName: raw['displayName'] ?? raw['name'] ?? '',
-      handle: raw['username'] ?? raw['User']?['username'] ?? '',
-      bio: raw['bio'] ?? '',
-      avatarImage: raw['profileImageUrl'] ?? '',
-      bannerImage: '',
-      isVerified: false,
-      location: '',
-      birthday: '',
-      joinedDate: raw['followedAt'] ?? '',
-      followersCount: 0,
-      followingCount: 0,
-      website: '',
+      id: raw["id"] ?? 0,
+      userId: raw["user_id"] ?? 0,
+      displayName: raw["name"] ?? "",
+      handle: raw["username"] ?? "",
+      avatarImage: raw["profile_image_url"] ?? "",
+      bannerImage: raw["banner_image_url"] ?? "",
+      bio: raw["bio"] ?? "",
+      location: raw["location"] ?? "",
+      website: raw["website"] ?? "",
+      followersCount: raw["followers_count"] ?? 0,
+      followingCount: raw["following_count"] ?? 0,
     );
   }
 }
