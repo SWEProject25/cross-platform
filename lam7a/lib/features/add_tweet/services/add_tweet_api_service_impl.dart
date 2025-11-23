@@ -20,7 +20,7 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
   Future<TweetModel> createTweet({
     required int userId,
     required String content,
-    String? mediaPicPath,
+    List<String>? mediaPicPaths,
     String? mediaVideoPath,
     String type = 'POST',
     int? parentPostId,
@@ -29,7 +29,7 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
       print('📤 Creating tweet on backend...');
       print('   User ID: $userId');
       print('   Content: $content');
-      print('   Image Path: ${mediaPicPath ?? "None"}');
+      print('   Image Paths: ${mediaPicPaths ?? const []}');
       print('   Video Path: ${mediaVideoPath ?? "None"}');
       
       // Prepare form data with required fields
@@ -52,30 +52,33 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
       final formData = FormData.fromMap(formFields);
       
       // Add media files if they exist (as binary files, not URLs)
-      if (mediaPicPath != null && mediaPicPath.isNotEmpty) {
-        final file = File(mediaPicPath);
-        if (await file.exists()) {
-          // Detect MIME type from file
-          final mimeType = lookupMimeType(mediaPicPath);
-          final fileName = mediaPicPath.split(Platform.pathSeparator).last;
-          
-          print('   📷 Adding image file:');
-          print('      Path: $mediaPicPath');
-          print('      Filename: $fileName');
-          print('      MIME type: $mimeType');
-          print('      File size: ${await file.length()} bytes');
-          
-          // Create multipart file with proper content type
-          final multipartFile = await MultipartFile.fromFile(
-            mediaPicPath,
-            filename: fileName,
-            contentType: mimeType != null ? MediaType.parse(mimeType) : null,
-          );
-          
-          formData.files.add(MapEntry('media', multipartFile));
-          print('   ✅ Image file added to request as BINARY data');
-        } else {
-          print('   ⚠️ Image file not found: $mediaPicPath');
+      if (mediaPicPaths != null && mediaPicPaths.isNotEmpty) {
+        for (final path in mediaPicPaths.take(4)) {
+          final file = File(path);
+          if (await file.exists()) {
+            // Detect MIME type from file
+            final mimeType = lookupMimeType(path);
+            final fileName = path.split(Platform.pathSeparator).last;
+
+            print('   📷 Adding image file:');
+            print('      Path: $path');
+            print('      Filename: $fileName');
+            print('      MIME type: $mimeType');
+            print('      File size: ${await file.length()} bytes');
+
+            // Create multipart file with proper content type
+            final multipartFile = await MultipartFile.fromFile(
+              path,
+              filename: fileName,
+              contentType:
+                  mimeType != null ? MediaType.parse(mimeType) : null,
+            );
+
+            formData.files.add(MapEntry('media', multipartFile));
+            print('   ✅ Image file added to request as BINARY data');
+          } else {
+            print('   ⚠️ Image file not found: $path');
+          }
         }
       }
       

@@ -34,8 +34,15 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
   }
 
   // Update media pic path
-  void updateMediaPic(String? path) {
-    state = state.copyWith(mediaPicPath: path);
+  static const int maxMediaImages = 4;
+
+  void addMediaPic(String path) {
+    final current = List<String>.from(state.mediaPicPaths);
+    if (current.length >= maxMediaImages) {
+      return;
+    }
+    current.add(path);
+    state = state.copyWith(mediaPicPaths: current);
   }
 
   // Update media video path
@@ -44,8 +51,13 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
   }
 
   // Remove media pic
-  void removeMediaPic() {
-    state = state.copyWith(mediaPicPath: null);
+  void removeMediaPicAt(int index) {
+    final current = List<String>.from(state.mediaPicPaths);
+    if (index < 0 || index >= current.length) {
+      return;
+    }
+    current.removeAt(index);
+    state = state.copyWith(mediaPicPaths: current);
   }
 
   // Remove media video
@@ -111,7 +123,7 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
       final createdTweet = await apiService.createTweet(
         userId: id,
         content: state.body.trim(),
-        mediaPicPath: state.mediaPicPath,
+        mediaPicPaths: state.mediaPicPaths,
         mediaVideoPath: state.mediaVideoPath,
         type: state.postType,
         parentPostId: state.parentPostId,
