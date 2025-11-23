@@ -49,22 +49,9 @@ class TweetSummaryWidget extends ConsumerWidget {
         key: Key(tweetId),
         color: Theme.of(context).colorScheme.surface,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
           children: [
-            AppUserAvatar(
-              radius: 19,
-              imageUrl: tweetData.authorProfileImage,
-              displayName: tweetData.authorName,
-              username: tweetData.username,
-            ),
-            const SizedBox(width: 9),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (isPureRepost) ...[
+               if (isPureRepost) ...[
                     Row(
                       children: [
                         const Icon(
@@ -84,45 +71,78 @@ class TweetSummaryWidget extends ConsumerWidget {
                     ),
                     const SizedBox(height: 2),
                   ],
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppUserAvatar(
+                  radius: 19,
+                  imageUrl: tweetData.authorProfileImage,
+                  displayName: tweetData.authorName,
+                  username: tweetData.username,
+                ),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      TweetUserSummaryInfo(
-                        tweetState: localTweetState,
-                        daysPosted: daysPosted,
-                        fallbackTweet: tweet,
+                   
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          TweetUserSummaryInfo(
+                            tweetState: localTweetState,
+                            daysPosted: daysPosted,
+                            fallbackTweet: tweet,
+                          ),
+                          GestureDetector(
+                            child: const Icon(
+                              Icons.rocket,
+                              size: 17,
+                              color: Colors.blueAccent,
+                            ),
+                            onTap: () {
+                              ref
+                                  .read(tweetViewModelProvider(tweet.id).notifier)
+                                  .summarizeBody();
+                            },
+                          ),
+                        ],
                       ),
                       GestureDetector(
-                        child: const Icon(
-                          Icons.rocket,
-                          size: 17,
-                          color: Colors.blueAccent,
-                        ),
                         onTap: () {
-                          ref
-                              .read(tweetViewModelProvider(tweet.id).notifier)
-                              .summarizeBody();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TweetScreen(
+                                tweetId: tweetId,
+                                tweetData: tweet,
+                              ),
+                            ),
+                          );
                         },
+                        child : SizedBox(height: 20)
+
                       ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TweetScreen(
+                                tweetId: tweetId,
+                                tweetData: tweet,
+                              ),
+                            ),
+                          );
+                        },
+                        child: TweetBodySummaryWidget(post: tweet),
+                      ),
+                      TweetFeed(tweetState: localTweetState),
                     ],
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => TweetScreen(
-                            tweetId: tweetId,
-                            tweetData: tweet,
-                          ),
-                        ),
-                      );
-                    },
-                    child: TweetBodySummaryWidget(post: tweet),
-                  ),
-                  TweetFeed(tweetState: localTweetState),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),

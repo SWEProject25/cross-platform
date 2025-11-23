@@ -10,8 +10,15 @@ import 'package:lam7a/features/tweet/ui/widgets/video_player_widget.dart';
 
 class TweetBodySummaryWidget extends StatelessWidget {
   final TweetModel post;
+  // When true, taps on the embedded OriginalTweetCard are disabled so that
+  // an outer GestureDetector (e.g. in TweetSummaryWidget) can handle them.
+  final bool disableOriginalTap;
 
-  const TweetBodySummaryWidget({super.key, required this.post});
+  const TweetBodySummaryWidget({
+    super.key,
+    required this.post,
+    this.disableOriginalTap = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -230,7 +237,11 @@ class TweetBodySummaryWidget extends StatelessWidget {
               ),
 
             if (post.originalTweet != null)
-              OriginalTweetCard(tweet: post.originalTweet!),
+              disableOriginalTap
+                  ? IgnorePointer(
+                      child: OriginalTweetCard(tweet: post.originalTweet!),
+                    )
+                  : OriginalTweetCard(tweet: post.originalTweet!),
           ],
         );
       },
@@ -272,8 +283,8 @@ class OriginalTweetCard extends StatelessWidget {
         padding: EdgeInsets.all(responsive.padding(8)),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade800),
-          color: Colors.black,
+          border: Border.all(color: const Color.fromARGB(255, 97, 97, 97)),
+          color: Theme.of(context).colorScheme.surface,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -293,21 +304,15 @@ class OriginalTweetCard extends StatelessWidget {
                     children: [
                       Text(
                         displayName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ), 
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         '@$username',
-                        style: TextStyle(
-                          color:
-                              Theme.of(context).colorScheme.onPrimary,
-                          fontSize: 12,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
@@ -316,11 +321,12 @@ class OriginalTweetCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             if (tweet.body.trim().isNotEmpty)
-              StyledTweetText(
-                text: tweet.body,
+              Text(
+                tweet.body,
                 maxLines: 6,
                 overflow: TextOverflow.ellipsis,
-                fontSize: 14,
+                style:  Theme.of(context).textTheme.bodyLarge
+                
               ),
             if (tweet.mediaImages.isNotEmpty) ...[
               const SizedBox(height: 6),

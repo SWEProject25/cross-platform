@@ -10,6 +10,8 @@ import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lam7a/core/app_icons.dart';
 
 class TweetDetailedFeed extends ConsumerStatefulWidget {
   const TweetDetailedFeed({super.key, required this.tweetState});
@@ -571,11 +573,15 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                     visualDensity: VisualDensity.compact,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    icon: const Icon(
-                      Icons.mode_comment_outlined,
-                      color: Colors.grey,
-                      size: 22,
-                    ),
+                    icon:  SvgPicture.asset(
+                AppIcons.tweet_reply,
+                width: 20,
+                height: 20,
+                colorFilter: ColorFilter.mode(
+                  Theme.of(context).colorScheme.secondary,
+                  BlendMode.srcIn,
+                ),
+              ),
                     onPressed: () async {
                       final authState = ref.read(authenticationProvider);
                       final user = authState.user;
@@ -627,13 +633,17 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         icon: tweetState.when(
-                          data: (state) => Icon(
-                            Icons.repeat,
-                            color: state.isReposted
-                                ? Colors.green
-                                : Colors.grey,
-                            size: 22,
-                          ),
+                          data: (state) => SvgPicture.asset(
+                        AppIcons.tweet_retweet,
+                        width: 20,
+                        height: 20,
+                        colorFilter: ColorFilter.mode(
+                          state.isReposted
+                              ? Colors.green
+                              : Theme.of(context).colorScheme.secondary,
+                          BlendMode.srcIn,
+                        ),
+                      ),
                           loading: () => const Icon(
                             Icons.repeat,
                             color: Colors.grey,
@@ -667,15 +677,19 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         icon: tweetState.when(
-                          data: (state) => Icon(
-                            state.isLiked
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            color: state.isLiked
-                                ? Colors.redAccent
-                                : Colors.grey,
-                            size: 22,
-                          ),
+                          data: (state) => SvgPicture.asset(
+                        state.isLiked
+                         ? AppIcons.tweet_like_filled
+                            : AppIcons.tweet_like_outline,
+                        width: 20,
+                        height: 20,
+                        colorFilter: ColorFilter.mode(
+                          state.isLiked
+                              ? Colors.redAccent
+                              : Theme.of(context).colorScheme.secondary,
+                              BlendMode.srcIn,
+                        ),
+                      ),
                           loading: () => const Icon(
                             Icons.favorite_border,
                             color: Colors.grey,

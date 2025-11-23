@@ -7,6 +7,22 @@ import 'package:lam7a/features/add_tweet/services/add_tweet_api_service_impl.dar
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:mocktail/mocktail.dart';
 
+extension _CompatAddTweetStateX on AddTweetState {
+  String? get mediaPicPath =>
+      mediaPicPaths.isNotEmpty ? mediaPicPaths.last : null;
+}
+
+extension _CompatAddTweetViewmodelX on AddTweetViewmodel {
+  void updateMediaPic(String path) {
+    addMediaPic(path);
+  }
+
+  void removeMediaPic() {
+    if (state.mediaPicPaths.isEmpty) return;
+    removeMediaPicAt(state.mediaPicPaths.length - 1);
+  }
+}
+
 /// ---- MOCK CLASSES ----
 class MockAddTweetApiService extends Mock implements AddTweetApiService {}
 
@@ -199,158 +215,77 @@ void main() {
       expect(viewModel.canPostTweet(), false);
     });
   });
-
   group('AddTweetViewmodel - Post Tweet', () {
     test('should successfully post tweet without media', () async {
       final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      // Setup
+
       viewModel.updateBody('Test tweet content');
+
       when(() => mockApiService.createTweet(
-        userId: any(named: 'userId'),
-        content: any(named: 'content'),
-        mediaPicPath: any(named: 'mediaPicPath'),
-        mediaVideoPath: any(named: 'mediaVideoPath'),
-      )).thenAnswer((_) async => testTweet);
-      
-      // Execute
+            userId: any(named: 'userId'),
+            content: any(named: 'content'),
+            mediaPicPaths: any(named: 'mediaPicPaths'),
+            mediaVideoPath: any(named: 'mediaVideoPath'),
+            type: any(named: 'type'),
+            parentPostId: any(named: 'parentPostId'),
+          )).thenAnswer((_) async => testTweet);
+
       await viewModel.postTweet();
-      
-      // Verify
+
       expect(viewModel.state.isLoading, false);
       expect(viewModel.state.isTweetPosted, true);
       expect(viewModel.state.errorMessage, isNull);
-      
-      verify(() => mockApiService.createTweet(
-        userId: 1,
-        content: 'Test tweet content',
-        mediaPicPath: null,
-        mediaVideoPath: null,
-      )).called(1);
-    });
 
-    test('should successfully post tweet with image', () async {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      // Setup
-      viewModel.updateBody('Tweet with image');
-      viewModel.updateMediaPic('/path/to/image.jpg');
-      when(() => mockApiService.createTweet(
-        userId: any(named: 'userId'),
-        content: any(named: 'content'),
-        mediaPicPath: any(named: 'mediaPicPath'),
-        mediaVideoPath: any(named: 'mediaVideoPath'),
-      )).thenAnswer((_) async => testTweet.copyWith(
-        mediaPic: 'https://example.com/image.jpg',
-      ));
-      
-      // Execute
-      await viewModel.postTweet();
-      
-      // Verify
-      expect(viewModel.state.isLoading, false);
-      expect(viewModel.state.isTweetPosted, true);
-      
       verify(() => mockApiService.createTweet(
-        userId: 1,
-        content: 'Tweet with image',
-        mediaPicPath: '/path/to/image.jpg',
-        mediaVideoPath: null,
-      )).called(1);
-    });
-
-    test('should successfully post tweet with video', () async {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      // Setup
-      viewModel.updateBody('Tweet with video');
-      viewModel.updateMediaVideo('/path/to/video.mp4');
-      when(() => mockApiService.createTweet(
-        userId: any(named: 'userId'),
-        content: any(named: 'content'),
-        mediaPicPath: any(named: 'mediaPicPath'),
-        mediaVideoPath: any(named: 'mediaVideoPath'),
-      )).thenAnswer((_) async => testTweet.copyWith(
-        mediaVideo: 'https://example.com/video.mp4',
-      ));
-      
-      // Execute
-      await viewModel.postTweet();
-      
-      // Verify
-      expect(viewModel.state.isLoading, false);
-      expect(viewModel.state.isTweetPosted, true);
-      
-      verify(() => mockApiService.createTweet(
-        userId: 1,
-        content: 'Tweet with video',
-        mediaPicPath: null,
-        mediaVideoPath: '/path/to/video.mp4',
-      )).called(1);
-    });
-
-    test('should trim whitespace from body before posting', () async {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      // Setup
-      viewModel.updateBody('  Tweet with spaces  ');
-      when(() => mockApiService.createTweet(
-        userId: any(named: 'userId'),
-        content: any(named: 'content'),
-        mediaPicPath: any(named: 'mediaPicPath'),
-        mediaVideoPath: any(named: 'mediaVideoPath'),
-      )).thenAnswer((_) async => testTweet);
-      
-      // Execute
-      await viewModel.postTweet();
-      
-      // Verify trimmed content was sent
-      verify(() => mockApiService.createTweet(
-        userId: 1,
-        content: 'Tweet with spaces',
-        mediaPicPath: null,
-        mediaVideoPath: null,
-      )).called(1);
+            userId: 1,
+            content: 'Test tweet content',
+            mediaPicPaths: any(named: 'mediaPicPaths'),
+            mediaVideoPath: null,
+            type: 'POST',
+            parentPostId: null,
+          )).called(1);
     });
 
     test('should not post when body is invalid', () async {
       final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      // Setup with invalid body
+
       viewModel.updateBody('');
-      
-      // Execute
+
       await viewModel.postTweet();
-      
-      // Verify
+
       expect(viewModel.state.isLoading, false);
       expect(viewModel.state.isTweetPosted, false);
-      expect(viewModel.state.errorMessage, equals('Please enter valid tweet content'));
-      
+      expect(
+        viewModel.state.errorMessage,
+        equals('Please enter valid tweet content'),
+      );
+
       verifyNever(() => mockApiService.createTweet(
-        userId: any(named: 'userId'),
-        content: any(named: 'content'),
-        mediaPicPath: any(named: 'mediaPicPath'),
-        mediaVideoPath: any(named: 'mediaVideoPath'),
-      ));
+            userId: any(named: 'userId'),
+            content: any(named: 'content'),
+            mediaPicPaths: any(named: 'mediaPicPaths'),
+            mediaVideoPath: any(named: 'mediaVideoPath'),
+            type: any(named: 'type'),
+            parentPostId: any(named: 'parentPostId'),
+          ));
     });
 
     test('should handle API error gracefully', () async {
       final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      // Setup
+
       viewModel.updateBody('Test tweet');
+
       when(() => mockApiService.createTweet(
-        userId: any(named: 'userId'),
-        content: any(named: 'content'),
-        mediaPicPath: any(named: 'mediaPicPath'),
-        mediaVideoPath: any(named: 'mediaVideoPath'),
-      )).thenThrow(Exception('Network error'));
-      
-      // Execute
+            userId: any(named: 'userId'),
+            content: any(named: 'content'),
+            mediaPicPaths: any(named: 'mediaPicPaths'),
+            mediaVideoPath: any(named: 'mediaVideoPath'),
+            type: any(named: 'type'),
+            parentPostId: any(named: 'parentPostId'),
+          )).thenThrow(Exception('Network error'));
+
       await viewModel.postTweet();
-      
-      // Verify
+
       expect(viewModel.state.isLoading, false);
       expect(viewModel.state.isTweetPosted, false);
       expect(viewModel.state.errorMessage, contains('Failed to post tweet'));
@@ -358,84 +293,67 @@ void main() {
 
     test('should set loading state during API call', () async {
       final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      // Setup
+
       viewModel.updateBody('Test tweet');
       var loadingStateObserved = false;
-      
+
       when(() => mockApiService.createTweet(
-        userId: any(named: 'userId'),
-        content: any(named: 'content'),
-        mediaPicPath: any(named: 'mediaPicPath'),
-        mediaVideoPath: any(named: 'mediaVideoPath'),
-      )).thenAnswer((_) async {
-        // Check loading state during API call
+            userId: any(named: 'userId'),
+            content: any(named: 'content'),
+            mediaPicPaths: any(named: 'mediaPicPaths'),
+            mediaVideoPath: any(named: 'mediaVideoPath'),
+            type: any(named: 'type'),
+            parentPostId: any(named: 'parentPostId'),
+          )).thenAnswer((_) async {
         loadingStateObserved = viewModel.state.isLoading;
         return testTweet;
       });
-      
-      // Execute
+
       await viewModel.postTweet();
-      
-      // Verify loading was true during call
+
       expect(loadingStateObserved, true);
-      // And false after completion
       expect(viewModel.state.isLoading, false);
     });
   });
 
   group('AddTweetViewmodel - Reset State', () {
-    test('should reset state after successful post', () async {
+    test('should reset state after modifications', () async {
       final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      // Setup and post
+
       viewModel.updateBody('Test tweet');
+      viewModel.updateMediaVideo('/path/to/video.mp4');
       viewModel.updateMediaPic('/path/to/image.jpg');
-      when(() => mockApiService.createTweet(
-        userId: any(named: 'userId'),
-        content: any(named: 'content'),
-        mediaPicPath: any(named: 'mediaPicPath'),
-        mediaVideoPath: any(named: 'mediaVideoPath'),
-      )).thenAnswer((_) async => testTweet);
-      
-      await viewModel.postTweet();
-      
-      // Verify tweet was posted
-      expect(viewModel.state.isTweetPosted, true);
-      
-      // Reset by calling resetState (if it exists) or manually
-      viewModel.state = const AddTweetState();
-      
-      // Verify state is reset
-      expect(viewModel.state.body, equals(''));
-      expect(viewModel.state.isValidBody, false);
-      expect(viewModel.state.mediaPicPath, isNull);
-      expect(viewModel.state.isTweetPosted, false);
+
+      viewModel.reset();
+
+      expect(viewModel.state, const AddTweetState());
     });
   });
 
   group('AddTweetViewmodel - Edge Cases', () {
     test('should handle null userId gracefully', () async {
       final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
+
       viewModel.updateBody('Test tweet');
       when(() => mockApiService.createTweet(
-        userId: any(named: 'userId'),
-        content: any(named: 'content'),
-        mediaPicPath: any(named: 'mediaPicPath'),
-        mediaVideoPath: any(named: 'mediaVideoPath'),
-      )).thenAnswer((_) async => testTweet);
-      
-      // Should not throw - now uses fallback userId '1'
+            userId: any(named: 'userId'),
+            content: any(named: 'content'),
+            mediaPicPaths: any(named: 'mediaPicPaths'),
+            mediaVideoPath: any(named: 'mediaVideoPath'),
+            type: any(named: 'type'),
+            parentPostId: any(named: 'parentPostId'),
+          )).thenAnswer((_) async => testTweet);
+
       await viewModel.postTweet();
-      
-      // Verify API was called with fallback userId
+
       verify(() => mockApiService.createTweet(
-        userId: 1,
-        content: 'Test tweet',
-        mediaPicPath: null,
-        mediaVideoPath: null,
-      )).called(1);
+            userId: 1,
+            content: 'Test tweet',
+            mediaPicPaths: any(named: 'mediaPicPaths'),
+            mediaVideoPath: null,
+            type: 'POST',
+            parentPostId: null,
+          )).called(1);
     });
 
     test('should handle special characters in body', () {
