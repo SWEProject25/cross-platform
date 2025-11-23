@@ -20,7 +20,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
     this.onEdited,
   });
 
-  ImageProvider _image(String path) {
+  ImageProvider _img(String path) {
     if (path.startsWith("http")) return NetworkImage(path);
     if (path.isNotEmpty) return FileImage(File(path));
     return const AssetImage("assets/images/user_profile.png");
@@ -33,53 +33,63 @@ class ProfileHeaderWidget extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        /// ---------- THIS FIX: FORCE HEIGHT FOR STACK ----------
-        SizedBox(
-          height: 120, // Enough for avatar + button
-          width: double.infinity,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Avatar overlapping banner
-              Positioned(
-                top: -avatarRadius + 45,
-                left: 16,
+        /// ===================== BANNER + AVATAR STACK =====================
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Banner
+            SizedBox(
+              height: 180,
+              width: double.infinity,
+              child: Image(
+                image: _img(profile.bannerImage),
+                fit: BoxFit.cover,
+              ),
+            ),
+
+            // Avatar overlapping banner
+            Positioned(
+              bottom: -avatarRadius + 10,
+              left: 16,
+              child: CircleAvatar(
+                radius: avatarRadius,
+                backgroundColor: Colors.white,
                 child: CircleAvatar(
-                  radius: avatarRadius,
-                  backgroundColor: Colors.white,
-                  child: CircleAvatar(
-                    radius: avatarRadius - 3,
-                    backgroundImage: _image(profile.avatarImage),
-                  ),
+                  radius: avatarRadius - 3,
+                  backgroundImage: _img(profile.avatarImage),
                 ),
               ),
-
-              // Edit / Follow Button
-              Positioned(
-                right: 16,
-                bottom: 16,
-                child: isOwnProfile
-                    ? OutlinedButton(
-                        onPressed: () async {
-                          final updated = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => EditProfilePage(profile: profile),
-                            ),
-                          );
-                          if (updated != null) onEdited?.call();
-                        },
-                        child: const Text("Edit profile"),
-                      )
-                    : FollowButton(initialProfile: profile),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
 
         const SizedBox(height: 50),
 
-        // Name + username
+        /// ===================== BUTTON (Moved Here!) =====================
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: isOwnProfile
+                ? OutlinedButton(
+                    onPressed: () async {
+                      final updated = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => EditProfilePage(profile: profile),
+                        ),
+                      );
+                      if (updated != null) onEdited?.call();
+                    },
+                    child: const Text("Edit profile"),
+                  )
+                : FollowButton(initialProfile: profile),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        /// ===================== NAME + USERNAME =====================
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
@@ -89,17 +99,14 @@ class ProfileHeaderWidget extends ConsumerWidget {
                 profile.displayName,
                 style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
-              Text(
-                "@${profile.handle}",
-                style: const TextStyle(color: Colors.grey),
-              ),
+              Text("@${profile.handle}", style: const TextStyle(color: Colors.grey)),
             ],
           ),
         ),
 
         const SizedBox(height: 12),
 
-        // Bio
+        /// ===================== BIO =====================
         if (profile.bio.isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -108,7 +115,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
 
         const SizedBox(height: 12),
 
-        // Location, birthday, joined
+        /// ===================== LOCATION / BIRTHDAY / JOINED =====================
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Wrap(
@@ -119,8 +126,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.location_on_outlined,
-                        size: 16, color: Colors.grey),
+                    const Icon(Icons.location_on_outlined, size: 16, color: Colors.grey),
                     const SizedBox(width: 4),
                     Text(profile.location, style: const TextStyle(color: Colors.grey)),
                   ],
@@ -155,7 +161,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
 
         const SizedBox(height: 12),
 
-        // Followers / Following
+        /// ===================== FOLLOWERS / FOLLOWING =====================
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
@@ -171,21 +177,17 @@ class ProfileHeaderWidget extends ConsumerWidget {
                   ),
                 ),
                 child: RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: "${profile.followingCount} ",
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  text: TextSpan(children: [
+                    TextSpan(
+                      text: "${profile.followingCount} ",
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const TextSpan(
-                        text: "Following",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const TextSpan(
+                        text: "Following", style: TextStyle(color: Colors.grey)),
+                  ]),
                 ),
               ),
               const SizedBox(width: 16),
@@ -200,21 +202,17 @@ class ProfileHeaderWidget extends ConsumerWidget {
                   ),
                 ),
                 child: RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: "${profile.followersCount} ",
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  text: TextSpan(children: [
+                    TextSpan(
+                      text: "${profile.followersCount} ",
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const TextSpan(
-                        text: "Followers",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const TextSpan(
+                        text: "Followers", style: TextStyle(color: Colors.grey)),
+                  ]),
                 ),
               ),
             ],

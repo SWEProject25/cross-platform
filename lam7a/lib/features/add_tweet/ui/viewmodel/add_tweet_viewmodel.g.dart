@@ -41,7 +41,7 @@ final class AddTweetViewmodelProvider
   }
 }
 
-String _$addTweetViewmodelHash() => r'580e9eb371d7b5a4ee5f0b4e558aa5b51698919e';
+String _$addTweetViewmodelHash() => r'38055157ccf09fe102cbd0ccdd6247a59c4d4224';
 
 abstract class _$AddTweetViewmodel extends $Notifier<AddTweetState> {
   AddTweetState build();
