@@ -3,6 +3,7 @@ import 'package:video_player/video_player.dart';
 
 class VideoPlayerWidget extends StatefulWidget {
   final String url;
+
   const VideoPlayerWidget({super.key, required this.url});
 
   @override
@@ -19,8 +20,8 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget>
     super.initState();
     _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
     _initializeVideoPlayerFuture = _controller.initialize();
-    _controller.play(); //
-    _controller.setLooping(true); // optional
+    _controller.play();
+    _controller.setLooping(true);
   }
 
   @override
@@ -35,7 +36,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return FutureBuilder(
+    return FutureBuilder<void>(
       future: _initializeVideoPlayerFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
@@ -47,7 +48,15 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget>
             ),
           );
         } else {
-          return const Center(child: CircularProgressIndicator());
+          return AspectRatio(
+            aspectRatio: 16 / 9,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                color: Colors.grey.shade800,
+              ),
+            ),
+          );
         }
       },
     );

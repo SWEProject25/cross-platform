@@ -15,7 +15,7 @@ abstract class AddTweetApiService {
   Future<TweetModel> createTweet({
     required int userId,
     required String content,
-    String? mediaPicPath,
+    List<String>? mediaPicPaths,
     String? mediaVideoPath,
     String type = 'POST',
     int? parentPostId,
