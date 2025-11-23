@@ -12,11 +12,10 @@ TweetsApiService tweetsApiService(Ref ref) {
   // SWITCHED TO REAL BACKEND: Now using backend API
   // keepAlive: true ensures the service instance persists and doesn't lose interaction flags
   final apiService = ref.watch(apiServiceProvider);
-  // return TweetsApiServiceMock();
+  //return TweetsApiServiceMock();
   return TweetsApiServiceImpl(apiService: apiService);
-
   // MOCK SERVICE (commented out): Uncomment below for local testing without backend
-  // return TweetsApiServiceMock();
+   //return TweetsApiServiceMock();
 }
 
 abstract class TweetsApiService {

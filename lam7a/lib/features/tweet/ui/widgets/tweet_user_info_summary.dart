@@ -41,66 +41,32 @@ class _TweetUserSummaryInfoState extends ConsumerState<TweetUserSummaryInfo> {
         : username;
     final String? profileImage = tweet.authorProfileImage;
 
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 19,
-          backgroundColor: Colors.grey[700],
-          backgroundImage: profileImage != null && profileImage!.isNotEmpty
-              ? NetworkImage(profileImage!)
-              : null,
-          child: profileImage == null || profileImage!.isEmpty
-              ? Text(
-                  username.isNotEmpty ? username[0].toUpperCase() : '?',
-                  style:  TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                )
-              : null,
-        ),
-        const SizedBox(width: 8, height: 5),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                displayName,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              Row(
-                children: [
-                  Flexible(
-                    child: Text(
-                      '@$username',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onPrimary,
-                        fontSize: 13,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${daysPosted}d',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+    return Expanded(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            displayName,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold ), 
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-        ),
-      ],
+          const SizedBox(width: 8,),
+           Expanded(
+             child: Text(
+                '@$username · ',
+                style:  Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis, 
+              ),
+           ),
+          
+          Text(
+            '${daysPosted}d',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey )
+          ),
+        ],
+      ),
     );
   }
 }
