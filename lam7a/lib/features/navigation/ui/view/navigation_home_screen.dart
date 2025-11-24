@@ -51,14 +51,13 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           ListMember(
             "Profile",
             () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ProfileScreen(
-                    username: user?.username ?? '',
-                  ),
-                ),
-              );
+              Navigator.pushNamed(
+              context,
+              '/profile',
+              arguments: {
+                "username": user?.username ?? "",
+              },
+            );
             }, 
             iconPath: AppAssets.ProfileIcon,
             color: Theme.of(context).colorScheme.onSurface,

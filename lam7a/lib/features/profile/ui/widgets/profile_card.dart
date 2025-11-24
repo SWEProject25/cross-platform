@@ -1,59 +1,100 @@
-import 'dart:io';
+// lib/features/profile/ui/view/profile_screen.dart
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_viewmodel.dart';
 import 'package:lam7a/features/profile/model/profile_model.dart';
-import '../view/profile_screen.dart';
+import 'package:lam7a/core/providers/authentication.dart';
+import '../widgets/profile_header_widget.dart';
 
-class ProfileCard extends StatelessWidget {
-  final ProfileModel profile;
-  final VoidCallback? onFollowToggle;
-
-  const ProfileCard({super.key, required this.profile, this.onFollowToggle});
-
-  ImageProvider _imageProvider(String path) {
-    if (path.isEmpty) return const NetworkImage('https://via.placeholder.com/150');
-    if (path.startsWith('http')) return NetworkImage(path);
-    return FileImage(File(path));
-  }
+class ProfileScreen extends ConsumerWidget {
+  const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final isFollowing = profile.stateFollow == ProfileStateOfFollow.following;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final String username = args["username"];
 
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      child: Row(
-        children: [
-          CircleAvatar(radius: 26, backgroundImage: _imageProvider(profile.avatarImage)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: InkWell(
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileScreen(username: profile.handle))),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    Expanded(child: Text(profile.displayName, style: const TextStyle(fontWeight: FontWeight.bold))),
-                    if (profile.isVerified) const Icon(Icons.verified, color: Colors.blue, size: 16),
-                  ]),
-                  Text('@${profile.handle}', style: const TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 6),
-                  Text(profile.bio, maxLines: 2, overflow: TextOverflow.ellipsis),
-                ],
-              ),
+    final asyncProfile = ref.watch(profileViewModelProvider(username));
+
+    return asyncProfile.when(
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, _) => Scaffold(body: Center(child: Text("Error: $err"))),
+      data: (profile) => _ProfileLoaded(profile: profile, username: username),
+    );
+  }
+}
+
+class _ProfileLoaded extends ConsumerWidget {
+  final ProfileModel profile;
+  final String username;
+
+  const _ProfileLoaded({
+    required this.profile,
+    required this.username,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final myUser = ref.watch(authenticationProvider).user;
+    final bool isOwnProfile = myUser?.id == profile.userId;
+
+    void refresh() => ref.invalidate(profileViewModelProvider(username));
+
+    return Scaffold(
+      body: NestedScrollView(
+        headerSliverBuilder: (_, __) => [
+
+          // =================== BANNER + AVATAR ===================
+          SliverAppBar(
+            pinned: true,
+            expandedHeight: 200,
+            backgroundColor: Colors.white,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.pop(context),
+            ),
+
+            flexibleSpace: LayoutBuilder(
+              builder: (context, constraints) {
+                return Stack(
+                  children: [
+                    // Banner
+                    Positioned.fill(
+                      child: profile.bannerImage.isNotEmpty
+                          ? Image.network(profile.bannerImage, fit: BoxFit.cover)
+                          : Container(color: Colors.grey.shade300),
+                    ),
+
+                    // Avatar (overlapping bottom)
+                    Positioned(
+                      bottom: -40, // pulls avatar outside banner
+                      left: 16,
+                      child: CircleAvatar(
+                        radius: 45,
+                        backgroundColor: Colors.white,
+                        child: CircleAvatar(
+                          radius: 42,
+                          backgroundImage: NetworkImage(profile.avatarImage),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
-          const SizedBox(width: 12),
-          OutlinedButton(
-            onPressed: onFollowToggle,
-            style: OutlinedButton.styleFrom(
-              backgroundColor: isFollowing ? Colors.white : Colors.black,
-              foregroundColor: isFollowing ? Colors.black : Colors.white,
-              side: BorderSide(color: isFollowing ? Colors.grey.shade300 : Colors.black),
-            ),
-            child: Text(isFollowing ? 'Following' : 'Follow'),
-          ),
+
+          // Space so header doesn't cover avatar
+          const SliverToBoxAdapter(child: SizedBox(height: 60)),
         ],
+
+        // =================== PROFILE BODY ===================
+        body: ProfileHeaderWidget(
+          profile: profile,
+          isOwnProfile: isOwnProfile,
+          onEdited: refresh,
+        ),
       ),
     );
   }

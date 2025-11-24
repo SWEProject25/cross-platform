@@ -20,85 +20,41 @@ class ProfileHeaderWidget extends ConsumerWidget {
     this.onEdited,
   });
 
-  ImageProvider _img(String path) {
-    if (path.startsWith("http")) return NetworkImage(path);
-    if (path.isNotEmpty) return FileImage(File(path));
-    return const AssetImage("assets/images/user_profile.png");
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const avatarRadius = 45.0;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        /// ===================== BANNER + AVATAR STACK =====================
-        Stack(
-          clipBehavior: Clip.none,
+        // ---------- EDIT BUTTON ----------
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            // Banner
-            SizedBox(
-              height: 180,
-              width: double.infinity,
-              child: Image(
-                image: _img(profile.bannerImage),
-                fit: BoxFit.cover,
-              ),
-            ),
-
-            // Avatar overlapping banner
-            Positioned(
-              bottom: -avatarRadius + 10,
-              left: 16,
-              child: CircleAvatar(
-                radius: avatarRadius,
-                backgroundColor: Colors.white,
-                child: CircleAvatar(
-                  radius: avatarRadius - 3,
-                  backgroundImage: _img(profile.avatarImage),
-                ),
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 50),
-
-        /// ===================== BUTTON (Moved Here!) =====================
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: isOwnProfile
+            isOwnProfile
                 ? OutlinedButton(
                     onPressed: () async {
                       final updated = await Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => EditProfilePage(profile: profile),
-                        ),
+                        MaterialPageRoute(builder: (_) => EditProfilePage(profile: profile)),
                       );
                       if (updated != null) onEdited?.call();
                     },
                     child: const Text("Edit profile"),
                   )
                 : FollowButton(initialProfile: profile),
-          ),
+            const SizedBox(width: 16),
+          ],
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
 
-        /// ===================== NAME + USERNAME =====================
+        // ---------- NAME ----------
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                profile.displayName,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
+              Text(profile.displayName,
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               Text("@${profile.handle}", style: const TextStyle(color: Colors.grey)),
             ],
           ),
@@ -106,7 +62,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
 
         const SizedBox(height: 12),
 
-        /// ===================== BIO =====================
+        // ---------- BIO ----------
         if (profile.bio.isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -115,7 +71,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
 
         const SizedBox(height: 12),
 
-        /// ===================== LOCATION / BIRTHDAY / JOINED =====================
+        // ---------- LOCATION / BIRTHDAY / JOIN DATE ----------
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Wrap(
@@ -126,9 +82,9 @@ class ProfileHeaderWidget extends ConsumerWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 16, color: Colors.grey),
+                    const Icon(Icons.location_on_outlined, size: 16),
                     const SizedBox(width: 4),
-                    Text(profile.location, style: const TextStyle(color: Colors.grey)),
+                    Text(profile.location),
                   ],
                 ),
 
@@ -136,9 +92,9 @@ class ProfileHeaderWidget extends ConsumerWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.cake_outlined, size: 16, color: Colors.grey),
+                    const Icon(Icons.cake_outlined, size: 16),
                     const SizedBox(width: 4),
-                    Text(profile.birthday, style: const TextStyle(color: Colors.grey)),
+                    Text(profile.birthday),
                   ],
                 ),
 
@@ -146,13 +102,9 @@ class ProfileHeaderWidget extends ConsumerWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.calendar_today_outlined,
-                        size: 14, color: Colors.grey),
+                    const Icon(Icons.calendar_today_outlined, size: 16),
                     const SizedBox(width: 4),
-                    Text(
-                      "Joined ${profile.joinedDate.split("T").first}",
-                      style: const TextStyle(color: Colors.grey),
-                    ),
+                    Text("Joined ${profile.joinedDate.split("T").first}"),
                   ],
                 ),
             ],
@@ -161,65 +113,65 @@ class ProfileHeaderWidget extends ConsumerWidget {
 
         const SizedBox(height: 12),
 
-        /// ===================== FOLLOWERS / FOLLOWING =====================
+        // ---------- FOLLOWING / FOLLOWERS ----------
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
               GestureDetector(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => FollowersFollowingPage(
-                      userId: profile.userId,
-                      initialTab: 1,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          FollowersFollowingPage(userId: profile.userId, initialTab: 1),
                     ),
-                  ),
-                ),
+                  );
+                },
                 child: RichText(
-                  text: TextSpan(children: [
-                    TextSpan(
-                      text: "${profile.followingCount} ",
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "${profile.followingCount} ",
+                        style: const TextStyle(
+                            color: Colors.black, fontWeight: FontWeight.bold),
                       ),
-                    ),
-                    const TextSpan(
-                        text: "Following", style: TextStyle(color: Colors.grey)),
-                  ]),
+                      const TextSpan(
+                          text: "Following", style: TextStyle(color: Colors.grey)),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
               GestureDetector(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => FollowersFollowingPage(
-                      userId: profile.userId,
-                      initialTab: 0,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          FollowersFollowingPage(userId: profile.userId, initialTab: 0),
                     ),
-                  ),
-                ),
+                  );
+                },
                 child: RichText(
-                  text: TextSpan(children: [
-                    TextSpan(
-                      text: "${profile.followersCount} ",
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "${profile.followersCount} ",
+                        style: const TextStyle(
+                            color: Colors.black, fontWeight: FontWeight.bold),
                       ),
-                    ),
-                    const TextSpan(
-                        text: "Followers", style: TextStyle(color: Colors.grey)),
-                  ]),
+                      const TextSpan(
+                          text: "Followers", style: TextStyle(color: Colors.grey)),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
         ),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
       ],
     );
   }

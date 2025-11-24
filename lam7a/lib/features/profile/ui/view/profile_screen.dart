@@ -8,21 +8,18 @@ import 'package:lam7a/core/providers/authentication.dart';
 import '../widgets/profile_header_widget.dart';
 
 class ProfileScreen extends ConsumerWidget {
-  final String username;
-
-  const ProfileScreen({super.key, required this.username});
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final String username = args["username"];
+
     final asyncProfile = ref.watch(profileViewModelProvider(username));
 
     return asyncProfile.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (err, _) => Scaffold(
-        body: Center(child: Text("Error: $err")),
-      ),
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, _) => Scaffold(body: Center(child: Text("Error: $err"))),
       data: (profile) => _ProfileLoaded(profile: profile, username: username),
     );
   }
@@ -44,67 +41,102 @@ class _ProfileLoaded extends ConsumerWidget {
 
     void refresh() => ref.invalidate(profileViewModelProvider(username));
 
+    const double avatarRadius = 42;
+
     return Scaffold(
       body: NestedScrollView(
         headerSliverBuilder: (_, __) => [
-          /// EMPTY APPBAR: Banner moved to ProfileHeaderWidget
+          // ---------------- BANNER + AVATAR FIXED ----------------
           SliverAppBar(
             pinned: true,
-            expandedHeight: 0,
+            expandedHeight: 230,
             backgroundColor: Colors.white,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context),
             ),
-          ),
-        ],
 
-        body: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            ProfileHeaderWidget(
+            flexibleSpace: LayoutBuilder(
+              builder: (context, constraints) {
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Banner image
+                    FlexibleSpaceBar(
+                      background: profile.bannerImage.isNotEmpty
+                          ? Image.network(profile.bannerImage, fit: BoxFit.cover)
+                          : Container(color: Colors.grey.shade300),
+                    ),
+
+                    // Avatar overlay
+                    Positioned(
+                      bottom: -avatarRadius,
+                      left: 16,
+                      child: CircleAvatar(
+                        radius: avatarRadius,
+                        backgroundColor: Colors.white,
+                        child: CircleAvatar(
+                          radius: avatarRadius - 3,
+                          backgroundImage: profile.avatarImage.isNotEmpty
+                              ? NetworkImage(profile.avatarImage)
+                              : const AssetImage("assets/images/user_profile.png")
+                                  as ImageProvider,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+
+          // Spacer below avatar so content doesn't overlap it
+          SliverToBoxAdapter(
+            child: SizedBox(height: avatarRadius + 16),
+          ),
+
+          // Profile header content (everything else below avatar)
+          SliverToBoxAdapter(
+            child: ProfileHeaderWidget(
               profile: profile,
               isOwnProfile: isOwnProfile,
               onEdited: refresh,
             ),
+          ),
+        ],
 
-            const SizedBox(height: 16),
-
-            /// Tabs
-            DefaultTabController(
-              length: 6,
-              child: Column(
-                children: [
-                  const TabBar(
-                    isScrollable: true,
-                    tabs: [
-                      Tab(text: "Posts"),
-                      Tab(text: "Replies"),
-                      Tab(text: "Highlights"),
-                      Tab(text: "Articles"),
-                      Tab(text: "Media"),
-                      Tab(text: "Likes"),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 600,
-                    child: TabBarView(
-                      children: List.generate(
-                        6,
-                        (index) => ListView.builder(
-                          itemCount: 10,
-                          itemBuilder: (_, i) => ListTile(
-                            title: Text("Item $i"),
-                            subtitle: const Text("Content coming later"),
-                          ),
-                        ),
+        // ---------------- TABS ----------------
+        body: DefaultTabController(
+          length: 6,
+          child: Column(
+            children: [
+              const TabBar(
+                isScrollable: true,
+                tabs: [
+                  Tab(text: "Posts"),
+                  Tab(text: "Replies"),
+                  Tab(text: "Highlights"),
+                  Tab(text: "Articles"),
+                  Tab(text: "Media"),
+                  Tab(text: "Likes"),
+                ],
+              ),
+              Expanded(
+                child: TabBarView(
+                  children: List.generate(
+                    6,
+                    (i) => ListView.builder(
+                      itemCount: 10,
+                      itemBuilder: (_, idx) => ListTile(
+                        title: Text("Item $idx"),
+                        subtitle: const Text("Content coming later"),
                       ),
                     ),
                   ),
-                ],
-              ),
-            )
-          ],
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
