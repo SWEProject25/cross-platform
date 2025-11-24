@@ -326,7 +326,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
             (state.isValidCode) ||
             (state.isValidSignupPassword)) {
           return signupState.copyWith(
-            currentSignupStep: signupState.currentSignupStep + 1,
+            currentSignupStep:signupState.currentSignupStep == maxSignupScreens  ? signupState.currentSignupStep  : signupState.currentSignupStep + 1,
           );
         }
         return signupState;

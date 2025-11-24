@@ -1,10 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lam7a/core/app_icons.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_replies_viewmodel.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
+
 
 class TweetFeed extends ConsumerStatefulWidget {
   const TweetFeed({super.key, required this.tweetState});
@@ -171,6 +175,7 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
     // Safe null check
     var themeData= Theme.of(context);
     final tweet = widget.tweetState.tweet.value;
+    final postId =widget.tweetState.tweet.value!.id;
     if (tweet == null) {
       return const SizedBox.shrink(); // Return empty if no tweet data
     }
@@ -207,10 +212,14 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
           constraints: const BoxConstraints(),
           icon: Row(
             children: [
-               Icon(
-                Icons.mode_comment_outlined,
-                color: themeData.colorScheme.secondary,
-                size: 20,
+              SvgPicture.asset(
+                AppIcons.tweet_reply,
+                width: 20,
+                height: 20,
+                colorFilter: ColorFilter.mode(
+                  themeData.colorScheme.secondary,
+                  BlendMode.srcIn,
+                ),
               ),
               Text(
           commentsNumStr,
@@ -219,9 +228,39 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
             ],
             
           ),
-          onPressed: ref
-              .read(tweetViewModelProvider(tweetId).notifier)
-              .handleComment,
+           onPressed: () async {
+                      final authState = ref.read(authenticationProvider);
+                      final user = authState.user;
+                      if (user == null || user.id == null) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please log in to reply'),
+                            ),
+                          );
+                        }
+                        return;
+                      }
+
+                      final parentId = int.tryParse(postId);
+                      if (parentId == null) {
+                        return;
+                      }
+
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AddTweetScreen(
+                            userId: user.id!,
+                            parentPostId: parentId,
+                            isReply: true,
+                          ),
+                        ),
+                      );
+
+                      // Refresh replies and parent tweet (comments count) after returning
+                      ref.invalidate(tweetRepliesViewModelProvider(postId));
+                      ref.invalidate(tweetViewModelProvider(postId));
+                    },
         ),
 
         // Repost
@@ -236,21 +275,46 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                 .when(
                   data: (state) => Row(
                     children: [
-                      Icon(
-                        Icons.repeat,
-                        color: state.isReposted ? Colors.green :themeData.colorScheme.secondary,
-                        size: 20,
+                      SvgPicture.asset(
+                        AppIcons.tweet_retweet,
+                        width: 20,
+                        height: 20,
+                        colorFilter: ColorFilter.mode(
+                          state.isReposted
+                              ? Colors.green
+                              : themeData.colorScheme.secondary,
+                          BlendMode.srcIn,
+                        ),
                       ),
                       Text(
                         repostsNumStr,
-                        style:  themeData.textTheme.bodyMedium
+                        style:state.isReposted
+                            ? themeData.textTheme.bodyMedium?.copyWith(
+                                color: Colors.green,
+                              )
+                            : themeData.textTheme.bodyMedium,
                       ),
+                      
                     ],
                   ),
-                  loading: () =>
-                      const Icon(Icons.repeat, color: Colors.grey, size: 20),
-                  error: (_, __) =>
-                      const Icon(Icons.repeat, color: Colors.grey, size: 20),
+                  loading: () => SvgPicture.asset(
+                    AppIcons.tweet_retweet,
+                    width: 20,
+                    height: 20,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.grey,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  error: (_, __) => SvgPicture.asset(
+                    AppIcons.tweet_retweet,
+                    width: 20,
+                    height: 20,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.grey,
+                      BlendMode.srcIn,
+                    ),
+                  ),
                 ),
             onPressed: () {
               _showRepostQuoteOptions(context);
@@ -270,14 +334,18 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                 .when(
                   data: (state) => Row(
                     children: [
-                      Icon(
+                      SvgPicture.asset(
                         state.isLiked
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: state.isLiked
-                            ? Colors.redAccent
-                            : themeData.colorScheme.secondary,
-                        size: 20,
+                            ? AppIcons.tweet_like_filled
+                            : AppIcons.tweet_like_outline,
+                        width: 20,
+                        height: 20,
+                        colorFilter: ColorFilter.mode(
+                          state.isLiked
+                              ? Colors.redAccent
+                              : themeData.colorScheme.secondary,
+                          BlendMode.srcIn,
+                        ),
                       ),
                       Text(
                         likesNumStr,
@@ -287,7 +355,7 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                               .when(
                                 data: (state) => state.isLiked
                                     ? Colors.redAccent
-                                    :  themeData.colorScheme.secondary,
+                                    : themeData.colorScheme.secondary,
                                 loading: () => Colors.grey,
                                 error: (_, __) => Colors.grey,
                               ),
@@ -296,15 +364,23 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                       ),
                     ],
                   ),
-                  loading: () => const Icon(
-                    Icons.favorite_border,
-                    color: Colors.grey,
-                    size: 20,
+                  loading: () => SvgPicture.asset(
+                    AppIcons.tweet_like_outline,
+                    width: 20,
+                    height: 20,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.grey,
+                      BlendMode.srcIn,
+                    ),
                   ),
-                  error: (_, __) => const Icon(
-                    Icons.favorite_border,
-                    color: Colors.grey,
-                    size: 20,
+                  error: (_, __) => SvgPicture.asset(
+                    AppIcons.tweet_like_outline,
+                    width: 20,
+                    height: 20,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.grey,
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
             onPressed: () {
