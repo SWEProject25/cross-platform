@@ -150,6 +150,7 @@ class _ChatInputBarState extends State<ChatInputBar>
 
   GestureDetector _buildMessagePreviewText(ThemeData theme) {
     return GestureDetector(
+      key: Key("chat_input_gesture_detector"),
       onTap: () => setState(() {
         _handleExpand();
       }),

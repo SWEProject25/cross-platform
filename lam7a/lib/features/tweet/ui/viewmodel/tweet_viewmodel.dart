@@ -282,10 +282,6 @@ class TweetViewModel extends _$TweetViewModel {
     apiService.setLocalViews(currentTweet.id, updatedViews);
   }
 
-  void handleComment() {
-    // Navigation to the reply composer is handled in the UI layer
-    // This method is a hook for the UI to know that comment was tapped
-  }
 
   void summarizeBody() {
     // TODO: implement tweet summarization

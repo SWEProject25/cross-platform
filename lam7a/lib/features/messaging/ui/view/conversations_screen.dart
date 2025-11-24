@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/app_icons.dart';
 import 'package:lam7a/core/widgets/app_svg_icon.dart';
-import 'package:lam7a/features/messaging/model/conversation.dart';
-import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
-import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
-import 'package:lam7a/features/messaging/utils.dart';
+import 'package:lam7a/features/messaging/providers/conversations_provider.dart';
 import 'package:lam7a/features/messaging/ui/view/find_contacts_screen.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/conversations_viewmodel.dart';
+import 'package:lam7a/features/messaging/ui/widgets/conversation_tile.dart';
 import 'package:lam7a/features/messaging/ui_keys.dart';
 
 class ConversationsScreen extends ConsumerWidget {
@@ -61,7 +59,7 @@ class ConversationsScreen extends ConsumerWidget {
                   itemCount: data.length,
                   itemBuilder: (context, index) {
                     final chat = data[index];
-                    return _ChatListTile(isTyping: dMListPageViewModel.isTyping[chat.id.toString()] ?? false, chat: chat);
+                    return ConversationTile(id: chat.id);
                   },
                 );
         },
@@ -85,65 +83,4 @@ class ConversationsScreen extends ConsumerWidget {
   }
 }
 
-class _ChatListTile extends StatelessWidget {
-  final Conversation chat;
-  final bool isTyping;
 
-  const _ChatListTile({required this.isTyping, required this.chat});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      leading: NetworkAvatar(url: chat.avatarUrl, radius: 28),
-      title: Row(
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                Text(
-                  chat.name,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    " @${chat.username.toLowerCase().replaceAll(' ', '')}",
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (chat.lastMessage != null)
-            Text(
-              " ${timeToTimeAgo(chat.lastMessageTime!)}",
-              style: isTyping ? theme.textTheme.bodyMedium : theme.textTheme.bodyMedium,
-            ),
-        ],
-      ),
-      subtitle: (chat.lastMessage != null)
-          ? Text(
-              isTyping ? "Typing..." : chat.lastMessage!,
-              style: isTyping ? theme.textTheme.bodyMedium?.copyWith(color: Colors.green.shade900) : theme.textTheme.bodyMedium,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            )
-          : null,
-      onTap: () {
-        // TODO: Navigate to chat detail page
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) =>
-                ChatScreen(userId: chat.userId, conversationId: chat.id),
-          ),
-        );
-      },
-    );
-  }
-}
