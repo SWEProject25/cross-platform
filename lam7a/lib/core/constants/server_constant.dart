@@ -18,4 +18,5 @@ class ServerConstant {
   static String serverURL = "https://api.hankers.tech";
   static String mutedUsers = "/users/mutes/me";
   static String blockedUsers = "/users/blocks/me";
+  static String tweetsForYou = "/posts/timeline/for-you";
 }

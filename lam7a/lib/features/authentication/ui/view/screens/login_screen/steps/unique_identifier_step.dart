@@ -24,12 +24,15 @@ class UniqueIdentifier extends StatelessWidget
                 Spacer(flex: 1),
                 Expanded(
                   flex: 20,
-                  child: Text(
-                    "email",
-                    style: GoogleFonts.outfit(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: Text(
+                      "Email",
+                      style: GoogleFonts.outfit(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
                   ),
                 ),
