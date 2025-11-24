@@ -14,13 +14,24 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'messages_repository.g.dart';
 
 @Riverpod(keepAlive: true)
-class MessagesRepository extends _$MessagesRepository {
+MessagesRepository messagesRepository(Ref ref) {
+  var repo = MessagesRepository(
+    ref.read(messagesStoreProvider),
+    ref.read(messagesSocketServiceProvider),
+    ref.read(dmsApiServiceProvider),
+    ref.watch(authenticationProvider),
+  );
+  ref.onDispose(() => repo.dispose());
+  return repo;
+}
+
+class MessagesRepository {
   final Logger _logger = getLogger(MessagesRepository);
 
-  late MessagesStore _cache;
-  late MessagesSocketService _socket;
-  late DMsApiService _apiService;
-  late AuthState _authState;
+  final MessagesStore _cache;
+  final MessagesSocketService _socket;
+  final DMsApiService _apiService;
+  final AuthState _authState;
 
   final Map<int, StreamController<void>> _notifier = {};
   StreamSubscription<MessageDto>? _incomingSub;
@@ -33,12 +44,7 @@ class MessagesRepository extends _$MessagesRepository {
   final Map<int, StreamController<bool>> _typingNotifier = {};
   final Set<int> _joinedConversations = {};
 
-  @override
-  void build() {
-    _cache = ref.read(messagesStoreProvider);
-    _apiService = ref.read(dmsApiServiceProvider);
-    _socket = ref.read(messagesSocketServiceProvider);
-    _authState = ref.watch(authenticationProvider);
+  MessagesRepository(this._cache, this._socket, this._apiService, this._authState) {
 
     _logger.w("Create MessagesRepository");
     _incomingSub = _socket.incomingMessages.listen(_onReceivedMessage);
@@ -51,9 +57,10 @@ class MessagesRepository extends _$MessagesRepository {
     );
     _messagesSeenSub = _socket.messagesSeen.listen(_onMessagesSeen);
     _reconnectedSub = _socket.onConnected.listen((_) => _onReconnected());
+  }
 
-    ref.onDispose(() {
-      _logger.i("Disposing MessagesRepository");
+  void dispose() {
+    _logger.i("Disposing MessagesRepository");
       _incomingSub?.cancel();
       _incomingNotifSub?.cancel();
 
@@ -72,7 +79,6 @@ class MessagesRepository extends _$MessagesRepository {
         if (!ctrl.isClosed) ctrl.close();
       }
       _notifier.clear();
-    });
   }
 
   void _onMessagesSeen(MessagesSeenDto dto) {
@@ -112,14 +118,8 @@ class MessagesRepository extends _$MessagesRepository {
 
   void _onReceivedMessage(MessageDto data) {
     _logger.d("Received message on socket: ${data.toJson()}");
-    var message = ChatMessage(
-      conversationId: data.conversationId,
-      id: data.id ?? -1,
-      text: data.text ?? "(Missing Message)",
-      time: data.createdAt!,
-      isMine:
-          _authState.isAuthenticated && data.senderId == _authState.user!.id,
-    );
+
+    var message = ChatMessage.fromDto(data, currentUserId: _authState.user!.id!);
 
     _cache.addMessage(message.conversationId ?? -1, message);
 
@@ -191,6 +191,7 @@ class MessagesRepository extends _$MessagesRepository {
         isMine: true,
         isDelivered: false,
         isSeen: false,
+        senderId: _authState.user!.id!,
         conversationId: conversationId,
       ),
     );
@@ -243,7 +244,7 @@ class MessagesRepository extends _$MessagesRepository {
 
     return messagesDto.metadata.hasMore;
   }
-  Future<void> sendMarkAsSeen(int conversationId) async {
+  void sendMarkAsSeen(int conversationId) async {
     final req = MarkSeenRequest(
       conversationId: conversationId,
       userId: _authState.user!.id!,
