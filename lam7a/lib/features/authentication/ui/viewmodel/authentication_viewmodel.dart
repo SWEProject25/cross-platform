@@ -90,20 +90,18 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
               login: (login) => login,
               signup: (signup) => signup.copyWith(
                 isLoadingSignup: false,
-                toastMessage:  AuthenticationConstants.otpSentMessage,
+                toastMessage: AuthenticationConstants.otpSentMessage,
               ),
             );
             gotoNextSignupStep();
           }
         } else {
-          // showToastMessage("this email is already taken");
           state = state.map(
             login: (login) => login,
-            signup: (signup) => AuthenticationState.signup(),
+            signup: (signup) => AuthenticationState.signup(
+              toastMessage: AuthenticationConstants.errorEmailMessage,
+            ),
           );
-          signup:
-          (signup) =>
-              signup.copyWith(toastMessage: AuthenticationConstants.errorEmailMessage);
         }
       }
     } catch (e) {
@@ -137,8 +135,9 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         } else {
           state = state.map(
             login: (login) => login,
-            signup: (signup) =>
-                signup.copyWith(toastMessage: AuthenticationConstants.wrongOtpMessage),
+            signup: (signup) => signup.copyWith(
+              toastMessage: AuthenticationConstants.wrongOtpMessage,
+            ),
           );
         }
         state = state.map(
@@ -166,19 +165,31 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
   Future<void> resendOTP() async {
-    bool isSuccessed = await repo.resendOTP(state.email);
-    if (!isSuccessed) {
-      state = state.map(
-        login: (login) => login,
-        signup: (signup) =>
-            signup.copyWith(toastMessage: "this service isn't available"),
-      );
-    } else {
-      signup:
-      (signup) => signup.copyWith(
-        isLoadingSignup: false,
-        toastMessage: AuthenticationConstants.otpSentMessage,
-      );
+    try {
+      bool isSuccessed = await repo.resendOTP(state.email);
+      if (!isSuccessed) {
+        state = state.map(
+          login: (login) => login,
+          signup: (signup) =>
+              signup.copyWith(toastMessage: "this service isn't available"),
+        );
+      } else {
+        state = state.map(
+          login: (login) => login,
+          signup: (signup) => signup.copyWith(
+            isLoadingSignup: false,
+            toastMessage: AuthenticationConstants.otpSentMessage,
+          ),
+        );
+      }
+    } catch (e) {
+        state = state.map(
+          login: (login) => login,
+          signup: (signup) => signup.copyWith(
+            isLoadingSignup: false,
+            toastMessage: "this service isn't available",
+          ),
+        );
     }
   }
 
@@ -263,7 +274,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           password: state.passwordLogin,
         ),
       );
-      if (myUser.name != null) {
+      if (myUser.name != null && myUser.email == state.identifier) {
         authController.authenticateUser(myUser);
         print(myUser);
         state = state.map(
