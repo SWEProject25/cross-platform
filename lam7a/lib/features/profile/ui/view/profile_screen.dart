@@ -41,14 +41,15 @@ class _ProfileLoaded extends ConsumerWidget {
 
     void refresh() => ref.invalidate(profileViewModelProvider(username));
 
+    const double avatarRadius = 42;
+
     return Scaffold(
       body: NestedScrollView(
         headerSliverBuilder: (_, __) => [
-
-          // =================== BANNER + AVATAR ===================
+          // ---------------- BANNER + AVATAR FIXED ----------------
           SliverAppBar(
             pinned: true,
-            expandedHeight: 200,
+            expandedHeight: 230,
             backgroundColor: Colors.white,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
@@ -58,24 +59,28 @@ class _ProfileLoaded extends ConsumerWidget {
             flexibleSpace: LayoutBuilder(
               builder: (context, constraints) {
                 return Stack(
+                  clipBehavior: Clip.none,
                   children: [
-                    // Banner
-                    Positioned.fill(
-                      child: profile.bannerImage.isNotEmpty
+                    // Banner image
+                    FlexibleSpaceBar(
+                      background: profile.bannerImage.isNotEmpty
                           ? Image.network(profile.bannerImage, fit: BoxFit.cover)
                           : Container(color: Colors.grey.shade300),
                     ),
 
-                    // Avatar (overlapping bottom)
+                    // Avatar overlay
                     Positioned(
-                      bottom: -40, // pulls avatar outside banner
+                      bottom: -avatarRadius,
                       left: 16,
                       child: CircleAvatar(
-                        radius: 45,
+                        radius: avatarRadius,
                         backgroundColor: Colors.white,
                         child: CircleAvatar(
-                          radius: 42,
-                          backgroundImage: NetworkImage(profile.avatarImage),
+                          radius: avatarRadius - 3,
+                          backgroundImage: profile.avatarImage.isNotEmpty
+                              ? NetworkImage(profile.avatarImage)
+                              : const AssetImage("assets/images/user_profile.png")
+                                  as ImageProvider,
                         ),
                       ),
                     ),
@@ -85,15 +90,53 @@ class _ProfileLoaded extends ConsumerWidget {
             ),
           ),
 
-          // Space so header doesn't cover avatar
-          const SliverToBoxAdapter(child: SizedBox(height: 60)),
+          // Spacer below avatar so content doesn't overlap it
+          SliverToBoxAdapter(
+            child: SizedBox(height: avatarRadius + 16),
+          ),
+
+          // Profile header content (everything else below avatar)
+          SliverToBoxAdapter(
+            child: ProfileHeaderWidget(
+              profile: profile,
+              isOwnProfile: isOwnProfile,
+              onEdited: refresh,
+            ),
+          ),
         ],
 
-        // =================== PROFILE BODY ===================
-        body: ProfileHeaderWidget(
-          profile: profile,
-          isOwnProfile: isOwnProfile,
-          onEdited: refresh,
+        // ---------------- TABS ----------------
+        body: DefaultTabController(
+          length: 6,
+          child: Column(
+            children: [
+              const TabBar(
+                isScrollable: true,
+                tabs: [
+                  Tab(text: "Posts"),
+                  Tab(text: "Replies"),
+                  Tab(text: "Highlights"),
+                  Tab(text: "Articles"),
+                  Tab(text: "Media"),
+                  Tab(text: "Likes"),
+                ],
+              ),
+              Expanded(
+                child: TabBarView(
+                  children: List.generate(
+                    6,
+                    (i) => ListView.builder(
+                      itemCount: 10,
+                      itemBuilder: (_, idx) => ListTile(
+                        title: Text("Item $idx"),
+                        subtitle: const Text("Content coming later"),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );

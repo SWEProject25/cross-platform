@@ -1,4 +1,3 @@
-// lib/features/profile/ui/widgets/profile_tab_bar.dart
 import 'package:flutter/material.dart';
 
 class ProfileTabBar extends StatelessWidget {
