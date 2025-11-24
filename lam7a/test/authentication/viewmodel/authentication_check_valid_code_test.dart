@@ -16,15 +16,12 @@ class MockAuthenticationRepositoryImpl extends Mock
 class FakeAuthenticationUserDataModel extends Fake
     implements AuthenticationUserDataModel {}
 
-// Create a Fake Authentication class that extends the real one
 class FakeAuthentication extends Authentication {
-  // Track calls for verification
   UserModel? lastAuthenticatedUser;
   int authenticateUserCallCount = 0;
 
   @override
   AuthState build() {
-    // Return initial unauthenticated state
     return AuthState();
   }
 
@@ -51,7 +48,6 @@ void main() {
     container = ProviderContainer(
       overrides: [
         authenticationImplRepositoryProvider.overrideWithValue(authRepoMock),
-        // Override with the fake implementation
         authenticationProvider.overrideWith(() => fakeAuth),
       ],
     );
@@ -61,10 +57,8 @@ void main() {
     container.dispose();
   });
 
-  // Helper to get initialized notifier
   AuthenticationViewmodel getNotifier() {
     final notifier = container.read(authenticationViewmodelProvider.notifier);
-    // Trigger build() to initialize dependencies
     container.read(authenticationViewmodelProvider);
     return notifier;
   }
@@ -91,10 +85,8 @@ void main() {
       when(() => authRepoMock.checkEmail(any()))
           .thenAnswer((_) async => true);
       when(() => authRepoMock.verifyOTP(any(), any())).thenAnswer((_) async => true);
-      // Act
       await notifier.checkValidCode();
       
-      // Assert
       verify(() => authRepoMock.verifyOTP(any(), any())).called(1);
       final finalState = container.read(authenticationViewmodelProvider);
       expect(finalState.isLoadingSignup, false);

@@ -18,7 +18,7 @@ class FirstTimeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: Key("firstScreen"),
+      key: ValueKey("firstScreen"),
       appBar: AppBar(title: ImageIcon(AssetImage(AppAssets.xIcon))),
       body: Consumer(
         builder: (context, ref, child) {

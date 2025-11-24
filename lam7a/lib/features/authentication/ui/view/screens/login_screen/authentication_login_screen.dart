@@ -77,6 +77,7 @@ class _loginFlowtate extends State<LogInScreen> {
             ),
             body: !state.isLoadingLogin
                 ? Column(
+                    key: ValueKey("mainLoginView"),
                     children: [
                       loginFlow[currentIndex],
                       Spacer(flex: 5),
@@ -139,7 +140,7 @@ class _loginFlowtate extends State<LogInScreen> {
                       ),
                     ],
                   )
-                : Center(child: LoadingCircle()),
+                : Center(child: LoadingCircle(key: ValueKey("loadingLogin"))),
           ),
         );
       },

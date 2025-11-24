@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 
 class LoadingCircle extends StatelessWidget {
+  LoadingCircle({super.key});
   static const double size = 95;
   @override
   Widget build(BuildContext context) {

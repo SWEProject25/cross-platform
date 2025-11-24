@@ -16,11 +16,11 @@ import 'package:lam7a/features/authentication/ui/widgets/loading_circle.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 
 final List<Widget> signupFlowSteps = [
-  UserDataSignUp(),
-  VerificationCode(),
-  PasswordScreen(),
-  ProfilePicture(),
-  UserNameScreen(),
+  UserDataSignUp(key: ValueKey("userDataSignup"),),
+  VerificationCode(key: ValueKey("verificationCodeStep"),),
+  PasswordScreen(key: ValueKey("passwordStep"),),
+  // ProfilePicture(),
+  // UserNameScreen(),
 ];
 
 class SignUpFlow extends StatefulWidget {
@@ -52,9 +52,6 @@ class _SignUpFlowState extends State<SignUpFlow> {
         final state = ref.watch(authenticationViewmodelProvider);
         final viewmodel = ref.watch(authenticationViewmodelProvider.notifier);
         final authenticationState = ref.watch(authenticationProvider);
-        final authenticationController = ref.watch(
-          authenticationProvider.notifier,
-        );
         int currentIndex = state.currentSignupStep;
         /////////////////////////////////////////////////////////////////
         /////////////////////////////////////////////////////////////////
@@ -95,8 +92,9 @@ class _SignUpFlowState extends State<SignUpFlow> {
               ),
             ),
             // the main screen that has the sign up steps
-            body: !state.isLoadingSignup && !state.isLoadingLogin
+            body: !state.isLoadingSignup
                 ? Column(
+                  key: ValueKey("mainData"),
                     children: [
                       signupFlowSteps[currentIndex],
                       Spacer(flex: 5),
@@ -107,22 +105,7 @@ class _SignUpFlowState extends State<SignUpFlow> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              ((signupFlowSteps[currentIndex]
-                                          is ProfilePicture) ||
-                                      (signupFlowSteps[currentIndex]
-                                          is UserNameScreen))
-                                  ? Expanded(
-                                      flex: 8,
-                                      child: AuthenticationStepButton(
-                                        label: "skip for now",
-                                        bgColor: Pallete.whiteColor,
-                                        textColor: Pallete.blackColor,
-                                        onPressedEffect: () {
-                                          viewmodel.gotoNextSignupStep();
-                                        },
-                                      ),
-                                    )
-                                  : Expanded(flex: 8, child: Container()),
+                            Expanded(flex: 8, child: Container()),
                               Spacer(flex: 8),
                               Expanded(
                                 flex: 6,
@@ -132,22 +115,22 @@ class _SignUpFlowState extends State<SignUpFlow> {
                                   enable: viewmodel.shouldEnableNext(),
                                   label: AuthenticationConstants.nextLabels[currentIndex],
                                   textColor: Theme.of(context).colorScheme.surface,
-                                  onPressedEffect: () async {
-                                    if (viewmodel.shouldEnableNext()) {
-                                      await viewmodel.registrationProgress();
-                                      String? message = ref.read(authenticationViewmodelProvider).toastMessage;
-                                      if (message != null)
-                                      {
-                                          AuthenticationConstants.flushMessage(message, context, "signupMessage");
-                                          ref.read(authenticationViewmodelProvider.notifier).clearMessage();
+                                    onPressedEffect: () async {
+                                      if (viewmodel.shouldEnableNext()) {
+                                        await viewmodel.registrationProgress();
+                                        String? message = ref.read(authenticationViewmodelProvider).toastMessage;
+                                        if (message != null)
+                                        {
+                                            AuthenticationConstants.flushMessage(message, context, "signupMessage");
+                                            ref.read(authenticationViewmodelProvider.notifier).clearMessage();
+                                        }
+                                        if (authenticationState.isAuthenticated)
+                                        {
+                                          Navigator.pop(context);
+                                          Navigator.pushNamedAndRemoveUntil(context, AuthenticationTransmissionScreen.routeName, (route) => false);
+                                        }
                                       }
-                                      if (authenticationState.isAuthenticated)
-                                      {
-                                        Navigator.pop(context);
-                                        Navigator.pushNamedAndRemoveUntil(context, AuthenticationTransmissionScreen.routeName, (route) => false);
-                                      }
-                                    }
-                                  },
+                                    },
                                 ),
                               ),
                             ],
@@ -157,7 +140,7 @@ class _SignUpFlowState extends State<SignUpFlow> {
                     ],
                   )
                 : Center(
-                    child: LoadingCircle(),
+                    child: LoadingCircle(key: ValueKey("loading")),
                   ),
           ),
         );

@@ -15,15 +15,12 @@ class MockAuthenticationRepositoryImpl extends Mock
 class FakeAuthenticationUserDataModel extends Fake
     implements AuthenticationUserDataModel {}
 
-// Create a Fake Authentication class that extends the real one
 class FakeAuthentication extends Authentication {
-  // Track calls for verification
   UserModel? lastAuthenticatedUser;
   int authenticateUserCallCount = 0;
 
   @override
   AuthState build() {
-    // Return initial unauthenticated state
     return AuthState();
   }
 
@@ -50,7 +47,6 @@ void main() {
     container = ProviderContainer(
       overrides: [
         authenticationImplRepositoryProvider.overrideWithValue(authRepoMock),
-        // Override with the fake implementation
         authenticationProvider.overrideWith(() => fakeAuth),
       ],
     );
@@ -60,17 +56,14 @@ void main() {
     container.dispose();
   });
 
-  // Helper to get initialized notifier
   AuthenticationViewmodel getNotifier() {
     final notifier = container.read(authenticationViewmodelProvider.notifier);
-    // Trigger build() to initialize dependencies
     container.read(authenticationViewmodelProvider);
     return notifier;
   }
 
   group("newUser Tests", () {
     test("should register user successfully when validations pass", () async {
-      // Arrange
       final mockUser = UserModel(
         name: 'farouk',
         email: "far222@example.com",
@@ -96,26 +89,21 @@ void main() {
       when(() => authRepoMock.register(any()))
           .thenAnswer((_) async => mockUser);
       
-      // Act
       await notifier.newUser();
       
-      // Assert
       verify(() => authRepoMock.register(any())).called(1);
       
-      // Verify authenticateUser was called with correct user
       expect(fakeAuth.authenticateUserCallCount, 1);
       expect(fakeAuth.lastAuthenticatedUser, mockUser);
       
       final finalState = container.read(authenticationViewmodelProvider);
       expect(finalState.isLoadingSignup, false);
       
-      // Verify auth state is authenticated
       final authState = container.read(authenticationProvider);
       expect(authState.isAuthenticated, true);
     });
 
     test("should verify correct data is passed to register", () async {
-      // Arrange
       final mockUser = UserModel(
         name: 'John Doe',
         email: 'john@example.com',

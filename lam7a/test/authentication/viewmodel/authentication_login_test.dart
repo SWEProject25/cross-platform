@@ -16,15 +16,12 @@ class MockAuthenticationRepositoryImpl extends Mock
 class FakeAuthenticationCredentialsModel extends Fake
     implements AuthenticationUserCredentialsModel {}
 
-// Create a Fake Authentication class that extends the real one
 class FakeAuthentication extends Authentication {
-  // Track calls for verification
   UserModel? lastAuthenticatedUser;
   int authenticateUserCallCount = 0;
 
   @override
   AuthState build() {
-    // Return initial unauthenticated state
     return AuthState();
   }
 
@@ -51,7 +48,6 @@ void main() {
     container = ProviderContainer(
       overrides: [
         authenticationImplRepositoryProvider.overrideWithValue(authRepoMock),
-        // Override with the fake implementation
         authenticationProvider.overrideWith(() => fakeAuth),
       ],
     );
@@ -61,17 +57,14 @@ void main() {
     container.dispose();
   });
 
-  // Helper to get initialized notifier
   AuthenticationViewmodel getNotifier() {
     final notifier = container.read(authenticationViewmodelProvider.notifier);
-    // Trigger build() to initialize dependencies
     container.read(authenticationViewmodelProvider);
     return notifier;
   }
 
   group("newUser Tests", () {
     test("check user is logged in successfully", () async {
-      // Arrange
       final mockUser = UserModel(name: 'farouk', email: "far123@example.com");
 
       final notifier = getNotifier();
@@ -83,13 +76,10 @@ void main() {
 
       when(() => authRepoMock.login(any())).thenAnswer((_) async => mockUser);
 
-      // Act
       bool success = await notifier.login();
 
-      // Assert
       verify(() => authRepoMock.login(any())).called(1);
 
-      // Verify authenticateUser was called with correct user
       expect(fakeAuth.authenticateUserCallCount, 1);
       expect(fakeAuth.lastAuthenticatedUser, mockUser);
 
@@ -102,7 +92,6 @@ void main() {
     });
 
     test("check the same user credentials", () async {
-      // Arrange
       final mockUser = UserModel(name: "john", email: "john@exmpl.com");
 
       final notifier = getNotifier();
@@ -164,7 +153,6 @@ void main() {
 
       when(() => authRepoMock.login(any())).thenAnswer((_) async => mockUser);
 
-      // Act
       bool success = await notifier.login();
 
       verify(() => authRepoMock.login(any())).called(1);

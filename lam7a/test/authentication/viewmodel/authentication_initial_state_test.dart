@@ -67,7 +67,6 @@ void main() {
     test("should initialize repository and auth controller", () {
       final notifier = container.read(authenticationViewmodelProvider.notifier);
       
-      // Access the state to trigger build
       container.read(authenticationViewmodelProvider);
 
       expect(notifier.repo, isA<AuthenticationRepositoryImpl>());
