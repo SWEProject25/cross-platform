@@ -263,5 +263,96 @@ void main() {
       final state = container.read(authenticationViewmodelProvider);
       expect(state.currentSignupStep, 2);
     });
+    test("should enable next in the first step true", () {
+      final notifier = getNotifier();
+
+      notifier.state = const AuthenticationState.signup(
+        isValidEmail: true,
+        currentSignupStep: 0,
+        isValidDate: true,
+        isValidName: true,
+      );
+
+      bool answer = notifier.shouldEnableNext();
+      expect(answer, true);
+    });
+    test("should enable next in the first step false", () {
+      final notifier = getNotifier();
+
+      notifier.state = const AuthenticationState.signup(
+        isValidEmail: false,
+        currentSignupStep: 0,
+        isValidDate: true,
+        isValidName: true,
+      );
+
+      bool answer = notifier.shouldEnableNext();
+      expect(answer, false);
+    });
+    test("should enable next in the first step false", () {
+      final notifier = getNotifier();
+
+      notifier.state = const AuthenticationState.signup(
+        isValidEmail: false,
+        currentSignupStep: 0,
+        isValidDate: false,
+        isValidName: true,
+      );
+
+      bool answer = notifier.shouldEnableNext();
+      expect(answer, false);
+    });
+    test("should enable next in the first step false", () {
+      final notifier = getNotifier();
+
+      notifier.state = const AuthenticationState.signup(
+        isValidEmail: false,
+        currentSignupStep: 0,
+        isValidDate: false,
+        isValidName: false,
+      );
+
+      bool answer = notifier.shouldEnableNext();
+      expect(answer, false);
+    });
+    test("should enable next in the first step false", () {
+      final notifier = getNotifier();
+
+      notifier.state = const AuthenticationState.signup(
+        isValidEmail: true,
+        currentSignupStep: 0,
+        isValidDate: false,
+        isValidName: true,
+      );
+
+      bool answer = notifier.shouldEnableNext();
+      expect(answer, false);
+    });
+    test("should enable next in the first step false", () {
+      final notifier = getNotifier();
+
+      notifier.state = const AuthenticationState.signup(
+        isValidEmail: true,
+        currentSignupStep: 0,
+        isValidDate: false,
+        isValidName: false,
+      );
+
+      bool answer = notifier.shouldEnableNext();
+      expect(answer, false);
+    });
+    test("should enable next in the first step false", () {
+      final notifier = getNotifier();
+
+      notifier.state = const AuthenticationState.signup(
+        isValidEmail: true,
+        currentSignupStep: 0,
+        isValidDate: true,
+        isValidName: false,
+      );
+
+      bool answer = notifier.shouldEnableNext();
+      expect(answer, false);
+    });
   });
 }

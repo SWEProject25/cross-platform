@@ -19,7 +19,11 @@ class _VerificationCodeState extends ConsumerState<VerificationCode> {
   int _secondsRemaining = 60;
   bool _enableResend = true;
   Timer? _timer;
-
+  @visibleForTesting
+  int get secondsRemaining => _secondsRemaining;
+  
+  @visibleForTesting
+  bool get enableResend => _enableResend;
   @override
   void initState() {
     super.initState();
@@ -103,6 +107,7 @@ class _VerificationCodeState extends ConsumerState<VerificationCode> {
           children: [
             SizedBox(width: 40),
             InkWell(
+              key: ValueKey("resendOtpInkWell"),
               onTap: () async {
                 if (_enableResend) {
                   await viewModel.resendOTP();

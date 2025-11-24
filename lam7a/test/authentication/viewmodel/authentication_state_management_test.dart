@@ -81,8 +81,10 @@ void main() {
       final notifier = getNotifier();
 
       notifier.state = const AuthenticationState.signup(
-        toastMessage: "Some error message",
-      );
+              // Verify auth state is authenticated
+toastMessage: "Some error message",
+      );      // Verify auth state is authenticated
+
 
       notifier.clearMessage();
 

@@ -61,16 +61,14 @@ void main() {
     container.dispose();
   });
 
-  // Helper to get initialized notifier
   AuthenticationViewmodel getNotifier() {
     final notifier = container.read(authenticationViewmodelProvider.notifier);
-    // Trigger build() to initialize dependencies
     container.read(authenticationViewmodelProvider);
     return notifier;
   }
 
-  group("checkValidCode Tests", () {
-    test("check the otpcode is resent", () async {
+  group("checkValidEmail Tests", () {
+    test("check a new email ant the otpcode is sent", () async {
       
       final notifier = getNotifier();
 
@@ -88,20 +86,22 @@ void main() {
         date: "20-11-2003",
         imgPath: "/path",
       );
-
-      when(() => authRepoMock.resendOTP(any())).thenAnswer((_) async => true);
+      int lastIdx = 0;
+      when(() => authRepoMock.checkEmail(any()))
+          .thenAnswer((_) async => true);
+      when(() => authRepoMock.verificationOTP(any())).thenAnswer((_) async => true);
       // Act
-      await notifier.resendOTP();
+      await notifier.checkValidEmail();
       
       // Assert
-      verify(() => authRepoMock.resendOTP(any())).called(1);
+      verify(() => authRepoMock.checkEmail(any())).called(1);
+      verify(() => authRepoMock.verificationOTP(any())).called(1);
       final finalState = container.read(authenticationViewmodelProvider);
-      expect(finalState.isLoadingSignup, false);
-      expect(finalState.currentSignupStep, 0);
-      expect(finalState.toastMessage, AuthenticationConstants.otpSentMessage);
+      expect(finalState.isValidEmail, true);
+      expect(finalState.currentSignupStep, 1);
     });
 
-    test("check the otpCode isn't resent", () async {
+    test("check for exist email", () async {
 
       
       final notifier = getNotifier();
@@ -115,35 +115,62 @@ void main() {
         isValidEmail: true,
       );
       
-      when(() => authRepoMock.resendOTP(any()))
+      when(() => authRepoMock.checkEmail(any()))
           .thenAnswer((_) async => false);
       
-      await notifier.resendOTP();
-      verify(() => authRepoMock.resendOTP(any())).called(1);
+      await notifier.checkValidEmail();
       final finalState = container.read(authenticationViewmodelProvider);
+      expect(finalState.isValidEmail, false);
       expect(finalState.currentSignupStep, 0);
-      expect(finalState.toastMessage, "this service isn't available");
+      expect(finalState.toastMessage, AuthenticationConstants.errorEmailMessage);
     });
 
-  
+    test("check for new email but otpCode never has been sent", () async {
+           final notifier = getNotifier();
+
+      notifier.state = const AuthenticationState.signup(
+        code: "",
+        isValidCode: true,
+        isValidEmail: true,
+        name: "farouk",
+        email: "far222@example.com",
+        isValidDate: true,
+        isLoadingSignup: false,
+        username: "fa1234",
+        passwordSignup: "Test1234!",
+        isValidName: true,
+        date: "20-11-2003",
+        imgPath: "/path",
+      );
+      int lastIdx = 0;
+      when(() => authRepoMock.checkEmail(any()))
+          .thenAnswer((_) async => true);
+      when(() => authRepoMock.verificationOTP(any())).thenAnswer((_) async => false);
+      // Act
+      await notifier.checkValidEmail();
+      
+      // Assert
+      verify(() => authRepoMock.checkEmail(any())).called(1);
+      verify(() => authRepoMock.verificationOTP(any())).called(1);
+      final finalState = container.read(authenticationViewmodelProvider);
+      expect(finalState.isValidEmail, true);
+      expect(finalState.currentSignupStep, 0);
+    });
 
     test("should set loading to false when registration throws exception", () async {
       final notifier = getNotifier();
       
       notifier.state = const AuthenticationState.signup(
         isValidEmail: true,
-        isValidCode: true
       );
       
-      when(() => authRepoMock.resendOTP(any()))
+      when(() => authRepoMock.checkEmail(any()))
           .thenThrow(Exception('Registration failed'));
       
-      await notifier.resendOTP();
+      await notifier.checkValidEmail();
       
       final finalState = container.read(authenticationViewmodelProvider);
-      expect(finalState.isLoadingSignup, false);
-      expect(finalState.currentSignupStep, 0);
-      expect(finalState.toastMessage, "this service isn't available");
+      expect(finalState.toastMessage, AuthenticationConstants.errorEmailMessage);
     });
 
   });
