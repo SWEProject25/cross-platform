@@ -11,9 +11,9 @@ class AppTheme {
   static const Color _accent = Color(0xFFF91880);
   static const Color _success = Color(0xFF00BA7C);
   static const Color _warning = Color(0xFFFFD400);
-
+  static const Color _message = Color.fromARGB(255, 27, 30, 32);
   // 🌞 Light theme
-  static final ThemeData light = ThemeData(
+  static ThemeData get light => ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
     scaffoldBackgroundColor: _background,
@@ -27,6 +27,9 @@ class AppTheme {
       onSecondary: _foreground,
       onSurface: _foreground,
       onError: Colors.white,
+      tertiary: _background,
+      onTertiary: _foreground,
+      
     ),
 
     // AppBar
@@ -44,11 +47,23 @@ class AppTheme {
 
     // Text
     textTheme: const TextTheme(
-      displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: _foreground),
-      titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: _foreground),
+      displayLarge: TextStyle(
+        fontSize: 32,
+        fontWeight: FontWeight.bold,
+        color: _foreground,
+      ),
+      titleLarge: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: _foreground,
+      ),
       bodyLarge: TextStyle(fontSize: 16, color: _foreground),
       bodyMedium: TextStyle(fontSize: 14, color: _secondary),
-      labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: _primary),
+      labelLarge: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: _primary,
+      ),
     ),
 
     // Buttons
@@ -58,6 +73,16 @@ class AppTheme {
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      ),
+    ),
+
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: _foreground,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
       ),
     ),
 
@@ -94,7 +119,7 @@ class AppTheme {
   );
 
   // 🌚 Dark theme
-  static final ThemeData dark = light.copyWith(
+  static ThemeData get dark => light.copyWith(
     brightness: Brightness.dark,
     scaffoldBackgroundColor: const Color(0xFF000000),
     colorScheme: const ColorScheme.dark(
@@ -106,15 +131,33 @@ class AppTheme {
       onSecondary: Colors.white70,
       onSurface: Colors.white,
       onError: Colors.white,
+      tertiary: _message,
+      onTertiary: _background,
     ),
     appBarTheme: light.appBarTheme.copyWith(
       backgroundColor: const Color(0xFF000000),
       foregroundColor: Colors.white,
+      titleTextStyle: light.appBarTheme.titleTextStyle?.copyWith(
+        color: Colors.white,
+      ),
     ),
-    textTheme: light.textTheme.apply(bodyColor: Colors.white, displayColor: Colors.white),
+    textTheme: light.textTheme.apply(
+      bodyColor: Colors.white,
+      displayColor: Colors.white,
+    ),
     inputDecorationTheme: light.inputDecorationTheme.copyWith(
       fillColor: const Color(0xFF16181C),
       hintStyle: const TextStyle(color: Color(0xFF8B98A5)),
+    ),
+
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: _background,
+        foregroundColor: _foreground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+      ),
     ),
     dividerTheme: const DividerThemeData(color: Color(0xFF2F3336)),
     iconTheme: const IconThemeData(color: Color(0xFF8B98A5)),
@@ -122,10 +165,62 @@ class AppTheme {
 
   // 🪄 Custom color extensions
   static ThemeData withPrimary(Color newPrimary) => light.copyWith(
-        colorScheme: light.colorScheme.copyWith(primary: newPrimary),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(backgroundColor: newPrimary),
-        ),
-        floatingActionButtonTheme: FloatingActionButtonThemeData(backgroundColor: newPrimary),
-      );
+    colorScheme: light.colorScheme.copyWith(primary: newPrimary),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(backgroundColor: newPrimary),
+    ),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: newPrimary,
+    ),
+  );
 }
+
+final ThemeData xDarkTheme = ThemeData(
+  brightness: Brightness.dark,
+  scaffoldBackgroundColor: const Color(0xFF000000),
+  primaryColor: const Color(0xFF1D9BF0),
+  colorScheme: const ColorScheme.dark(
+    primary: Color(0xFF1D9BF0),
+    secondary: Color(0xFF16181C),
+    surface: Color(0xFF16181C),
+    onPrimary: Colors.white,
+    onSecondary: Color(0xFFE7E9EA),
+    onSurface: Color(0xFFE7E9EA),
+  ),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFF000000),
+    foregroundColor: Color(0xFFE7E9EA),
+    elevation: 0,
+  ),
+  textTheme: const TextTheme(
+    bodyLarge: TextStyle(color: Color(0xFFE7E9EA)),
+    bodyMedium: TextStyle(color: Color(0xFFE7E9EA)),
+    bodySmall: TextStyle(color: Color(0xFF71767B)),
+    titleMedium: TextStyle(
+      color: Color.fromARGB(208, 220, 222, 223),
+      fontWeight: FontWeight.w400,
+      fontSize: 16,
+    ),
+    titleLarge: TextStyle(
+      color: Color(0xFFE7E9EA),
+      fontWeight: FontWeight.w400,
+      fontSize: 20,
+    ),
+  ),
+  listTileTheme: const ListTileThemeData(
+    iconColor: Color.fromARGB(255, 74, 76, 77),
+    textColor: Color(0xFFE7E9EA),
+    // overlayColor: Color.fromARGB(255, 83, 83, 84),
+  ),
+  dividerColor: const Color.fromARGB(105, 47, 51, 54),
+  iconTheme: const IconThemeData(color: Color(0xFFE7E9EA)),
+  inputDecorationTheme: const InputDecorationTheme(
+    filled: true,
+    fillColor: Color(0xFF16181C),
+    border: OutlineInputBorder(
+      borderSide: BorderSide(color: Color(0xFF2F3336)),
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+    ),
+    hintStyle: TextStyle(color: Color(0xFF71767B)),
+  ),
+);
