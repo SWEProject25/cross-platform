@@ -138,6 +138,7 @@ class AccountApiServiceImpl implements AccountApiService {
       );
     } catch (e) {
       print('Error sending re-send OTP in api service');
+      rethrow;
     }
   }
 }

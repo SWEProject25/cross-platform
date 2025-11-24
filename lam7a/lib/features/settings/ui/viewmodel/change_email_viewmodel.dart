@@ -50,6 +50,8 @@ class ChangeEmailViewModel extends Notifier<ChangeEmailState> {
         if (!await accountRepo.checkEmailExists(state.email)) {
           state = state.copyWith(currentPage: ChangeEmailPage.verifyOtp);
           await accountRepo.sendOtp(state.email);
+        } else {
+          throw Exception("email already exists");
         }
       } else {
         throw Exception("wrong email form");

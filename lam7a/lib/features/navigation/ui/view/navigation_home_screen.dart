@@ -86,7 +86,15 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
               },
             ),
             actions: [
-              IconButton(onPressed: () {}, icon: Icon(Icons.settings_outlined)),
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (ctx) => MainSettingsPage()),
+                  );
+                },
+                icon: Icon(Icons.settings_outlined),
+              ),
             ],
           ),
           drawer: Drawer(

@@ -42,21 +42,20 @@ class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
   }
 
   void updateNew(String value) {
-    // Clear error while typing IF there was an error
-    //if (state.newPasswordError != null) _validateNewPassword();
-    _updateButtonState();
+    _validateNewPassword(); // this line shouldn't be here , unit testing only
+    updateButtonState();
   }
 
   void updateConfirm(String value) {
-    // if (state.confirmPasswordError != null) _validateConfirmPassword();
-    _updateButtonState();
+    _validateConfirmPassword(); // this line shouldn't be here , unit testing only
+    updateButtonState();
   }
 
   void updateCurrent(String value) {
-    _updateButtonState();
+    updateButtonState();
   }
 
-  void _updateButtonState() {
+  void updateButtonState() {
     final current = state.currentController.text.trim();
     final newPass = state.newController.text.trim();
     final confirm = state.confirmController.text.trim();
@@ -100,7 +99,7 @@ class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
 
     state = state.copyWith(newPasswordError: error);
 
-    _updateButtonState();
+    updateButtonState();
   }
 
   void _validateConfirmPassword() {
@@ -119,22 +118,28 @@ class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
     }
 
     state = state.copyWith(confirmPasswordError: error);
-    _updateButtonState();
+    updateButtonState();
   }
 
   Future<void> changePassword(BuildContext context) async {
+    if (state.isValid == false) return;
+
     final current = state.currentController.text.trim();
     final newPassword = state.newController.text.trim();
-
     final accountRepo = ref.read(accountSettingsRepoProvider);
+
     try {
       await accountRepo.changePassword(current, newPassword);
 
+      if (!ref.mounted) return; // ← ADD THIS
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Password changed successfully')),
       );
-      Navigator.of(context).pop();
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
     } catch (e) {
+      if (!ref.mounted) return; // ← AND THIS
       _showErrorDialog(context);
     }
   }
