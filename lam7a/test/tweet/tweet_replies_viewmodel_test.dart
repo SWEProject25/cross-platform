@@ -58,6 +58,8 @@ void main() {
     );
 
     expect(result, replies);
+
+    verify(() => mockApiService.getRepliesForPost(postId)).called(1);
   });
 
   test('TweetRepliesViewModel handles empty list', () async {
@@ -69,5 +71,20 @@ void main() {
     );
 
     expect(result, isEmpty);
+
+    verify(() => mockApiService.getRepliesForPost(postId)).called(1);
+  });
+
+  test('TweetRepliesViewModel surfaces errors from service', () async {
+    when(() => mockApiService.getRepliesForPost(postId))
+        .thenThrow(Exception('network error'));
+
+    await expectLater(
+      container.read(
+        tweetRepliesViewModelProvider(postId).future,
+      ),
+      // Riverpod surfaces an error when the provider fails while loading
+      throwsA(isA<StateError>()),
+    );
   });
 }

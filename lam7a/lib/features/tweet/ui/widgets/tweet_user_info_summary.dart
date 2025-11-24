@@ -42,16 +42,23 @@ class _TweetUserSummaryInfoState extends ConsumerState<TweetUserSummaryInfo> {
     final String? profileImage = tweet.authorProfileImage;
 
     return Expanded(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            displayName,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold ), 
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(width: 8,),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.of(context).pushNamed(
+            '/profile',
+            arguments: {'username': username},
+          );
+        },
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              displayName,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold ), 
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(width: 8,),
            Expanded(
              child: Text(
                 '@$username · ',
@@ -66,6 +73,7 @@ class _TweetUserSummaryInfoState extends ConsumerState<TweetUserSummaryInfo> {
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey )
           ),
         ],
+      ),
       ),
     );
   }

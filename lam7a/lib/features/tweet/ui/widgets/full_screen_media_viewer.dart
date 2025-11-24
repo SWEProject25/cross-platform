@@ -25,6 +25,13 @@ class FullScreenMediaViewer extends StatelessWidget {
                       child: Image.network(
                         url,
                         fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.broken_image,
+                            color: Colors.white,
+                            size: 48,
+                          );
+                        },
                       ),
                     ),
             ),
