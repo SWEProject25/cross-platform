@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lam7a/core/widgets/app_user_avatar.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
 
 class TweetUserInfoDetailed extends ConsumerStatefulWidget {
@@ -37,22 +38,11 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        CircleAvatar(
+        AppUserAvatar(
           radius: 25,
-          backgroundColor: Colors.grey[700],
-          backgroundImage: profileImage != null && profileImage!.isNotEmpty
-              ? NetworkImage(profileImage!)
-              : null,
-          child: profileImage == null || profileImage!.isEmpty
-              ? Text(
-                  username.isNotEmpty ? username[0].toUpperCase() : '?',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                )
-              : null,
+          imageUrl: profileImage,
+          displayName: displayName,
+          username: username,
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -62,21 +52,16 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
             children: [
               Text(
                 displayName,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  decoration: TextDecoration.none,
-                ),
+                style: Theme.of(context).textTheme.bodyLarge,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 2),
               Text(
                 '@$username',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                  fontSize: 14,
-                  decoration: TextDecoration.none,
-                ),
+                style: Theme.of(context).textTheme.bodyLarge,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),

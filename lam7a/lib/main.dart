@@ -8,6 +8,7 @@ import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authe
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
+import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
 import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
@@ -71,8 +72,32 @@ class _MyAppState extends ConsumerState<MyApp> {
 }
 
 class TestTweetApp extends StatelessWidget {
-  const TestTweetApp({super.key});
-
+   TestTweetApp({super.key});
+TweetModel tweet=TweetModel(
+    id: "t3",
+    userId: "1",
+    body:
+        "Hi This Is The Tweet Body\nHappiness comes from within. Focus on gratitude, surround yourself with kind people, and do what brings meaning. Accept what you can't control, forgive easily, and celebrate small wins. Stay present, care for your body and mind, and spread kindness daily.",
+    // Mix of images and videos
+    mediaImages: [
+      'https://tse4.mm.bing.net/th/id/OIP.u7kslI7potNthBAIm93JDwHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
+      'https://picsum.photos/seed/nature/800/600',
+    ],
+    mediaVideos: [
+      'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+    ],
+    date: DateTime.now().subtract(const Duration(days: 1)),
+    likes: 999,
+    comments: 8900,
+    views: 5700000,
+    repost: 54,
+    qoutes: 9000000000,
+    bookmarks: 10,
+    authorName: "Mazen",
+    authorProfileImage:
+        'https://tse4.mm.bing.net/th/id/OIP.u7kslI7potNthBAIm93JDwHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
+    username: "mazen",
+  );
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -80,8 +105,8 @@ class TestTweetApp extends StatelessWidget {
       home: Scaffold(
         appBar: AppBar(title: const Text('Test Tweet Widget')),
         body: Center(
-          child: TweetSummaryWidget(tweetId: 't3'), // 👈 your test widget
-        ),
+          child: TweetSummaryWidget(tweetData: tweet,tweetId: 't3'), // 👈 your test widget
+        )
       ),
     );
   }

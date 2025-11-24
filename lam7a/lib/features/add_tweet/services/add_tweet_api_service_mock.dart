@@ -14,7 +14,7 @@ class AddTweetApiServiceMock implements AddTweetApiService {
   Future<TweetModel> createTweet({
     required int userId,
     required String content,
-    String? mediaPicPath,
+    List<String>? mediaPicPaths,
     String? mediaVideoPath,
     String type = 'POST',
     int? parentPostId,
@@ -22,7 +22,7 @@ class AddTweetApiServiceMock implements AddTweetApiService {
     print('📤 [MOCK] Creating tweet...');
     print('   User ID: $userId');
     print('   Content: $content');
-    print('   Image Path: ${mediaPicPath ?? "None"}');
+    print('   Image Paths: ${mediaPicPaths ?? const []}');
     print('   Video Path: ${mediaVideoPath ?? "None"}');
     print('   Type: $type');
     if (parentPostId != null) {
@@ -36,12 +36,13 @@ class AddTweetApiServiceMock implements AddTweetApiService {
     final mockImageUrls = <String>[];
     final mockVideoUrls = <String>[];
     
-    if (mediaPicPath != null && mediaPicPath.isNotEmpty) {
+    if (mediaPicPaths != null && mediaPicPaths.isNotEmpty) {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      // Generate multiple mock images (simulating backend behavior)
-      mockImageUrls.add('https://picsum.photos/seed/$timestamp-1/800/600');
-      mockImageUrls.add('https://picsum.photos/seed/$timestamp-2/800/600');
-      mockImageUrls.add('https://picsum.photos/seed/$timestamp-3/800/600');
+      // Generate one mock image URL per selected image (up to 4)
+      for (int i = 0; i < mediaPicPaths.length && i < 4; i++) {
+        mockImageUrls
+            .add('https://picsum.photos/seed/$timestamp-$i/800/600');
+      }
       print('   📷 Generated ${mockImageUrls.length} mock image URLs');
       for (int i = 0; i < mockImageUrls.length; i++) {
         print('      - Image $i: ${mockImageUrls[i]}');
