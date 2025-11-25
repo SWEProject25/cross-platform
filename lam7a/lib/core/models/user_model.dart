@@ -49,7 +49,7 @@ class UserModel {
 
   @override
   String toString {
-    return 'UserModel(name: $name, email: $email, id: $id)';
+    return 'UserModel(name: name, email: $email, id: $id)';
   }
 
   @override
