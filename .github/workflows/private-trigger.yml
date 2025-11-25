@@ -13,7 +13,6 @@ jobs:
   # Run Flutter tests
   flutter-test:
     runs-on: [self-hosted, ubuntu-latest]
-
     defaults:
       run:
         working-directory: lam7a
