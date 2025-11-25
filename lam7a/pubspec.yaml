@@ -52,6 +52,8 @@ dependencies:
   shared_preferences: ^2.5.3
   logger: ^2.6.2
   flutter_typing_indicator: ^0.0.4
+  mockito: ^5.5.0
+  build_runner: ^2.7.1
   
 dev_dependencies:
   freezed: ^3.1.0
@@ -68,7 +70,6 @@ dev_dependencies:
 
 
   # Code Generators (used with annotations above)
-  build_runner: ^2.7.1
 
   # Linting & Tooling
   flutter_launcher_icons: ^0.14.4
@@ -91,6 +92,7 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/images/X_splash.png
     # - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

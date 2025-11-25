@@ -23,13 +23,16 @@ class YourAccountSettings extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
+        centerTitle: false,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Your account',
               style: theme.textTheme.titleLarge?.copyWith(
-                color: theme.textTheme.titleLarge?.color,
+                color: theme.brightness == Brightness.light
+                    ? theme.appBarTheme.titleTextStyle!.color
+                    : const Color(0xFFE7E9EA),
                 fontWeight: FontWeight.w500,
                 fontSize: 20,
               ),
@@ -37,11 +40,23 @@ class YourAccountSettings extends ConsumerWidget {
             Text(
               state.username!,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodySmall?.color,
+                color: theme.brightness == Brightness.light
+                    ? const Color(0xFF53636E)
+                    : const Color(0xFF8B98A5),
                 fontSize: 16,
               ),
             ),
           ],
+        ),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(
+            height: 0.5,
+            thickness: 0.5,
+            color: theme.brightness == Brightness.light
+                ? const Color.fromARGB(120, 83, 99, 110)
+                : const Color(0xFF8B98A5),
+          ),
         ),
       ),
       body: Padding(
@@ -56,7 +71,9 @@ class YourAccountSettings extends ConsumerWidget {
               child: Text(
                 'See information about your account, download an archive of your data or learn about your account deactivation options.',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.textTheme.bodySmall?.color,
+                  color: theme.brightness == Brightness.light
+                      ? const Color(0xFF53636E)
+                      : const Color(0xFF8B98A5),
                   height: 1.4,
                 ),
               ),

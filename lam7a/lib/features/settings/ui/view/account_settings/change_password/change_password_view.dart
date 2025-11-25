@@ -20,9 +20,25 @@ class ChangePasswordView extends ConsumerWidget {
       key: const Key("change_password_page"),
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
+        centerTitle: false,
         title: Text(
           username!,
-          style: theme.textTheme.bodySmall!.copyWith(fontSize: 14),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.brightness == Brightness.light
+                ? const Color(0xFF53636E)
+                : const Color(0xFF8B98A5),
+            fontSize: 16,
+          ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(
+            height: 0.5,
+            thickness: 0.5,
+            color: theme.brightness == Brightness.light
+                ? const Color.fromARGB(120, 83, 99, 110)
+                : const Color(0xFF8B98A5),
+          ),
         ),
       ),
       body: Padding(
@@ -33,6 +49,7 @@ class ChangePasswordView extends ConsumerWidget {
             SettingsTextField(
               key: const Key("change_password_current_field"),
               label: 'Current password',
+
               controller: state.currentController,
               onChanged: notifier.updateCurrent,
               obscureText: true,
@@ -63,7 +80,7 @@ class ChangePasswordView extends ConsumerWidget {
               showToggleIcon: true,
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
 
             Center(
               child: FilledButton(
@@ -74,7 +91,7 @@ class ChangePasswordView extends ConsumerWidget {
                       : const Color.fromARGB(151, 29, 156, 240),
                   shape: const StadiumBorder(),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 60,
+                    horizontal: 40,
                     vertical: 14,
                   ),
                 ),
@@ -86,12 +103,11 @@ class ChangePasswordView extends ConsumerWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
+                    fontSize: 16,
                   ),
                 ),
               ),
             ),
-
-            const SizedBox(height: 10),
 
             Center(
               child: TextButton(
@@ -103,8 +119,12 @@ class ChangePasswordView extends ConsumerWidget {
                   );
                 },
                 child: Text(
-                  'Forgot password?',
-                  style: theme.textTheme.bodyMedium!,
+                  'Forgot your password?',
+                  style: TextStyle(
+                    color: theme.brightness == Brightness.light
+                        ? const Color(0xFF53636E)
+                        : const Color(0xFF8B98A5),
+                  ),
                 ),
               ),
             ),

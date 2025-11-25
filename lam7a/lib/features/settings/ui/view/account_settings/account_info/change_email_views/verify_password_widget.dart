@@ -13,13 +13,13 @@ class VerifyPasswordWidget extends ConsumerStatefulWidget {
 class _VerifyPasswordWidgetState extends ConsumerState<VerifyPasswordWidget> {
   late final TextEditingController passwordController;
   bool obscurePassword = true;
+  final FocusNode passwordFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     passwordController = TextEditingController();
 
-    // automatically update the ViewModel on text change
     passwordController.addListener(() {
       ref
           .read(changeEmailProvider.notifier)
@@ -30,13 +30,12 @@ class _VerifyPasswordWidgetState extends ConsumerState<VerifyPasswordWidget> {
   @override
   void dispose() {
     passwordController.dispose();
+    passwordFocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(changeEmailProvider);
-    final vm = ref.read(changeEmailProvider.notifier);
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
 
@@ -45,36 +44,55 @@ class _VerifyPasswordWidgetState extends ConsumerState<VerifyPasswordWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 80),
+          const SizedBox(height: 40),
 
-          // Title
           Text(
             'Verify your password',
             style: textTheme.titleLarge!.copyWith(
-              color: Colors.white,
+              color: theme.brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white,
               fontWeight: FontWeight.bold,
-              fontSize: 24,
+              fontSize: 28,
             ),
           ),
           const SizedBox(height: 10),
 
-          // Subtext
           Text(
             'Re-enter your X password to continue.',
-            style: textTheme.bodyMedium!.copyWith(color: Colors.grey),
+            style: TextStyle(
+              fontSize: 16,
+              color: theme.brightness == Brightness.light
+                  ? const Color(0xFF53636E)
+                  : const Color(0xFF8B98A5),
+            ),
           ),
           const SizedBox(height: 20),
 
-          // 🔑 Password TextField (with your shared widget)
           StatefulBuilder(
             builder: (context, setInnerState) {
+              passwordFocusNode.addListener(() {
+                setInnerState(() {});
+              });
+              final hasFocus = passwordFocusNode.hasFocus;
               return TextFormField(
                 key: const ValueKey("verify_password_textfield"),
                 controller: passwordController,
+                focusNode: passwordFocusNode,
                 obscureText: obscurePassword,
                 decoration: InputDecoration(
-                  hintText: 'Password',
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: theme.brightness == Brightness.light
+                          ? const Color(0xFF4A90E2)
+                          : const Color(0xFF6799FF),
+                      width: 2,
+                    ),
+                  ),
+                  labelText: hasFocus ? "Password" : null,
+                  hintText: hasFocus ? "" : "Password",
                   border: const OutlineInputBorder(),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
                   suffixIcon: IconButton(
                     key: const ValueKey("password_toggle_icon"),
                     icon: Icon(

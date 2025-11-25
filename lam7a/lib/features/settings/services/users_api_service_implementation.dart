@@ -16,7 +16,15 @@ class UsersApiServiceImpl implements UsersApiService {
         endpoint: ServerConstant.mutedUsers,
         fromJson: (data) {
           final list = data['data'] as List<dynamic>;
-          return list.map((json) => UserModel.fromJson(json)).toList();
+          final modifiedList = list.map((json) {
+            if (json.containsKey('displayName')) {
+              json['name'] = json['displayName'];
+              json.remove('displayName');
+            }
+            return UserModel.fromJson(json);
+          }).toList();
+
+          return modifiedList;
         },
       );
       return response;
@@ -33,7 +41,15 @@ class UsersApiServiceImpl implements UsersApiService {
         endpoint: ServerConstant.blockedUsers,
         fromJson: (data) {
           final list = data['data'] as List<dynamic>;
-          return list.map((json) => UserModel.fromJson(json)).toList();
+          final modifiedList = list.map((json) {
+            if (json.containsKey('displayName')) {
+              json['name'] = json['displayName'];
+              json.remove('displayName');
+            }
+            return UserModel.fromJson(json);
+          }).toList();
+
+          return modifiedList;
         },
       );
       return response;

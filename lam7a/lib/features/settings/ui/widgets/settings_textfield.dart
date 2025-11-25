@@ -47,7 +47,7 @@ class _SettingsTextFieldState extends State<SettingsTextField> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final error = widget.validator?.call(widget.controller?.text);
-    final hasError = error != "";
+    final hasError = error != null && error.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,7 +55,13 @@ class _SettingsTextFieldState extends State<SettingsTextField> {
         if (widget.label != null)
           Text(
             widget.label!,
-            style: theme.textTheme.bodySmall!.copyWith(fontSize: 14),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.brightness == Brightness.light
+                  ? const Color(0xFF53636E)
+                  : const Color(0xFF8B98A5),
+              fontSize: 15,
+              height: 0.0,
+            ),
           ),
         TextFormField(
           focusNode: widget.focusNode,
@@ -64,41 +70,66 @@ class _SettingsTextFieldState extends State<SettingsTextField> {
           onChanged: widget.onChanged,
           decoration: InputDecoration(
             hintText: widget.hint,
+            hintStyle: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.brightness == Brightness.light
+                  ? const Color(0xFF53636E)
+                  : const Color(0xFF8B98A5),
+              fontSize: 16,
+            ),
             isDense: true,
             filled: false,
-            errorText: hasError ? error : null,
+            errorText: hasError ? '' : null,
             enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF212426)),
+              borderSide: BorderSide(color: Color(0xFF212426), width: 0.5),
             ),
             focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF4A90E2)),
+              borderSide: BorderSide(color: Color(0xFF4A90E2), width: 2),
             ),
             errorBorder: hasError
                 ? const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.red),
+                    borderSide: BorderSide(color: Colors.red, width: 0.5),
                   )
                 : null,
             focusedErrorBorder: hasError
                 ? const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.redAccent),
+                    borderSide: BorderSide(color: Colors.redAccent, width: 2),
                   )
                 : null,
             contentPadding: const EdgeInsets.symmetric(
               vertical: 8,
               horizontal: 0,
             ),
-
+            errorStyle: TextStyle(
+              color: const Color(0xFFdf3c45),
+              fontSize: 0,
+              height: 1.2, // Add space between error and text field
+            ),
             suffixIcon: widget.showToggleIcon
                 ? IconButton(
                     icon: Icon(
                       _isObscured ? Icons.visibility_off : Icons.visibility,
                       color: Colors.grey,
+                      size: 24,
                     ),
                     onPressed: _toggleVisibility,
                   )
                 : null,
           ),
         ),
+        // Manually display error message below the TextFormField
+        if (hasError)
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0),
+            child: Text(
+              error ?? '',
+              style: TextStyle(
+                color: const Color(0xFFdf3c45),
+                fontSize: 14,
+                height: 1.2, // Ensure error message has enough space
+              ),
+              overflow: TextOverflow.visible, // Make sure it wraps properly
+            ),
+          ),
       ],
     );
   }

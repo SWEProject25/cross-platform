@@ -18,46 +18,54 @@ class StatusUserTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final actionLabel = style == Style.muted ? 'Muted' : 'Blocked';
+    final theme = Theme.of(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1️⃣ Smaller avatar that fits upper half of the tile
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: CircleAvatar(
               backgroundImage: NetworkImage(user.profileImageUrl!),
-              radius: 18, // smaller radius
+              radius: 20,
             ),
           ),
           const SizedBox(width: 12),
 
-          // 2️⃣ + 3️⃣ Expanded text section with wrapping bio
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   user.name!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: theme.brightness == Brightness.light
+                        ? const Color(0xFF0F1418)
+                        : Colors.white,
                     fontSize: 16,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   user.username!,
-                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                  style: TextStyle(
+                    color: theme.brightness == Brightness.light
+                        ? const Color(0xFF7C868E)
+                        : Colors.grey,
+                    fontSize: 13,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   user.bio!,
                   style: TextStyle(
-                    color: Colors.grey.shade200, // 2️⃣ slightly whiter
-                    fontSize: 14, // 2️⃣ bigger font
+                    color: theme.brightness == Brightness.light
+                        ? const Color(0xFF101415)
+                        : const Color(0xFF8B98A5),
+                    fontSize: 14,
                     height: 1.3,
                   ),
                 ),
@@ -66,29 +74,23 @@ class StatusUserTile extends StatelessWidget {
           ),
 
           const SizedBox(width: 12),
-
-          // 4️⃣ Bright red bubbled button (filled, rounded, bold)
-          ElevatedButton(
-            onPressed: onCliked,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(
-                255,
-                247,
-                10,
-                10,
-              ), // bright red fill
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30), // bubbled shape
-              ),
-              elevation: 2,
+          FilledButton(
+            key: const Key("change_password_submit_button"),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFF4222F),
+              shape: const StadiumBorder(),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
             ),
-            child: Text(
-              actionLabel,
-              style: const TextStyle(
-                color: Colors.white, // white text
-                fontSize: 15, // bigger font
-                fontWeight: FontWeight.w500,
+            onPressed: onCliked,
+            child: Container(
+              padding: const EdgeInsets.all(0),
+              child: Text(
+                actionLabel,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
               ),
             ),
           ),

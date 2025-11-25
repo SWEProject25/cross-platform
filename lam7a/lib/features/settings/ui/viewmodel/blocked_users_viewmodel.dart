@@ -12,6 +12,16 @@ class BlockedUsersViewModel extends AsyncNotifier<BlockedUsersState> {
     return BlockedUsersState(blockedUsers: users);
   }
 
+  Future<void> refreshBlockedUsers() async {
+    try {
+      state = const AsyncLoading();
+      final users = await _repo.fetchBlockedUsers();
+      state = AsyncData(BlockedUsersState(blockedUsers: users));
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
   Future<void> unblockUser(int userId) async {
     final previousState = state.asData?.value;
     if (previousState == null) return;
@@ -24,10 +34,8 @@ class BlockedUsersViewModel extends AsyncNotifier<BlockedUsersState> {
           .where((user) => user.id != userId)
           .toList();
 
-      // Keep isLoading false (you can use a separate field if you want a small spinner)
       state = AsyncData(previousState.copyWith(blockedUsers: updatedList));
     } catch (e, st) {
-      // Keep the old data but reflect the error if needed
       state = AsyncError(e, st);
       state = AsyncData(previousState);
     }

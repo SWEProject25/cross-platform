@@ -14,6 +14,7 @@ class PrivacySettingsPage extends StatelessWidget {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.appBarTheme.backgroundColor,
+        centerTitle: false,
         elevation: 0,
         title: Text(
           'Privacy and safety',
