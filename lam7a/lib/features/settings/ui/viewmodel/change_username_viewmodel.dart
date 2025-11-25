@@ -55,13 +55,9 @@ class ChangeUsernameViewModel extends Notifier<ChangeUsernameState> {
         isLoading: false,
       );
     } catch (e) {
-      // Handle error (e.g., show a snackbar)
       print('Error changing username: $e');
       state = state.copyWith(isLoading: false);
     }
-    // 🔗 Update global account provider
-
-    // 🔄 Update local state
   }
 }
 
