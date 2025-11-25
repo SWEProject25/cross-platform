@@ -110,7 +110,12 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                   ),
                   actions: [
                     IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (c) => MainSettingsPage()),
+                        );
+                      },
                       icon: Icon(Icons.settings_outlined),
                     ),
                   ],

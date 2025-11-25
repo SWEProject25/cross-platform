@@ -3,11 +3,11 @@ class UserDtoAuth {
   int userId;
   String name;
   DateTime birthDate;
-  dynamic profileImageUrl;
-  dynamic bannerImageUrl;
-  dynamic bio;
-  dynamic location;
-  dynamic website;
+  String? profileImageUrl;
+  String? bannerImageUrl;
+  String? bio;
+  String? location;
+  String? website;
   bool isDeactivated;
   DateTime createdAt;
   DateTime updatedAt;
@@ -21,7 +21,7 @@ class UserDtoAuth {
     required this.userId,
     required this.name,
     required this.birthDate,
-    required this.profileImageUrl,
+    this.profileImageUrl,
     required this.bannerImageUrl,
     required this.bio,
     required this.location,
@@ -36,6 +36,8 @@ class UserDtoAuth {
   });
 
   factory UserDtoAuth.fromJson(Map<String, dynamic> json) {
+    print("H");
+    print(json);
     return UserDtoAuth(
       id: json['id'],
       userId: json['user_id'],
@@ -49,7 +51,7 @@ class UserDtoAuth {
       isDeactivated: json['is_deactivated'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
-      user: UserDash.fromJson(json['user']),
+      user: UserDash.fromJson(json['User']),
       followersCount: json['followers_count'],
       followingCount: json['following_count'],
       isFollowedByMe: json['is_followed_by_me'],
