@@ -24,7 +24,7 @@ class AuthenticationApiService {
   }
 
   Future<Map<String, dynamic>> verificationOTP(String email) async {
-    return await apiService.post(
+    return await apiService.post
       endpoint: ServerConstant.verificationOTP,
       data: {'email': email},
     );

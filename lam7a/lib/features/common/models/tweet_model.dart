@@ -33,7 +33,7 @@ abstract class  TweetModel with _$TweetModel {
   factory TweetModel.empty() => TweetModel(
         id: '',
         body: '',
-        date: DateTime.now(),
+        date: DateTime.now()
         userId: '',
       );
 
