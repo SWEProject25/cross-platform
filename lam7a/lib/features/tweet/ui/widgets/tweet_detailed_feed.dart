@@ -415,9 +415,10 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
       children: [
         SizedBox(height: 10),
         // date
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        Wrap(
+          alignment: WrapAlignment.start,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
           children: [
             tweet.when(
               data: (tweet) => tweet.value != null ? Padding(
@@ -431,8 +432,8 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
               error: (e ,st)=> Text('Error $e'),
             ),
             Text(
-              ' · ',
-              style:Theme.of(context).textTheme.bodyMedium
+              '·',
+              style:Theme.of(context).textTheme.bodyMedium,
             ),
             tweet.when(
               data: (tweet) => tweet.value != null ? Padding(
@@ -446,8 +447,8 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                error: (e ,st)=> Text('Error $e'),
             ),
             Text(
-              ' · ',
-              style: Theme.of(context).textTheme.bodyMedium
+              '·',
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
             tweet.when(
               data: (tweet) => Padding(
@@ -461,8 +462,8 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                error: (e ,st)=> Text('Error $e'),
             ),
             Text(
-              " Views",
-              style: Theme.of(context).textTheme.bodyMedium
+              "Views",
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
         ),
@@ -478,9 +479,10 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Wrap(
+                alignment: WrapAlignment.start,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 4,
                 children: [
                   tweet.when(
                     data: (tweet) => Padding(
@@ -493,8 +495,7 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                     loading: () => const CircleAvatar(),
                     error: (e, st) => Text('Error $e'),
                   ),
-                  const SizedBox(width: 4),
-                   Text(
+                  Text(
                     "Reposts",
                     style: Theme.of(context).textTheme.bodyMedium
                   ),
@@ -502,9 +503,10 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
               ),
             ),
             Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Wrap(
+                alignment: WrapAlignment.start,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 4,
                 children: [
                   tweet.when(
                     data: (tweet) => Padding(
@@ -517,8 +519,7 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                     loading: () => const CircleAvatar(),
                     error: (e, st) => Text('Error $e'),
                   ),
-                  const SizedBox(width: 4),
-                   Text(
+                  Text(
                     "Quotes",
                     style: Theme.of(context).textTheme.bodyMedium
                   ),
@@ -526,9 +527,10 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
               ),
             ),
             Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Wrap(
+                alignment: WrapAlignment.start,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 4,
                 children: [
                   tweet.when(
                     data: (tweet) => Padding(
@@ -544,7 +546,6 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                     loading: () => const CircleAvatar(),
                     error: (e, st) => Text('Error $e'),
                   ),
-                  const SizedBox(width: 4),
                   Text(
                     "Likes",
                     style: Theme.of(context).textTheme.bodyMedium,
