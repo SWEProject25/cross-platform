@@ -261,7 +261,7 @@ void main() {
 
         verify(
           () => mockRepo.login(
-            AuthenticationUserCredentialsModel(
+            AuthenticationUserCredentialsModel
               email: "far123@example.com",
               password: "Test1234!",
             ),
