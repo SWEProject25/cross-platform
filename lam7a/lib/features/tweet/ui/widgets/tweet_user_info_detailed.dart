@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lam7a/core/widgets/app_user_avatar.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_viewmodel.dart';
+import 'package:lam7a/features/profile/ui/widgets/follow_button.dart';
 
 class TweetUserInfoDetailed extends ConsumerStatefulWidget {
   //need userProvider to check for changes for now i use static data
@@ -30,64 +32,88 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
     // Use user data directly from tweet model (from backend)
     final tweetData = tweet.value!;
     final username = tweetData.username ?? 'unknown';
-    final displayName = (tweetData.authorName != null && tweetData.authorName!.isNotEmpty)
-        ? tweetData.authorName!
-        : username;
+    final displayName =
+        (tweetData.authorName != null && tweetData.authorName!.isNotEmpty)
+            ? tweetData.authorName!
+            : username;
     final String? profileImage = tweetData.authorProfileImage;
-    
+
+    // Load profile via existing viewmodel so we can reuse FollowButton logic
+    final asyncProfile = ref.watch(profileViewModelProvider(username));
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        AppUserAvatar(
-          radius: 25,
-          imageUrl: profileImage,
-          displayName: displayName,
-          username: username,
-        ),
-        const SizedBox(width: 10),
         Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                displayName,
-                style: Theme.of(context).textTheme.bodyLarge,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '@$username',
-                style: Theme.of(context).textTheme.bodyLarge,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pushNamed(
+                '/profile',
+                arguments: {'username': username},
+              );
+            },
+            child: Row(
+              children: [
+                AppUserAvatar(
+                  radius: 25,
+                  imageUrl: profileImage,
+                  displayName: displayName,
+                  username: username,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        displayName,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '@$username',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-       const SizedBox(width: 8),
-       const Spacer(),
-    Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade400),
-      ),
-      child: TextButton(
-        onPressed: () {},
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 2), // slimmer vertically
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+        const SizedBox(width: 8),
+        asyncProfile.when(
+          data: (profile) => FollowButton(initialProfile: profile),
+          loading: () => OutlinedButton(
+            onPressed: null,
+            style: OutlinedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            ),
+            child: const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
           ),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap, // avoids extra height
-          minimumSize: Size.zero, // removes default min constraints
+          error: (e, _) => OutlinedButton(
+            onPressed: null,
+            style: OutlinedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            ),
+            child: const Text('Follow'),
+          ),
         ),
-        child: const Text("Follow"),
-      ),
-    ),
       ],
     );
   }

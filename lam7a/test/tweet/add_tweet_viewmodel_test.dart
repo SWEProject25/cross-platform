@@ -1,264 +1,193 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lam7a/features/add_tweet/ui/viewmodel/add_tweet_viewmodel.dart';
-import 'package:lam7a/features/add_tweet/ui/state/add_tweet_state.dart';
+import 'package:lam7a/core/models/auth_state.dart';
+import 'package:lam7a/core/models/user_model.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/add_tweet/services/add_tweet_api_service.dart';
 import 'package:lam7a/features/add_tweet/services/add_tweet_api_service_impl.dart';
+import 'package:lam7a/features/add_tweet/ui/state/add_tweet_state.dart';
+import 'package:lam7a/features/add_tweet/ui/viewmodel/add_tweet_viewmodel.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_home_viewmodel.dart';
 import 'package:mocktail/mocktail.dart';
 
-extension _CompatAddTweetStateX on AddTweetState {
-  String? get mediaPicPath =>
-      mediaPicPaths.isNotEmpty ? mediaPicPaths.last : null;
-}
-
-extension _CompatAddTweetViewmodelX on AddTweetViewmodel {
-  void updateMediaPic(String path) {
-    addMediaPic(path);
-  }
-
-  void removeMediaPic() {
-    if (state.mediaPicPaths.isEmpty) return;
-    removeMediaPicAt(state.mediaPicPaths.length - 1);
-  }
-}
-
-/// ---- MOCK CLASSES ----
 class MockAddTweetApiService extends Mock implements AddTweetApiService {}
+
+class FakeTweetHomeViewModel extends TweetHomeViewModel {
+  final List<TweetModel> upsertedTweets = [];
+
+  @override
+  Future<Map<String, List<TweetModel>>> build() async {
+    return {
+      'for-you': <TweetModel>[],
+    };
+  }
+
+  @override
+  void upsertTweetLocally(TweetModel tweet) {
+    upsertedTweets.add(tweet);
+  }
+}
+
+class FakeAuthentication extends Authentication {
+  @override
+  AuthState build() {
+    return AuthState(
+      user: const UserModel(
+        id: 10,
+        username: 'alice',
+        name: 'Alice',
+        profileImageUrl: 'avatar.png',
+      ),
+      isAuthenticated: true,
+    );
+  }
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late ProviderContainer container;
   late MockAddTweetApiService mockApiService;
+  late FakeTweetHomeViewModel fakeHomeVm;
 
-  final testTweet = TweetModel(
-    id: '1',
-    body: 'Test tweet content',
-    mediaPic: null,
-    mediaVideo: null,
-    date: DateTime(2025, 10, 30),
-    likes: 0,
-    qoutes: 0,
-    bookmarks: 0,
-    repost: 0,
-    comments: 0,
-    views: 0,
-    userId: 'user123',
+  final baseTweet = TweetModel(
+    id: 't1',
+    body: 'hello',
+    date: DateTime(2025, 1, 1),
+    userId: 'u1',
   );
 
   setUp(() {
     mockApiService = MockAddTweetApiService();
+
     container = ProviderContainer(
       overrides: [
-        addTweetApiServiceProvider.overrideWith((ref) => mockApiService),
+        addTweetApiServiceProvider.overrideWithValue(mockApiService),
+        tweetHomeViewModelProvider.overrideWith(FakeTweetHomeViewModel.new),
       ],
     );
+
+    fakeHomeVm = container.read(
+      tweetHomeViewModelProvider.notifier,
+    ) as FakeTweetHomeViewModel;
   });
 
   tearDown(() {
     container.dispose();
   });
 
-  group('AddTweetViewmodel - Initial State', () {
-    test('should initialize with empty state', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      final state = viewModel.state;
+  group('AddTweetViewmodel', () {
+    test('initial state is default AddTweetState', () {
+      final state = container.read(addTweetViewmodelProvider);
+      expect(state, const AddTweetState());
+    });
 
-      expect(state.body, equals(''));
+    test('updateBody validates content length and clears error', () {
+      final vm = container.read(addTweetViewmodelProvider.notifier);
+
+      // Invalid (only whitespace)
+      vm.updateBody('   ');
+      var state = container.read(addTweetViewmodelProvider);
+      expect(state.body, '   ');
       expect(state.isValidBody, false);
-      expect(state.isLoading, false);
-      expect(state.mediaPicPath, isNull);
-      expect(state.mediaVideoPath, isNull);
       expect(state.errorMessage, isNull);
-      expect(state.isTweetPosted, false);
-    });
-  });
 
-  group('AddTweetViewmodel - Body Validation', () {
-    test('should update body and validate correctly for valid input', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      viewModel.updateBody('Hello world');
-      
-      expect(viewModel.state.body, equals('Hello world'));
-      expect(viewModel.state.isValidBody, true);
-      expect(viewModel.state.errorMessage, isNull);
-    });
+      // Valid body
+      vm.updateBody('Hello');
+      state = container.read(addTweetViewmodelProvider);
+      expect(state.body, 'Hello');
+      expect(state.isValidBody, true);
+      expect(state.errorMessage, isNull);
 
-    test('should invalidate empty body', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      viewModel.updateBody('');
-      
-      expect(viewModel.state.body, equals(''));
-      expect(viewModel.state.isValidBody, false);
+      // Too long body
+      final longBody = 'a' * (AddTweetViewmodel.maxBodyLength + 1);
+      vm.updateBody(longBody);
+      state = container.read(addTweetViewmodelProvider);
+      expect(state.isValidBody, false);
     });
 
-    test('should invalidate body with only whitespace', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      viewModel.updateBody('   ');
-      
-      expect(viewModel.state.body, equals('   '));
-      expect(viewModel.state.isValidBody, false);
+    test('addMediaPic respects maxMediaImages', () {
+      final vm = container.read(addTweetViewmodelProvider.notifier);
+
+      for (var i = 0; i < AddTweetViewmodel.maxMediaImages + 2; i++) {
+        vm.addMediaPic('path_$i');
+      }
+
+      final state = container.read(addTweetViewmodelProvider);
+      expect(state.mediaPicPaths.length, AddTweetViewmodel.maxMediaImages);
+      expect(state.mediaPicPaths.first, 'path_0');
+      expect(state.mediaPicPaths.last, 'path_3');
     });
 
-    test('should validate body at minimum length (1 character)', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      viewModel.updateBody('A');
-      
-      expect(viewModel.state.body, equals('A'));
-      expect(viewModel.state.isValidBody, true);
+    test('removeMediaPicAt ignores invalid indexes and removes valid index', () {
+      final vm = container.read(addTweetViewmodelProvider.notifier);
+      vm.addMediaPic('a');
+      vm.addMediaPic('b');
+      vm.addMediaPic('c');
+
+      // Invalid indexes
+      vm.removeMediaPicAt(-1);
+      vm.removeMediaPicAt(3);
+      var state = container.read(addTweetViewmodelProvider);
+      expect(state.mediaPicPaths, ['a', 'b', 'c']);
+
+      // Valid index
+      vm.removeMediaPicAt(1);
+      state = container.read(addTweetViewmodelProvider);
+      expect(state.mediaPicPaths, ['a', 'c']);
     });
 
-    test('should validate body at maximum length (280 characters)', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      final maxLengthBody = 'A' * 280;
-      
-      viewModel.updateBody(maxLengthBody);
-      
-      expect(viewModel.state.body, equals(maxLengthBody));
-      expect(viewModel.state.isValidBody, true);
+    test('updateMediaVideo and removeMediaVideo update state', () {
+      final vm = container.read(addTweetViewmodelProvider.notifier);
+
+      vm.updateMediaVideo('video.mp4');
+      var state = container.read(addTweetViewmodelProvider);
+      expect(state.mediaVideoPath, 'video.mp4');
+
+      vm.removeMediaVideo();
+      state = container.read(addTweetViewmodelProvider);
+      expect(state.mediaVideoPath, isNull);
     });
 
-    test('should invalidate body exceeding maximum length', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      final tooLongBody = 'A' * 281;
-      
-      viewModel.updateBody(tooLongBody);
-      
-      expect(viewModel.state.body, equals(tooLongBody));
-      expect(viewModel.state.isValidBody, false);
-    });
-  });
+    test('canPostTweet depends on isValidBody and isLoading', () {
+      final vm = container.read(addTweetViewmodelProvider.notifier);
 
-  group('AddTweetViewmodel - Media Management', () {
-    test('should update media pic path', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      const picPath = '/path/to/image.jpg';
-      
-      viewModel.updateMediaPic(picPath);
-      
-      expect(viewModel.state.mediaPicPath, equals(picPath));
+      // Initially invalid
+      expect(vm.canPostTweet(), false);
+
+      vm.updateBody('Valid body');
+      expect(container.read(addTweetViewmodelProvider).isValidBody, true);
+      expect(vm.canPostTweet(), true);
+
+      // When loading, cannot post
+      vm.state = vm.state.copyWith(isLoading: true);
+      expect(vm.canPostTweet(), false);
     });
 
-    test('should update media video path', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      const videoPath = '/path/to/video.mp4';
-      
-      viewModel.updateMediaVideo(videoPath);
-      
-      expect(viewModel.state.mediaVideoPath, equals(videoPath));
+    test('setReplyTo and setQuoteTo configure post type and parent id', () {
+      final vm = container.read(addTweetViewmodelProvider.notifier);
+
+      vm.setReplyTo(42);
+      var state = container.read(addTweetViewmodelProvider);
+      expect(state.parentPostId, 42);
+      expect(state.postType, 'REPLY');
+
+      vm.setQuoteTo(99);
+      state = container.read(addTweetViewmodelProvider);
+      expect(state.parentPostId, 99);
+      expect(state.postType, 'QUOTE');
     });
 
-    test('should remove media pic', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      // First set a path
-      viewModel.updateMediaPic('/path/to/image.jpg');
-      expect(viewModel.state.mediaPicPath, isNotNull);
-      
-      // Then remove it
-      viewModel.removeMediaPic();
-      expect(viewModel.state.mediaPicPath, isNull);
-    });
+    test('postTweet with invalid body sets error and does not call API', () async {
+      final vm = container.read(addTweetViewmodelProvider.notifier);
 
-    test('should remove media video', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      // First set a path
-      viewModel.updateMediaVideo('/path/to/video.mp4');
-      expect(viewModel.state.mediaVideoPath, isNotNull);
-      
-      // Then remove it
-      viewModel.removeMediaVideo();
-      expect(viewModel.state.mediaVideoPath, isNull);
-    });
+      // Body is empty and invalid by default
+      await vm.postTweet();
+      final state = container.read(addTweetViewmodelProvider);
 
-    test('should handle both media types simultaneously', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      viewModel.updateMediaPic('/path/to/image.jpg');
-      viewModel.updateMediaVideo('/path/to/video.mp4');
-      
-      expect(viewModel.state.mediaPicPath, equals('/path/to/image.jpg'));
-      expect(viewModel.state.mediaVideoPath, equals('/path/to/video.mp4'));
-    });
-  });
-
-  group('AddTweetViewmodel - Can Post Tweet', () {
-    test('should allow posting when body is valid and not loading', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      viewModel.updateBody('Valid tweet content');
-      
-      expect(viewModel.canPostTweet(), true);
-    });
-
-    test('should not allow posting when body is invalid', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      viewModel.updateBody('');
-      
-      expect(viewModel.canPostTweet(), false);
-    });
-
-    test('should not allow posting when already loading', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      viewModel.updateBody('Valid tweet content');
-      // Manually set loading state for testing
-      viewModel.state = viewModel.state.copyWith(isLoading: true);
-      
-      expect(viewModel.canPostTweet(), false);
-    });
-  });
-  group('AddTweetViewmodel - Post Tweet', () {
-    test('should successfully post tweet without media', () async {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-
-      viewModel.updateBody('Test tweet content');
-
-      when(() => mockApiService.createTweet(
-            userId: any(named: 'userId'),
-            content: any(named: 'content'),
-            mediaPicPaths: any(named: 'mediaPicPaths'),
-            mediaVideoPath: any(named: 'mediaVideoPath'),
-            type: any(named: 'type'),
-            parentPostId: any(named: 'parentPostId'),
-          )).thenAnswer((_) async => testTweet);
-
-      await viewModel.postTweet();
-
-      expect(viewModel.state.isLoading, false);
-      expect(viewModel.state.isTweetPosted, true);
-      expect(viewModel.state.errorMessage, isNull);
-
-      verify(() => mockApiService.createTweet(
-            userId: 1,
-            content: 'Test tweet content',
-            mediaPicPaths: any(named: 'mediaPicPaths'),
-            mediaVideoPath: null,
-            type: 'POST',
-            parentPostId: null,
-          )).called(1);
-    });
-
-    test('should not post when body is invalid', () async {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-
-      viewModel.updateBody('');
-
-      await viewModel.postTweet();
-
-      expect(viewModel.state.isLoading, false);
-      expect(viewModel.state.isTweetPosted, false);
-      expect(
-        viewModel.state.errorMessage,
-        equals('Please enter valid tweet content'),
-      );
+      expect(state.errorMessage, 'Please enter valid tweet content');
+      expect(state.isLoading, false);
 
       verifyNever(() => mockApiService.createTweet(
             userId: any(named: 'userId'),
@@ -270,32 +199,11 @@ void main() {
           ));
     });
 
-    test('should handle API error gracefully', () async {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
+    test('postTweet posts reply and skips home timeline upsert', () async {
+      final vm = container.read(addTweetViewmodelProvider.notifier);
 
-      viewModel.updateBody('Test tweet');
-
-      when(() => mockApiService.createTweet(
-            userId: any(named: 'userId'),
-            content: any(named: 'content'),
-            mediaPicPaths: any(named: 'mediaPicPaths'),
-            mediaVideoPath: any(named: 'mediaVideoPath'),
-            type: any(named: 'type'),
-            parentPostId: any(named: 'parentPostId'),
-          )).thenThrow(Exception('Network error'));
-
-      await viewModel.postTweet();
-
-      expect(viewModel.state.isLoading, false);
-      expect(viewModel.state.isTweetPosted, false);
-      expect(viewModel.state.errorMessage, contains('Failed to post tweet'));
-    });
-
-    test('should set loading state during API call', () async {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-
-      viewModel.updateBody('Test tweet');
-      var loadingStateObserved = false;
+      vm.updateBody('Reply body');
+      vm.setReplyTo(7);
 
       when(() => mockApiService.createTweet(
             userId: any(named: 'userId'),
@@ -304,77 +212,132 @@ void main() {
             mediaVideoPath: any(named: 'mediaVideoPath'),
             type: any(named: 'type'),
             parentPostId: any(named: 'parentPostId'),
-          )).thenAnswer((_) async {
-        loadingStateObserved = viewModel.state.isLoading;
-        return testTweet;
-      });
+          )).thenAnswer((_) async => baseTweet);
 
-      await viewModel.postTweet();
+      await vm.postTweet();
 
-      expect(loadingStateObserved, true);
-      expect(viewModel.state.isLoading, false);
-    });
-  });
+      final state = container.read(addTweetViewmodelProvider);
+      expect(state.isLoading, false);
+      expect(state.isTweetPosted, true);
+      expect(state.errorMessage, isNull);
 
-  group('AddTweetViewmodel - Reset State', () {
-    test('should reset state after modifications', () async {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-
-      viewModel.updateBody('Test tweet');
-      viewModel.updateMediaVideo('/path/to/video.mp4');
-      viewModel.updateMediaPic('/path/to/image.jpg');
-
-      viewModel.reset();
-
-      expect(viewModel.state, const AddTweetState());
-    });
-  });
-
-  group('AddTweetViewmodel - Edge Cases', () {
-    test('should handle null userId gracefully', () async {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-
-      viewModel.updateBody('Test tweet');
-      when(() => mockApiService.createTweet(
-            userId: any(named: 'userId'),
-            content: any(named: 'content'),
-            mediaPicPaths: any(named: 'mediaPicPaths'),
-            mediaVideoPath: any(named: 'mediaVideoPath'),
-            type: any(named: 'type'),
-            parentPostId: any(named: 'parentPostId'),
-          )).thenAnswer((_) async => testTweet);
-
-      await viewModel.postTweet();
-
+      // Uses fallback user id 1 when not authenticated
       verify(() => mockApiService.createTweet(
             userId: 1,
-            content: 'Test tweet',
+            content: 'Reply body',
+            mediaPicPaths: const <String>[],
+            mediaVideoPath: null,
+            type: 'REPLY',
+            parentPostId: 7,
+          )).called(1);
+
+      // Replies should not be injected into home timeline
+      expect(fakeHomeVm.upsertedTweets, isEmpty);
+    });
+
+    test('postTweet for POST injects tweet into home timeline using authenticated user',
+        () async {
+      // Recreate container with authenticated user override
+      container.dispose();
+      mockApiService = MockAddTweetApiService();
+
+      container = ProviderContainer(
+        overrides: [
+          addTweetApiServiceProvider.overrideWithValue(mockApiService),
+          tweetHomeViewModelProvider.overrideWith(FakeTweetHomeViewModel.new),
+          authenticationProvider.overrideWith(FakeAuthentication.new),
+        ],
+      );
+
+      fakeHomeVm = container.read(
+        tweetHomeViewModelProvider.notifier,
+      ) as FakeTweetHomeViewModel;
+
+      final vm = container.read(addTweetViewmodelProvider.notifier);
+
+      vm.updateBody('Hello world');
+
+      final backendTweet = baseTweet.copyWith(body: 'Hello world');
+
+      when(() => mockApiService.createTweet(
+            userId: any(named: 'userId'),
+            content: any(named: 'content'),
             mediaPicPaths: any(named: 'mediaPicPaths'),
+            mediaVideoPath: any(named: 'mediaVideoPath'),
+            type: any(named: 'type'),
+            parentPostId: any(named: 'parentPostId'),
+          )).thenAnswer((_) async => backendTweet);
+
+      await vm.postTweet();
+
+      // Should use authenticated user id
+      verify(() => mockApiService.createTweet(
+            userId: 10,
+            content: 'Hello world',
+            mediaPicPaths: const <String>[],
             mediaVideoPath: null,
             type: 'POST',
             parentPostId: null,
           )).called(1);
+
+      // Home timeline should receive tweet enriched with authenticated user info
+      expect(fakeHomeVm.upsertedTweets, hasLength(1));
+      final injected = fakeHomeVm.upsertedTweets.single;
+      expect(injected.username, 'alice');
+      expect(injected.authorName, 'Alice');
+      expect(injected.authorProfileImage, 'avatar.png');
     });
 
-    test('should handle special characters in body', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      const specialBody = 'Test with emojis 😀🎉 and symbols #hashtag @mention';
-      
-      viewModel.updateBody(specialBody);
-      
-      expect(viewModel.state.body, equals(specialBody));
-      expect(viewModel.state.isValidBody, true);
+    test('postTweet handles API error and sets error message', () async {
+      final vm = container.read(addTweetViewmodelProvider.notifier);
+
+      vm.updateBody('Body that will fail');
+      vm.setReplyTo(5);
+
+      when(() => mockApiService.createTweet(
+            userId: any(named: 'userId'),
+            content: any(named: 'content'),
+            mediaPicPaths: any(named: 'mediaPicPaths'),
+            mediaVideoPath: any(named: 'mediaVideoPath'),
+            type: any(named: 'type'),
+            parentPostId: any(named: 'parentPostId'),
+          )).thenThrow(Exception('network error'));
+
+      await vm.postTweet();
+
+      final state = container.read(addTweetViewmodelProvider);
+      expect(state.isLoading, false);
+      expect(state.isTweetPosted, false);
+      expect(state.errorMessage, contains('Failed to post tweet'));
+
+      // On error, home timeline must not be updated
+      expect(fakeHomeVm.upsertedTweets, isEmpty);
     });
 
-    test('should handle multiple rapid updates', () {
-      final viewModel = container.read(addTweetViewmodelProvider.notifier);
-      
-      viewModel.updateBody('First');
-      viewModel.updateBody('Second');
-      viewModel.updateBody('Third');
-      
-      expect(viewModel.state.body, equals('Third'));
-      expect(viewModel.state.isValidBody, true);
+    test('reset clears state back to defaults', () {
+      final vm = container.read(addTweetViewmodelProvider.notifier);
+
+      vm.updateBody('Some body');
+      vm.addMediaPic('path');
+      vm.updateMediaVideo('video.mp4');
+
+      vm.reset();
+
+      final state = container.read(addTweetViewmodelProvider);
+      expect(state, const AddTweetState());
+    });
+
+    test('character count helpers report correct values', () {
+      final vm = container.read(addTweetViewmodelProvider.notifier);
+
+      vm.updateBody('abcd');
+
+      final count = vm.getCharacterCount();
+      final remaining = vm.getRemainingCharacters();
+
+      expect(count, 4);
+      expect(remaining, AddTweetViewmodel.maxBodyLength - 4);
     });
   });
 }
+

@@ -64,7 +64,6 @@ class _TextInputFieldState extends State<TextInputField> {
               children: [
                 Container(
                   child: TextFormField(
-                    key: widget.key,
                     style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold),
                     enabled: widget.enabled,
                     onChanged: (value) {

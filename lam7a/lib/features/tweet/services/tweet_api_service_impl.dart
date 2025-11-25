@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:lam7a/core/api/api_config.dart';
+import 'package:lam7a/core/constants/server_constant.dart';
 import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/services/tweet_api_service.dart';
@@ -12,7 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class TweetsApiServiceImpl implements TweetsApiService {
   final ApiService _apiService;
   final PostInteractionsService _interactionsService;
-  
+
   // Store interaction flags from backend responses
   final Map<String, Map<String, bool>> _interactionFlags = {};
   // Store per-tweet local views override (e.g., after client-side increments)
@@ -21,33 +22,34 @@ class TweetsApiServiceImpl implements TweetsApiService {
   static const String _viewsStorageKey = 'tweet_views_overrides';
   bool _isInitialized = false;
 
-  TweetsApiServiceImpl({
-    required ApiService apiService,
-  })  : _apiService = apiService,
-        _interactionsService = PostInteractionsService(apiService) {
+  TweetsApiServiceImpl({required ApiService apiService})
+    : _apiService = apiService,
+      _interactionsService = PostInteractionsService(apiService) {
     // Start loading flags in background (don't await in constructor)
     _loadStoredFlags();
   }
-  
+
   /// Load interaction flags from SharedPreferences
   Future<void> _loadStoredFlags() async {
     if (_isInitialized) return;
-    
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final stored = prefs.getString(_storageKey);
-      
+
       if (stored != null && stored.isNotEmpty) {
         final decoded = jsonDecode(stored) as Map<String, dynamic>;
         _interactionFlags.clear();
-        
+
         decoded.forEach((key, value) {
           if (value is Map) {
             _interactionFlags[key] = Map<String, bool>.from(value);
           }
         });
-        
-        print('💾 Loaded ${_interactionFlags.length} stored interaction flags from disk');
+
+        print(
+          '💾 Loaded ${_interactionFlags.length} stored interaction flags from disk',
+        );
       }
 
       // Load stored views overrides
@@ -62,16 +64,18 @@ class TweetsApiServiceImpl implements TweetsApiService {
           }
         });
 
-        print('💾 Loaded ${_localViews.length} stored view overrides from disk');
+        print(
+          '💾 Loaded ${_localViews.length} stored view overrides from disk',
+        );
       }
-      
+
       _isInitialized = true;
     } catch (e) {
       print('⚠️ Error loading stored flags: $e');
       _isInitialized = true;
     }
   }
-  
+
   /// Save interaction flags to SharedPreferences
   Future<void> _saveStoredFlags() async {
     try {
@@ -80,12 +84,14 @@ class TweetsApiServiceImpl implements TweetsApiService {
       await prefs.setString(_storageKey, encodedFlags);
       final encodedViews = jsonEncode(_localViews);
       await prefs.setString(_viewsStorageKey, encodedViews);
-      print('💾 Saved ${_interactionFlags.length} interaction flags and ${_localViews.length} view overrides to disk');
+      print(
+        '💾 Saved ${_interactionFlags.length} interaction flags and ${_localViews.length} view overrides to disk',
+      );
     } catch (e) {
       print('⚠️ Error saving flags: $e');
     }
   }
-  
+
   /// Get interaction flags for a tweet (isLikedByMe, isRepostedByMe)
   @override
   Future<Map<String, bool>?> getInteractionFlags(String tweetId) async {
@@ -95,7 +101,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
     }
     return _interactionFlags[tweetId];
   }
-  
+
   /// Update interaction flags after a toggle operation
   @override
   void updateInteractionFlag(String tweetId, String flagName, bool value) {
@@ -104,7 +110,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
     }
     _interactionFlags[tweetId]![flagName] = value;
     print('   🔄 Updated $flagName for tweet $tweetId: $value');
-    
+
     // Persist to disk
     _saveStoredFlags();
   }
@@ -121,25 +127,23 @@ class TweetsApiServiceImpl implements TweetsApiService {
     _localViews[tweetId] = views;
     _saveStoredFlags();
   }
-  
+
   @override
-  Future<List<TweetModel>> getAllTweets() async {
+  Future<List<TweetModel>> getAllTweets(int limit, int page) async {
     // Ensure flags are loaded before fetching tweets
     if (!_isInitialized) {
       await _loadStoredFlags();
     }
-    
+
     try {
-      final url = '${ApiConfig.currentBaseUrl}${ApiConfig.postsEndpoint}/timeline/for-you';
+      final url =
+          '${ApiConfig.currentBaseUrl}${ApiConfig.postsEndpoint}/timeline/for-you';
       print('📥 Fetching For You feed from backend...');
       print('   URL: $url');
 
       final response = await _apiService.get<Map<String, dynamic>>(
         endpoint: '${ApiConfig.postsEndpoint}/timeline/for-you',
-        queryParameters: {
-          'limit': 100,
-          'page': 1,
-        },
+        queryParameters: {'limit': limit, 'page': page},
       );
 
       // Backend returns: { status, message, data: { posts: [...] } }
@@ -154,20 +158,19 @@ class TweetsApiServiceImpl implements TweetsApiService {
         if (raw is! Map) continue;
         final json = raw as Map;
 
-        final tweetId = (json['postId'] ?? json['id'] ??
-                DateTime.now().millisecondsSinceEpoch)
-            .toString();
+        final tweetId =
+            (json['postId'] ??
+                    json['id'] ??
+                    DateTime.now().millisecondsSinceEpoch)
+                .toString();
 
         // Basic user info
         final username = json['username']?.toString();
         final authorName = json['name']?.toString();
         final authorProfileImage = json['avatar']?.toString();
 
-        int parseInt(dynamic v) => v == null
-            ? 0
-            : (v is int
-                ? v
-                : int.tryParse(v.toString()) ?? 0);
+        int parseInt(dynamic v) =>
+            v == null ? 0 : (v is int ? v : int.tryParse(v.toString()) ?? 0);
 
         // Counts from feed
         final likes = parseInt(json['likesCount']);
@@ -186,12 +189,12 @@ class TweetsApiServiceImpl implements TweetsApiService {
         if (original is Map) {
           final o = original;
 
-          final originalId = (o['postId'] ?? o['id'] ??
-                  DateTime.now().millisecondsSinceEpoch)
-              .toString();
+          final originalId =
+              (o['postId'] ?? o['id'] ?? DateTime.now().millisecondsSinceEpoch)
+                  .toString();
 
-          final originalUserId =
-              (o['userId'] ?? o['user_id'] ?? '0').toString();
+          final originalUserId = (o['userId'] ?? o['user_id'] ?? '0')
+              .toString();
 
           final rawDate = o['date'] ?? o['createdAt'] ?? o['created_at'];
           String originalDateString;
@@ -265,8 +268,11 @@ class TweetsApiServiceImpl implements TweetsApiService {
           'id': tweetId,
           'userId': (json['userId'] ?? json['user_id'] ?? '0').toString(),
           'body': (json['text'] ?? json['content'] ?? '').toString(),
-          'date': (json['date'] ?? json['createdAt'] ?? DateTime.now().toIso8601String())
-              .toString(),
+          'date':
+              (json['date'] ??
+                      json['createdAt'] ??
+                      DateTime.now().toIso8601String())
+                  .toString(),
           'username': username,
           'authorName': authorName,
           'authorProfileImage': authorProfileImage,
@@ -306,10 +312,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
       try {
         final profileResponse = await _apiService.get<Map<String, dynamic>>(
           endpoint: '${ApiConfig.postsEndpoint}/profile/me',
-          queryParameters: {
-            'limit': 50,
-            'page': 1,
-          },
+          queryParameters: {'limit': 50, 'page': 1},
         );
 
         final profileData = profileResponse['data'];
@@ -358,13 +361,12 @@ class TweetsApiServiceImpl implements TweetsApiService {
               try {
                 final parentTweet = await getTweetById(parentId);
                 enhancedProfileTweets.add(
-                  tweet.copyWith(
-                    isQuote: true,
-                    originalTweet: parentTweet,
-                  ),
+                  tweet.copyWith(isQuote: true, originalTweet: parentTweet),
                 );
               } catch (e) {
-                print('⚠️ Error fetching parent tweet $parentId for quote ${tweet.id}: $e');
+                print(
+                  '⚠️ Error fetching parent tweet $parentId for quote ${tweet.id}: $e',
+                );
                 enhancedProfileTweets.add(tweet);
               }
             } else {
@@ -385,197 +387,200 @@ class TweetsApiServiceImpl implements TweetsApiService {
       rethrow;
     }
   }
-  
+
   @override
   Future<TweetModel> getTweetById(String id) async {
     try {
-
-      
       final response = await _apiService.get<Map<String, dynamic>>(
         endpoint: '${ApiConfig.postsEndpoint}/$id',
       );
-      
+
       final json = response['data'];
-        // Map backend fields to frontend model
-        final tweetId = json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString();
-        
+      // Map backend fields to frontend model
+      final tweetId =
+          json['id']?.toString() ??
+          DateTime.now().millisecondsSinceEpoch.toString();
 
-        
-        // Parse user data from nested User/Profile structure
-        String? username;
-        String? authorName;
-        String? authorProfileImage;
-        
-        // Check if User object exists (nested structure from backend)
-        if (json['User'] != null && json['User'] is Map) {
-          final user = json['User'] as Map;
+      // Parse user data from nested User/Profile structure
+      String? username;
+      String? authorName;
+      String? authorProfileImage;
 
-          username = user['username']?.toString();
-          
-          // Check for nested Profile
-          if (user['Profile'] != null && user['Profile'] is Map) {
-            final profile = user['Profile'] as Map;
+      // Check if User object exists (nested structure from backend)
+      if (json['User'] != null && json['User'] is Map) {
+        final user = json['User'] as Map;
 
-            authorName = profile['name']?.toString();
-            authorProfileImage = profile['profile_image_url']?.toString();
-          }
-        } else {
-          // Flat structure (fallback)
+        username = user['username']?.toString();
 
-          username = json['username']?.toString();
-          authorName = json['authorName']?.toString();
-          authorProfileImage = json['authorProfileImage']?.toString();
+        // Check for nested Profile
+        if (user['Profile'] != null && user['Profile'] is Map) {
+          final profile = user['Profile'] as Map;
+
+          authorName = profile['name']?.toString();
+          authorProfileImage = profile['profile_image_url']?.toString();
         }
+      } else {
+        // Flat structure (fallback)
 
-        // Fallback avatar field used by some endpoints (e.g. transformed feeds)
-        authorProfileImage ??= json['avatar']?.toString();
+        username = json['username']?.toString();
+        authorName = json['authorName']?.toString();
+        authorProfileImage = json['authorProfileImage']?.toString();
+      }
 
-        int parseInt(dynamic v) => v == null ? 0 : int.tryParse(v.toString()) ?? 0;
+      // Fallback avatar field used by some endpoints (e.g. transformed feeds)
+      authorProfileImage ??= json['avatar']?.toString();
 
-        // Engagement counts coming directly from backend
-        int likes = 0;
-        int reposts = 0;
-        int comments = 0;
-        int views = 0;
-        int quotes = 0;
-        int bookmarks = 0;
+      int parseInt(dynamic v) =>
+          v == null ? 0 : int.tryParse(v.toString()) ?? 0;
 
-        final countData = json['_count'];
-        if (countData is Map) {
-          likes = parseInt(countData['likes']);
-          reposts = parseInt(countData['repostedBy']);
-          comments = parseInt(countData['Replies']);
-        }
+      // Engagement counts coming directly from backend
+      int likes = 0;
+      int reposts = 0;
+      int comments = 0;
+      int views = 0;
+      int quotes = 0;
+      int bookmarks = 0;
 
-        likes = parseInt(json['likes'] ?? likes);
-        reposts = parseInt(json['repost'] ?? json['reposts'] ?? reposts);
-        comments = parseInt(json['comments'] ?? comments);
-        views = parseInt(json['views'] ?? json['viewsCount'] ?? views);
-        quotes = parseInt(json['qoutes'] ?? json['quotes'] ?? quotes);
-        bookmarks = parseInt(json['bookmarks'] ?? bookmarks);
+      final countData = json['_count'];
+      if (countData is Map) {
+        likes = parseInt(countData['likes']);
+        reposts = parseInt(countData['repostedBy']);
+        comments = parseInt(countData['Replies']);
+      }
 
-        final mappedJson = <String, dynamic>{
-          'id': tweetId,
-          'userId': (json['user_id'] ?? json['userId'])?.toString() ?? '0',
-          'body': (json['content'] ?? json['body'] ?? '').toString(),
-          'date': (json['createdAt'] ?? json['created_at'] ?? json['date'] ?? DateTime.now().toIso8601String()).toString(),
-          // User information from backend
-          'username': username,
-          'authorName': authorName,
-          'authorProfileImage': authorProfileImage,
-          // Engagement counts from backend
-          'likes': likes,
-          'repost': reposts,
-          'comments': comments,
-          'views': views,
-          'qoutes': quotes,
-          'bookmarks': bookmarks,
-          // User interaction flags from backend
-          'isLikedByMe': json['isLikedByMe'] ?? false,
-          'isRepostedByMe': json['isRepostedByMe'] ?? false,
-        };
-        
-        
-        // Parse media from backend - supporting multiple formats
-        final imageUrls = <String>[];
-        final videoUrls = <String>[];
-        
-        // Format 1: media array with type info (from getPostById)
-        if (json['media'] != null && json['media'] is List && (json['media'] as List).isNotEmpty) {
-          final mediaArray = json['media'] as List;
+      likes = parseInt(json['likes'] ?? likes);
+      reposts = parseInt(json['repost'] ?? json['reposts'] ?? reposts);
+      comments = parseInt(json['comments'] ?? comments);
+      views = parseInt(json['views'] ?? json['viewsCount'] ?? views);
+      quotes = parseInt(json['qoutes'] ?? json['quotes'] ?? quotes);
+      bookmarks = parseInt(json['bookmarks'] ?? bookmarks);
 
-          
-          for (final mediaItem in mediaArray) {
-            final url = mediaItem['media_url']?.toString();
-            final type = mediaItem['type']?.toString();
-            
-            if (url != null && url.isNotEmpty) {
-             
-              if (type == 'VIDEO') {
-                videoUrls.add(url);
-              } else {
-                imageUrls.add(url);
-              }
+      final mappedJson = <String, dynamic>{
+        'id': tweetId,
+        'userId': (json['user_id'] ?? json['userId'])?.toString() ?? '0',
+        'body': (json['content'] ?? json['body'] ?? '').toString(),
+        'date':
+            (json['createdAt'] ??
+                    json['created_at'] ??
+                    json['date'] ??
+                    DateTime.now().toIso8601String())
+                .toString(),
+        // User information from backend
+        'username': username,
+        'authorName': authorName,
+        'authorProfileImage': authorProfileImage,
+        // Engagement counts from backend
+        'likes': likes,
+        'repost': reposts,
+        'comments': comments,
+        'views': views,
+        'qoutes': quotes,
+        'bookmarks': bookmarks,
+        // User interaction flags from backend
+        'isLikedByMe': json['isLikedByMe'] ?? false,
+        'isRepostedByMe': json['isRepostedByMe'] ?? false,
+      };
+
+      // Parse media from backend - supporting multiple formats
+      final imageUrls = <String>[];
+      final videoUrls = <String>[];
+
+      // Format 1: media array with type info (from getPostById)
+      if (json['media'] != null &&
+          json['media'] is List &&
+          (json['media'] as List).isNotEmpty) {
+        final mediaArray = json['media'] as List;
+
+        for (final mediaItem in mediaArray) {
+          final url = mediaItem['media_url']?.toString();
+          final type = mediaItem['type']?.toString();
+
+          if (url != null && url.isNotEmpty) {
+            if (type == 'VIDEO') {
+              videoUrls.add(url);
+            } else {
+              imageUrls.add(url);
             }
           }
-          
-          mappedJson['mediaImages'] = imageUrls;
-          mappedJson['mediaVideos'] = videoUrls;
-        
         }
-        // Format 2: mediaUrls array (fallback)
-        else if (json['mediaUrls'] != null && json['mediaUrls'] is List && (json['mediaUrls'] as List).isNotEmpty) {
-          final mediaUrls = json['mediaUrls'] as List;
 
-          for (int i = 0; i < mediaUrls.length; i++) {
-            final url = mediaUrls[i]?.toString();
-            
-            if (url != null && url.isNotEmpty) {
-              // Simple heuristic: check file extension
-              final lowerUrl = url.toLowerCase();
-              if (lowerUrl.endsWith('.mp4') || lowerUrl.endsWith('.mov') || 
-                  lowerUrl.endsWith('.avi') || lowerUrl.endsWith('.webm') ||
-                  lowerUrl.contains('video')) {
-                videoUrls.add(url);
-              } else {
-                imageUrls.add(url);
-              }
+        mappedJson['mediaImages'] = imageUrls;
+        mappedJson['mediaVideos'] = videoUrls;
+      }
+      // Format 2: mediaUrls array (fallback)
+      else if (json['mediaUrls'] != null &&
+          json['mediaUrls'] is List &&
+          (json['mediaUrls'] as List).isNotEmpty) {
+        final mediaUrls = json['mediaUrls'] as List;
+
+        for (int i = 0; i < mediaUrls.length; i++) {
+          final url = mediaUrls[i]?.toString();
+
+          if (url != null && url.isNotEmpty) {
+            // Simple heuristic: check file extension
+            final lowerUrl = url.toLowerCase();
+            if (lowerUrl.endsWith('.mp4') ||
+                lowerUrl.endsWith('.mov') ||
+                lowerUrl.endsWith('.avi') ||
+                lowerUrl.endsWith('.webm') ||
+                lowerUrl.contains('video')) {
+              videoUrls.add(url);
+            } else {
+              imageUrls.add(url);
             }
           }
-          
-          mappedJson['mediaImages'] = imageUrls;
-          mappedJson['mediaVideos'] = videoUrls;
         }
-        // Format 3: Old field names (legacy)
-        else {
-        
-          if (json['mediaPic'] != null || json['media_pic'] != null) {
-            final pic = json['mediaPic'] ?? json['media_pic'];
-            imageUrls.add(pic);
-            mappedJson['mediaPic'] = pic;
-          }
-          if (json['mediaVideo'] != null || json['media_video'] != null) {
-            final video = json['mediaVideo'] ?? json['media_video'];
-            videoUrls.add(video);
-            mappedJson['mediaVideo'] = video;
-          }
-          mappedJson['mediaImages'] = imageUrls;
-          mappedJson['mediaVideos'] = videoUrls;
+
+        mappedJson['mediaImages'] = imageUrls;
+        mappedJson['mediaVideos'] = videoUrls;
+      }
+      // Format 3: Old field names (legacy)
+      else {
+        if (json['mediaPic'] != null || json['media_pic'] != null) {
+          final pic = json['mediaPic'] ?? json['media_pic'];
+          imageUrls.add(pic);
+          mappedJson['mediaPic'] = pic;
         }
-        
+        if (json['mediaVideo'] != null || json['media_video'] != null) {
+          final video = json['mediaVideo'] ?? json['media_video'];
+          videoUrls.add(video);
+          mappedJson['mediaVideo'] = video;
+        }
+        mappedJson['mediaImages'] = imageUrls;
+        mappedJson['mediaVideos'] = videoUrls;
+      }
+
       final tweet = TweetModel.fromJson(mappedJson);
-      
+
       // Store interaction flags separately (not in TweetModel)
       // These will be used by TweetViewModel to initialize TweetState
-      
+
       // Check if we have existing stored flags for this tweet
       final existingFlags = _interactionFlags[tweetId];
-      
+
       // Check if backend provided the flags
       bool isLikedByMe;
       bool isRepostedByMe;
-      
+
       // Check if the keys exist in the response (not just if they're not null)
       final hasLikedFlag = json.containsKey('isLikedByMe');
       final hasRepostedFlag = json.containsKey('isRepostedByMe');
-      
+
       if (hasLikedFlag && hasRepostedFlag) {
         // Backend provided flags (from feed endpoints) - use them
         isLikedByMe = json['isLikedByMe'] ?? false;
         isRepostedByMe = json['isRepostedByMe'] ?? false;
- 
       } else if (existingFlags != null) {
         // Backend didn't provide flags, but we have stored flags - preserve them
         isLikedByMe = existingFlags['isLikedByMe'] ?? false;
         isRepostedByMe = existingFlags['isRepostedByMe'] ?? false;
-     
       } else {
         // No backend flags and no stored flags - default to false
         isLikedByMe = false;
         isRepostedByMe = false;
         print('   ⚠️ No interaction flags available, defaulting to false');
       }
-      
+
       final updatedFlags = <String, bool>{
         ...?existingFlags,
         'isLikedByMe': isLikedByMe,
@@ -583,43 +588,40 @@ class TweetsApiServiceImpl implements TweetsApiService {
       };
 
       _interactionFlags[tweetId] = updatedFlags;
-      
-    
+
       return tweet;
     } catch (e) {
       print('❌ Error fetching tweet: $e');
       rethrow;
     }
   }
-  
-  
-  
+
   @override
   Future<void> updateTweet(TweetModel tweet) async {
     try {
       print('📤 Updating tweet on backend: ${tweet.id}');
-      
+
       await _apiService.put<Map<String, dynamic>>(
         endpoint: '${ApiConfig.postsEndpoint}/${tweet.id}',
         data: tweet.toJson(),
       );
-      
+
       print('✅ Tweet updated successfully');
     } catch (e) {
       print('❌ Error updating tweet: $e');
       rethrow;
     }
   }
-  
+
   @override
   Future<void> deleteTweet(String id) async {
     try {
       print('📤 Deleting tweet on backend: $id');
-      
+
       await _apiService.delete<Map<String, dynamic>>(
         endpoint: '${ApiConfig.postsEndpoint}/$id',
       );
-      
+
       print('✅ Tweet deleted successfully');
     } catch (e) {
       print('❌ Error deleting tweet: $e');
@@ -633,10 +635,7 @@ class TweetsApiServiceImpl implements TweetsApiService {
     try {
       final response = await _apiService.get<Map<String, dynamic>>(
         endpoint: '${ApiConfig.postsEndpoint}/$postId/replies',
-        queryParameters: {
-          'page': 1,
-          'limit': 50,
-        },
+        queryParameters: {'page': 1, 'limit': 50},
       );
 
       final data = response['data'];
@@ -650,9 +649,11 @@ class TweetsApiServiceImpl implements TweetsApiService {
         if (raw is! Map) continue;
         final json = raw as Map;
 
-        final replyId = (json['postId'] ?? json['id'] ??
-                DateTime.now().millisecondsSinceEpoch)
-            .toString();
+        final replyId =
+            (json['postId'] ??
+                    json['id'] ??
+                    DateTime.now().millisecondsSinceEpoch)
+                .toString();
 
         // Basic user info (same style as feed)
         String? username;
@@ -676,14 +677,13 @@ class TweetsApiServiceImpl implements TweetsApiService {
 
         authorProfileImage ??= json['avatar']?.toString();
 
-        int parseInt(dynamic v) => v == null
-            ? 0
-            : (v is int
-                ? v
-                : int.tryParse(v.toString()) ?? 0);
+        int parseInt(dynamic v) =>
+            v == null ? 0 : (v is int ? v : int.tryParse(v.toString()) ?? 0);
 
         final likes = parseInt(json['likes'] ?? json['likesCount']);
-        final reposts = parseInt(json['repost'] ?? json['reposts'] ?? json['retweetsCount']);
+        final reposts = parseInt(
+          json['repost'] ?? json['reposts'] ?? json['retweetsCount'],
+        );
         final comments = parseInt(json['comments'] ?? json['commentsCount']);
 
         final imageUrls = <String>[];
@@ -706,9 +706,14 @@ class TweetsApiServiceImpl implements TweetsApiService {
         final mappedJson = <String, dynamic>{
           'id': replyId,
           'userId': (json['userId'] ?? json['user_id'] ?? '0').toString(),
-          'body': (json['text'] ?? json['content'] ?? json['body'] ?? '').toString(),
-          'date': (json['createdAt'] ?? json['created_at'] ?? json['date'] ?? DateTime.now().toIso8601String())
+          'body': (json['text'] ?? json['content'] ?? json['body'] ?? '')
               .toString(),
+          'date':
+              (json['createdAt'] ??
+                      json['created_at'] ??
+                      json['date'] ??
+                      DateTime.now().toIso8601String())
+                  .toString(),
           'username': username,
           'authorName': authorName,
           'authorProfileImage': authorProfileImage,
@@ -732,4 +737,88 @@ class TweetsApiServiceImpl implements TweetsApiService {
       return [];
     }
   }
+
+List<String> parseMedia(dynamic media) {
+  if (media == null) return [];
+
+  if (media is List) {
+    return media.map<String>((item) {
+      if (item is String) return item; 
+
+      if (item is Map) return item['url'] ?? ""; 
+
+      return "";
+    }).where((e) => e.isNotEmpty).toList();
+  }
+
+  return [];
+}
+@override
+Future<List<TweetModel>> getTweets(int limit, int page, String tweetsType) async {
+  String endpoint = ServerConstant.tweetsForYou;
+  Map<String, dynamic> response =
+      await _apiService.get(endpoint: "/posts/timeline/" + tweetsType, queryParameters: {"limit" : limit, "page": page});
+
+  List<dynamic> postsJson = response['data']['posts'];
+
+  List<TweetModel> tweets = postsJson.map((post) {
+    bool isRepost = post['isRepost'] ?? false;
+    Map<String, dynamic>? originalJson =
+        isRepost ? post['originalPostData'] : null;
+
+    return TweetModel(
+      id: post['postId'].toString(),
+      body: post['text'] ?? '',
+
+      mediaImages: parseMedia(post['media']),
+      mediaVideos: const [],
+
+      date: DateTime.parse(post['date']),
+      likes: post['likesCount'] ?? 0,
+      qoutes: post['commentsCount'] ?? 0,
+      repost: post['retweetsCount'] ?? 0,
+      comments: post['commentsCount'] ?? 0,
+      userId: post['userId'].toString(),
+
+      username: post['username'],
+      authorName: post['name'],
+      authorProfileImage: post['avatar'],
+
+      isRepost: isRepost,
+      isQuote: post['isQuote'] ?? false,
+
+      originalTweet: originalJson != null
+          ? TweetModel(
+              id: originalJson['postId'].toString(),
+              body: originalJson['text'] ?? '',
+
+              mediaImages: parseMedia(originalJson['media']),
+              mediaVideos: const [],
+
+              date: DateTime.parse(originalJson['date']),
+              likes: originalJson['likesCount'] ?? 0,
+              qoutes: originalJson['commentsCount'] ?? 0,
+              repost: originalJson['retweetsCount'] ?? 0,
+              comments: originalJson['commentsCount'] ?? 0,
+              userId: originalJson['userId'].toString(),
+
+              username: originalJson['username'],
+              authorName: originalJson['name'],
+              authorProfileImage: originalJson['avatar'],
+
+              isRepost: false,
+              isQuote: false,
+            )
+          : null,
+    );
+  }).toList();
+
+  return tweets;
+}
+
+  // @override
+  // Future<Future<List<TweetModel>>> getFollowingTweets(int limit, int page) {
+
+  // }
+
 }

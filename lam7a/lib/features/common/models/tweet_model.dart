@@ -4,7 +4,7 @@ part 'tweet_model.freezed.dart';
 part 'tweet_model.g.dart';
 
 @freezed
-abstract class TweetModel with _$TweetModel {
+abstract class  TweetModel with _$TweetModel {
   const factory TweetModel({
     required String id,
     required String body,

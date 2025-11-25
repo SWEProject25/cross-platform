@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
@@ -63,7 +64,16 @@ class _loginFlowtate extends State<LogInScreen> {
           canPop: false,
           child: Scaffold(
             appBar: AppBar(
-              title: ImageIcon(AssetImage(AppAssets.xIcon)),
+              title: SvgPicture.asset(
+                AppAssets.xIcon,
+                width: 32,
+                height: 32,
+                colorFilter: ColorFilter.mode(
+                  Theme.of(context).colorScheme.onSurface,
+                  BlendMode.srcIn,
+                ),
+              ),
+              // replaces currentCo),
               leading: IconButton(
                 onPressed: () {
                   Navigator.pushReplacementNamed(
@@ -77,6 +87,7 @@ class _loginFlowtate extends State<LogInScreen> {
             ),
             body: !state.isLoadingLogin
                 ? Column(
+                    key: ValueKey("mainLoginView"),
                     children: [
                       loginFlow[currentIndex],
                       Spacer(flex: 5),
@@ -139,7 +150,7 @@ class _loginFlowtate extends State<LogInScreen> {
                       ),
                     ],
                   )
-                : Center(child: LoadingCircle()),
+                : Center(child: LoadingCircle(key: ValueKey("loadingLogin"))),
           ),
         );
       },

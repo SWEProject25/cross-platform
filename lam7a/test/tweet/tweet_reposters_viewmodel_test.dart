@@ -44,6 +44,12 @@ void main() {
     );
 
     expect(result, users);
+
+    verify(() => mockService.getReposters(
+          postId,
+          page: any(named: 'page'),
+          limit: any(named: 'limit'),
+        )).called(1);
   });
 
   test('TweetRepostersViewModel handles empty list', () async {
@@ -58,5 +64,27 @@ void main() {
     );
 
     expect(result, isEmpty);
+
+    verify(() => mockService.getReposters(
+          postId,
+          page: any(named: 'page'),
+          limit: any(named: 'limit'),
+        )).called(1);
+  });
+
+  test('TweetRepostersViewModel surfaces errors from service', () async {
+    when(() => mockService.getReposters(
+          postId,
+          page: any(named: 'page'),
+          limit: any(named: 'limit'),
+        )).thenThrow(Exception('network error'));
+
+    await expectLater(
+      container.read(
+        tweetRepostersViewModelProvider(postId).future,
+      ),
+      // Riverpod surfaces an error when the provider fails while loading
+      throwsA(isA<StateError>()),
+    );
   });
 }

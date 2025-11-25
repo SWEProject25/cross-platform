@@ -14,6 +14,8 @@ import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
+import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,6 +63,13 @@ class _MyAppState extends ConsumerState<MyApp> {
             NavigationHomeScreen.routeName: (context) => NavigationHomeScreen(),
             AuthenticationTransmissionScreen.routeName: (context) =>
                 AuthenticationTransmissionScreen(),
+
+            '/profile': (context) {
+              final args = ModalRoute.of(context)!.settings.arguments as Map;
+              final username = args['username'] as String;
+
+              return const ProfileScreen();
+            },
           },
           home: !state.isAuthenticated
               ? FirstTimeScreen()
@@ -127,18 +136,18 @@ class TestAddTweetApp extends StatelessWidget {
 }
 
 /// Test app for TweetHomeScreen with FAB
-class TestTweetHomeApp extends StatelessWidget {
-  const TestTweetHomeApp({super.key});
+// class TestTweetHomeApp extends StatelessWidget {
+//   const TestTweetHomeApp({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(),
-      home: const TweetHomeScreen(),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       theme: ThemeData.dark(),
+//       home: const TweetHomeScreen(),
+//     );
+//   }
+// }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});

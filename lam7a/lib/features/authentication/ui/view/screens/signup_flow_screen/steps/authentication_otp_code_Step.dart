@@ -8,18 +8,22 @@ import 'package:lam7a/features/authentication/ui/widgets/authentication_text_inp
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 
-class VerificationCode extends StatefulWidget {
+class VerificationCode extends ConsumerStatefulWidget {
   const VerificationCode({super.key});
 
   @override
-  State<VerificationCode> createState() => _VerificationCodeState();
+  ConsumerState<VerificationCode> createState() => _VerificationCodeState();
 }
 
-class _VerificationCodeState extends State<VerificationCode> {
+class _VerificationCodeState extends ConsumerState<VerificationCode> {
   int _secondsRemaining = 60;
   bool _enableResend = true;
   Timer? _timer;
-
+  @visibleForTesting
+  int get secondsRemaining => _secondsRemaining;
+  
+  @visibleForTesting
+  bool get enableResend => _enableResend;
   @override
   void initState() {
     super.initState();
@@ -48,77 +52,81 @@ class _VerificationCodeState extends State<VerificationCode> {
   }
 
   @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final state = ref.watch(authenticationViewmodelProvider);
-        final viewModel = ref.watch(authenticationViewmodelProvider.notifier);
-        return Column(
+    final state = ref.watch(authenticationViewmodelProvider);
+    final viewModel = ref.watch(authenticationViewmodelProvider.notifier);
+    return Column(
+      children: [
+        Row(
           children: [
-            Row(
-              children: [
-                Spacer(flex: 1),
-                Expanded(
-                  flex: 9,
-                  child: Text(
-                    AuthenticationConstants.otpCodeHeaderText,
-                    style: GoogleFonts.outfit(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
+            Spacer(flex: 1),
+            Expanded(
+              flex: 9,
+              child: Text(
+                AuthenticationConstants.otpCodeHeaderText,
+                style: GoogleFonts.outfit(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
-              ],
-            ),
-            Row(
-              children: [
-                Spacer(flex: 1),
-                Expanded(
-                  flex: 9,
-                  child: const Text(
-                    AuthenticationConstants.otpCodeDesText,
-                    style: TextStyle(color: Pallete.subtitleText),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            TextInputField(
-              key: ValueKey("otpCodeTextField"),
-              labelTextField: "verification code",
-              flex: 12,
-              textType: TextInputType.numberWithOptions(
-                signed: false,
-                decimal: false,
               ),
-              onChangeEffect: viewModel.updateVerificationCode,
-              isValid: state.isValidCode,
-            ),
-            Row(
-              children: [
-                SizedBox(width: 40),
-                InkWell(
-                  onTap: () async {
-                    if (_enableResend) {
-                      await viewModel.resendOTP();
-                      _startCountdown();
-                    }
-                    else
-                    {
-                      showToastMessage("there's still  " + _secondsRemaining.toString());
-                    }
-                  },
-                  child: const Text(
-                    AuthenticationConstants.otpCodeResendText,
-                    style: TextStyle(color: Pallete.borderHover),
-                  ),
-                ),
-              ],
             ),
           ],
-        );
-      },
+        ),
+        Row(
+          children: [
+            Spacer(flex: 1),
+            Expanded(
+              flex: 9,
+              child: const Text(
+                AuthenticationConstants.otpCodeDesText,
+                style: TextStyle(color: Pallete.subtitleText),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 20),
+        TextInputField(
+          key: ValueKey("otpCodeTextField"),
+          labelTextField: "verification code",
+          flex: 12,
+          textType: TextInputType.numberWithOptions(
+            signed: false,
+            decimal: false,
+          ),
+          onChangeEffect: viewModel.updateVerificationCode,
+          isValid: state.isValidCode,
+        ),
+        Row(
+          children: [
+            SizedBox(width: 40),
+            InkWell(
+              key: ValueKey("resendOtpInkWell"),
+              onTap: () async {
+                if (_enableResend) {
+                  await viewModel.resendOTP();
+                  _startCountdown();
+                } else {
+                  showToastMessage(
+                    "there's still  " + _secondsRemaining.toString(),
+                  );
+                }
+              },
+              child: const Text(
+                key: ValueKey("resendOtpText"),
+                AuthenticationConstants.otpCodeResendText,
+                style: TextStyle(color: Pallete.borderHover),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

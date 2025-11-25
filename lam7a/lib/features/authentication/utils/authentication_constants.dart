@@ -2,6 +2,7 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:another_flushbar/flushbar_helper.dart';
 import 'package:another_flushbar/flushbar_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 
@@ -69,10 +70,15 @@ class AuthenticationConstants {
       margin: EdgeInsets.only(right: 50, left: 50, bottom: 250),
       borderRadius: BorderRadius.circular(25),
       flushbarStyle: FlushbarStyle.FLOATING,
-      icon: ImageIcon(
-        AssetImage(AppAssets.xIcon),
-        size: 17,
-        color: Theme.of(context).colorScheme.onTertiary,
+      icon: SvgPicture.asset(
+        AppAssets.xIcon,
+        width: 20,
+        height: 20,
+        colorFilter: ColorFilter.mode(
+          Theme.of(context).colorScheme.onSurface,
+          BlendMode.srcIn,
+        ),
+        // replaces currentCo
       ),
       boxShadows: [
         BoxShadow(
@@ -90,6 +96,4 @@ class AuthenticationConstants {
       ],
     ).show(context);
   }
-
-  
 }

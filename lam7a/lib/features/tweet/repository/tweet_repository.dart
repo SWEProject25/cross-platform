@@ -16,10 +16,13 @@ class TweetRepository {
 
   TweetRepository(this._apiService);
 
-  Future<List<TweetModel>> fetchAllTweets() async {
-    return await _apiService.getAllTweets();
+  Future<List<TweetModel>> fetchAllTweets(int limit, int page) async {
+    return await _apiService.getAllTweets(limit, page);
   }
-
+  Future<List<TweetModel>> fetchTweets(int limit, int page, String tweetsType) async
+  {
+    return await _apiService.getTweets(limit, page, tweetsType);
+  }
   Future<TweetModel> fetchTweetById(String id) async {
     return await _apiService.getTweetById(id);
   }

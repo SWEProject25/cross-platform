@@ -64,6 +64,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   mocktail: ^1.0.3
+  network_image_mock: ^2.0.0
+
 
 
 

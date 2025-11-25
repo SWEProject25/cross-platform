@@ -1,29 +1,35 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'ui/widgets/profile_header_widget.dart';
+import 'package:lam7a/features/profile/model/profile_model.dart';
+import 'package:lam7a/features/profile/ui/widgets/profile_header_widget.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_viewmodel.dart';
 
-/// Entry point widget to test the profile header UI
-class ProfileHeaderMain extends StatelessWidget {
+/// Testing entry point for profile header
+class ProfileHeaderMain extends ConsumerWidget {
   const ProfileHeaderMain({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Load profile using viewmodel
+    final asyncProfile = ref.watch(profileViewModelProvider("hossam_dev"));
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile Header Demo'),
         centerTitle: true,
       ),
-    
-      body: const ProfileHeaderWidget(
-        userId: 'hossam_dev',
-        isOwnProfile: true, // Change to false to see other user's profile
+      body: asyncProfile.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, _) => Center(child: Text("Error: $err")),
+        data: (profile) => ProfileHeaderWidget(
+          profile: profile,
+          isOwnProfile: true, // set false to test other users
+        ),
       ),
     );
   }
 }
 
-/// App entry point
 void main() {
   runApp(
     const ProviderScope(

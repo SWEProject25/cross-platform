@@ -1,6 +1,8 @@
+import 'package:lam7a/core/models/user_dto.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
+import 'package:lam7a/features/authentication/model/user_dto_model.dart';
 import 'package:lam7a/features/authentication/service/authentication_api_service.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -36,9 +38,9 @@ class AuthenticationRepositoryImpl {
         AuthenticationConstants.success);
   }
 
-  Future<UserModel?> register(AuthenticationUserDataModel user) async {
+  Future<User?> register(AuthenticationUserDataModel user) async {
     final data = await apiService.register(user);
-    UserModel userModel = UserModel.fromJson(data['data']['user']);
+    User userModel = User.fromJson(data['data']['user']);
     return userModel;
   }
 
@@ -48,12 +50,12 @@ class AuthenticationRepositoryImpl {
         AuthenticationConstants.success);
   }
 
-  Future<UserModel> login(
+  Future<User> login(
     AuthenticationUserCredentialsModel userCredentials,
   ) async {
     final data = await apiService.Login(userCredentials);
     print(data);
-    UserModel userModel = UserModel.fromJson(data['data']['user']);
+    User userModel = User.fromJson(data['data']['user']);
     return userModel;
   }
 
