@@ -30,8 +30,24 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Cache generated files
+        uses: actions/cache@v4
+        with:
+          path: |
+            lam7a/**/*.g.dart
+            lam7a/**/*.freezed.dart
+          key: ${{ runner.os }}-generated-${{ hashFiles('lam7a/pubspec.lock', 'lam7a/lib/**/*.dart') }}
+          restore-keys: |
+            ${{ runner.os }}-generated-
+
       - name: Run builder
         run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Run analysis
+        run: flutter analyze
 
       - name: Run tests with coverage
         run: flutter test --coverage
