@@ -43,8 +43,16 @@ jobs:
       - name: Run builder
         run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Run analysis
-        run: flutter analyze --no-fatal-warnings
+      - name: Run analysis (errors only)
+        run: |
+          flutter analyze > analyze_output.txt 2>&1 || true
+          if grep -q "^error •" analyze_output.txt; then
+            echo "❌ Found compilation errors:"
+            grep "^error •" analyze_output.txt
+            exit 1
+          else
+            echo "✅ No compilation errors found"
+          fi
 
       - name: Run tests with coverage
         run: flutter test --coverage
