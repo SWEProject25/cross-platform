@@ -6,6 +6,7 @@ import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
+import 'package:lam7a/features/authentication/model/user_dto_model.dart';
 import 'package:lam7a/features/authentication/repository/authentication_impl_repository.dart';
 import 'package:lam7a/features/authentication/ui/state/authentication_state.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
@@ -26,15 +27,15 @@ class FakeAuthenticationUserCredentialsModel extends Fake
 class FakeAuthenticationUserDataModel extends Fake
     implements AuthenticationUserDataModel {}
 
-class FakeAuthentication extends Authentication {
-  @override
-  AuthState build() => AuthState();
+// class FakeAuthentication extends Authentication {
+//   @override
+//   AuthState build() => AuthState();
 
-  @override
-  void authenticateUser(UserModel? user) {
-    state = state.copyWith(token: null, isAuthenticated: true, user: user);
-  }
-}
+//   @override
+//   void authenticateUser(UserModel? user) {
+//     state = state.copyWith(token: null, isAuthenticated: true, user: user);
+//   }
+// }
 
 void main() {
   late MockAuthenticationRepositoryImpl mockRepo;
@@ -50,7 +51,7 @@ void main() {
     return ProviderContainer(
       overrides: [
         authenticationImplRepositoryProvider.overrideWithValue(mockRepo),
-        authenticationProvider.overrideWith(() => FakeAuthentication()),
+        // authenticationProvider.overrideWith(() => FakeAuthentication()),
       ],
     );
   }
@@ -234,7 +235,13 @@ void main() {
         final testWidget = LogInScreen();
 
         when(() => mockRepo.login(any())).thenAnswer(
-          (_) async => UserModel(name: "farouk", email: "far123@example.com"),
+          (_) async =>  User(
+            id: 123,
+            username: "name",
+            email: "far123@exmple.com",
+            role: "User",
+            profile: Profile(name: "faroukk", profileImageUrl: "/img"),
+          ),
         );
 
         notifier.state = const AuthenticationState.login(

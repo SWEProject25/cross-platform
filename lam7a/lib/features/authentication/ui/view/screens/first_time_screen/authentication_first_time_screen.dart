@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
@@ -19,7 +20,18 @@ class FirstTimeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       key: ValueKey("firstScreen"),
-      appBar: AppBar(title: ImageIcon(AssetImage(AppAssets.xIcon))),
+      appBar: AppBar(
+        title: SvgPicture.asset(
+          AppAssets.xIcon,
+          width: 32,
+          height: 32,
+          colorFilter: ColorFilter.mode(
+            Theme.of(context).colorScheme.onSurface,
+            BlendMode.srcIn,
+          ),
+          // replaces currentColor
+        ),
+      ),
       body: Consumer(
         builder: (context, ref, child) {
           final viewmodel = ref.watch(authenticationViewmodelProvider.notifier);

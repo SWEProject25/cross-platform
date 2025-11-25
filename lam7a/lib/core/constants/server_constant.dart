@@ -14,6 +14,7 @@ class ServerConstant {
   static String validatePassword = "/auth/verifyPassword";
   static String updateEmail = "/auth/update-email";
   static String me = "/auth/me";
+  static String profileMe = "/profile/me";
   static String apiPrefix = "/api/v1.0";
   static String serverURL = "https://api.hankers.tech";
   static String mutedUsers = "/users/mutes/me";

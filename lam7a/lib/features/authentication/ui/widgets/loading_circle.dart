@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 
 class LoadingCircle extends StatelessWidget {
@@ -23,8 +24,23 @@ class LoadingCircle extends StatelessWidget {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ImageIcon(AssetImage(AppAssets.xIcon), size: size * 0.3, color: Theme.of(context).colorScheme.onSurface,),
-              Text("Loading", style: TextStyle(fontSize: size * 0.2, fontWeight: FontWeight.w500)),
+              SvgPicture.asset(
+                AppAssets.xIcon,
+                width: 30,
+                height: 30,
+                colorFilter: ColorFilter.mode(
+                  Theme.of(context).colorScheme.onSurface,
+                  BlendMode.srcIn,
+                ),
+              ),
+              // replaces currentCo,
+              Text(
+                "Loading",
+                style: TextStyle(
+                  fontSize: size * 0.2,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ],
           ),
         ],

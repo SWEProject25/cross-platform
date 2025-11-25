@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/models/auth_state.dart';
+import 'package:lam7a/core/models/user_dto.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
@@ -16,16 +17,43 @@ class FakeAuthenticationUserDataModel extends Fake
     implements AuthenticationUserDataModel {}
 
 class FakeAuthentication extends Authentication {
+  // Track calls for verification
+  UserModel? lastAuthenticatedUser;
+  int authenticateUserCallCount = 0;
+
   @override
   AuthState build() {
+    // Return initial unauthenticated state
     return AuthState();
   }
 
   @override
-  void authenticateUser(UserModel? user) {
-    state = state.copyWith(token: null, isAuthenticated: true, user: user);
+  void authenticateUser(UserDtoAuth? user) {
+    lastAuthenticatedUser = userDtoToUserModel(user!);
+    authenticateUserCallCount++;
+    state = state.copyWith(token: null, isAuthenticated: true, user: lastAuthenticatedUser);
   }
+  UserModel userDtoToUserModel(UserDtoAuth dto) {
+  return UserModel(
+    id: dto.id,
+    username: dto.user.username,
+    email: dto.user.email,
+    role: dto.user.role,
+    name: dto.name,
+    birthDate: dto.birthDate.toIso8601String(),
+    profileImageUrl: dto.profileImageUrl?.toString(),
+    bannerImageUrl: dto.bannerImageUrl?.toString(),
+    bio: dto.bio?.toString(),
+    location: dto.location?.toString(),
+    website: dto.website?.toString(),
+    createdAt: dto.createdAt.toIso8601String(),
+    followersCount: dto.followersCount,
+    followingCount: dto.followingCount
+  );
 }
+
+}
+
 
 void main() {
   late AuthenticationRepositoryImpl authRepoMock;

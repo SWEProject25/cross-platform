@@ -1,9 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/models/auth_state.dart';
+import 'package:lam7a/core/models/user_dto.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
+import 'package:lam7a/features/authentication/model/user_dto_model.dart';
 import 'package:lam7a/features/authentication/repository/authentication_impl_repository.dart';
 import 'package:lam7a/features/authentication/ui/state/authentication_state.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
@@ -16,22 +18,45 @@ class MockAuthenticationRepositoryImpl extends Mock
 class FakeAuthenticationUserDataModel extends Fake
     implements AuthenticationUserDataModel {}
 
+
 class FakeAuthentication extends Authentication {
+  // Track calls for verification
   UserModel? lastAuthenticatedUser;
   int authenticateUserCallCount = 0;
 
   @override
   AuthState build() {
+    // Return initial unauthenticated state
     return AuthState();
   }
 
   @override
-  void authenticateUser(UserModel? user) {
-    lastAuthenticatedUser = user;
+  void authenticateUser(UserDtoAuth? user) {
+    lastAuthenticatedUser = userDtoToUserModel(user!);
     authenticateUserCallCount++;
-    state = state.copyWith(token: null, isAuthenticated: true, user: user);
+    state = state.copyWith(token: null, isAuthenticated: true, user: lastAuthenticatedUser);
   }
+  UserModel userDtoToUserModel(UserDtoAuth dto) {
+  return UserModel(
+    id: dto.id,
+    username: dto.user.username,
+    email: dto.user.email,
+    role: dto.user.role,
+    name: dto.name,
+    birthDate: dto.birthDate.toIso8601String(),
+    profileImageUrl: dto.profileImageUrl?.toString(),
+    bannerImageUrl: dto.bannerImageUrl?.toString(),
+    bio: dto.bio?.toString(),
+    location: dto.location?.toString(),
+    website: dto.website?.toString(),
+    createdAt: dto.createdAt.toIso8601String(),
+    followersCount: dto.followersCount,
+    followingCount: dto.followingCount
+  );
 }
+
+}
+
 
 void main() {
   late AuthenticationRepositoryImpl authRepoMock;
@@ -117,7 +142,13 @@ void main() {
         date: "20-11-2003",
       );
 
-      when(() => authRepoMock.register(any())).thenAnswer((_) async => mockUser);
+      when(() => authRepoMock.register(any())).thenAnswer((_) async => User(
+            id: 123,
+            username: "name",
+            email: "far123@exmple.com",
+            role: "User",
+            profile: Profile(name: "faroukk", profileImageUrl: "/img"),
+          ),);
 
       await notifier.registrationProgress();
 

@@ -1,10 +1,12 @@
   import 'package:fluttertoast/fluttertoast.dart';
+import 'package:lam7a/core/models/user_dto.dart';
   import 'package:lam7a/core/models/user_model.dart';
   import 'package:lam7a/core/providers/authentication.dart';
   import 'package:lam7a/core/services/api_service.dart';
   import 'package:lam7a/core/theme/app_pallete.dart';
   import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';
   import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
+import 'package:lam7a/features/authentication/model/user_dto_model.dart';
   import 'package:lam7a/features/authentication/repository/authentication_impl_repository.dart';
   import 'package:lam7a/features/authentication/ui/state/authentication_state.dart';
   import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
@@ -205,7 +207,7 @@
             login: (login) => login,
             signup: (signup) => signup.copyWith(isLoadingSignup: true),
           );
-          UserModel? user = await repo.register(
+          User? user = await repo.register(
             AuthenticationUserDataModel(
               name: state.name,
               email: state.email,
@@ -215,7 +217,7 @@
           );
           if (user != null) {
             // showToastMessage("user signed up successfully");
-            authController.authenticateUser(user);
+            authController.authenticateUser(user.mapToUserDtoAuth());
           }
           state = state.map(
             login: (login) => login,
@@ -268,14 +270,14 @@
           login: (login) => login.copyWith(isLoadingLogin: true),
           signup: (signup) => signup,
         );
-        UserModel? myUser = await repo.login(
+        User? myUser = await repo.login(
           AuthenticationUserCredentialsModel(
             email: state.identifier,
             password: state.passwordLogin,
           ),
         );
-        if (myUser.name != null && myUser.email == state.identifier) {
-          authController.authenticateUser(myUser);
+        if (myUser.username != null && myUser.email == state.identifier) {
+          authController.authenticateUser(myUser.mapToUserDtoAuth());
           print(myUser);
           state = state.map(
             login: (login) => login.copyWith(

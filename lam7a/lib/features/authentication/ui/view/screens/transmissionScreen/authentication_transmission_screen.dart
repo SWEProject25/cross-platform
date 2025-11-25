@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
@@ -15,7 +16,18 @@ class AuthenticationTransmissionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       key: ValueKey("transmissionAfterLogin"),
-      appBar: AppBar(title: const ImageIcon(AssetImage(AppAssets.xIcon))),
+      appBar: AppBar(
+        title: SvgPicture.asset(
+          AppAssets.xIcon,
+          width: 32,
+          height: 32,
+          colorFilter: ColorFilter.mode(
+            Theme.of(context).colorScheme.onSurface,
+            BlendMode.srcIn,
+          ),
+        ),
+      ),
+      // replaces currentCo)),
       body: Consumer(
         builder: (context, ref, child) {
           return Column(
@@ -39,7 +51,7 @@ class AuthenticationTransmissionScreen extends StatelessWidget {
                   style: GoogleFonts.outfit(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -56,11 +68,18 @@ class AuthenticationTransmissionScreen extends StatelessWidget {
                 margin: EdgeInsets.only(left: 20),
                 child: Row(
                   children: [
-                    Icon(Icons.people, size: 40, color: Theme.of(context).colorScheme.onSurface),
+                    Icon(
+                      Icons.people,
+                      size: 40,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                     SizedBox(width: 20),
-                     Text(
+                    Text(
                       "you decide who to follow",
-                      style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontSize: 20),
+                      style: GoogleFonts.outfit(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 20,
+                      ),
                     ),
                   ],
                 ),

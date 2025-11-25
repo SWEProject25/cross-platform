@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/models/auth_state.dart';
+import 'package:lam7a/core/models/user_dto.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
@@ -20,10 +21,28 @@ class FakeAuthentication extends Authentication {
   AuthState build() {
     return AuthState();
   }
+UserModel userDtoToUserModel(UserDtoAuth dto) {
+  return UserModel(
+    id: dto.id,
+    username: dto.user.username,
+    email: dto.user.email,
+    role: dto.user.role,
+    name: dto.name,
+    birthDate: dto.birthDate.toIso8601String(),
+    profileImageUrl: dto.profileImageUrl?.toString(),
+    bannerImageUrl: dto.bannerImageUrl?.toString(),
+    bio: dto.bio?.toString(),
+    location: dto.location?.toString(),
+    website: dto.website?.toString(),
+    createdAt: dto.createdAt.toIso8601String(),
+    followersCount: dto.followersCount,
+    followingCount: dto.followingCount
+  );
+}
 
   @override
-  void authenticateUser(UserModel? user) {
-    state = state.copyWith(token: null, isAuthenticated: true, user: user);
+  void authenticateUser(UserDtoAuth? user) {
+    state = state.copyWith(token: null, isAuthenticated: true, user: userDtoToUserModel(user!));
   }
 }
 

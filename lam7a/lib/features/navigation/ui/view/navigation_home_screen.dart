@@ -19,6 +19,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
+
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
 
@@ -56,13 +57,11 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
             "Profile",
             () {
               Navigator.pushNamed(
-              context,
-              '/profile',
-              arguments: {
-                "username": user?.username ?? "",
-              },
-            );
-            }, 
+                context,
+                '/profile',
+                arguments: {"username": user?.username ?? ""},
+              );
+            },
             iconPath: AppAssets.ProfileIcon,
             color: Theme.of(context).colorScheme.onSurface,
           ),
@@ -133,14 +132,8 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 50),
-                ProfileBlock(
-                  Usermaindata(
-                    name: user?.name,
-                    userName: user?.username,
-                    profileImageUrl: user?.profileImageUrl,
-                  ),
-                ),
+                SizedBox(height: 20),
+                ProfileBlock(),
                 Expanded(
                   child: ListView.builder(
                     itemBuilder: (context, index) {
@@ -258,7 +251,6 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                         child: Align(
                           heightFactor: _isVisible ? 1.0 : 0.0,
                           child: BottomNavigationBar(
-                            
                             currentIndex: _currentIndex,
                             type: BottomNavigationBarType.fixed,
                             selectedItemColor: Theme.of(
@@ -298,7 +290,10 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                                 label: "home",
                               ),
                               BottomNavigationBarItem(
-                                icon: Icon(Icons.search, size: _isVisible ? 22 : 0),
+                                icon: Icon(
+                                  Icons.search,
+                                  size: _isVisible ? 22 : 0,
+                                ),
                                 label: "search",
                               ),
                               BottomNavigationBarItem(
@@ -361,7 +356,16 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
   Widget getCurrentAppbar() {
     switch (_currentIndex) {
       case 0:
-        return ImageIcon(AssetImage(AppAssets.xIcon));
+        return SvgPicture.asset(
+          AppAssets.xIcon,
+          width: 32,
+          height: 32,
+          colorFilter: ColorFilter.mode(
+            Theme.of(context).colorScheme.onSurface,
+            BlendMode.srcIn,
+          ),
+        );
+      // replaces currentCo;
       case 1:
         return SearchBarCustomized();
       case 2:
