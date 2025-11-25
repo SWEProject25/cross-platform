@@ -7,6 +7,7 @@ import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/navigation/utils/models/user_main_data.dart';
+import 'package:lam7a/features/profile/ui/widgets/profile_card.dart';
 
 class ProfileBlock extends StatelessWidget {
   ProfileBlock();
@@ -25,12 +26,21 @@ class ProfileBlock extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundImage: userData?.profileImageUrl != null
-                        ? NetworkImage(userData!.profileImageUrl!)
-                        : AssetImage(AppAssets.userPlaceholderIcon)
-                              as ImageProvider,
+                  InkWell(
+                    onTap: (){
+                        Navigator.pushNamed(
+                context,
+                '/profile',
+                arguments: {"username": userData?.username ?? ""},
+              );
+                    },
+                    child: CircleAvatar(
+                      radius: 30,
+                      backgroundImage: userData?.profileImageUrl != null
+                          ? NetworkImage(userData!.profileImageUrl!)
+                          : AssetImage(AppAssets.userPlaceholderIcon)
+                                as ImageProvider,
+                    ),
                   ),
                   SizedBox(height: 5),
                   Text(
