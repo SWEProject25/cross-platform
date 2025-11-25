@@ -11,6 +11,7 @@ class ChangeUsernameViewModel extends Notifier<ChangeUsernameState> {
       newUsername: '',
       isValid: false,
       isLoading: false,
+      errorMessage: null,
     );
   }
 
@@ -20,7 +21,23 @@ class ChangeUsernameViewModel extends Notifier<ChangeUsernameState> {
   }
 
   bool _validateUsername(String username) {
-    return username.isNotEmpty;
+    if (username.isEmpty) return false;
+
+    if (username == ref.read(accountProvider).username) {
+      state = state.copyWith(errorMessage: 'New username must be different');
+      return false;
+    }
+    final regex = RegExp(r'^[a-z0-9_@]+$');
+    if (!regex.hasMatch(username)) {
+      state = state.copyWith(
+        errorMessage:
+            'Username can only contain lowercase letters, numbers, underscores, and @ symbol',
+      );
+      return false;
+    }
+
+    state = state.copyWith(errorMessage: "");
+    return true;
   }
 
   Future<void> saveUsername() async {
@@ -40,6 +57,7 @@ class ChangeUsernameViewModel extends Notifier<ChangeUsernameState> {
     } catch (e) {
       // Handle error (e.g., show a snackbar)
       print('Error changing username: $e');
+      state = state.copyWith(isLoading: false);
     }
     // 🔗 Update global account provider
 

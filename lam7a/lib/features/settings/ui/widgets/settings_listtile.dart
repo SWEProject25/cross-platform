@@ -24,7 +24,16 @@ class SettingsOptionTile extends StatelessWidget {
         padding: const EdgeInsets.only(right: 12.0),
         child: Icon(icon, size: 26, color: theme.iconTheme.color),
       ),
-      title: Text(title, style: theme.textTheme.titleMedium),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: theme.brightness == Brightness.light
+              ? const Color(0xFF0F1317)
+              : Color.fromARGB(208, 220, 222, 223),
+        ),
+      ),
       subtitle: Text(
         subtitle,
         style: theme.textTheme.bodySmall?.copyWith(

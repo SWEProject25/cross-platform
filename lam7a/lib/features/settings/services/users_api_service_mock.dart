@@ -8,7 +8,8 @@ class UsersApiServiceMock implements UsersApiService {
       id: 1,
       username: '@john_doe',
       name: 'John Doe',
-      bio: 'Coffee lover ☕',
+      bio:
+          'Coffee lover ☕ pwenw pnej2pe jwpe jpwjempiwj epiwjmepwefowjipvwjefwmpejiwnej wmecjiwpnevjom wev',
       profileImageUrl: 'https://cdn-icons-png.flaticon.com/512/147/147144.png',
     ),
     const UserModel(

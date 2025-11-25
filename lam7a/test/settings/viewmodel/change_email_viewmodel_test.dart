@@ -132,7 +132,6 @@ void main() {
     },
   );
 
-  // ---------------------------------------------------------
   testWidgets(
     'goToOtpVerification should NOT navigate AND should show error dialog when email invalid',
     (tester) async {
@@ -180,11 +179,10 @@ void main() {
       );
 
       expect(find.byType(AlertDialog), findsOneWidget);
-      expect(find.text('Incorrect Password'), findsOneWidget);
+      expect(find.text('Invalid Email Format'), findsOneWidget);
     },
   );
 
-  // ---------------------------------------------------------
   testWidgets('should show error dialog when email already exists', (
     tester,
   ) async {
@@ -228,10 +226,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsOneWidget);
-    expect(find.text("Incorrect Password"), findsOneWidget);
+    expect(find.text("Email Already Exists"), findsOneWidget);
   });
 
-  // ---------------------------------------------------------
   test('ResendOtp should call repository sendOtp', () async {
     when(
       () => mockRepo.sendOtp("old@mail.com"),

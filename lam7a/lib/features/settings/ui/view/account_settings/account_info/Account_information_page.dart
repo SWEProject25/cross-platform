@@ -18,32 +18,45 @@ class AccountInformationPage extends ConsumerWidget {
       key: const ValueKey('accountInformationPage'),
       appBar: AppBar(
         key: const ValueKey('accountInformationAppBar'),
+        centerTitle: false,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Account information',
-              style: theme.textTheme.titleLarge!.copyWith(
-                color: theme.textTheme.titleLarge!.color,
-                fontWeight: FontWeight.w400,
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: theme.brightness == Brightness.light
+                    ? theme.appBarTheme.titleTextStyle!.color
+                    : const Color(0xFFE7E9EA),
+                fontWeight: FontWeight.w500,
                 fontSize: 20,
               ),
             ),
             Text(
               state.username!,
-              style: theme.textTheme.bodyMedium!.copyWith(
-                color: theme.textTheme.bodySmall!.color,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.brightness == Brightness.light
+                    ? const Color(0xFF53636E)
+                    : const Color(0xFF8B98A5),
                 fontSize: 16,
               ),
             ),
           ],
         ),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(
+            height: 0.5,
+            thickness: 0.5,
+            color: theme.brightness == Brightness.light
+                ? const Color.fromARGB(120, 83, 99, 110)
+                : const Color(0xFF8B98A5),
+          ),
+        ),
       ),
       body: ListView(
         key: const ValueKey('accountInformationList'),
         children: [
-          Divider(color: theme.dividerColor, height: 1),
-
           AccountInfoTile(
             key: const ValueKey('usernameTile'),
             title: 'Username',

@@ -12,6 +12,16 @@ class MutedUsersViewModel extends AsyncNotifier<MutedUsersState> {
     return MutedUsersState(mutedUsers: users);
   }
 
+  Future<void> refreshMutedUsers() async {
+    try {
+      state = const AsyncLoading();
+      final users = await _repo.fetchMutedUsers();
+      state = AsyncData(MutedUsersState(mutedUsers: users));
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
   Future<void> unmuteUser(int userId) async {
     try {
       final currentState = state.value;

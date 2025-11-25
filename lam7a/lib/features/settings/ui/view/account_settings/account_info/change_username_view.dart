@@ -32,18 +32,12 @@ class _ChangeUsernameViewState extends ConsumerState<ChangeUsernameView> {
     final vm = ref.read(changeUsernameProvider.notifier);
     final theme = Theme.of(context);
 
-    if (_newController.text != state.newUsername) {
-      _newController.text = state.newUsername;
-      _newController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _newController.text.length),
-      );
-    }
-
     return Scaffold(
       key: const ValueKey('changeUsernamePage'),
       appBar: AppBar(
         key: const ValueKey('changeUsernameAppBar'),
         backgroundColor: theme.scaffoldBackgroundColor,
+        centerTitle: false,
         leading: IconButton(
           key: const ValueKey('changeUsernameBackButton'),
           icon: const Icon(Icons.arrow_back),
@@ -59,7 +53,12 @@ class _ChangeUsernameViewState extends ConsumerState<ChangeUsernameView> {
           children: [
             Text(
               'Current',
-              style: theme.textTheme.bodySmall!.copyWith(fontSize: 14),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.brightness == Brightness.light
+                    ? const Color(0xFFD0D8DE)
+                    : const Color(0xFF4B4F52),
+                fontSize: 16,
+              ),
             ),
             const SizedBox(height: 4),
             Container(
@@ -67,12 +66,18 @@ class _ChangeUsernameViewState extends ConsumerState<ChangeUsernameView> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 10.0),
               decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: Color(0xFF212426))),
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFF212426), width: 0.2),
+                ),
               ),
               child: Text(
                 state.currentUsername,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                  color: theme.brightness == Brightness.light
+                      ? const Color(0xFFD0D8DE)
+                      : const Color(0xFF4B4F52),
                 ),
               ),
             ),
@@ -85,6 +90,7 @@ class _ChangeUsernameViewState extends ConsumerState<ChangeUsernameView> {
               controller: _newController,
               onChanged: vm.updateUsername,
               obscureText: false,
+              validator: (_) => state.errorMessage,
             ),
           ],
         ),

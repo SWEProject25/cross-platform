@@ -58,7 +58,9 @@ class ChangeEmailViewModel extends Notifier<ChangeEmailState> {
       }
     } catch (e) {
       // handle error later
-      _showErrorDialog(context);
+      final message = e.toString().replaceFirst("Exception: ", "");
+
+      _showErrorDialog(context, message: message);
     } finally {
       state = state.copyWith(isLoading: false);
     }
@@ -78,7 +80,7 @@ class ChangeEmailViewModel extends Notifier<ChangeEmailState> {
       saveEmail();
       Navigator.of(context).popUntil((route) => route.isFirst);
     } else {
-      _showErrorDialog(context);
+      _showErrorDialog(context, message: "otp");
     }
   }
 
@@ -100,20 +102,39 @@ class ChangeEmailViewModel extends Notifier<ChangeEmailState> {
     final accountRepo = ref.read(accountSettingsRepoProvider);
     final isValid = await accountRepo.validatePassword(state.password);
     if (!isValid) {
-      _showErrorDialog(context);
+      _showErrorDialog(context, message: "password");
     }
     return isValid;
   }
 
   /// error handling (here for now)
-  void _showErrorDialog(BuildContext context) {
+  void _showErrorDialog(BuildContext context, {String? message}) {
+    String dialogMessage = '';
+    String dialogTitle = '';
+
+    if (message == "password") {
+      dialogTitle = 'Incorrect Password';
+      dialogMessage = 'Please enter the correct current password.';
+    } else if (message == "otp") {
+      dialogTitle = 'Invalid OTP';
+      dialogMessage = 'Please enter the correct OTP.';
+    } else {
+      if (message == "wrong email form") {
+        dialogTitle = 'Invalid Email Format';
+        dialogMessage = 'Please enter a valid email address.';
+      } else {
+        dialogTitle = 'Email Already Exists';
+        dialogMessage =
+            'The email address is already associated with another account.';
+      }
+    }
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           icon: const Icon(Icons.lock_outline_rounded, color: Colors.blue),
-          title: const Text('Incorrect Password'),
-          content: const Text('Please enter the correct current password.'),
+          title: Text(dialogTitle),
+          content: Text(dialogMessage),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),

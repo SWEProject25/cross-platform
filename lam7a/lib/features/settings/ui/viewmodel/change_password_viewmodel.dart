@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/change_password_state.dart';
 import '../../repository/account_settings_repository.dart';
-import '../../utils/validators.dart';
 
 class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
   @override

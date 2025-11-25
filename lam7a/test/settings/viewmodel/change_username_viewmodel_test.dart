@@ -53,10 +53,10 @@ void main() {
   });
 
   test('updateUsername validates correctly', () {
-    viewmodel.updateUsername('newName');
+    viewmodel.updateUsername('new_name');
     final state = container.read(changeUsernameProvider);
 
-    expect(state.newUsername, 'newName');
+    expect(state.newUsername, 'new_name');
     expect(state.isValid, true);
   });
 

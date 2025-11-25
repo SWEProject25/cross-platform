@@ -11,16 +11,19 @@ class VerifyOtpView extends ConsumerStatefulWidget {
 }
 
 class _VerifyOtpViewState extends ConsumerState<VerifyOtpView> {
-  bool _isButtonDisabled = false;
-  int _secondsRemaining = 0;
+  bool _isButtonDisabled = true;
+  int _secondsRemaining = 60;
   Timer? _timer;
 
   void _startCooldown() {
+    _timer?.cancel();
+
     setState(() {
       _isButtonDisabled = true;
-      _secondsRemaining = 30; // Cooldown duration (seconds)
+      _secondsRemaining = 60;
     });
 
+    // Start a new timer
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining == 0) {
         timer.cancel();
@@ -38,26 +41,44 @@ class _VerifyOtpViewState extends ConsumerState<VerifyOtpView> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _startCooldown();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final vm = ref.read(changeEmailProvider.notifier);
     final state = ref.watch(changeEmailProvider);
-
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 80),
-          const Text(
+          const SizedBox(height: 40),
+          Text(
             'We sent you a code',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: textTheme.titleLarge!.copyWith(
+              color: theme.brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 28,
+            ),
             textAlign: TextAlign.start,
           ),
           const SizedBox(height: 10),
           Text(
             'Please enter the 6-digit code sent to ${state.email}',
             textAlign: TextAlign.start,
-            style: const TextStyle(color: Colors.grey),
+            style: TextStyle(
+              fontSize: 16,
+              color: theme.brightness == Brightness.light
+                  ? const Color(0xFF53636E)
+                  : const Color(0xFF8B98A5),
+            ),
           ),
           const SizedBox(height: 20),
           TextField(
@@ -70,31 +91,17 @@ class _VerifyOtpViewState extends ConsumerState<VerifyOtpView> {
           ),
           const SizedBox(height: 15),
 
-          // Resend button + cooldown text
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
               key: const ValueKey("resend_otp_button"),
               style: TextButton.styleFrom(
-                padding: EdgeInsets.only(bottom: 10), // <-- THIS FIXES THE GAP
-                minimumSize: Size(0, 0), // optional: makes it shrink to text
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap, // optional
+                padding: EdgeInsets.only(bottom: 10),
+                minimumSize: Size(0, 0),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               onPressed: _isButtonDisabled
-                  ? () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          key: const ValueKey("resend_otp_snackbar"),
-                          content: Text(
-                            'Please wait, available in $_secondsRemaining seconds',
-                            style: const TextStyle(
-                              color: Color.fromARGB(255, 31, 31, 31),
-                            ),
-                          ),
-                          duration: const Duration(seconds: 1),
-                        ),
-                      );
-                    }
+                  ? () {}
                   : () async {
                       await vm.ResendOtp();
                       _startCooldown();
