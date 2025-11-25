@@ -11,7 +11,7 @@ class UserModel {
     required this.email,
     required this.id,
 
-  });
+  })
 
   UserModel copyWith({
     String? name,
@@ -47,7 +47,7 @@ class UserModel {
       UserModel.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
-  String toString() {
+  String toString {
     return 'UserModel(name: $name, email: $email, id: $id)';
   }
 
@@ -62,8 +62,8 @@ class UserModel {
 
   @override
   int get hashCode {
-    return name.hashCode ^
-        email.hashCode ^
-        id.hashCode;
+    return name.hashCode
+        email.hashCode
+        id.hashCode
   }
 }
