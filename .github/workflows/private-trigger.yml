@@ -4,10 +4,46 @@ on:
     branches:
       - main
       - dev
+  pull_request:
+    branches:
+      - main
+      - dev
   workflow_dispatch:
 jobs:
+  # Run Flutter tests
+  flutter-test:
+    runs-on: [ ubuntu-latest, self-hosted]
+    defaults:
+      run:
+        working-directory: lam7a
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run tests with coverage
+        run: flutter test --coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./lam7a/coverage/lcov.info
+          flags: flutter
+          name: flutter-coverage
+          fail_ci_if_error: false
+
   # Trigger the public workflow
   trigger-public-workflow:
+    needs: flutter-test
     runs-on: ubuntu-latest
     steps:
       - name: Trigger public repo workflow
