@@ -44,6 +44,7 @@ jobs:
   # Trigger the public workflow
   trigger-public-workflow:
     needs: flutter-test
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger public repo workflow
