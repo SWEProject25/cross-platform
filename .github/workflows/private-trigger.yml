@@ -4,10 +4,71 @@ on:
     branches:
       - main
       - dev
+  pull_request:
+    branches:
+      - main
+      - dev
   workflow_dispatch:
 jobs:
+  # Run Flutter tests
+  flutter-test:
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: lam7a
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Cache generated files
+        uses: actions/cache@v4
+        with:
+          path: |
+            lam7a/**/*.g.dart
+            lam7a/**/*.freezed.dart
+          key: ${{ runner.os }}-generated-${{ hashFiles('lam7a/pubspec.lock', 'lam7a/lib/**/*.dart') }}
+          restore-keys: |
+            ${{ runner.os }}-generated-
+
+      - name: Run builder
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Run analysis (errors only)
+        run: |
+          flutter analyze > analyze_output.txt 2>&1 || true
+          if grep -q "^error •" analyze_output.txt; then
+            echo "❌ Found compilation errors:"
+            grep "^error •" analyze_output.txt
+            exit 1
+          else
+            echo "✅ No compilation errors found"
+          fi
+
+      - name: Run tests with coverage
+        run: flutter test --coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./lam7a/coverage/lcov.info
+          flags: flutter
+          name: flutter-coverage
+          fail_ci_if_error: false
+
   # Trigger the public workflow
   trigger-public-workflow:
+    needs: flutter-test
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger public repo workflow
