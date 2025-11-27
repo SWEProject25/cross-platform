@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lam7a/features/messaging/ui_keys.dart';
 
 class DMAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onProfileTap;
@@ -34,6 +35,7 @@ class DMAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: TextField(
+                key: Key(MessagingUIKeys.dmAppBarSearchField),
                 decoration: InputDecoration(
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(
@@ -51,7 +53,11 @@ class DMAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-          IconButton(icon: const Icon(Icons.settings), onPressed: () => {}),
+          IconButton(
+            key: Key(MessagingUIKeys.dmAppBarSettingsButton),
+            icon: const Icon(Icons.settings),
+            onPressed: () => {},
+          ),
         ],
       ),
     );

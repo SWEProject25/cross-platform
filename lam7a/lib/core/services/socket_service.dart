@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,10 +28,47 @@ void socketInitializer(Ref ref) {
   }
 }
 
+/// A Riverpod stream provider that emits the socket connection state.
+/// Emits the current `isConnected` state immediately, then subsequent changes.
+final socketConnectionProvider = StreamProvider<bool>((ref) {
+  final socketService = ref.watch(socketServiceProvider);
+
+  // Create a controller to emit the current state immediately and then follow changes.
+  final controller = StreamController<bool>();
+
+  // Emit current state right away.
+  try {
+    controller.add(socketService.isConnected);
+  } catch (_) {}
+
+  final sub = socketService.connectionChanges.listen((connected) {
+    try {
+      controller.add(connected);
+    } catch (_) {}
+  });
+
+  ref.onDispose(() {
+    try {
+      sub.cancel();
+    } catch (_) {}
+    try {
+      controller.close();
+    } catch (_) {}
+  });
+
+  return controller.stream;
+});
+
+/// Convenience provider to get the immediate connection state (non-reactive).
+final socketIsConnectedProvider = Provider<bool>((ref) => ref.read(socketServiceProvider).isConnected);
+
 class SocketService {
   IO.Socket? _socket;
 
   final Map<String, List<Function(dynamic)>> _listeners = {};
+
+  // Broadcast stream to watch connection state changes
+  final _connectionController = StreamController<bool>.broadcast();
 
 
   final _logger = getLogger(SocketService);
@@ -62,11 +100,28 @@ class SocketService {
 
     _socket!.onError((err) => _logger.e(err.toString()));
 
-    _socket!.onConnect((_) => _logger.i('Connected to socket'));
-    _socket!.onDisconnect((_) => _logger.i('Disconnected'));
+    _socket!.onConnect((_) {
+      _logger.i('Connected to socket');
+      try {
+        _connectionController.add(true);
+      } catch (_) {}
+    });
+
+    _socket!.onDisconnect((_) {
+      _logger.i('Disconnected');
+      try {
+        _connectionController.add(false);
+      } catch (_) {}
+    });
 
     _attachStoredListeners();
   }
+
+  /// Whether the socket is currently connected.
+  bool get isConnected => _socket?.connected ?? false;
+
+  /// A broadcast stream that emits `true` when connected and `false` when disconnected.
+  Stream<bool> get connectionChanges => _connectionController.stream;
 
   Future<String> getCookie() async {
     final directory = await getApplicationDocumentsDirectory();
@@ -127,6 +182,26 @@ class SocketService {
     }
   }
 
+  /// Emit an event and wait for server acknowledgement.
+  ///
+  /// Uses the underlying socket client's `emitWithAck` when available.
+  /// Returns the ack response or throws on timeout/error.
+  Future<dynamic> emitWithAck(String event, dynamic data, {Duration timeout = const Duration(seconds: 5)}) async {
+    if (_socket == null) {
+      _logger.w('Attempted to emitWithAck while socket is null. Event: $event');
+      throw StateError('Socket is not connected');
+    }
+    try {
+
+      final ack = await _socket!.emitWithAckAsync(event, data);
+      _logger.i('emitWithAck for "$event" received ack: $ack');
+      return ack;
+    } catch (e) {
+      _logger.e('emitWithAck failed for "$event": $e');
+      rethrow;
+    }
+  }
+
 
   void off(String event, [Function(dynamic)? callback]) {
     if (callback == null) {
@@ -148,6 +223,27 @@ class SocketService {
 
   void disconnect() {
     _logger.i("Disconnecting from socket");
-    _socket?.disconnect();
+    try {
+      _socket?.disconnect();
+    } finally {
+      try {
+        _connectionController.add(false);
+      } catch (_) {}
+    }
+  }
+
+  /// Close internal controllers and dispose socket.
+  /// Call this if you want to fully cleanup the service.
+  Future<void> dispose() async {
+    try {
+      _socket?.disconnect();
+    } catch (_) {}
+    try {
+      _socket?.dispose();
+    } catch (_) {}
+    _socket = null;
+    try {
+      await _connectionController.close();
+    } catch (_) {}
   }
 }

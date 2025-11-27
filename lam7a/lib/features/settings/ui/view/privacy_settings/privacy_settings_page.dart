@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../widgets/settings_listTile.dart';
+import '../../widgets/settings_listtile.dart';
 import 'blocked_users_page.dart';
 import 'muted_users_page.dart';
 
@@ -14,6 +14,7 @@ class PrivacySettingsPage extends StatelessWidget {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.appBarTheme.backgroundColor,
+        centerTitle: false,
         elevation: 0,
         title: Text(
           'Privacy and safety',

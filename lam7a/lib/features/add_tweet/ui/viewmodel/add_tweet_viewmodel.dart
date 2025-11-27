@@ -1,6 +1,7 @@
 import 'package:lam7a/features/add_tweet/ui/state/add_tweet_state.dart';
 import 'package:lam7a/features/add_tweet/services/add_tweet_api_service_impl.dart';
 import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_home_viewmodel.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'add_tweet_viewmodel.g.dart';
@@ -33,8 +34,15 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
   }
 
   // Update media pic path
-  void updateMediaPic(String? path) {
-    state = state.copyWith(mediaPicPath: path);
+  static const int maxMediaImages = 4;
+
+  void addMediaPic(String path) {
+    final current = List<String>.from(state.mediaPicPaths);
+    if (current.length >= maxMediaImages) {
+      return;
+    }
+    current.add(path);
+    state = state.copyWith(mediaPicPaths: current);
   }
 
   // Update media video path
@@ -43,8 +51,13 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
   }
 
   // Remove media pic
-  void removeMediaPic() {
-    state = state.copyWith(mediaPicPath: null);
+  void removeMediaPicAt(int index) {
+    final current = List<String>.from(state.mediaPicPaths);
+    if (index < 0 || index >= current.length) {
+      return;
+    }
+    current.removeAt(index);
+    state = state.copyWith(mediaPicPaths: current);
   }
 
   // Remove media video
@@ -55,6 +68,22 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
   // Check if the tweet can be posted
   bool canPostTweet() {
     return state.isValidBody && !state.isLoading;
+  }
+
+  // Configure this viewmodel to create a reply to a specific post
+  void setReplyTo(int parentPostId) {
+    state = state.copyWith(
+      parentPostId: parentPostId,
+      postType: 'REPLY',
+    );
+  }
+
+  // Configure this viewmodel to create a quote of a specific post
+  void setQuoteTo(int parentPostId) {
+    state = state.copyWith(
+      parentPostId: parentPostId,
+      postType: 'QUOTE',
+    );
   }
 
   // Post the tweet
@@ -90,12 +119,14 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
       // Use real backend implementation with authentication
       final apiService = ref.read(addTweetApiServiceProvider);
       
-      // Create tweet with media files (service handles upload and returns URLs)
+      // Create tweet or reply with media files (service handles upload and returns URLs)
       final createdTweet = await apiService.createTweet(
         userId: id,
         content: state.body.trim(),
-        mediaPicPath: state.mediaPicPath,
+        mediaPicPaths: state.mediaPicPaths,
         mediaVideoPath: state.mediaVideoPath,
+        type: state.postType,
+        parentPostId: state.parentPostId,
       );
 
       print('📝 Tweet created:');
@@ -104,15 +135,32 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
       print('   Media Pic URL: ${createdTweet.mediaPic ?? "None"}');
       print('   Media Video URL: ${createdTweet.mediaVideo ?? "None"}');
       
+      var tweetForFeed = createdTweet;
+      if (user != null) {
+        tweetForFeed = createdTweet.copyWith(
+          username: user.username,
+          authorName: user.name ?? user.username,
+          authorProfileImage: user.profileImageUrl,
+        );
+      }
+      
       // Note: Backend already persisted the tweet, no need to call repository again
       // The repository's addTweet would make a duplicate backend call
 
       print('✅ Tweet posted successfully!');
-      
+
       state = state.copyWith(
         isLoading: false,
         isTweetPosted: true,
       );
+
+      // Only inject into the main home timeline for top-level posts and quotes.
+      // Replies should stay scoped to the detailed tweet view (replies list),
+      // so they are not shown as separate tweets on the home screen.
+      if (state.postType == 'POST' || state.postType == 'QUOTE') {
+        final homeVm = ref.read(tweetHomeViewModelProvider.notifier);
+        homeVm.upsertTweetLocally(tweetForFeed);
+      }
     } catch (e) {
       print('❌ Error posting tweet: $e');
       state = state.copyWith(

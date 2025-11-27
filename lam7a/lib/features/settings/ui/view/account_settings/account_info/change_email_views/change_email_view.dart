@@ -10,29 +10,59 @@ class ChangeEmailView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final originalState = ref.watch(accountProvider);
     final vm = ref.read(changeEmailProvider.notifier);
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
+        key: const ValueKey("change_email_column"),
+
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 80),
-          const Text(
+          const SizedBox(height: 40),
+
+          Text(
             'Change Email',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            key: ValueKey("change_email_title"),
+            style: textTheme.titleLarge!.copyWith(
+              color: theme.brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 28,
+            ),
           ),
+
           const SizedBox(height: 10),
+
           Text(
             'Your current email address is ${originalState.email}.'
             'What would you like to update it to?',
             textAlign: TextAlign.start,
-            style: const TextStyle(color: Colors.grey),
+            style: TextStyle(
+              fontSize: 16,
+              color: theme.brightness == Brightness.light
+                  ? const Color(0xFF53636E)
+                  : const Color(0xFF8B98A5),
+            ),
           ),
+
           const SizedBox(height: 20),
+
           TextField(
-            decoration: const InputDecoration(
+            key: const ValueKey("change_email_textfield"),
+            decoration: InputDecoration(
               hintText: 'Email address',
               border: OutlineInputBorder(),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: theme.brightness == Brightness.light
+                      ? const Color(0xFF4A90E2)
+                      : const Color(0xFF6799FF),
+                  width: 2,
+                ),
+              ),
             ),
             onChanged: vm.updateEmail,
           ),

@@ -8,11 +8,14 @@ import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authe
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
+import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
 import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
+import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,13 +23,13 @@ void main() async {
   await Future.wait([container.read(apiServiceProvider).initialize()]);
   await container.read(authenticationProvider.notifier).isAuthenticated();
 
-  container.listen(socketInitializerProvider, (_,_)=>{});
+  container.listen(socketInitializerProvider, (_, _) => {});
   container.read(messagesSocketServiceProvider).setUpListners();
 
-  runApp(UncontrolledProviderScope(child: MyApp(), container: container));
+  runApp(UncontrolledProviderScope(container: container, child: MyApp()));
 
   // TO TEST ADD TWEET SCREEN ONLY (No auth): Uncomment lines below
-  // runApp(ProviderScope(child: TestAddTweetApp()));
+  //runApp(ProviderScope(child: TestAddTweetApp()));
 
   // TO TEST HOME WITH FAB (No auth): Uncomment lines below
   // runApp(ProviderScope(child: TestTweetHomeApp()));
@@ -60,6 +63,13 @@ class _MyAppState extends ConsumerState<MyApp> {
             NavigationHomeScreen.routeName: (context) => NavigationHomeScreen(),
             AuthenticationTransmissionScreen.routeName: (context) =>
                 AuthenticationTransmissionScreen(),
+
+            '/profile': (context) {
+              final args = ModalRoute.of(context)!.settings.arguments as Map;
+              final username = args['username'] as String;
+
+              return const ProfileScreen();
+            },
           },
           home: !state.isAuthenticated
               ? FirstTimeScreen()
@@ -71,8 +81,32 @@ class _MyAppState extends ConsumerState<MyApp> {
 }
 
 class TestTweetApp extends StatelessWidget {
-  const TestTweetApp({super.key});
-
+   TestTweetApp({super.key});
+TweetModel tweet=TweetModel(
+    id: "t3",
+    userId: "1",
+    body:
+        "Hi This Is The Tweet Body\nHappiness comes from within. Focus on gratitude, surround yourself with kind people, and do what brings meaning. Accept what you can't control, forgive easily, and celebrate small wins. Stay present, care for your body and mind, and spread kindness daily.",
+    // Mix of images and videos
+    mediaImages: [
+      'https://tse4.mm.bing.net/th/id/OIP.u7kslI7potNthBAIm93JDwHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
+      'https://picsum.photos/seed/nature/800/600',
+    ],
+    mediaVideos: [
+      'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+    ],
+    date: DateTime.now().subtract(const Duration(days: 1)),
+    likes: 999,
+    comments: 8900,
+    views: 5700000,
+    repost: 54,
+    qoutes: 9000000000,
+    bookmarks: 10,
+    authorName: "Mazen",
+    authorProfileImage:
+        'https://tse4.mm.bing.net/th/id/OIP.u7kslI7potNthBAIm93JDwHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
+    username: "mazen",
+  );
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -80,8 +114,8 @@ class TestTweetApp extends StatelessWidget {
       home: Scaffold(
         appBar: AppBar(title: const Text('Test Tweet Widget')),
         body: Center(
-          child: TweetSummaryWidget(tweetId: 't3'), // 👈 your test widget
-        ),
+          child: TweetSummaryWidget(tweetData: tweet,tweetId: 't3'), // 👈 your test widget
+        )
       ),
     );
   }
@@ -102,18 +136,18 @@ class TestAddTweetApp extends StatelessWidget {
 }
 
 /// Test app for TweetHomeScreen with FAB
-class TestTweetHomeApp extends StatelessWidget {
-  const TestTweetHomeApp({super.key});
+// class TestTweetHomeApp extends StatelessWidget {
+//   const TestTweetHomeApp({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(),
-      home: const TweetHomeScreen(),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       theme: ThemeData.dark(),
+//       home: const TweetHomeScreen(),
+//     );
+//   }
+// }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});

@@ -17,9 +17,13 @@ import 'package:lam7a/features/notifications/ui/views/notifications_screen.dart'
 import 'package:lam7a/features/settings/ui/view/main_settings_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
+import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
+import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
+
+  const NavigationHomeScreen({super.key});
 
   @override
   State<NavigationHomeScreen> createState() => _NavigationHomeScreenState();
@@ -29,8 +33,12 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
   int _currentIndex = 0;
   int valueFromDropdown = 0;
   bool _isVisible = true;
+  bool _isAppBarVisible = true;
   double _lastOffset = 0;
-    String? themeMode;
+  String? themeMode;
+
+  // Define custom AppBar height
+  final double _appBarHeight = 80.0; // Change this value to adjust height
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +55,13 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         List<Widget> drawerItems = [
           ListMember(
             "Profile",
-            () {},
+            () {
+              Navigator.pushNamed(
+                context,
+                '/profile',
+                arguments: {"username": user?.username ?? ""},
+              );
+            },
             iconPath: AppAssets.ProfileIcon,
             color: Theme.of(context).colorScheme.onSurface,
           ),
@@ -69,23 +83,45 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
 
         return Scaffold(
           key: ValueKey("homeScreen"),
-          appBar: AppBar(
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            elevation: 0,
-            title: getCurrentAppbar(),
-            leading: Builder(
-              builder: (context) {
-                return IconButton(
-                  onPressed: () {
-                    Scaffold.of(context).openDrawer();
-                  },
-                  icon: Icon(Icons.account_circle_outlined),
-                );
-              },
+          appBar: PreferredSize(
+            preferredSize: Size.fromHeight(_appBarHeight),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              height: _isAppBarVisible ? _appBarHeight : 0,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: _isAppBarVisible ? 1.0 : 0.0,
+                child: AppBar(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 0,
+                  toolbarHeight: _appBarHeight, // Set custom toolbar height
+                  title: getCurrentAppbar(),
+                  leading: Builder(
+                    builder: (context) {
+                      return IconButton(
+                        onPressed: () {
+                          Scaffold.of(context).openDrawer();
+                        },
+                        icon: Icon(Icons.account_circle_outlined),
+                      );
+                    },
+                  ),
+                  actions: [
+                    IconButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (c) => MainSettingsPage()),
+                        );
+                      },
+                      icon: Icon(Icons.settings_outlined),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            actions: [
-              IconButton(onPressed: () {}, icon: Icon(Icons.settings_outlined)),
-            ],
           ),
           drawer: Drawer(
             width: 300,
@@ -101,14 +137,8 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 50),
-                ProfileBlock(
-                  Usermaindata(
-                    name: user?.name,
-                    userName: user?.username,
-                    profileImageUrl: user?.profileImageUrl,
-                  ),
-                ),
+                SizedBox(height: 20),
+                ProfileBlock(),
                 Expanded(
                   child: ListView.builder(
                     itemBuilder: (context, index) {
@@ -117,14 +147,13 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                     itemCount: drawerItems.length,
                   ),
                 ),
-
                 ExpansionTile(
                   collapsedBackgroundColor: Pallete.transparentColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(0),
                     side: BorderSide.none,
                   ),
-                  title: Text("Settinga&Care"),
+                  title: Text("Settings&Care"),
                   children: [
                     ListMember(
                       "Settings and privacy",
@@ -148,7 +177,6 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                   ],
                 ),
                 SizedBox(height: 20),
-
                 StatefulBuilder(
                   builder: (context, modelSetState) {
                     return Container(
@@ -168,31 +196,43 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
               ],
             ),
           ),
-
-          body: NotificationListener<ScrollNotification>(
-            child: pages[_currentIndex],
-            onNotification: (scroll) {
-              if (scroll is UserScrollNotification) {
-                _isVisible = true;
-              } else if (scroll is ScrollUpdateNotification) {
-                final currentOffset = scroll.metrics.pixels;
-                if (currentOffset > _lastOffset + 5 && _isVisible) {
-                  setState(() => _isVisible = false);
-                } else if (currentOffset < _lastOffset - 5 && !_isVisible) {
-                  setState(() => _isVisible = true);
+          body: SafeArea(
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (scroll) {
+                if (scroll.metrics.axis != Axis.vertical) {
+                  return false;
                 }
+                if (scroll is ScrollUpdateNotification) {
+                  final currentOffset = scroll.metrics.pixels;
 
-                _lastOffset = currentOffset;
-              }
-              return true;
-            },
+                  // Scroll down - hide both bars
+                  if (currentOffset > _lastOffset + 10 && _isVisible) {
+                    setState(() {
+                      _isVisible = false;
+                      _isAppBarVisible = false;
+                    });
+                  }
+                  // Scroll up - show both bars
+                  else if (currentOffset < _lastOffset - 5 && !_isVisible) {
+                    setState(() {
+                      _isVisible = true;
+                      _isAppBarVisible = true;
+                    });
+                  }
+
+                  _lastOffset = currentOffset;
+                }
+                return false;
+              },
+              child: pages[_currentIndex],
+            ),
           ),
           bottomNavigationBar: AnimatedContainer(
-            duration: const Duration(milliseconds: 350),
+            duration: const Duration(milliseconds: 200),
             curve: Curves.easeInOut,
-            // height: _isVisible ? MediaQuery.of(context).size.height * 0.07 : 0,
+            height: _isVisible ? 60 : 0.00,
             child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 350),
+              duration: const Duration(milliseconds: 100),
               curve: Curves.easeInOut,
               opacity: _isVisible ? 1.0 : 0.0,
               child: Container(
@@ -209,72 +249,105 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                     canvasColor: Theme.of(context).colorScheme.surface,
                     splashColor: Colors.transparent,
                   ),
-                  child: BottomNavigationBar(
-                    currentIndex: _currentIndex,
-                    type: BottomNavigationBarType.fixed,
-                    selectedItemColor: Theme.of(context).colorScheme.onSurface,
-                    unselectedItemColor: Pallete.greyColor,
-                    elevation: 0,
-                    showSelectedLabels: false,
-                    showUnselectedLabels: false,
-                    onTap: (index) {
-                      _currentIndex = index;
-                      setState(() {
-                        _isVisible = true;
-                      });
-                    },
-                    items: [
-                      BottomNavigationBarItem(
-                        icon: SvgPicture.asset(
-                          AppAssets.homeIcon,
-                          height: 20,
-                          width: 20,
-                          color: Pallete.greyColor,
+                  child: IgnorePointer(
+                    ignoring: !_isVisible,
+                    child: SafeArea(
+                      child: ClipRect(
+                        child: Align(
+                          heightFactor: _isVisible ? 1.0 : 0.0,
+                          child: BottomNavigationBar(
+                            currentIndex: _currentIndex,
+                            type: BottomNavigationBarType.fixed,
+                            selectedItemColor: Theme.of(
+                              context,
+                            ).colorScheme.onSurface,
+                            unselectedItemColor: Pallete.greyColor,
+                            elevation: 0,
+                            showSelectedLabels: false,
+                            showUnselectedLabels: false,
+                            onTap: (index) {
+                              setState(() {
+                                _currentIndex = index;
+                                _isVisible = true;
+                                _isAppBarVisible = true;
+                              });
+                            },
+                            items: [
+                              BottomNavigationBarItem(
+                                icon: SvgPicture.asset(
+                                  AppAssets.homeIcon,
+                                  height: _isVisible ? 22 : 0,
+                                  width: _isVisible ? 22 : 0,
+                                  colorFilter: ColorFilter.mode(
+                                    Pallete.greyColor,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                                activeIcon: SvgPicture.asset(
+                                  AppAssets.homeIcon,
+                                  height: 22,
+                                  width: 22,
+                                  colorFilter: ColorFilter.mode(
+                                    Theme.of(context).colorScheme.onSurface,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                                label: "home",
+                              ),
+                              BottomNavigationBarItem(
+                                icon: Icon(
+                                  Icons.search,
+                                  size: _isVisible ? 22 : 0,
+                                ),
+                                label: "search",
+                              ),
+                              BottomNavigationBarItem(
+                                icon: SvgPicture.asset(
+                                  AppAssets.notificationsIcon,
+                                  height: _isVisible ? 22 : 0,
+                                  width: _isVisible ? 22 : 0,
+                                  colorFilter: ColorFilter.mode(
+                                    Pallete.greyColor,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                                activeIcon: SvgPicture.asset(
+                                  AppAssets.notificationsIcon,
+                                  height: 20,
+                                  width: 20,
+                                  colorFilter: ColorFilter.mode(
+                                    Theme.of(context).colorScheme.onSurface,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                                label: "notifications",
+                              ),
+                              BottomNavigationBarItem(
+                                icon: SvgPicture.asset(
+                                  AppAssets.messagesIcon,
+                                  height: _isVisible ? 22 : 0,
+                                  width: _isVisible ? 22 : 0,
+                                  colorFilter: ColorFilter.mode(
+                                    Pallete.greyColor,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                                activeIcon: SvgPicture.asset(
+                                  AppAssets.messagesIcon,
+                                  height: 20,
+                                  width: 20,
+                                  colorFilter: ColorFilter.mode(
+                                    Theme.of(context).colorScheme.onSurface,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                                label: "messages",
+                              ),
+                            ],
+                          ),
                         ),
-                        activeIcon: SvgPicture.asset(
-                          AppAssets.homeIcon,
-                          height: 20,
-                          width: 20,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        label: "home",
                       ),
-                      BottomNavigationBarItem(
-                        icon: Icon(Icons.search),
-                        label: "search",
-                      ),
-                      BottomNavigationBarItem(
-                        icon: SvgPicture.asset(
-                          AppAssets.notificationsIcon,
-                          height: 20,
-                          width: 20,
-                          color: Pallete.greyColor,
-                        ),
-                        activeIcon: SvgPicture.asset(
-                          AppAssets.notificationsIcon,
-                          height: 20,
-                          width: 20,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-
-                        label: "notifications",
-                      ),
-                      BottomNavigationBarItem(
-                        icon: SvgPicture.asset(
-                          AppAssets.messagesIcon,
-                          height: 20,
-                          width: 20,
-                          color: Pallete.greyColor,
-                        ),
-                        activeIcon: SvgPicture.asset(
-                          AppAssets.messagesIcon,
-                          height: 20,
-                          width: 20,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        label: "messages",
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -288,7 +361,16 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
   Widget getCurrentAppbar() {
     switch (_currentIndex) {
       case 0:
-        return ImageIcon(AssetImage(AppAssets.xIcon));
+        return SvgPicture.asset(
+          AppAssets.xIcon,
+          width: 32,
+          height: 32,
+          colorFilter: ColorFilter.mode(
+            Theme.of(context).colorScheme.onSurface,
+            BlendMode.srcIn,
+          ),
+        );
+      // replaces currentCo;
       case 1:
         return SearchBarCustomized();
       case 2:
@@ -343,7 +425,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
 
   void showThemeModeBottomSheet(bool isDark) {
     showModalBottomSheet<void>(
-      context: context, // Your correct context from Builder
+      context: context,
       backgroundColor: isDark
           ? const Color.fromARGB(255, 71, 71, 71)
           : Theme.of(context).colorScheme.surface,
@@ -352,10 +434,9 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
       ),
       builder: (BuildContext modalContext) {
         return StatefulBuilder(
-          // ✅ This is the key!
           builder: (BuildContext context, StateSetter modalSetState) {
             return SizedBox(
-              height: 300, // A bit taller for better UX
+              height: 300,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -372,14 +453,10 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                     ),
                     const SizedBox(height: 24),
                     RadioGroup<String>(
-                      groupValue: themeMode, // Your state variable
+                      groupValue: themeMode,
                       onChanged: (value) {
-                        modalSetState(
-                          () => themeMode = value,
-                        );
-                        setState(
-                          () {},
-                        ); 
+                        modalSetState(() => themeMode = value);
+                        setState(() {});
                       },
                       child: Column(
                         children: [
@@ -414,7 +491,8 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),]
+                    const SizedBox(height: 16),
+                  ],
                 ),
               ),
             );

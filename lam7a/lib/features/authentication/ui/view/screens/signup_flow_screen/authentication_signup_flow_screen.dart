@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
@@ -16,11 +17,11 @@ import 'package:lam7a/features/authentication/ui/widgets/loading_circle.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 
 final List<Widget> signupFlowSteps = [
-  UserDataSignUp(),
-  VerificationCode(),
-  PasswordScreen(),
-  ProfilePicture(),
-  UserNameScreen(),
+  UserDataSignUp(key: ValueKey("userDataSignup")),
+  VerificationCode(key: ValueKey("verificationCodeStep")),
+  PasswordScreen(key: ValueKey("passwordStep")),
+  // ProfilePicture(),
+  // UserNameScreen(),
 ];
 
 class SignUpFlow extends StatefulWidget {
@@ -52,9 +53,6 @@ class _SignUpFlowState extends State<SignUpFlow> {
         final state = ref.watch(authenticationViewmodelProvider);
         final viewmodel = ref.watch(authenticationViewmodelProvider.notifier);
         final authenticationState = ref.watch(authenticationProvider);
-        final authenticationController = ref.watch(
-          authenticationProvider.notifier,
-        );
         int currentIndex = state.currentSignupStep;
         /////////////////////////////////////////////////////////////////
         /////////////////////////////////////////////////////////////////
@@ -77,7 +75,16 @@ class _SignUpFlowState extends State<SignUpFlow> {
           child: Scaffold(
             key: ValueKey("signUpScreen"),
             appBar: AppBar(
-              title: const ImageIcon(AssetImage(AppAssets.xIcon)),
+              title: SvgPicture.asset(
+                AppAssets.xIcon,
+                width: 32,
+                height: 32,
+                colorFilter: ColorFilter.mode(
+                  Theme.of(context).colorScheme.onSurface,
+                  BlendMode.srcIn,
+                ),
+              ),
+              // replaces currentCo,
               // taping on back button
               leading: IconButton(
                 onPressed: () {
@@ -95,8 +102,9 @@ class _SignUpFlowState extends State<SignUpFlow> {
               ),
             ),
             // the main screen that has the sign up steps
-            body: !state.isLoadingSignup && !state.isLoadingLogin
+            body: !state.isLoadingSignup
                 ? Column(
+                    key: ValueKey("mainData"),
                     children: [
                       signupFlowSteps[currentIndex],
                       Spacer(flex: 5),
@@ -107,44 +115,48 @@ class _SignUpFlowState extends State<SignUpFlow> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              ((signupFlowSteps[currentIndex]
-                                          is ProfilePicture) ||
-                                      (signupFlowSteps[currentIndex]
-                                          is UserNameScreen))
-                                  ? Expanded(
-                                      flex: 8,
-                                      child: AuthenticationStepButton(
-                                        label: "skip for now",
-                                        bgColor: Pallete.whiteColor,
-                                        textColor: Pallete.blackColor,
-                                        onPressedEffect: () {
-                                          viewmodel.gotoNextSignupStep();
-                                        },
-                                      ),
-                                    )
-                                  : Expanded(flex: 8, child: Container()),
+                              Expanded(flex: 8, child: Container()),
                               Spacer(flex: 8),
                               Expanded(
                                 flex: 6,
                                 child: AuthenticationStepButton(
-                                  bgColor: Theme.of(context).colorScheme.onSurface,
+                                  bgColor: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
                                   key: ValueKey("nextSignupStepButton"),
                                   enable: viewmodel.shouldEnableNext(),
-                                  label: AuthenticationConstants.nextLabels[currentIndex],
-                                  textColor: Theme.of(context).colorScheme.surface,
+                                  label: AuthenticationConstants
+                                      .nextLabels[currentIndex],
+                                  textColor: Theme.of(
+                                    context,
+                                  ).colorScheme.surface,
                                   onPressedEffect: () async {
                                     if (viewmodel.shouldEnableNext()) {
                                       await viewmodel.registrationProgress();
-                                      String? message = ref.read(authenticationViewmodelProvider).toastMessage;
-                                      if (message != null)
-                                      {
-                                          AuthenticationConstants.flushMessage(message, context, "signupMessage");
-                                          ref.read(authenticationViewmodelProvider.notifier).clearMessage();
+                                      String? message = ref
+                                          .read(authenticationViewmodelProvider)
+                                          .toastMessage;
+                                      if (message != null) {
+                                        AuthenticationConstants.flushMessage(
+                                          message,
+                                          context,
+                                          "signupMessage",
+                                        );
+                                        ref
+                                            .read(
+                                              authenticationViewmodelProvider
+                                                  .notifier,
+                                            )
+                                            .clearMessage();
                                       }
-                                      if (authenticationState.isAuthenticated)
-                                      {
+                                      if (authenticationState.isAuthenticated) {
                                         Navigator.pop(context);
-                                        Navigator.pushNamedAndRemoveUntil(context, AuthenticationTransmissionScreen.routeName, (route) => false);
+                                        Navigator.pushNamedAndRemoveUntil(
+                                          context,
+                                          AuthenticationTransmissionScreen
+                                              .routeName,
+                                          (route) => false,
+                                        );
                                       }
                                     }
                                   },
@@ -156,9 +168,7 @@ class _SignUpFlowState extends State<SignUpFlow> {
                       ),
                     ],
                   )
-                : Center(
-                    child: LoadingCircle(),
-                  ),
+                : Center(child: LoadingCircle(key: ValueKey("loading"))),
           ),
         );
       },

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_replies_viewmodel.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_detailed_body_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_detailed_feed.dart';
+import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_detailed.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 
@@ -27,55 +29,244 @@ class TweetScreen extends ConsumerWidget {
         isViewed: false,
         tweet: AsyncValue.data(tweetData!),
       );
-      
-      return SafeArea(
-        child: Container(
-          alignment: Alignment.topLeft,
-          color: Colors.black,
-          padding: const EdgeInsets.only(left: 10),
+      final repliesAsync = ref.watch(tweetRepliesViewModelProvider(tweetId));
+      final isPureRepost =
+          tweetData!.isRepost && !tweetData!.isQuote && tweetData!.originalTweet != null;
+      final username = tweetData!.username ?? 'unknown';
+      final displayName =
+          (tweetData!.authorName != null && tweetData!.authorName!.isNotEmpty)
+              ? tweetData!.authorName!
+              : username;
+
+      return Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.grey),
+          title: Text(
+            'Post',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          centerTitle: false,
+        ),
+        body: SafeArea(
           child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TweetUserInfoDetailed(tweetState: tweetState),
-                const SizedBox(height: 10),
-                TweetDetailedBodyWidget(tweetState: tweetState),
-                TweetDetailedFeed(tweetState: tweetState),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (isPureRepost) ...[
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.repeat,
+                          size: 18,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$displayName reposted',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: TweetUserInfoDetailed(tweetState: tweetState),
+                      ),
+                      GestureDetector(
+                        child: const Icon(
+                          Icons.rocket,
+                          size: 17,
+                          color: Colors.blueAccent,
+                        ),
+                        onTap: () {
+                          ref
+                              .read(tweetViewModelProvider(tweetId).notifier)
+                              .summarizeBody();
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TweetDetailedBodyWidget(tweetState: tweetState),
+                  const SizedBox(height: 8),
+                  TweetDetailedFeed(tweetState: tweetState),
+                  const SizedBox(height: 16),
+                  repliesAsync.when(
+                    data: (replies) {
+                      if (replies.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return Column(
+                        children: replies
+                            .map(
+                              (reply) => Column(
+                                children: [
+                                  const Divider(
+                                    color: Colors.white24,
+                                    thickness: 0.3,
+                                    height: 1,
+                                  ),
+                                  TweetSummaryWidget(
+                                    tweetId: reply.id,
+                                    tweetData: reply,
+                                  ),
+                                ],
+                              ),
+                            )
+                            .toList(),
+                      );
+                    },
+                    loading: () => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                    error: (e, _) => const SizedBox.shrink(),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       );
     }
-    
+
     // Otherwise fetch using ViewModel (will fail with 404 if backend doesn't support it)
     final tweetAsync = ref.watch(tweetViewModelProvider(tweetId));
+    final repliesAsync = ref.watch(tweetRepliesViewModelProvider(tweetId));
 
-    return SafeArea(
-      child: Container(
-        alignment: Alignment.topLeft,
-        color: Colors.black,
-        padding: const EdgeInsets.only(left: 10),
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.grey),
+        title: Text(
+          'Post',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        centerTitle: false,
+      ),
+      body: SafeArea(
         child: SingleChildScrollView(
-          child: tweetAsync.when(
-            data: (tweet) => Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // user
-                TweetUserInfoDetailed(tweetState: tweet),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: tweetAsync.when(
+              data: (tweet) {
+                final tweetModel = tweet.tweet.value;
+                final isPureRepost =
+                    tweetModel != null &&
+                    tweetModel.isRepost &&
+                    !tweetModel.isQuote &&
+                    tweetModel.originalTweet != null;
+                final username = tweetModel?.username ?? 'unknown';
+                final displayName =
+                    (tweetModel?.authorName != null &&
+                            tweetModel!.authorName!.isNotEmpty)
+                        ? tweetModel!.authorName!
+                        : username;
 
-                // body
-                const SizedBox(height: 10),
-                TweetDetailedBodyWidget(tweetState: tweet),
-
-                // feed
-                TweetDetailedFeed(tweetState: tweet),
-              ],
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (isPureRepost) ...[
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.repeat,
+                            size: 18,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$displayName reposted',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: TweetUserInfoDetailed(tweetState: tweet),
+                        ),
+                        GestureDetector(
+                          child: const Icon(
+                            Icons.rocket,
+                            size: 17,
+                            color: Colors.blueAccent,
+                          ),
+                          onTap: () {
+                            ref
+                                .read(tweetViewModelProvider(tweetId).notifier)
+                                .summarizeBody();
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TweetDetailedBodyWidget(tweetState: tweet),
+                    const SizedBox(height: 8),
+                    TweetDetailedFeed(tweetState: tweet),
+                    const SizedBox(height: 16),
+                    repliesAsync.when(
+                      data: (replies) {
+                        if (replies.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
+                          children: replies
+                              .map(
+                                (reply) => Column(
+                                  children: [
+                                    const Divider(
+                                      color: Colors.white24,
+                                      thickness: 0.3,
+                                      height: 1,
+                                    ),
+                                    TweetSummaryWidget(
+                                      tweetId: reply.id,
+                                      tweetData: reply,
+                                    ),
+                                  ],
+                                ),
+                              )
+                              .toList(),
+                        );
+                      },
+                      loading: () => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                      error: (e, _) => const SizedBox.shrink(),
+                    ),
+                  ],
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, st) => Center(child: Text('Error: $e')),
             ),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, st) => Center(child: Text('Error: $e')),
           ),
         ),
       ),

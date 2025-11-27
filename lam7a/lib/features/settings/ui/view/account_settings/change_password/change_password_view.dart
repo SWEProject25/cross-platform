@@ -17,11 +17,28 @@ class ChangePasswordView extends ConsumerWidget {
     final blueXColor = const Color(0xFF1D9BF0);
 
     return Scaffold(
+      key: const Key("change_password_page"),
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
+        centerTitle: false,
         title: Text(
           username!,
-          style: theme.textTheme.bodySmall!.copyWith(fontSize: 14),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.brightness == Brightness.light
+                ? const Color(0xFF53636E)
+                : const Color(0xFF8B98A5),
+            fontSize: 16,
+          ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(
+            height: 0.5,
+            thickness: 0.5,
+            color: theme.brightness == Brightness.light
+                ? const Color.fromARGB(120, 83, 99, 110)
+                : const Color(0xFF8B98A5),
+          ),
         ),
       ),
       body: Padding(
@@ -30,7 +47,9 @@ class ChangePasswordView extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SettingsTextField(
+              key: const Key("change_password_current_field"),
               label: 'Current password',
+
               controller: state.currentController,
               onChanged: notifier.updateCurrent,
               obscureText: true,
@@ -38,37 +57,41 @@ class ChangePasswordView extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             SettingsTextField(
+              key: const Key("change_password_new_field"),
               label: 'New password',
               hint: 'At least 8 characters',
               controller: state.newController,
               focusNode: state.newFocus,
-              errorText: state.newPasswordError,
+              validator: (_) => state.newPasswordError,
               onChanged: notifier.updateNew,
               obscureText: true,
               showToggleIcon: true,
             ),
             const SizedBox(height: 16),
             SettingsTextField(
+              key: const Key("change_password_confirm_field"),
               label: 'Confirm password',
               hint: 'At least 8 characters',
               controller: state.confirmController,
               focusNode: state.confirmFocus,
-              errorText: state.confirmPasswordError,
+              validator: (_) => state.confirmPasswordError,
               onChanged: notifier.updateConfirm,
               obscureText: true,
               showToggleIcon: true,
             ),
-            const SizedBox(height: 20),
+
+            const SizedBox(height: 14),
 
             Center(
               child: FilledButton(
+                key: const Key("change_password_submit_button"),
                 style: FilledButton.styleFrom(
                   backgroundColor: state.isValid
                       ? blueXColor
-                      : Color.fromARGB(151, 29, 156, 240),
+                      : const Color.fromARGB(151, 29, 156, 240),
                   shape: const StadiumBorder(),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 60,
+                    horizontal: 40,
                     vertical: 14,
                   ),
                 ),
@@ -80,13 +103,15 @@ class ChangePasswordView extends ConsumerWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
+                    fontSize: 16,
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+
             Center(
               child: TextButton(
+                key: const Key("change_password_forgot_button"),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -94,8 +119,12 @@ class ChangePasswordView extends ConsumerWidget {
                   );
                 },
                 child: Text(
-                  'Forgot password?',
-                  style: theme.textTheme.bodyMedium!,
+                  'Forgot your password?',
+                  style: TextStyle(
+                    color: theme.brightness == Brightness.light
+                        ? const Color(0xFF53636E)
+                        : const Color(0xFF8B98A5),
+                  ),
                 ),
               ),
             ),

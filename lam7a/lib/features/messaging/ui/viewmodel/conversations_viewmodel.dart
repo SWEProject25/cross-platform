@@ -1,7 +1,8 @@
 import 'dart:async';
 
+import 'package:lam7a/features/messaging/model/conversation.dart';
+import 'package:lam7a/features/messaging/providers/conversations_provider.dart';
 import 'package:lam7a/features/messaging/repository/conversations_repositories.dart';
-import 'package:lam7a/features/messaging/repository/messages_repository.dart';
 import 'package:lam7a/features/messaging/ui/state/conversations_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -9,88 +10,32 @@ part 'conversations_viewmodel.g.dart';
 
 @riverpod
 class ConversationsViewModel extends _$ConversationsViewModel {
-  
   late ConversationsRepository _conversationsRepository;
-  late MessagesRepository _messagesRepository;
-
+  // will listen to pagination provider updates instead of reading synchronously
   final Map<int, StreamSubscription<void>?> newMessageSub = {};
 
   @override
   ConversationsState build() {
     _conversationsRepository = ref.read(conversationsRepositoryProvider);
-    _messagesRepository = ref.read(messagesRepositoryProvider.notifier);
+    var conversations = ref.watch(conversationsProvider);
 
-    ref.onDispose(()=>_onDispose());
-
-    Future.microtask(() async {
-      await _loadConversations();
-      setUpNewMessageListeners();
-    });
-    
-
-    return const ConversationsState();
-  }
-
-  void _onDispose(){
-    newMessageSub.forEach((i,x)=>newMessageSub[i]?.cancel());
-    newMessageSub.forEach((i,x)=>newMessageSub[i] = null);
-  }
-
-  Future<void> _loadConversations() async {
-
-    state = state.copyWith(conversations: const AsyncLoading());
-    try {
-      final data = await _conversationsRepository.fetchConversations();
-      state = state.copyWith(conversations: AsyncData(data));
-    } catch (e, st) {
-      state = state.copyWith(conversations: AsyncError(e, st));
-    }
-  }
-
-  void setUpNewMessageListeners() {
-    newMessageSub.forEach((i,x)=>newMessageSub[i]?.cancel());
-    newMessageSub.forEach((i,x)=>newMessageSub[i] = null);
-
-    if(state.conversations.hasValue){
-      state.conversations.value!.forEach((x)=>{
-      });
-
-      for (var x in state.conversations.value!) {
-        newMessageSub[x.id] = _messagesRepository.onMessageRecieved(x.id).listen((_)=>_onNewMessageRecieved(x.id));
-      }
-    }
-  }
-
-  void _onNewMessageRecieved(int convId) {
-    final message = _messagesRepository.fetchMessage(convId).lastOrNull;
-    if (message == null) return;
-
-    final current = state.conversations;
-    if (!current.hasValue) return;
-
-    final conversations = current.value!;
-
-    final updated = conversations.map((c) {
-      if (c.id == convId) {
-        return c.copyWith(
-          lastMessage: message.text,
-          lastMessageTime: message.time,
+    AsyncValue<List<Conversation>> asyncConversation = const AsyncLoading();
+    if (conversations.error != null) {
+      asyncConversation = AsyncError(
+          conversations.error ?? 'Unknown',
+          StackTrace.current,
         );
-      }
-      return c;
-    }).toList();
+    } else {
+      asyncConversation = AsyncData(conversations.items);
+    }
 
-    state = state.copyWith(conversations: AsyncData(updated));
+    return ConversationsState(conversations: asyncConversation);
   }
 
+  Future<void> onQueryChanged(String v) async {
+    state = state.copyWith(searchQuery: v, searchQueryError: _validateQuery(v));
 
-  void onQueryChanged(String v) {
-    state = state.copyWith(
-      searchQuery: v,
-      searchQueryError: _validateQuery(v),
-    );
-    
-    updateSerch(v);
+    await updateSerch(v);
   }
 
   String? _validateQuery(String v) {
@@ -100,7 +45,7 @@ class ConversationsViewModel extends _$ConversationsViewModel {
   }
 
   Future<void> updateSerch(String query) async {
-    if(state.searchQueryError != null){
+    if (state.searchQueryError != null) {
       return;
     }
 
@@ -114,10 +59,7 @@ class ConversationsViewModel extends _$ConversationsViewModel {
 
   Future<void> refresh() async {
     await Future.wait([
-      _loadConversations(),
+      // _loadConversations(),
     ]);
   }
-
 }
-
-

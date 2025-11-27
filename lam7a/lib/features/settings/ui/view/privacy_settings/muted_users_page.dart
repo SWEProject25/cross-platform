@@ -13,7 +13,7 @@ class MutedUsersView extends ConsumerWidget {
     final viewModel = ref.read(mutedUsersProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Muted Users')),
+      appBar: AppBar(title: const Text('Muted Accounts'), centerTitle: false),
       body: state.when(
         data: (data) {
           return data.mutedUsers.isEmpty

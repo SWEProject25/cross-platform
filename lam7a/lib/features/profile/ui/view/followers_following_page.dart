@@ -1,110 +1,128 @@
-// lib/ui/view/followers_following_page.dart
+// lib/features/profile/ui/view/followers_following_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../widgets/profile_card.dart';
-import '../../model/profile_model.dart';
-import '../viewmodel/profile_viewmodel.dart';
+import 'package:lam7a/features/profile/model/profile_model.dart';
+import 'package:lam7a/features/profile/repository/profile_repository.dart';
+import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
+import '../widgets/follow_button.dart';
 
 class FollowersFollowingPage extends ConsumerStatefulWidget {
-  final String username;
+  final int userId;
+  final int initialTab;
 
-  const FollowersFollowingPage({super.key, required this.username});
+  const FollowersFollowingPage({
+    super.key,
+    required this.userId,
+    this.initialTab = 0,
+  });
 
   @override
-  ConsumerState<FollowersFollowingPage> createState() =>
-      _FollowersFollowingPageState();
+  ConsumerState<FollowersFollowingPage> createState() => _FollowersFollowingPageState();
 }
 
-class _FollowersFollowingPageState
-    extends ConsumerState<FollowersFollowingPage>
+class _FollowersFollowingPageState extends ConsumerState<FollowersFollowingPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+
+  List<ProfileModel>? _followers;
+  List<ProfileModel>? _following;
+
+  bool _loadingFollowers = true;
+  bool _loadingFollowing = true;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this, initialIndex: widget.initialTab);
+    _loadData();
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  Future<void> _loadData() async {
+    final repo = ref.read(profileRepositoryProvider);
+
+    try {
+      final f = await repo.getFollowers(widget.userId);
+      final g = await repo.getFollowing(widget.userId);
+
+      if (!mounted) return;
+
+      setState(() {
+        _followers = f;
+        _following = g;
+        _loadingFollowers = false;
+        _loadingFollowing = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _followers = [];
+        _following = [];
+        _loadingFollowers = false;
+        _loadingFollowing = false;
+      });
+    }
+  }
+
+  Widget _buildTile(ProfileModel p) {
+    return ListTile(
+      leading: CircleAvatar(radius: 24, backgroundImage: NetworkImage(p.avatarImage)),
+      title: Row(
+        children: [
+          Text(p.displayName, style: const TextStyle(fontWeight: FontWeight.bold)),
+          if (p.isVerified) const SizedBox(width: 6),
+          if (p.isVerified) const Icon(Icons.verified, size: 16, color: Colors.blue),
+        ],
+      ),
+      subtitle: Text('@${p.handle}\n${p.bio}', maxLines: 2, overflow: TextOverflow.ellipsis),
+      trailing: FollowButton(initialProfile: p),
+      isThreeLine: true,
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProfileScreen(
+              key: UniqueKey(),
+            ),
+            settings: RouteSettings(arguments: {"username": p.handle}),
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final profileAsync = ref.watch(profileListViewModelProvider);
-    final profileState = ref.watch(profileListStateProvider);
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0.5,
-        title: Text(
-          widget.username,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: Container(
-            color: Colors.white,
-            child: TabBar(
-              controller: _tabController,
-              indicatorColor: Colors.blue,
-              labelColor: Colors.blue,
-              unselectedLabelColor: Colors.grey,
-              tabs: const [
-                Tab(text: 'Followers'),
-                Tab(text: 'Following'),
-              ],
-            ),
-          ),
+        title: const Text('Connections'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Followers'),
+            Tab(text: 'Following'),
+          ],
         ),
       ),
-      body: profileAsync.when(
-        data: (profiles) {
-          // Initialize state if not set
-          if (profileState == null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              ref.read(profileListStateProvider.notifier).state = profiles;
-            });
-          }
-
-          final effectiveProfiles = profileState ?? profiles;
-          
-          final followers = effectiveProfiles
-              .where((p) => p.stateFollow == ProfileStateOfFollow.notfollowing)
-              .toList();
-          final following = effectiveProfiles
-              .where((p) => p.stateFollow == ProfileStateOfFollow.following)
-              .toList();
-
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              ListView.separated(
-                itemCount: followers.length,
-                physics: const AlwaysScrollableScrollPhysics(),
-                separatorBuilder: (_, __) => const Divider(height: 0.5),
-                itemBuilder: (_, index) => ProfileCard(profile: followers[index]),
-              ),
-              ListView.separated(
-                itemCount: following.length,
-                physics: const AlwaysScrollableScrollPhysics(),
-                separatorBuilder: (_, __) => const Divider(height: 0.5),
-                itemBuilder: (_, index) => ProfileCard(profile: following[index]),
-              ),
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _loadingFollowers
+              ? const Center(child: CircularProgressIndicator())
+              : ListView.separated(
+                  itemCount: _followers!.length,
+                  separatorBuilder: (_, __) => const Divider(height: 0.5),
+                  itemBuilder: (_, i) => _buildTile(_followers![i]),
+                ),
+          _loadingFollowing
+              ? const Center(child: CircularProgressIndicator())
+              : ListView.separated(
+                  itemCount: _following!.length,
+                  separatorBuilder: (_, __) => const Divider(height: 0.5),
+                  itemBuilder: (_, i) => _buildTile(_following![i]),
+                ),
+        ],
       ),
     );
   }

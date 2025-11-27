@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/change_password_state.dart';
 import '../../repository/account_settings_repository.dart';
-import '../../utils/validators.dart';
 
 class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
   @override
@@ -13,7 +12,6 @@ class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
     final newFocus = FocusNode();
     final confirmFocus = FocusNode();
 
-    // Attach listeners to validate on losing focus
     newFocus.addListener(() {
       if (!newFocus.hasFocus) {
         _validateNewPassword();
@@ -43,18 +41,20 @@ class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
   }
 
   void updateNew(String value) {
-    _updateButtonState();
+    _validateNewPassword(); // this line shouldn't be here , unit testing only
+    updateButtonState();
   }
 
   void updateConfirm(String value) {
-    _updateButtonState();
+    _validateConfirmPassword(); // this line shouldn't be here , unit testing only
+    updateButtonState();
   }
 
   void updateCurrent(String value) {
-    _updateButtonState();
+    updateButtonState();
   }
 
-  void _updateButtonState() {
+  void updateButtonState() {
     final current = state.currentController.text.trim();
     final newPass = state.newController.text.trim();
     final confirm = state.confirmController.text.trim();
@@ -72,33 +72,33 @@ class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
 
   void _validateNewPassword() {
     final newPass = state.newController.text;
-    String? error;
+    String? error = "";
 
     if (newPass.isEmpty) {
       error = 'Enter a new password';
     } else if (newPass.length < 8) {
       error = 'Password must be at least 8 characters';
     } else {
-      final strength = Validators.getPasswordStrength(newPass);
+      final hasUpper = RegExp(r'[A-Z]').hasMatch(newPass);
+      final hasLower = RegExp(r'[a-z]').hasMatch(newPass);
+      final hasDigit = RegExp(r'\d').hasMatch(newPass);
+      final hasSpecial = RegExp(r'[\W_]').hasMatch(newPass);
 
-      switch (strength) {
-        case PasswordStrength.weak:
-          error = 'Password is too weak — add more variety and length.';
-          break;
-        case PasswordStrength.medium:
-          error =
-              'please add at least one uppercase letter, lowercase letter, number, and symbol';
-          break;
-        case PasswordStrength.strong:
-          error = null; // acceptable strength
-          break;
-        case PasswordStrength.veryStrong:
-          error = null; // best case
-          break;
+      List<String> missing = [];
+      if (!hasUpper) missing.add("uppercase letter");
+      if (!hasLower) missing.add("lowercase letter");
+      if (!hasDigit) missing.add("number");
+      if (!hasSpecial) missing.add("special character");
+
+      if (missing.isNotEmpty) {
+        error = "Password must include: ${missing.join(", ")}";
       }
     }
+    print(error != "" ? 'New Password Error: $error' : 'New Password Valid');
+
     state = state.copyWith(newPasswordError: error);
-    _updateButtonState();
+
+    updateButtonState();
   }
 
   void _validateConfirmPassword() {
@@ -113,26 +113,32 @@ class ChangePasswordNotifier extends Notifier<ChangePasswordState> {
     } else if (confirmPass != newPass) {
       error = 'Passwords do not match';
     } else {
-      error = null;
+      error = "";
     }
+
     state = state.copyWith(confirmPasswordError: error);
-    _updateButtonState();
+    updateButtonState();
   }
 
-  // Simulate backend password check
   Future<void> changePassword(BuildContext context) async {
+    if (state.isValid == false) return;
+
     final current = state.currentController.text.trim();
     final newPassword = state.newController.text.trim();
-
     final accountRepo = ref.read(accountSettingsRepoProvider);
+
     try {
       await accountRepo.changePassword(current, newPassword);
-      // On success, you might want to show a success message or navigate away
+
+      if (!ref.mounted) return; // ← ADD THIS
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Password changed successfully')),
       );
-      Navigator.of(context).pop(); // Go back after successful change
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
     } catch (e) {
+      if (!ref.mounted) return; // ← AND THIS
       _showErrorDialog(context);
     }
   }

@@ -31,13 +31,17 @@ class SettingsSearchBar extends StatelessWidget {
                 const SizedBox(width: 12),
                 Icon(
                   Icons.search,
-                  color: isDark ? const Color(0xFF75787F) : Colors.black54,
+                  color: isDark
+                      ? const Color(0xFF75787F)
+                      : const Color(0xFF53636E),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   "Search settings",
                   style: TextStyle(
-                    color: isDark ? const Color(0xFF75787F) : Colors.black54,
+                    color: isDark
+                        ? const Color(0xFF75787F)
+                        : const Color(0xFF53636E),
                     fontSize: 16,
                   ),
                 ),

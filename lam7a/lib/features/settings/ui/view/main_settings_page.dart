@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
-import '../widgets/settings_listTile.dart';
+import '../widgets/settings_listtile.dart';
 import '../widgets/settings_search_bar.dart';
 import 'account_settings/account_settings_page.dart';
 import 'privacy_settings/privacy_settings_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../viewmodel/account_viewmodel.dart';
 
-class MainSettingsPage extends StatelessWidget {
+class MainSettingsPage extends ConsumerWidget {
   const MainSettingsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final state = ref.watch(accountProvider);
+
     final options = [
       {
         'icon': Icons.person_outline,
@@ -16,12 +21,7 @@ class MainSettingsPage extends StatelessWidget {
         'subtitle':
             'See information about your account, download an archive of your data or deactivate your account',
       },
-      {
-        'icon': Icons.lock_outline,
-        'title': 'Security and account access',
-        'subtitle':
-            'Manage your account’s security and keep track of your account’s usage.',
-      },
+
       {
         'icon': Icons.shield_outlined,
         'title': 'Privacy and safety',
@@ -30,7 +30,33 @@ class MainSettingsPage extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(
+        centerTitle: false,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Settings',
+              style: theme.textTheme.titleLarge!.copyWith(
+                color: theme.brightness == Brightness.light
+                    ? theme.appBarTheme.titleTextStyle!.color
+                    : const Color(0xFFE7E9EA),
+                fontWeight: FontWeight.w500,
+                fontSize: 20,
+              ),
+            ),
+            Text(
+              state.username!,
+              style: theme.textTheme.bodyMedium!.copyWith(
+                color: theme.brightness == Brightness.light
+                    ? const Color(0xFF53636E)
+                    : const Color(0xFF8B98A5),
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
       body: Column(
         children: [
           SettingsSearchBar(),

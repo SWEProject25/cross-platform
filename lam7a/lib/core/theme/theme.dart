@@ -29,7 +29,6 @@ class AppTheme {
       onError: Colors.white,
       tertiary: _background,
       onTertiary: _foreground,
-      
     ),
 
     // AppBar

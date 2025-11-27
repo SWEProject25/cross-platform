@@ -13,7 +13,8 @@ class BlockedUsersView extends ConsumerWidget {
     final viewModel = ref.read(blockedUsersProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Blocked Users')),
+      appBar: AppBar(title: const Text('Blocked Accounts'), centerTitle: false),
+
       body: state.when(
         data: (data) {
           return data.blockedUsers.isEmpty

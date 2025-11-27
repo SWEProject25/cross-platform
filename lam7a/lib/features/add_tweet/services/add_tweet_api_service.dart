@@ -8,12 +8,16 @@ abstract class AddTweetApiService {
   /// [content] - The text content of the tweet
   /// [mediaPicPath] - Optional local file path for an image
   /// [mediaVideoPath] - Optional local file path for a video
+  /// [type] - The type of post (POST, REPLY, QUOTE). Defaults to POST.
+  /// [parentPostId] - Optional parent post ID when this is a reply or quote
   /// 
   /// Returns the created tweet with media URLs populated by the backend
   Future<TweetModel> createTweet({
     required int userId,
     required String content,
-    String? mediaPicPath,
+    List<String>? mediaPicPaths,
     String? mediaVideoPath,
+    String type = 'POST',
+    int? parentPostId,
   });
 }

@@ -7,23 +7,13 @@ import 'package:lam7a/features/authentication/ui/widgets/authentication_text_inp
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 
-class UserDataSignUp extends StatefulWidget {
+class UserDataSignUp extends ConsumerWidget {
   const UserDataSignUp({super.key});
 
-  @override
-  State<StatefulWidget> createState() {
-    return _UserDataSignUp();
-  }
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(authenticationViewmodelProvider);
+    final viewModel = ref.watch(authenticationViewmodelProvider.notifier);
 
-class _UserDataSignUp extends State {
-  @override
-  Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
- 
-        final state = ref.watch(authenticationViewmodelProvider);
-        final viewModel = ref.watch(authenticationViewmodelProvider.notifier);
         return Column(
           children: [
             Center(
@@ -49,7 +39,7 @@ class _UserDataSignUp extends State {
             ),
             TextInputField(
               key: ValueKey("emailSignupTextField"),
-              content:state.email,
+              content: state.email,
               labelTextField: "Email",
               flex: 8,
               textType: TextInputType.emailAddress,
@@ -60,15 +50,15 @@ class _UserDataSignUp extends State {
               key: ValueKey("datePickerTextField"),
               content: state.date,
               labelTextField: "Date picker",
-                      flex: 8,
+              flex: 8,
               textType: TextInputType.datetime,
               onChangeEffect: viewModel.updateDateTime,
               isValid: true,
-              isDate: true,// make it false for testing purposes
+              isDate: true, // make it false for testing purposes
             ),
           ],
         );
-      },
-    );
-  }
+      }
+    
+  
 }

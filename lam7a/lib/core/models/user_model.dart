@@ -17,6 +17,9 @@ abstract class UserModel with _$UserModel {
     String? location,
     String? website,
     String? createdAt,
+    @Default(0) int followersCount,
+    @Default(0) int followingCount,
+
   }) = _UserModel;
   factory UserModel.fromJson(Map<String, dynamic> json) =>
       _$UserModelFromJson(json);

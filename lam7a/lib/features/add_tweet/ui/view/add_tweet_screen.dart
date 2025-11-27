@@ -8,11 +8,21 @@ import 'package:lam7a/features/add_tweet/ui/widgets/add_tweet_body_input_widget.
 import 'package:lam7a/features/add_tweet/ui/widgets/add_tweet_header_widget.dart';
 import 'package:lam7a/features/add_tweet/ui/widgets/add_tweet_toolbar_widget.dart';
 import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
 
 class AddTweetScreen extends ConsumerStatefulWidget {
   final int userId;
+  final int? parentPostId;
+  final bool isReply;
+  final bool isQuote;
 
-  const AddTweetScreen({super.key, required this.userId});
+  const AddTweetScreen({
+    super.key,
+    required this.userId,
+    this.parentPostId,
+    this.isReply = false,
+    this.isQuote = false,
+  });
 
   @override
   ConsumerState<AddTweetScreen> createState() => _AddTweetScreenState();
@@ -27,7 +37,15 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
     super.initState();
     // Reset state when screen opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(addTweetViewmodelProvider.notifier).reset();
+      final vm = ref.read(addTweetViewmodelProvider.notifier);
+      vm.reset();
+      if (widget.parentPostId != null) {
+        if (widget.isReply) {
+          vm.setReplyTo(widget.parentPostId!);
+        } else if (widget.isQuote) {
+          vm.setQuoteTo(widget.parentPostId!);
+        }
+      }
     });
   }
 
@@ -75,6 +93,11 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
 
   Future<void> _handleImagePick(ImageSource source) async {
     try {
+      final hasPermission = await _ensureMediaPermission(source);
+      if (!hasPermission) {
+        return;
+      }
+
       final XFile? image = await _imagePicker.pickImage(
         source: source,
         maxWidth: 1920,
@@ -83,10 +106,39 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
       );
 
       if (image != null) {
-        // In a real app, you'd upload this to a server and get a URL
-        // For now, we'll use the local path as a placeholder
+        final file = File(image.path);
+        const maxSizeBytes = 100 * 1024 * 1024;
+        final fileSize = await file.length();
+        if (fileSize > maxSizeBytes) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Image is too large. Max size is 100MB'),
+                backgroundColor: Pallete.errorColor,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          return;
+        }
+
         final viewmodel = ref.read(addTweetViewmodelProvider.notifier);
-        viewmodel.updateMediaPic(image.path);
+        final beforeCount = viewmodel.state.mediaPicPaths.length;
+        viewmodel.addMediaPic(image.path);
+        final afterCount = viewmodel.state.mediaPicPaths.length;
+
+        if (afterCount == beforeCount) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('You can attach up to 4 images per tweet'),
+                backgroundColor: Pallete.errorColor,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+          return;
+        }
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -149,12 +201,33 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
 
   Future<void> _handleVideoPick(ImageSource source) async {
     try {
+      final hasPermission = await _ensureMediaPermission(source);
+      if (!hasPermission) {
+        return;
+      }
+
       final XFile? video = await _imagePicker.pickVideo(
         source: source,
         maxDuration: const Duration(minutes: 2),
       );
 
       if (video != null) {
+        final file = File(video.path);
+        const maxSizeBytes = 100 * 1024 * 1024;
+        final fileSize = await file.length();
+        if (fileSize > maxSizeBytes) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Video is too large. Max size is 100MB'),
+                backgroundColor: Pallete.errorColor,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          return;
+        }
+
         // In a real app, you'd upload this to a server and get a URL
         final viewmodel = ref.read(addTweetViewmodelProvider.notifier);
         viewmodel.updateMediaVideo(video.path);
@@ -180,6 +253,58 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
         );
       }
     }
+  }
+
+  Future<bool> _ensureMediaPermission(ImageSource source) async {
+    if (source == ImageSource.camera) {
+      final status = await Permission.camera.request();
+      if (!status.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Camera permission is required'),
+              backgroundColor: Pallete.errorColor,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return false;
+      }
+      return true;
+    }
+
+    PermissionStatus status;
+    if (Platform.isAndroid) {
+      status = await Permission.storage.request();
+    } else if (Platform.isIOS) {
+      status = await Permission.photos.request();
+    } else {
+      // Other platforms (web/desktop) currently don't use runtime permissions here
+      return true;
+    }
+
+    if (!status.isGranted) {
+      if (mounted) {
+        final message = status.isPermanentlyDenied
+            ? 'Gallery permission is permanently denied. Please enable it in system settings.'
+            : 'Gallery permission is required';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Pallete.errorColor,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+
+      if (status.isPermanentlyDenied) {
+        await openAppSettings();
+      }
+
+      return false;
+    }
+
+    return true;
   }
 
   void _handlePost() async {
@@ -219,6 +344,8 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
     final viewmodel = ref.read(addTweetViewmodelProvider.notifier);
     final responsive = context.responsive;
     final imageHeight = responsive.getTweetImageHeight();
+    final imageRows = state.mediaPicPaths.length <= 2 ? 1 : 2;
+    final mediaGridHeight = imageHeight * imageRows;
     final horizontalPadding = responsive.padding(16);
 
     return Scaffold(
@@ -232,6 +359,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
               onPost: _handlePost,
               canPost: viewmodel.canPostTweet(),
               isLoading: state.isLoading,
+              // You can update this widget to show different titles based on reply mode if needed
             ),
             
             SizedBox(height: responsive.padding(10)),
@@ -256,50 +384,70 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
                       const SizedBox(height: 16),
                       
                       // Media preview (if any)
-                      if (state.mediaPicPath != null) ...[
-                        Stack(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.file(
-                                File(state.mediaPicPath!),
-                                width: double.infinity,
-                                height: imageHeight,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    width: double.infinity,
-                                    height: imageHeight,
-                                    color: Pallete.cardColor,
-                                    child: const Icon(
-                                      Icons.broken_image,
-                                      color: Pallete.greyColor,
-                                      size: 50,
+                      if (state.mediaPicPaths.isNotEmpty) ...[
+                        SizedBox(
+                          height: mediaGridHeight,
+                          child: GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 8,
+                              crossAxisSpacing: 8,
+                            ),
+                            itemCount: state.mediaPicPaths.length,
+                            itemBuilder: (context, index) {
+                              final path = state.mediaPicPaths[index];
+                              return Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.file(
+                                      File(path),
+                                      width: double.infinity,
+                                      height: imageHeight,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Container(
+                                          width: double.infinity,
+                                          height: imageHeight,
+                                          color: Pallete.cardColor,
+                                          child: const Icon(
+                                            Icons.broken_image,
+                                            color: Pallete.greyColor,
+                                            size: 50,
+                                          ),
+                                        );
+                                      },
                                     ),
-                                  );
-                                },
-                              ),
-                            ),
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: GestureDetector(
-                                onTap: () => viewmodel.removeMediaPic(),
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: Pallete.blackColor.withOpacity(0.7),
-                                    shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(
-                                    Icons.close,
-                                    color: Pallete.whiteColor,
-                                    size: 20,
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: GestureDetector(
+                                      onTap: () => viewmodel
+                                          .removeMediaPicAt(index),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          color: Pallete.blackColor
+                                              .withOpacity(0.7),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.close,
+                                          color: Pallete.whiteColor,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                            ),
-                          ],
+                                ],
+                              );
+                            },
+                          ),
                         ),
                         const SizedBox(height: 16),
                       ],

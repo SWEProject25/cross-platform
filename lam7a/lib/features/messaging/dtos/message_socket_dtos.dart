@@ -75,6 +75,7 @@ abstract class MessageDto with _$MessageDto {
     String? text,
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? isSeen,
   }) = _MessageDto;
 
   factory MessageDto.fromJson(Map<String, dynamic> json) =>

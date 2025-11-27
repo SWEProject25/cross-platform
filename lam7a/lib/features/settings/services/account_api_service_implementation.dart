@@ -47,7 +47,7 @@ class AccountApiServiceImpl implements AccountApiService {
         data: {"oldPassword": oldPassword, "newPassword": newPassword},
       );
     } catch (e) {
-      // Handle error
+      rethrow;
     }
   }
 
@@ -138,6 +138,7 @@ class AccountApiServiceImpl implements AccountApiService {
       );
     } catch (e) {
       print('Error sending re-send OTP in api service');
+      rethrow;
     }
   }
 }

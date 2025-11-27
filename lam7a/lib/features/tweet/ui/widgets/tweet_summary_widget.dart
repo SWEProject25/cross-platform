@@ -1,166 +1,153 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:lam7a/core/widgets/app_user_avatar.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
-import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
+import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
 import 'package:lam7a/features/tweet/ui/view/tweet_screen.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
+import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_summary.dart';
-import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 
 class TweetSummaryWidget extends ConsumerWidget {
   const TweetSummaryWidget({
     super.key,
     required this.tweetId,
-    this.tweetData, // Optional: pre-loaded tweet data to avoid fetch
+    required this.tweetData,
   });
 
   final String tweetId;
-  final TweetModel? tweetData;
+  final TweetModel tweetData;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // If tweet data is provided, don't fetch by ID (avoids 404)
-    if (tweetData != null) {
-      return _buildTweetUI(context, ref, tweetData!);
-    }
-    
-    // Otherwise fetch using ViewModel
-    final tweetAsync = ref.watch(tweetViewModelProvider(tweetId));
-
-    return SafeArea(
-      child: Container(
-        alignment: Alignment.center,
-        key: Key(tweetId),
-        color: Colors.black,
-        padding: const EdgeInsets.only(left: 10),
-        child: tweetAsync.when(
-          data: (tweetState) {
-            final tweet = tweetState.tweet.value;
-
-            if (tweet == null) {
-              return const Center(
-                child: Text('Tweet data not available'),
-              );
-            }
-
-            final daysPosted = DateTime.now().day - tweet.date.day;
-
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // === User row ===
-                Row(
-                  children: [
-                    TweetUserSummaryInfo(
-                      tweetState: tweetState,
-                      daysPosted: daysPosted,
-                    ),
-                    Expanded(
-                      child: IconButton(
-                        icon: const Icon(Icons.rocket),
-                        onPressed: () => ref
-                            .read(tweetViewModelProvider(tweet.id).notifier)
-                            .summarizeBody(),
-                      ),
-                    ),
-                  ],
-                ),
-
-                // === Tweet body ===
-                GestureDetector(
-                  onTap: () {
-                    ref
-                        .read(tweetViewModelProvider(tweetId).notifier)
-                        .handleViews();
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => TweetScreen(
-                          tweetId: tweetId,
-                          tweetData: tweet, // Pass tweet data to avoid 404
-                        ),
-                      ),
-                    );
-                  },
-                  child: TweetBodySummaryWidget(post: tweet),
-                ),
-
-                // === Tweet feed ===
-                TweetFeed(tweetState: tweetState),
-              ],
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, st) => Center(child: Text('Error: $e')),
-        ),
-      ),
-    );
+    return _buildTweetUI(context, ref, tweetData);
   }
 
   Widget _buildTweetUI(BuildContext context, WidgetRef ref, TweetModel tweet) {
     final daysPosted = DateTime.now().day - tweet.date.day;
-    
-    // Watch the viewmodel to get proper state with interaction flags
-    final tweetAsync = ref.watch(tweetViewModelProvider(tweetId));
+    final isPureRepost =
+        tweet.isRepost && !tweet.isQuote && tweet.originalTweet != null;
+    final username = tweet.username ?? 'unknown';
+    final displayName =
+        (tweet.authorName != null && tweet.authorName!.isNotEmpty)
+            ? tweet.authorName!
+            : username;
+
+    // Local TweetState from pre-fetched tweet data so we don't refetch
+    final localTweetState = TweetState(
+      isLiked: false,
+      isReposted: false,
+      isViewed: false,
+      tweet: AsyncValue.data(tweet),
+    );
 
     return SafeArea(
       child: Container(
         alignment: Alignment.center,
         key: Key(tweetId),
-        color: Colors.black,
-        padding: const EdgeInsets.only(left: 10),
-        child: tweetAsync.when(
-          data: (tweetState) => Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // === User row ===
-              Row(
-                children: [
-                  TweetUserSummaryInfo(
-                    tweetState: tweetState,
-                    daysPosted: daysPosted,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.rocket),
-                    onPressed: () => ref
-                        .read(tweetViewModelProvider(tweet.id).notifier)
-                        .summarizeBody(),
-                  ),
-                ],
-              ),
-
-              // === Tweet body ===
-              GestureDetector(
-                onTap: () {
-                  ref
-                      .read(tweetViewModelProvider(tweetId).notifier)
-                      .handleViews();
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => TweetScreen(
-                        tweetId: tweetId,
-                        tweetData: tweet, // Pass tweet data to avoid 404
-                      ),
+        color: Theme.of(context).colorScheme.surface,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        child: Column(
+          children: [
+               if (isPureRepost) ...[
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.repeat,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$displayName reposted',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: Colors.grey),
+                        ),
+                      ],
                     ),
-                  );
-                },
-                child: TweetBodySummaryWidget(post: tweet),
-              ),
+                    const SizedBox(height: 2),
+                  ],
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppUserAvatar(
+                  radius: 19,
+                  imageUrl: tweetData.authorProfileImage,
+                  displayName: tweetData.authorName,
+                  username: tweetData.username,
+                ),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                   
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          TweetUserSummaryInfo(
+                            tweetState: localTweetState,
+                            daysPosted: daysPosted,
+                            fallbackTweet: tweet,
+                          ),
+                          GestureDetector(
+                            child: const Icon(
+                              Icons.rocket,
+                              size: 17,
+                              color: Colors.blueAccent,
+                            ),
+                            onTap: () {
+                              ref
+                                  .read(tweetViewModelProvider(tweet.id).notifier)
+                                  .summarizeBody();
+                            },
+                          ),
+                        ],
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TweetScreen(
+                                tweetId: tweetId,
+                                tweetData: tweet,
+                              ),
+                            ),
+                          );
+                        },
+                        child : SizedBox(height: 20)
 
-              // === Tweet feed ===
-              TweetFeed(tweetState: tweetState),
-            ],
-          ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => const Center(child: Text('Error loading tweet')),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TweetScreen(
+                                tweetId: tweetId,
+                                tweetData: tweet,
+                              ),
+                            ),
+                          );
+                        },
+                        child: TweetBodySummaryWidget(post: tweet),
+                      ),
+                      TweetFeed(tweetState: localTweetState),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
