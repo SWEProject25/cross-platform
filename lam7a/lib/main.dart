@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/core/providers/theme_provider.dart';
 import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/core/services/socket_service.dart';
 import 'package:lam7a/core/theme/theme.dart';
@@ -49,13 +50,13 @@ class _MyAppState extends ConsumerState<MyApp> {
       builder: (context, ref, child) {
         final state = ref.watch(authenticationProvider);
         print(state.isAuthenticated);
-
+        bool themeState = ref.watch(themeProviderProvider);
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'lam7a',
           theme: AppTheme.light,
           darkTheme: AppTheme.dark, // xDarkTheme to test settings
-          themeMode: ThemeMode.dark,
+          themeMode: themeState ? ThemeMode.dark : ThemeMode.light, //true dark - false light
           routes: {
             FirstTimeScreen.routeName: (context) => FirstTimeScreen(),
             SignUpFlow.routeName: (context) => SignUpFlow(),
