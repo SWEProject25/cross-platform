@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/notifications/models/notification_model.dart';
+import 'package:lam7a/features/notifications/notifiactions_calls.dart';
 import 'package:lam7a/features/notifications/ui/viewmodels/notifications_viewmodel.dart';
 import 'package:lam7a/features/notifications/ui/widgets/notification_item.dart';
+import 'package:lam7a/features/notifications/ui/widgets/notification_overlay.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 class NotificationsScreen extends ConsumerWidget {
-
   const NotificationsScreen({super.key});
+
+
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,6 +24,15 @@ class NotificationsScreen extends ConsumerWidget {
           child: Column(
             children: [
               _buildTabBar(),
+
+              ElevatedButton(
+                onPressed: () {
+                 showDMNotification(onTap: () {
+                  print("Navigating to chat screen...");
+                 }, sender: "Ziad", message: "Hello from DM!", avatarUrl: "https://randomuser.me/api/portraits/women/45.jpg");
+                },
+                child: Text("Show DM bar"),
+              ),
 
               Expanded(
                 child: TabBarView(

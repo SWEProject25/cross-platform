@@ -1,4 +1,4 @@
-package com.example.lam7a
+package tech.hankers.app
 
 import io.flutter.embedding.android.FlutterActivity
 

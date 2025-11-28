@@ -1,5 +1,6 @@
 class AppIcons {
   static const String add_message = 'assets/icons/add_message.svg';
+  static const String filled_message = 'assets/icons/filled_message.svg';
 
   // Tweet action icons (ported from frontend UIIcons)
   static const String tweet_reply = 'assets/icons/tweet_reply.svg';
