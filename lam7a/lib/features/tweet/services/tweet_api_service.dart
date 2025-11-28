@@ -15,7 +15,7 @@ TweetsApiService tweetsApiService(Ref ref) {
   //return TweetsApiServiceMock();
   return TweetsApiServiceImpl(apiService: apiService);
   // MOCK SERVICE (commented out): Uncomment below for local testing without backend
-   //return TweetsApiServiceMock();
+  //return TweetsApiServiceMock();
 }
 
 abstract class TweetsApiService {
@@ -38,7 +38,11 @@ abstract class TweetsApiService {
 
   /// Get replies for a given post
   Future<List<TweetModel>> getRepliesForPost(String postId);
+
+  // use this to get the tweets in my explore and intresets
   Future<List<TweetModel>> getTweets(int limit, int page, String tweetsType);
 
   // Future<Future<List<TweetModel>>> getFollowingTweets(int limit, int page, String tweetsType) async {}
+
+  //explore -(I invited my self here)
 }

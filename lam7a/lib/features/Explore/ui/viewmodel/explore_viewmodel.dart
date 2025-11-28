@@ -1,18 +1,18 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../model/trending_hashtag.dart';
 import '../../../../core/models/user_model.dart';
 import '../state/explore_state.dart';
 
-part 'explore_viewmodel.g.dart';
+final exploreViewModelProvider =
+    AsyncNotifierProvider<ExploreViewModel, ExploreState>(() {
+      return ExploreViewModel();
+    });
 
-@riverpod
-class ExploreViewModel extends _$ExploreViewModel {
+class ExploreViewModel extends AsyncNotifier<ExploreState> {
   @override
   Future<ExploreState> build() async {
-    // Pretend we are fetching data from an API
     await Future.delayed(const Duration(milliseconds: 700));
 
-    // Dummy data for now
     final hashtags = [
       TrendingHashtag(hashtag: "#Flutter", order: 1, tweetsCount: 12100),
       TrendingHashtag(hashtag: "#Riverpod", order: 2, tweetsCount: 8000),
@@ -33,15 +33,16 @@ class ExploreViewModel extends _$ExploreViewModel {
     );
   }
 
-  /// Switch between For You and Trending tabs
   void selectTap(ExplorePageView newPage) {
-    // Update state, keeping existing lists
-    state = state.whenData((data) => data.copyWith(selectedPage: newPage));
+    final prev = state.value;
+    if (prev == null) return;
+
+    state = AsyncData(prev.copyWith(selectedPage: newPage));
   }
 
-  /// Refresh hashtags
   Future<void> refreshHashtags() async {
     final prev = state.value;
+    if (prev == null) return;
 
     await Future.delayed(const Duration(milliseconds: 600));
 
@@ -51,12 +52,13 @@ class ExploreViewModel extends _$ExploreViewModel {
       TrendingHashtag(hashtag: "#FlutterDev"),
     ];
 
-    state = AsyncData(prev!.copyWith(trendingHashtags: newHashtags));
+    state = AsyncData(prev.copyWith(trendingHashtags: newHashtags));
   }
 
-  /// Refresh suggested users
   Future<void> refreshUsers() async {
     final prev = state.value;
+    if (prev == null) return;
+
     await Future.delayed(const Duration(milliseconds: 600));
 
     final newUsers = [
@@ -64,6 +66,6 @@ class ExploreViewModel extends _$ExploreViewModel {
       UserModel(id: 11, username: "NewUser2"),
     ];
 
-    state = AsyncData(prev!.copyWith(suggestedUsers: newUsers));
+    state = AsyncData(prev.copyWith(suggestedUsers: newUsers));
   }
 }

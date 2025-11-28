@@ -1,15 +1,14 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../common/models/tweet_model.dart';
 import '../../../../core/models/user_model.dart';
 import '../state/search_result_state.dart';
 
-part 'search_results_viewmodel.g.dart';
+final searchResultsViewModelProvider =
+    AsyncNotifierProvider<SearchResultsViewmodel, SearchResultState>(() {
+      return SearchResultsViewmodel();
+    });
 
-@riverpod
-class SearchResultsViewmodel extends _$SearchResultsViewmodel {
-  // -----------------------------
-  // MOCK DATA
-  // -----------------------------
+class SearchResultsViewmodel extends AsyncNotifier<SearchResultState> {
   final List<UserModel> _mockPeople = [
     UserModel(id: 1, username: "Ahmed"),
     UserModel(id: 2, username: "Mona"),
@@ -28,7 +27,6 @@ class SearchResultsViewmodel extends _$SearchResultsViewmodel {
       comments: 3,
       views: 230,
       date: DateTime.now().subtract(const Duration(days: 1)),
-      // Multiple images
       mediaImages: [
         'https://media.istockphoto.com/id/1703754111/photo/sunset-dramatic-sky-clouds.jpg?s=612x612&w=0&k=20&c=6vevvAvvqvu5MxfOC0qJuxLZXmus3hyUCfzVAy-yFPA=',
         'https://picsum.photos/seed/img1/800/600',
@@ -47,7 +45,6 @@ class SearchResultsViewmodel extends _$SearchResultsViewmodel {
       comments: 10,
       views: 980,
       date: DateTime.now().subtract(const Duration(hours: 5)),
-      // Multiple videos
       mediaImages: [],
       mediaVideos: [
         'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
@@ -59,9 +56,7 @@ class SearchResultsViewmodel extends _$SearchResultsViewmodel {
     't3': TweetModel(
       id: "t3",
       userId: "1",
-      body:
-          "Hi This Is The Tweet Body\nHappiness comes from within. Focus on gratitude, surround yourself with kind people, and do what brings meaning. Accept what you can't control, forgive easily, and celebrate small wins. Stay present, care for your body and mind, and spread kindness daily.",
-      // Mix of images and videos
+      body: "Hi This Is The Tweet Body\nHappiness comes from within...",
       mediaImages: [
         'https://tse4.mm.bing.net/th/id/OIP.u7kslI7potNthBAIm93JDwHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
         'https://picsum.photos/seed/nature/800/600',
@@ -83,9 +78,6 @@ class SearchResultsViewmodel extends _$SearchResultsViewmodel {
   int _tweetIndex = 0;
   final int _batchSize = 2;
 
-  // -----------------------------
-  // INITIAL LOAD
-  // -----------------------------
   @override
   Future<SearchResultState> build() async {
     await Future.delayed(const Duration(milliseconds: 500));
@@ -116,9 +108,6 @@ class SearchResultsViewmodel extends _$SearchResultsViewmodel {
     return items;
   }
 
-  // -----------------------------
-  // LOAD MORE PEOPLE
-  // -----------------------------
   Future<void> loadMorePeople() async {
     final prev = state.value!;
     await Future.delayed(const Duration(milliseconds: 300));
@@ -134,9 +123,6 @@ class SearchResultsViewmodel extends _$SearchResultsViewmodel {
     );
   }
 
-  // -----------------------------
-  // LOAD MORE TWEETS
-  // -----------------------------
   Future<void> loadMoreTweets() async {
     final prev = state.value!;
     await Future.delayed(const Duration(milliseconds: 300));
