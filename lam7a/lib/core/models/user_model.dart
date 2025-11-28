@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:lam7a/features/profile/model/profile_model.dart';
 part 'user_model.freezed.dart';
 part 'user_model.g.dart';
 
@@ -6,6 +7,7 @@ part 'user_model.g.dart';
 abstract class UserModel with _$UserModel {
   const factory UserModel({
     int? id,
+    int? profileId,
     String? username,
     String? email,
     String? role,
@@ -20,6 +22,14 @@ abstract class UserModel with _$UserModel {
     @Default(0) int followersCount,
     @Default(0) int followingCount,
 
+    @Default(ProfileStateOfFollow.notfollowing)
+    ProfileStateOfFollow stateFollow,
+
+    @Default(ProfileStateOfMute.notmuted)
+    ProfileStateOfMute stateMute,
+
+    @Default(ProfileStateBlocked.notblocked)
+    ProfileStateBlocked stateBlocked,
   }) = _UserModel;
   factory UserModel.fromJson(Map<String, dynamic> json) =>
       _$UserModelFromJson(json);
