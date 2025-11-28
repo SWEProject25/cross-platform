@@ -72,4 +72,7 @@ UserModel userDtoToUserModel(UserDtoAuth dto) {
       print(e);
     }
   }
+  void updateUser(UserModel updatedUser) {
+    state = state.copyWith(user: updatedUser);
+  }
 }
