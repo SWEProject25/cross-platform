@@ -5,6 +5,8 @@ import 'package:lam7a/core/providers/theme_provider.dart';
 import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/core/services/socket_service.dart';
 import 'package:lam7a/core/theme/theme.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/following_screen/following_screen.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/interests_screen/interests_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authentication_login_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
@@ -16,7 +18,6 @@ import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,7 +57,9 @@ class _MyAppState extends ConsumerState<MyApp> {
           title: 'lam7a',
           theme: AppTheme.light,
           darkTheme: AppTheme.dark, // xDarkTheme to test settings
-          themeMode: themeState ? ThemeMode.dark : ThemeMode.light, //true dark - false light
+          themeMode: themeState
+              ? ThemeMode.dark
+              : ThemeMode.light, //true dark - false light
           routes: {
             FirstTimeScreen.routeName: (context) => FirstTimeScreen(),
             SignUpFlow.routeName: (context) => SignUpFlow(),
@@ -64,7 +67,8 @@ class _MyAppState extends ConsumerState<MyApp> {
             NavigationHomeScreen.routeName: (context) => NavigationHomeScreen(),
             AuthenticationTransmissionScreen.routeName: (context) =>
                 AuthenticationTransmissionScreen(),
-
+            InterestsScreen.routeName: (context) => InterestsScreen(),
+            FollowingScreen.routeName: (context) => FollowingScreen(),
             '/profile': (context) {
               final args = ModalRoute.of(context)!.settings.arguments as Map;
               final username = args['username'] as String;
@@ -82,8 +86,8 @@ class _MyAppState extends ConsumerState<MyApp> {
 }
 
 class TestTweetApp extends StatelessWidget {
-   TestTweetApp({super.key});
-TweetModel tweet=TweetModel(
+  TestTweetApp({super.key});
+  TweetModel tweet = TweetModel(
     id: "t3",
     userId: "1",
     body:
@@ -115,8 +119,11 @@ TweetModel tweet=TweetModel(
       home: Scaffold(
         appBar: AppBar(title: const Text('Test Tweet Widget')),
         body: Center(
-          child: TweetSummaryWidget(tweetData: tweet,tweetId: 't3'), // 👈 your test widget
-        )
+          child: TweetSummaryWidget(
+            tweetData: tweet,
+            tweetId: 't3',
+          ), // 👈 your test widget
+        ),
       ),
     );
   }

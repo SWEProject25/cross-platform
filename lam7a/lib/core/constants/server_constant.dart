@@ -20,4 +20,7 @@ class ServerConstant {
   static String mutedUsers = "/users/mutes/me";
   static String blockedUsers = "/users/blocks/me";
   static String tweetsForYou = "/posts/timeline/for-you";
+  static String getInterests = "/users/interests";
+  static String addInterests = "/users/interests/me";
+  static String toFollowUsers = "/users/suggested";
 }

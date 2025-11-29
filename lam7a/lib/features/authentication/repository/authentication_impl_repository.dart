@@ -2,7 +2,9 @@ import 'package:lam7a/core/models/user_dto.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
+import 'package:lam7a/features/authentication/model/interest_dto.dart';
 import 'package:lam7a/features/authentication/model/user_dto_model.dart';
+import 'package:lam7a/features/authentication/model/user_to_follow_dto.dart';
 import 'package:lam7a/features/authentication/service/authentication_api_service.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -50,16 +52,36 @@ class AuthenticationRepositoryImpl {
         AuthenticationConstants.success);
   }
 
-  Future<User> login(
+  Future<RootData> login(
     AuthenticationUserCredentialsModel userCredentials,
   ) async {
     final data = await apiService.Login(userCredentials);
     print(data);
-    User userModel = User.fromJson(data['data']['user']);
+    RootData userModel = RootData.fromJson(data['data']);
     return userModel;
   }
 
   Future<void> test() async {
     final data = await apiService.test();
+  }
+  Future<List<InterestDto>> getInterests() async {
+    List<dynamic> interests = await apiService.getInterests();
+    return interests.map((e) => InterestDto.fromJson(e)).toList();
+  }
+  Future<List<UserToFollowDto>> getUsersToFollow() async {
+    List<dynamic> users = await apiService.getUsersToFollow();
+    return users.map((e) => UserToFollowDto.fromJson(e)).toList();
+  }
+  Future<void> selectInterests(List<int> interestIds) async {
+    await apiService.selectInterests(interestIds);
+  }
+  Future<bool> followUser(int userId) async {
+    final res = await apiService.followUsers(userId);
+    return res[AuthenticationConstants.status] == AuthenticationConstants.success;  
+  }
+
+  Future<bool> unFollowUser(int userId) async {
+    final res = await apiService.unFollowUsers(userId);
+    return res[AuthenticationConstants.status] == AuthenticationConstants.success;
   }
 }
