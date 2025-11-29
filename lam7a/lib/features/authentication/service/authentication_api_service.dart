@@ -78,4 +78,35 @@ class AuthenticationApiService {
     print(res[AuthenticationConstants.status]);
     return res[AuthenticationConstants.status] == AuthenticationConstants.success;
   }
+  Future<List<dynamic>> getInterests() async {
+    Map<String, dynamic> res = await apiService.get(
+      endpoint: ServerConstant.getInterests,
+    );
+    return res['data'];
+  }
+  Future<List<dynamic>> getUsersToFollow() async {
+    Map<String, dynamic> res = await apiService.get(
+      endpoint: ServerConstant.toFollowUsers,
+      queryParameters: {'limit': 10}
+    );
+    return res['data']['users'];
+  }
+
+  Future<void> selectInterests(List<int> interestIds) async {
+    await apiService.post(
+      endpoint: ServerConstant.addInterests,
+      data: {'interestIds': interestIds},
+    );
+  }
+  Future<Map<String, dynamic>> followUsers(int userId) async {
+    return await apiService.post(
+      endpoint: "/users/${userId}/follow",
+    );
+  }
+
+  Future unFollowUsers(int userId) async {
+    return await apiService.delete(
+      endpoint: "/users/${userId}/follow",
+    );
+  }
 }

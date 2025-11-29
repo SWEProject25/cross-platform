@@ -61,7 +61,7 @@ class UserDtoAuth {
 
 class UserDash {
   int id;
-  String username;
+  String? username;
   String email;
   String role;
   DateTime createdAt;

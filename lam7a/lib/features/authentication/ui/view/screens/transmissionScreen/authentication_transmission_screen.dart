@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/interests_screen/interests_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/profile_picture/profile_picture.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
 import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
@@ -94,7 +95,7 @@ class AuthenticationTransmissionScreen extends StatelessWidget {
                       onPressed: () {
                         Navigator.pushNamedAndRemoveUntil(
                           context,
-                          NavigationHomeScreen.routeName,
+                          InterestsScreen.routeName,
                           (route) => false,
                         );
                       },
