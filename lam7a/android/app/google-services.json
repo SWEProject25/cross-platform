@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "264159197376",
+    "project_id": "hankers-6cfeb",
+    "storage_bucket": "hankers-6cfeb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:264159197376:android:aba81052221ed7c8845525",
+        "android_client_info": {
+          "package_name": "tech.hankers.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYS71ldGiAaSXl_i8-tG69quC3pBhtq_4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

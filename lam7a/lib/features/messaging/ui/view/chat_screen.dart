@@ -15,18 +15,24 @@ class ChatScreen extends ConsumerWidget {
   static const routeName = '/chat';
 
   final int? conversationId;
-  final int userId;
+  final int? userId;
   final Contact? contact;
 
   const ChatScreen({
     super.key,
     this.conversationId,
-    required this.userId,
+    this.userId,
     this.contact,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // get conv id and user id from args if not provided
+    var args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final conversationId = this.conversationId ?? args?['conversationId'];
+    final userId = this.userId ?? args?['userId'];
+    
     var connectionState = ref.watch(socketConnectionProvider);
     var chatState = ref.watch(
       chatViewModelProvider(conversationId: conversationId, userId: userId),
