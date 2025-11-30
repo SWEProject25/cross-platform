@@ -104,9 +104,15 @@ class AuthenticationApiService {
     );
   }
 
-  Future unFollowUsers(int userId) async {
+  Future<Map<String, dynamic>> unFollowUsers(int userId) async {
     return await apiService.delete(
       endpoint: "/users/${userId}/follow",
     );
+  }
+  Future<String> oAuthGoogleRedirect() async {
+    String res = await apiService.get(
+      endpoint: ServerConstant.oAuthGoogleRedirect,
+    );
+    return res;
   }
 }

@@ -45,6 +45,7 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+            <data android:scheme="lam7a" android:host="oauth-callback"/>
         </intent>
     </queries>
 </manifest>

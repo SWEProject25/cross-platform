@@ -23,4 +23,5 @@ class ServerConstant {
   static String getInterests = "/users/interests";
   static String addInterests = "/users/interests/me";
   static String toFollowUsers = "/users/suggested";
+  static String oAuthGoogleRedirect = "/auth/google/redirect";
 }

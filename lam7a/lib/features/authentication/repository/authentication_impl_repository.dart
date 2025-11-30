@@ -84,4 +84,8 @@ class AuthenticationRepositoryImpl {
     final res = await apiService.unFollowUsers(userId);
     return res[AuthenticationConstants.status] == AuthenticationConstants.success;
   }
+  Future<String> oAuthGoogleRedirect() async {
+    String res = await apiService.oAuthGoogleRedirect();
+    return res;
+  }
 }

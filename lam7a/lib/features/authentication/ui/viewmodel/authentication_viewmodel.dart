@@ -343,6 +343,10 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       },
     );
   }
+  Future<String> oAuthLoginRedirect() async {
+    String html = await repo.oAuthGoogleRedirect();
+    return html;
+  }
 
   ///////////////////////////////////////////////
   ///    this part is to manage my state       //

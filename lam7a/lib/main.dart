@@ -9,6 +9,7 @@ import 'package:lam7a/features/authentication/ui/view/screens/following_screen/f
 import 'package:lam7a/features/authentication/ui/view/screens/interests_screen/interests_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authentication_login_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/oauth_webview/oauth_webview.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
@@ -69,6 +70,7 @@ class _MyAppState extends ConsumerState<MyApp> {
                 AuthenticationTransmissionScreen(),
             InterestsScreen.routeName: (context) => InterestsScreen(),
             FollowingScreen.routeName: (context) => FollowingScreen(),
+            OauthWebview.routeName: (context) => OauthWebview(),
             '/profile': (context) {
               final args = ModalRoute.of(context)!.settings.arguments as Map;
               final username = args['username'] as String;
