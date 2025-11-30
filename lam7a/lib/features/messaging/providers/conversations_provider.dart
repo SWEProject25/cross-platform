@@ -6,14 +6,6 @@ import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:lam7a/features/messaging/repository/conversations_repositories.dart';
 import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
 
-// ----- Example model -----
-class Item {
-  final int id;
-  final String title;
-  Item({required this.id, required this.title});
-}
-
-// ----- Pagination state -----
 class PaginationState<T> {
   final List<T> items;
   final int page;
@@ -53,27 +45,6 @@ class PaginationState<T> {
     );
   }
 }
-
-// ----- Fake repository (replace with real API) -----
-class Repository {
-  // Simulates fetching a page of items. page is 1-based.
-  Future<List<Item>> fetchItems({
-    required int page,
-    required int pageSize,
-  }) async {
-    await Future.delayed(const Duration(milliseconds: 800)); // simulate network
-    if (page > 5) return []; // no more after page 5
-    final start = (page - 1) * pageSize;
-    return List.generate(
-      pageSize,
-      (i) => Item(id: start + i, title: 'Item ${start + i}'),
-    );
-  }
-}
-
-// Provide repository
-final repositoryProvider = Provider<Repository>((ref) => Repository());
-
 // ----- Pagination notifier -----
 abstract class PaginationNotifier<T> extends Notifier<PaginationState<T>> {
   final int pageSize;
@@ -85,7 +56,7 @@ abstract class PaginationNotifier<T> extends Notifier<PaginationState<T>> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final newPage = 1;
-      final List<T> items = await _fetchPage(newPage);
+      final List<T> items = await fetchPage(newPage);
       final hasMore = items.length == pageSize;
       state = state.copyWith(
         items: items,
@@ -105,7 +76,7 @@ abstract class PaginationNotifier<T> extends Notifier<PaginationState<T>> {
     state = state.copyWith(isRefreshing: true, error: null);
     try {
       final newPage = 1;
-      final items = await _fetchPage(newPage);
+      final items = await fetchPage(newPage);
       final hasMore = items.length == pageSize;
       state = state.copyWith(
         items: items,
@@ -129,10 +100,10 @@ abstract class PaginationNotifier<T> extends Notifier<PaginationState<T>> {
     state = state.copyWith(isLoadingMore: true, error: null);
     try {
       final nextPage = state.page + 1;
-      final newItems = await _fetchPage(nextPage);
+      final newItems = await fetchPage(nextPage);
       final hasMore = newItems.length == pageSize;
       state = state.copyWith(
-        items: _mergeList(state.items, newItems),
+        items: mergeList(state.items, newItems),
         page: nextPage,
         isLoadingMore: false,
         hasMore: hasMore,
@@ -145,8 +116,8 @@ abstract class PaginationNotifier<T> extends Notifier<PaginationState<T>> {
 
   // helper: use repo to fetch, adapt to T
 
-  Future<List<T>> _fetchPage(int page);
-  List<T> _mergeList(List<T> a, List<T> b);
+  Future<List<T>> fetchPage(int page);
+  List<T> mergeList(List<T> a, List<T> b);
 }
 
 class ConversationsNotifier extends PaginationNotifier<Conversation> {
@@ -224,20 +195,20 @@ class ConversationsNotifier extends PaginationNotifier<Conversation> {
 
       List<Conversation> updatedConv = [...state.items, conv];
 
-      var updatedFirstPage = await _fetchPage(1);
-      updatedConv = _mergeList(state.items, updatedFirstPage);
+      var updatedFirstPage = await fetchPage(1);
+      updatedConv = mergeList(state.items, updatedFirstPage);
 
       state = state.copyWith(items: updatedConv);
     }
   }
 
   @override
-  Future<List<Conversation>> _fetchPage(int page) {
+  Future<List<Conversation>> fetchPage(int page) {
     return _conversationsRepository.fetchConversations();
   }
 
   @override
-  List<Conversation> _mergeList(List<Conversation> a, List<Conversation> b) {
+  List<Conversation> mergeList(List<Conversation> a, List<Conversation> b) {
     //merge but remove dublicate ids and sort by last message time
     final Map<int, Conversation> mergedMap = {
       for (var conv in a) conv.id: conv,

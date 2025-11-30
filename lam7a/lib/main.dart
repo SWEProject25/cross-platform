@@ -14,11 +14,13 @@ import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
+import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
 import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
+import 'package:lam7a/features/notifications/notifications_receiver.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
-import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +31,9 @@ void main() async {
   container.listen(socketInitializerProvider, (_, _) => {});
   container.read(messagesSocketServiceProvider).setUpListners();
 
-  runApp(UncontrolledProviderScope(container: container, child: MyApp()));
+  NotificationsReceiver().initialize();
+
+  runApp(UncontrolledProviderScope(container: container, child: OverlaySupport.global(child:  MyApp())));
 
   // TO TEST ADD TWEET SCREEN ONLY (No auth): Uncomment lines below
   //runApp(ProviderScope(child: TestAddTweetApp()));
@@ -37,6 +41,8 @@ void main() async {
   // TO TEST HOME WITH FAB (No auth): Uncomment lines below
   // runApp(ProviderScope(child: TestTweetHomeApp()));
 }
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
@@ -58,6 +64,7 @@ class _MyAppState extends ConsumerState<MyApp> {
           title: 'lam7a',
           theme: AppTheme.light,
           darkTheme: AppTheme.dark, // xDarkTheme to test settings
+          navigatorKey: navigatorKey,
           themeMode: themeState
               ? ThemeMode.dark
               : ThemeMode.light, //true dark - false light
@@ -68,6 +75,7 @@ class _MyAppState extends ConsumerState<MyApp> {
             NavigationHomeScreen.routeName: (context) => NavigationHomeScreen(),
             AuthenticationTransmissionScreen.routeName: (context) =>
                 AuthenticationTransmissionScreen(),
+            ChatScreen.routeName: (context) => ChatScreen(),
             InterestsScreen.routeName: (context) => InterestsScreen(),
             FollowingScreen.routeName: (context) => FollowingScreen(),
             OauthWebview.routeName: (context) => OauthWebview(),

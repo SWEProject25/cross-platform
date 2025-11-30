@@ -1,4 +1,4 @@
-import 'package:lam7a/features/notifications/models/notification_model.dart';
+import 'package:lam7a/features/notifications/dtos/notification_dtos.dart';
 import 'package:lam7a/features/notifications/services/notifications_service_mock.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -6,9 +6,10 @@ part 'notifications_service.g.dart';
 
 @riverpod
 NotificationsAPIService notificationsAPIService(Ref ref) {
-  return NotificationsAPIServiceMock();
+  // return NotificationsAPIServiceImpl(ref.read(apiServiceProvider));
+  return MockNotificationsAPIService();
 }
 
 abstract class NotificationsAPIService {
-  Future<List<NotificationModel>> getNotifications();
+  Future<NotificationsResponse> getNotifications([int page = 1, int limit = 20]);
 }
