@@ -763,8 +763,13 @@ Future<List<TweetModel>> getTweets(int limit, int page, String tweetsType) async
 
   List<TweetModel> tweets = postsJson.map((post) {
     bool isRepost = post['isRepost'] ?? false;
-    Map<String, dynamic>? originalJson =
-        isRepost ? post['originalPostData'] : null;
+    bool isQuote = post['isQuote'] ?? false;
+
+    Map<String, dynamic>? originalJson;
+    final rawOriginal = post['originalPostData'];
+    if ((isRepost || isQuote) && rawOriginal is Map<String, dynamic>) {
+      originalJson = rawOriginal;
+    }
 
     return TweetModel(
       id: post['postId'].toString(),
@@ -785,7 +790,7 @@ Future<List<TweetModel>> getTweets(int limit, int page, String tweetsType) async
       authorProfileImage: post['avatar'],
 
       isRepost: isRepost,
-      isQuote: post['isQuote'] ?? false,
+      isQuote: isQuote,
 
       originalTweet: originalJson != null
           ? TweetModel(

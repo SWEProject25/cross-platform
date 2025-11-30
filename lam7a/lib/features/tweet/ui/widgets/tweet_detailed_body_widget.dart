@@ -183,7 +183,7 @@ class TweetDetailedBodyWidget extends StatelessWidget {
                   child: VideoPlayerWidget(url: post.mediaVideo.toString()),
                 ),
               ),
-            if (post.isRepost && !post.isQuote && post.originalTweet != null)
+            if (post.originalTweet != null)
               OriginalTweetCard(tweet: post.originalTweet!),
           ],
         );

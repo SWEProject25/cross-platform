@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/core/providers/theme_provider.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
@@ -184,7 +185,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                       padding: EdgeInsets.only(left: 20),
                       child: IconButton(
                         onPressed: () {
-                          showThemeModeBottomSheet(isDark);
+                          showThemeModeBottomSheet( ref);
                         },
                         icon: Icon(Icons.light_mode_outlined, size: 35),
                         alignment: Alignment.center,
@@ -389,7 +390,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
   }
 
   void showLogoutDialog(WidgetRef ref) {
-    bool isDark = Theme.of(context).colorScheme.brightness == Brightness.dark;
+    bool isDark = ref.watch(themeProviderProvider);
     final viewmodel = ref.watch(navigationViewModelProvider.notifier);
     Widget dialog = AlertDialog(
       backgroundColor: isDark
@@ -423,7 +424,8 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
     );
   }
 
-  void showThemeModeBottomSheet(bool isDark) {
+  void showThemeModeBottomSheet(WidgetRef ref ) {
+    bool isDark = ref.watch(themeProviderProvider);
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: isDark
@@ -432,7 +434,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (BuildContext modalContext) {
+      builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter modalSetState) {
             return SizedBox(
@@ -456,11 +458,23 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                       groupValue: themeMode,
                       onChanged: (value) {
                         modalSetState(() => themeMode = value);
+                        final themeController = ref.watch(themeProviderProvider.notifier);
+                        if (themeMode == 'dark')
+                        {
+                          themeController.setDarkTheme();
+                        }
+                        else if (themeMode == 'light')
+                        {
+                          themeController.setLightTheme();
+                        }
+                        Navigator.pop(context);
                         setState(() {});
+
                       },
                       child: Column(
                         children: [
                           RadioListTile<String>(
+                            autofocus: isDark,
                             title: Row(
                               children: [
                                 Icon(
@@ -475,6 +489,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                             value: 'dark',
                           ),
                           RadioListTile<String>(
+                            autofocus: !isDark,
                             title: Row(
                               children: [
                                 Icon(
