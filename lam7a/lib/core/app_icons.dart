@@ -7,4 +7,5 @@ class AppIcons {
   static const String tweet_retweet = 'assets/icons/tweet_retweet.svg';
   static const String tweet_like_outline = 'assets/icons/tweet_like.svg';
   static const String tweet_like_filled = 'assets/icons/tweet_like_filled.svg';
-}
+  static const String person_filled = 'assets/icons/filled_person.svg';
+  }

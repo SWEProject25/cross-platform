@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/widgets/time_ago_text.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/conversation_viewmodel.dart';
 import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
@@ -42,10 +43,8 @@ class ConversationTile extends ConsumerWidget {
             ),
           ),
           if (state.conversation.lastMessage != null)
-            Text(
-              " ${timeToTimeAgo(state.conversation.lastMessageTime!)}",
-              style: state.isTyping ? theme.textTheme.bodyMedium : theme.textTheme.bodyMedium,
-            ),
+            TimeAgoText(time: state.conversation.lastMessageTime!, style: theme.textTheme.bodyMedium),
+
         ],
       ),
       subtitle: (state.conversation.lastMessage != null)

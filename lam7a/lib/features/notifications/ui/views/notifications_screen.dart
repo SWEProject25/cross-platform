@@ -1,21 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/notifications/models/notification_model.dart';
-import 'package:lam7a/features/notifications/notifiactions_calls.dart';
 import 'package:lam7a/features/notifications/ui/viewmodels/notifications_viewmodel.dart';
 import 'package:lam7a/features/notifications/ui/widgets/notification_item.dart';
-import 'package:lam7a/features/notifications/ui/widgets/notification_overlay.dart';
-import 'package:overlay_support/overlay_support.dart';
 
-class NotificationsScreen extends ConsumerWidget {
+class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
-
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ConsumerStatefulWidget> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+
+  final ScrollController _allScrollController = ScrollController();
+  final ScrollController _mentionsScrollController = ScrollController();
+
+@override
+  void initState() {
+    _allScrollController.addListener(() => scrollListener(_allScrollController));
+    _mentionsScrollController.addListener(() => scrollListener(_mentionsScrollController));
+
+    super.initState();
+  }
+
+  void scrollListener(ScrollController controller) {
+    final trigger = 0.8 * controller.position.maxScrollExtent;
+
+    if (controller.position.pixels > trigger) {
+      ref.read(notificationsViewModelProvider.notifier).loadMore();
+    }
+  }
+
+@override
+  Widget build(BuildContext context) {
     var viewModel = ref.watch(notificationsViewModelProvider.notifier);
-    var notificationsState = ref.watch(notificationsViewModelProvider);
     return DefaultTabController(
       length: 2,
       initialIndex: 1,
@@ -23,27 +42,20 @@ class NotificationsScreen extends ConsumerWidget {
         body: SafeArea(
           child: Column(
             children: [
-              _buildTabBar(),
-
-              ElevatedButton(
-                onPressed: () {
-                 showDMNotification(onTap: () {
-                  print("Navigating to chat screen...");
-                 }, sender: "Ziad", message: "Hello from DM!", avatarUrl: "https://randomuser.me/api/portraits/women/45.jpg");
-                },
-                child: Text("Show DM bar"),
-              ),
+              _buildTabBar(context),
 
               Expanded(
                 child: TabBarView(
                   children: [
                     _buildNotificationsListView(
+                      _allScrollController,
                       viewModel,
-                      notificationsState.allNotifications,
+                      viewModel.allNotifications(),
                     ),
                     _buildNotificationsListView(
+                      _mentionsScrollController,
                       viewModel,
-                      notificationsState.mentionNotifications,
+                      viewModel.mentionNotifications(),
                     ),
                   ],
                 ),
@@ -56,6 +68,7 @@ class NotificationsScreen extends ConsumerWidget {
   }
 
   Widget _buildNotificationsListView(
+    ScrollController controller,
     NotificationsViewModel viewModel,
     AsyncValue<List<NotificationModel>> notifications,
   ) {
@@ -63,6 +76,7 @@ class NotificationsScreen extends ConsumerWidget {
       data: (data) => RefreshIndicator(
         onRefresh: () => viewModel.refresh(),
         child: ListView.separated(
+          controller: controller,
           itemCount: data.length,
           separatorBuilder: (context, index) => Divider(height: 1),
           itemBuilder: (context, index) {
@@ -76,10 +90,11 @@ class NotificationsScreen extends ConsumerWidget {
     );
   }
 
-  TabBar _buildTabBar() {
-    return const TabBar(
-      labelColor: Colors.black,
-      indicatorColor: Colors.blue,
+  TabBar _buildTabBar(BuildContext context) {
+    return TabBar(
+      labelColor: Theme.of(context).textTheme.bodyLarge?.color,
+      unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+      // indicatorColor: Colors.blue,
       tabs: [
         Tab(text: "All"),
         Tab(text: "Mentions"),

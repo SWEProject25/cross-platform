@@ -8,7 +8,7 @@ class TwitterDMNotification extends StatelessWidget {
   final String avatarUrl;
   final VoidCallback? onTap;
 
-  const TwitterDMNotification({
+  const TwitterDMNotification.DMNotificationOverlay({
     required this.sender,
     required this.message,
     required this.avatarUrl,

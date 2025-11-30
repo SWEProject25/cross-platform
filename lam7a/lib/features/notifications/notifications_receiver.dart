@@ -6,10 +6,10 @@ import 'package:lam7a/firebase_options.dart';
 import 'package:lam7a/main.dart';
 
 class NotificationsReceiver {
-  NotificationsReceiver ._privateConstructor();
+  NotificationsReceiver._privateConstructor();
   static final NotificationsReceiver _instance =
       NotificationsReceiver._privateConstructor();
-  factory NotificationsReceiver () {
+  factory NotificationsReceiver() {
     return _instance;
   }
 
@@ -28,7 +28,9 @@ class NotificationsReceiver {
     requestPermission();
 
     FirebaseMessaging.onMessage.listen(_onMessageReceived);
-    FirebaseMessaging.onMessageOpenedApp.listen(_firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onMessageOpenedApp.listen(
+      _firebaseMessagingBackgroundHandler,
+    );
   }
 
   void requestPermission() async {
@@ -60,7 +62,7 @@ class NotificationsReceiver {
       );
     }
 
-    switch(message.data['type']) {
+    switch (message.data['type']) {
       case 'dm':
         showDMNotification(
           sender: message.data['sender'] ?? 'Unknown',
@@ -68,8 +70,10 @@ class NotificationsReceiver {
           avatarUrl: message.data['avatarUrl'] ?? '',
           onTap: () {
             handleDMNotificationTap(
-              userId: message.data['userId'],
-              conversationId: message.data['conversationId'],
+              userId: int.tryParse(message.data['userId'] ?? ''),
+              conversationId: int.tryParse(
+                message.data['conversationId'] ?? '',
+              ),
             );
           },
         );
@@ -79,31 +83,29 @@ class NotificationsReceiver {
     }
   }
 
- Future<void> _firebaseMessagingBackgroundHandler(
+  Future<void> _firebaseMessagingBackgroundHandler(
     RemoteMessage message,
   ) async {
     await Firebase.initializeApp();
 
     print("Handling a background message: ${message.messageId}");
 
-    switch(message.data['type']) {
+    switch (message.data['type']) {
       case 'dm':
         handleDMNotificationTap(
-          userId: message.data['userId'],
-          conversationId: message.data['conversationId'],
+          userId: int.tryParse(message.data['userId'] ?? ''),
+          conversationId: int.tryParse(message.data['conversationId'] ?? ''),
         );
         break;
       default:
         print("Unknown notification type");
     }
-  } 
-
-  void handleDMNotificationTap({String? userId, String? conversationId}) {
-    navigatorKey.currentState?.pushNamed(ChatScreen.routeName, arguments: {
-      'conversationId': conversationId,
-      'userId': userId,
-    });
   }
 
-  
+  void handleDMNotificationTap({int? userId, int? conversationId}) {
+    navigatorKey.currentState?.pushNamed(
+      ChatScreen.routeName,
+      arguments: {'conversationId': conversationId, 'userId': userId},
+    );
+  }
 }

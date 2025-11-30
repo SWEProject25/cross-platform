@@ -19,7 +19,7 @@ void showDMNotification({
           direction: DismissDirection.up,
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TwitterDMNotification(
+            child: TwitterDMNotification.DMNotificationOverlay(
               sender: sender,
               message: message,
               avatarUrl: avatarUrl,
