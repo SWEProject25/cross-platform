@@ -7,6 +7,8 @@ class StyledTweetText extends StatelessWidget {
   final double fontSize;
   final int? maxLines;
   final TextOverflow? overflow;
+  final void Function(String username)? onMentionTap;
+  final TextStyle? style;
 
   const StyledTweetText({
     super.key,
@@ -14,27 +16,39 @@ class StyledTweetText extends StatelessWidget {
     this.fontSize = 15,
     this.maxLines,
     this.overflow,
+    this.onMentionTap,
+    this.style,
   });
 
   @override
   Widget build(BuildContext context) {
+    final defaultStyle = style ??
+        Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontSize: fontSize,
+            ) ??
+        TextStyle(
+          fontSize: fontSize,
+          color: Theme.of(context).colorScheme.onSurface,
+          decoration: TextDecoration.none,
+        );
+
     return RichText(
       maxLines: maxLines,
       overflow: overflow ?? TextOverflow.clip,
       softWrap: true,
       text: TextSpan(
-        children: _parseText(text, context),
-        style: TextStyle(
-          fontSize: fontSize,
-          color: Theme.of(context).colorScheme.onSurface,
-          decoration: TextDecoration.none,
-        ),
+        children: _parseText(text, context, defaultStyle),
+        style: defaultStyle,
       ),
     );
   }
 
   /// Parse text and return list of TextSpans with appropriate styling
-  List<TextSpan> _parseText(String text, BuildContext context) {
+  List<TextSpan> _parseText(
+    String text,
+    BuildContext context,
+    TextStyle baseStyle,
+  ) {
     final List<TextSpan> spans = [];
     
     // Regex to match hashtags (#word) and mentions (@word)
@@ -47,18 +61,32 @@ class StyledTweetText extends StatelessWidget {
       if (match.start > lastMatchEnd) {
         spans.add(TextSpan(
           text: text.substring(lastMatchEnd, match.start),
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+          style: baseStyle,
         ));
       }
       
-      // Add hashtag or mention with grey color
-      spans.add(TextSpan(
-        text: match.group(0),
-        style: const TextStyle(
-          color: Colors.grey,
-          fontWeight: FontWeight.w500,
+      final matchedText = match.group(0) ?? '';
+      final isMention = matchedText.startsWith('@');
+
+      // Add hashtag or mention with grey color and optional tap for mentions
+      spans.add(
+        TextSpan(
+          text: matchedText,
+          style: baseStyle.copyWith(
+            color: Colors.grey,
+            fontWeight: FontWeight.w500,
+          ),
+          recognizer: isMention && onMentionTap != null
+              ? (TapGestureRecognizer()
+                ..onTap = () {
+                  final handle = matchedText.substring(1);
+                  if (handle.isNotEmpty) {
+                    onMentionTap!(handle);
+                  }
+                })
+              : null,
         ),
-      ));
+      );
       
       lastMatchEnd = match.end;
     }

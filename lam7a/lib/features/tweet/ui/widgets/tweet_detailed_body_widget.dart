@@ -28,7 +28,7 @@ class TweetDetailedBodyWidget extends StatelessWidget {
     
     final post = tweetState.tweet.value!;
     final responsive = context.responsive;
-    final fontSize = responsive.fontSize(17);
+
     final imageHeight = responsive.isTablet 
         ? 500.0 
         : responsive.isLandscape 
@@ -46,13 +46,22 @@ class TweetDetailedBodyWidget extends StatelessWidget {
                 padding: EdgeInsets.symmetric(
                   horizontal: responsive.padding(0),
                 ),
-                child: Text(
-                  bodyText,
+                child: StyledTweetText(
+                  text: bodyText,
+                  maxLines: null,
+                  overflow: TextOverflow.visible,
                   style: Theme.of(context).textTheme.bodyLarge,
+                  onMentionTap: (handle) {
+                    Navigator.of(context).pushNamed(
+                      '/profile',
+                      arguments: {'username': handle},
+                    );
+                  },
                 ),
               ),
               SizedBox(height: responsive.padding(12)),
             ],
+
             // Display multiple images
             if (post.mediaImages.isNotEmpty)
               Column(

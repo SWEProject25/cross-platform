@@ -3,10 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/responsive_utils.dart';
+import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/core/widgets/app_user_avatar.dart';
 import 'package:lam7a/features/add_tweet/ui/viewmodel/add_tweet_viewmodel.dart';
+import 'package:lam7a/features/add_tweet/ui/viewmodel/mention_suggestions_viewmodel.dart';
 import 'package:lam7a/features/add_tweet/ui/widgets/add_tweet_body_input_widget.dart';
 import 'package:lam7a/features/add_tweet/ui/widgets/add_tweet_header_widget.dart';
 import 'package:lam7a/features/add_tweet/ui/widgets/add_tweet_toolbar_widget.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
+import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -52,6 +57,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
   @override
   void dispose() {
     _bodyController.dispose();
+    ref.read(mentionSuggestionsViewModelProvider.notifier).clear();
     super.dispose();
   }
 
@@ -70,7 +76,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
             children: [
               ListTile(
                 leading: const Icon(Icons.camera_alt, color: Pallete.borderHover),
-                title: const Text('Take Photo', style: TextStyle(color: Pallete.whiteColor)),
+                title:  Text('Take Photo', style: Theme.of(context).textTheme.bodyLarge),
                 onTap: () {
                   Navigator.pop(context);
                   _handleImagePick(ImageSource.camera);
@@ -78,7 +84,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library, color: Pallete.borderHover),
-                title: const Text('Choose from Gallery', style: TextStyle(color: Pallete.whiteColor)),
+                title:  Text('Choose from Gallery', style:Theme.of(context).textTheme.bodyLarge),
                 onTap: () {
                   Navigator.pop(context);
                   _handleImagePick(ImageSource.gallery);
@@ -88,6 +94,118 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildParentTweetPreview() {
+    if (!widget.isReply || widget.parentPostId == null) {
+      return const SizedBox.shrink();
+    }
+
+    final parentId = widget.parentPostId!.toString();
+    final parentAsync = ref.watch(tweetViewModelProvider(parentId));
+
+    return parentAsync.when(
+      data: (tweetState) {
+        final tweet = tweetState.tweet.value;
+        if (tweet == null) {
+          return const SizedBox.shrink();
+        }
+        return OriginalTweetCard(tweet: tweet);
+      },
+      loading: () => const Padding(
+        padding: EdgeInsets.all(8.0),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildReplyComposer(AddTweetViewmodel viewmodel) {
+    final authState = ref.watch(authenticationProvider);
+    final user = authState.user;
+    final myUsername = user?.username ?? '';
+    final myDisplayName = user?.name ?? myUsername;
+    final myProfileImage = user?.profileImageUrl;
+
+    String? replyingToHandle;
+    if (widget.parentPostId != null) {
+      final parentAsync =
+          ref.watch(tweetViewModelProvider(widget.parentPostId!.toString()));
+      replyingToHandle = parentAsync.maybeWhen(
+        data: (tweetState) => tweetState.tweet.maybeWhen(
+          data: (tweet) => tweet.username,
+          orElse: () => null,
+        ),
+        orElse: () => null,
+      );
+    }
+
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              children: [
+                AppUserAvatar(
+                  radius: 20,
+                  imageUrl: myProfileImage,
+                  displayName: myDisplayName,
+                  username: myUsername,
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  width: 1,
+                  height: 24,
+                  color: theme.dividerColor,
+                ),
+              ],
+            ),
+            const SizedBox(width: 12),
+            if (replyingToHandle != null && replyingToHandle!.isNotEmpty)
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).pushNamed(
+                      '/profile',
+                      arguments: {'username': replyingToHandle},
+                    );
+                  },
+                  child: Text(
+                    'Replying to @${replyingToHandle!}',
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(color: Colors.blueAccent),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _bodyController,
+          onChanged: (value) {
+            viewmodel.updateBody(value);
+            _handleBodyChanged(value);
+          },
+          maxLines: null,
+          minLines: 5,
+          maxLength: AddTweetViewmodel.maxBodyLength,
+          style: theme.textTheme.bodyLarge,
+          decoration: InputDecoration(
+            hintText: "Tweet your reply",
+            hintStyle: theme.textTheme.bodyLarge,
+            border: InputBorder.none,
+            counterText: '',
+            filled: false,
+            fillColor: Colors.transparent,
+          ),
+          cursorColor: Pallete.borderHover,
+        ),
+      ],
     );
   }
 
@@ -178,7 +296,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
             children: [
               ListTile(
                 leading: const Icon(Icons.videocam, color: Pallete.borderHover),
-                title: const Text('Record Video', style: TextStyle(color: Pallete.whiteColor)),
+                title:  Text('Record Video', style: Theme.of(context).textTheme.bodyLarge),
                 onTap: () {
                   Navigator.pop(context);
                   _handleVideoPick(ImageSource.camera);
@@ -186,7 +304,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.video_library, color: Pallete.borderHover),
-                title: const Text('Choose from Gallery', style: TextStyle(color: Pallete.whiteColor)),
+                title:  Text('Choose from Gallery', style:Theme.of(context).textTheme.bodyLarge),
                 onTap: () {
                   Navigator.pop(context);
                   _handleVideoPick(ImageSource.gallery);
@@ -307,6 +425,126 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
     return true;
   }
 
+  void _handleBodyChanged(String value) {
+    final mentionVm = ref.read(mentionSuggestionsViewModelProvider.notifier);
+
+    final cursorPosition = _bodyController.selection.baseOffset;
+    if (cursorPosition < 0 || cursorPosition > value.length) {
+      mentionVm.clear();
+      return;
+    }
+
+    final textBeforeCursor = value.substring(0, cursorPosition);
+    final atIndex = textBeforeCursor.lastIndexOf('@');
+
+    if (atIndex == -1) {
+      mentionVm.clear();
+      return;
+    }
+
+    if (atIndex > 0) {
+      final prevChar = textBeforeCursor[atIndex - 1];
+      if (!RegExp(r'\s').hasMatch(prevChar)) {
+        mentionVm.clear();
+        return;
+      }
+    }
+
+    final query = textBeforeCursor.substring(atIndex + 1);
+    if (query.isEmpty || query.contains(RegExp(r'\s'))) {
+      mentionVm.clear();
+      return;
+    }
+
+    mentionVm.updateQuery(query);
+  }
+
+  void _insertMention(String handle) {
+    final text = _bodyController.text;
+    final cursorPosition = _bodyController.selection.baseOffset;
+    if (cursorPosition < 0 || cursorPosition > text.length) {
+      return;
+    }
+
+    final textBeforeCursor = text.substring(0, cursorPosition);
+    final atIndex = textBeforeCursor.lastIndexOf('@');
+    if (atIndex == -1) {
+      return;
+    }
+
+    final prefix = text.substring(0, atIndex);
+    final suffix = text.substring(cursorPosition);
+    final newText = '$prefix@$handle $suffix';
+    final newCursorPos = (prefix + '@$handle ').length;
+
+    _bodyController.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newCursorPos),
+    );
+
+    final viewmodel = ref.read(addTweetViewmodelProvider.notifier);
+    viewmodel.updateBody(newText);
+
+    ref.read(mentionSuggestionsViewModelProvider.notifier).clear();
+  }
+
+  Widget _buildMentionSuggestionsPanel() {
+    final mentionState = ref.watch(mentionSuggestionsViewModelProvider);
+
+    if (!mentionState.isOpen || mentionState.suggestions.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final results = mentionState.suggestions.length > 5
+        ? mentionState.suggestions.sublist(0, 5)
+        : mentionState.suggestions;
+
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      child: Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final contact in results)
+              ListTile(
+                leading: AppUserAvatar(
+                  radius: 20,
+                  imageUrl: contact.avatarUrl,
+                  displayName: contact.name,
+                  username: contact.handle,
+                ),
+                title: Text(
+                  contact.name,
+                  style: theme.textTheme.bodyLarge,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text(
+                  '@${contact.handle}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                onTap: () {
+                  _insertMention(contact.handle);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _handlePost() async {
     final viewmodel = ref.read(addTweetViewmodelProvider.notifier);
     await viewmodel.postTweet();
@@ -348,8 +586,11 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
     final mediaGridHeight = imageHeight * imageRows;
     final horizontalPadding = responsive.padding(16);
 
+    final authState = ref.watch(authenticationProvider);
+    final currentUser = authState.user;
+
     return Scaffold(
-      backgroundColor: Pallete.blackColor,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -359,7 +600,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
               onPost: _handlePost,
               canPost: viewmodel.canPostTweet(),
               isLoading: state.isLoading,
-              // You can update this widget to show different titles based on reply mode if needed
+              actionLabel: widget.isReply ? 'Reply' : 'Post',
             ),
             
             SizedBox(height: responsive.padding(10)),
@@ -372,14 +613,25 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Tweet body input
-                      AddTweetBodyInputWidget(
-                        controller: _bodyController,
-                        onChanged: (value) {
-                          viewmodel.updateBody(value);
-                        },
-                        maxLength: AddTweetViewmodel.maxBodyLength,
-                      ),
+                      if (widget.isReply && widget.parentPostId != null) ...[
+                        _buildParentTweetPreview(),
+                        const SizedBox(height: 12),
+                        _buildReplyComposer(viewmodel),
+                      ] else ...[
+                        // Tweet body input for new posts / quotes
+                        AddTweetBodyInputWidget(
+                          controller: _bodyController,
+                          onChanged: (value) {
+                            viewmodel.updateBody(value);
+                            _handleBodyChanged(value);
+                          },
+                          maxLength: AddTweetViewmodel.maxBodyLength,
+                          authorProfileImage: currentUser?.profileImageUrl,
+                          authorName: currentUser?.name ?? currentUser?.username,
+                          username: currentUser?.username,
+                        ),
+                      ],
+                      _buildMentionSuggestionsPanel(),
                       
                       const SizedBox(height: 16),
                       
@@ -463,7 +715,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
                                 color: Pallete.cardColor,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Center(
+                              child:  Center(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -475,10 +727,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
                                     SizedBox(height: 8),
                                     Text(
                                       'Video selected',
-                                      style: TextStyle(
-                                        color: Pallete.whiteColor,
-                                        fontSize: 14,
-                                      ),
+                                      style: Theme.of(context).textTheme.bodyLarge
                                     ),
                                   ],
                                 ),
@@ -514,14 +763,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
                         children: [
                           Text(
                             '${viewmodel.getRemainingCharacters()}',
-                            style: TextStyle(
-                              color: viewmodel.getRemainingCharacters() < 0
-                                  ? Pallete.errorColor
-                                  : viewmodel.getRemainingCharacters() < 20
-                                      ? Colors.orange
-                                      : Pallete.greyColor,
-                              fontSize: 14,
-                            ),
+                            style:Theme.of(context).textTheme.bodyLarge
                           ),
                         ],
                       ),

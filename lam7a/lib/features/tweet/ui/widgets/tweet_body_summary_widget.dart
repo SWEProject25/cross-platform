@@ -39,11 +39,17 @@ class TweetBodySummaryWidget extends StatelessWidget {
                 children: [
                   SizedBox(width: leftPadding),
                   Flexible(
-                    child: Text(
-                      bodyText,
+                    child: StyledTweetText(
+                      text: bodyText,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodyLarge,
+                      onMentionTap: (handle) {
+                        Navigator.of(context).pushNamed(
+                          '/profile',
+                          arguments: {'username': handle},
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -236,7 +242,7 @@ class TweetBodySummaryWidget extends StatelessWidget {
                 ],
               ),
 
-            if (post.originalTweet != null)
+            if ((post.isRepost || post.isQuote) && post.originalTweet != null)
               disableOriginalTap
                   ? IgnorePointer(
                       child: OriginalTweetCard(tweet: post.originalTweet!),
@@ -321,12 +327,18 @@ class OriginalTweetCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             if (tweet.body.trim().isNotEmpty)
-              Text(
-                tweet.body,
+              StyledTweetText(
+                text: tweet.body.trim(),
+                fontSize:
+                    Theme.of(context).textTheme.bodyLarge?.fontSize ?? 16,
                 maxLines: 6,
                 overflow: TextOverflow.ellipsis,
-                style:  Theme.of(context).textTheme.bodyLarge
-                
+                onMentionTap: (handle) {
+                  Navigator.of(context).pushNamed(
+                    '/profile',
+                    arguments: {'username': handle},
+                  );
+                },
               ),
             if (tweet.mediaImages.isNotEmpty) ...[
               const SizedBox(height: 6),

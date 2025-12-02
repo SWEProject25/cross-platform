@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/widgets/app_user_avatar.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
-import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
 import 'package:path/path.dart';
 import '../viewmodel/conversations_viewmodel.dart';
 
@@ -60,7 +60,12 @@ class FindContactsScreen extends ConsumerWidget {
                 itemBuilder: (context, index) {
                   final c = conversations[index];
                   return ListTile(
-                    leading: NetworkAvatar(url: c.avatarUrl, radius: 19),
+                    leading: AppUserAvatar(
+                      radius: 19,
+                      imageUrl: c.avatarUrl,
+                      displayName: c.name,
+                      username: c.handle,
+                    ),
                     title: Text(
                       c.name,
                       style: const TextStyle(fontWeight: FontWeight.w600),
