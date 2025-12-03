@@ -1,11 +1,56 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:lam7a/core/models/auth_state.dart';
+import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/core/utils/logger.dart';
+import 'package:lam7a/features/notifications/dtos/notification_dtos.dart';
+import 'package:lam7a/features/notifications/models/notification_model.dart';
 import 'package:lam7a/features/notifications/notifiactions_calls.dart';
+import 'package:lam7a/features/notifications/repositories/notifications_repository.dart';
 import 'package:lam7a/firebase_options.dart';
-import 'package:lam7a/main.dart';
+import 'package:logger/logger.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'notifications_receiver.g.dart';
+
+@Riverpod(keepAlive: true)
+void fcmTokenUpdater(Ref ref) {
+  AuthState authState = ref.watch(authenticationProvider);
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  var subscription = messaging.onTokenRefresh.listen((newToken) {
+    handleFCMTokenUpdate(messaging, authState, ref);
+  });
+
+  ref.onDispose(() {
+    subscription.cancel();
+  });
+
+  handleFCMTokenUpdate(messaging, authState, ref);
+}
+
+void handleFCMTokenUpdate(
+  FirebaseMessaging messaging,
+  AuthState authState,
+  Ref ref,
+) {
+  var logger = getLogger(NotificationsReceiver);
+  if (authState.user != null) {
+    messaging.getToken().then((String? token) {
+      if (token != null) {
+        ref.read(notificationsRepositoryProvider).setFCMToken(token);
+        logger.i("FCM Token sent to server: $token");
+      }
+    });
+  } else {
+    ref.read(notificationsRepositoryProvider).removeFCMToken();
+    logger.i("FCM Token removed from server");
+  }
+}
 
 class NotificationsReceiver {
+  Logger logger = getLogger(NotificationsReceiver);
   NotificationsReceiver._privateConstructor();
   static final NotificationsReceiver _instance =
       NotificationsReceiver._privateConstructor();
@@ -13,25 +58,32 @@ class NotificationsReceiver {
     return _instance;
   }
 
-  void receiveNotification(String message) {
-    // Logic to handle the received notification
-    print("Notification received: $message");
-  }
+  RemoteMessage? _initialMessage;
 
-  void initialize() async {
-    print("NotificationsReceiver initialized");
 
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+  Future<void> initialize() async {
+    logger.i("NotificationsReceiver initialized");
 
-    requestPermission();
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+    _initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    logger.i("Initial message: $_initialMessage");
 
     FirebaseMessaging.onMessage.listen(_onMessageReceived);
     FirebaseMessaging.onMessageOpenedApp.listen(
-      _firebaseMessagingBackgroundHandler,
+      _onNotificationTapped,
     );
+
+    requestPermission();
   }
+
+  void handleInitialMessageIfAny() {
+    if (_initialMessage != null) {
+      _onNotificationTapped(_initialMessage!);
+      _initialMessage = null;
+    }
+  }
+
 
   void requestPermission() async {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -46,66 +98,79 @@ class NotificationsReceiver {
       sound: true,
     );
 
-    print('User granted permission: ${settings.authorizationStatus}');
+    logger.i('User granted permission: ${settings.authorizationStatus}');
 
     String? token = await messaging.getToken();
-    print("FCM Token: $token");
+    logger.i("FCM Token: $token");
   }
 
   void _onMessageReceived(RemoteMessage message) {
-    print('Got a message whilst in the foreground!');
-    print('Message data: ${message.data}');
+    logger.i('Got a message whilst in the foreground!');
+    logger.i('Message data: ${message.data.toString()}');
 
     if (message.notification != null) {
-      print(
+      logger.i(
         'Message also contained a notification: ${message.notification?.toMap().toString()}',
       );
-    }
+    } 
 
-    switch (message.data['type']) {
-      case 'dm':
-        showDMNotification(
-          sender: message.data['sender'] ?? 'Unknown',
-          message: message.notification?.body ?? '',
-          avatarUrl: message.data['avatarUrl'] ?? '',
-          onTap: () {
-            handleDMNotificationTap(
-              userId: int.tryParse(message.data['userId'] ?? ''),
-              conversationId: int.tryParse(
-                message.data['conversationId'] ?? '',
-              ),
-            );
-          },
-        );
+    NotificationDto notificationDTO = NotificationDto.fromJson(message.data);
+    NotificationModel notifiacation = NotificationModel.fromDTO(
+      notificationDTO,
+      null,
+    );
+
+    switch (notifiacation.type) {
+      case NotificationType.dm:
+        showDMNotification(notifiacation);
         break;
       default:
-        print("Unknown notification type");
+        logger.i("Unhandled notification type in foreground");
     }
   }
 
-  Future<void> _firebaseMessagingBackgroundHandler(
+  Future<void> _onNotificationTapped(
     RemoteMessage message,
   ) async {
     await Firebase.initializeApp();
 
-    print("Handling a background message: ${message.messageId}");
+    logger.i("Handling a background message: ${message.messageId}");
 
-    switch (message.data['type']) {
-      case 'dm':
-        handleDMNotificationTap(
-          userId: int.tryParse(message.data['userId'] ?? ''),
-          conversationId: int.tryParse(message.data['conversationId'] ?? ''),
-        );
+    NotificationDto notificationDTO = NotificationDto.fromJson(message.data);
+    NotificationModel notifiacation = NotificationModel.fromDTO(
+      notificationDTO,
+      null,
+    );
+
+    handleNotificationAction(notifiacation);
+  }
+
+  void handleNotificationAction(NotificationModel notifiacation) {
+    switch (notifiacation.type) {
+      case NotificationType.dm:
+        if (notifiacation.conversationId != null) {
+          handleDMNotificationAction(notifiacation.conversationId!, notifiacation.actor.id);
+        }
+        break;
+      case NotificationType.like:
+        if (notifiacation.post != null) {
+          handleLikeNotificationAction(notifiacation.post!.id);
+        }
+        break;
+      case NotificationType.follow:
+        handleFollowNotificationAction(notifiacation.actor.username);
+        break;
+
+      case NotificationType.repost:
+      case NotificationType.mention:
+      case NotificationType.reply:
+      case NotificationType.quote:
+        if (notifiacation.post != null) {
+          handlePostViewNotificationAction(notifiacation.post!.id);
+        }
         break;
       default:
         print("Unknown notification type");
     }
-  }
-
-  void handleDMNotificationTap({int? userId, int? conversationId}) {
-    navigatorKey.currentState?.pushNamed(
-      ChatScreen.routeName,
-      arguments: {'conversationId': conversationId, 'userId': userId},
-    );
   }
 }

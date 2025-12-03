@@ -57,6 +57,14 @@ class ConversationsViewModel extends _$ConversationsViewModel {
     }
   }
 
+  Future<int> createConversationId(int userId) async {
+    state = state.copyWith(loadingConversationId: true);
+    var res = await _conversationsRepository.getConversationIdByUserId(userId);
+    state = state.copyWith(loadingConversationId: false);
+
+    return res;
+  }
+
   Future<void> refresh() async {
     await Future.wait([
       // _loadConversations(),

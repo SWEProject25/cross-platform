@@ -13,4 +13,14 @@ class NotificationsAPIServiceImpl implements NotificationsAPIService {
     var response = await _apiService.get<NotificationsResponse>(endpoint: "/notifications", queryParameters: {"page": page, "limit": limit}, fromJson: (json) => NotificationsResponse.fromJson(json));
     return response;
   }
+
+  @override
+  void sendFCMToken(String token) {
+    _apiService.post(endpoint: "/notifications/device", data: {"token": token, "platform": "ANDROID"});
+  }
+
+  @override
+  void removeFCMToken(String token) {
+    _apiService.delete(endpoint: "/notifications/device", data: {"token": token});
+  }
 }
