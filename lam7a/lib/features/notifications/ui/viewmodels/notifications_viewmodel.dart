@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lam7a/features/messaging/providers/conversations_provider.dart';
+import 'package:lam7a/features/common/providers/pagination_notifier.dart';
+import 'package:lam7a/features/common/states/pagination_state.dart';
 import 'package:lam7a/features/notifications/models/notification_model.dart';
 import 'package:lam7a/features/notifications/notifications_receiver.dart';
 import 'package:lam7a/features/notifications/repositories/notifications_repository.dart';
@@ -44,22 +45,5 @@ class NotificationsViewModel extends PaginationNotifier<NotificationModel> {
   void handleNotificationAction(NotificationModel notification) {
     NotificationsReceiver().handleNotificationAction(notification);
   }
-
-  // Future<void> _loadNotifications() async {
-  //   state = state.copyWith(notifications: const AsyncLoading());
-
-  //   try {
-  //     final notifications = await _notificationsRepository.fetchNotifications();
-  //     state = state.copyWith(notifications: AsyncData(notifications));
-  //   } catch (e, st) {
-  //     state = state.copyWith(
-  //       notifications: AsyncError(e, st),
-  //     );
-  //   }
-  // }
-
-  // Future<void> refresh() async {
-  //   await _loadNotifications();
-  // }
 }
 
