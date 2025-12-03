@@ -1,25 +1,18 @@
+// lib/features/profile/ui/widgets/profile_action_menu.dart
 import 'package:flutter/material.dart';
-import 'package:lam7a/features/profile/model/profile_model.dart';
-import 'package:lam7a/features/profile/services/profile_api_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/models/user_model.dart';
 
 class ProfileActionMenu extends ConsumerWidget {
-  final ProfileModel profile;
-  const ProfileActionMenu({super.key, required this.profile});
+  final UserModel user;
+  const ProfileActionMenu({super.key, required this.user});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_vert, color: Colors.white),
-      onSelected: (v) async {
-        if (v == 'mute') {
-          // call mute endpoint or update local state
-        } else if (v == 'block') {
-          // call block
-        } else if (v == 'share') {
-          // share profile
-        } else if (v == 'notifications') {
-          // open notification settings
+      onSelected: (v) {
+        if (v == 'notifications') {
           showModalBottomSheet(
             context: context,
             shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(12))),
@@ -28,13 +21,14 @@ class ProfileActionMenu extends ConsumerWidget {
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 const Text("Don't miss a thing", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                Text('@${profile.handle}', style: const TextStyle(color: Colors.grey)),
+                Text('@${user.username ?? ''}', style: const TextStyle(color: Colors.grey)),
               ]),
             ),
           );
         }
+        // mute, block, share, etc. can call API via service provider
       },
-      itemBuilder: (context) => [
+      itemBuilder: (_) => [
         const PopupMenuItem(value: 'share', child: Text('Share')),
         const PopupMenuItem(value: 'turnoff', child: Text('Turn off reposts')),
         const PopupMenuItem(value: 'lists', child: Text('Add/remove from Lists')),
@@ -47,3 +41,4 @@ class ProfileActionMenu extends ConsumerWidget {
     );
   }
 }
+

@@ -14,10 +14,13 @@ abstract class ProfileApiService {
   Future<ProfileDto> getProfileByUsername(String username);
   Future<ProfileDto> getMyProfile();
   Future<ProfileDto> updateMyProfile(Map<String, dynamic> body);
+
   Future<String> uploadProfilePicture(String filePath);
   Future<String> uploadBanner(String filePath);
+
   Future<void> followUser(int id);
   Future<void> unfollowUser(int id);
+
   Future<List<Map<String, dynamic>>> getFollowers(int id);
   Future<List<Map<String, dynamic>>> getFollowing(int id);
 }
