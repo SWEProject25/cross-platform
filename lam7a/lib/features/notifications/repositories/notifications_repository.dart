@@ -40,7 +40,7 @@ class NotificationsRepository {
     });
   }
 
-  Future<List<NotificationModel>> fetchNotifications(int page, [int limit = 20]) async {
+  Future<(List<NotificationModel>, bool)> fetchNotifications(int page, [int limit = 20]) async {
     var notificationsDto = await _apiService.getNotifications(page, limit);
     
     // Collect all tweet IDs that need to be fetched
@@ -64,6 +64,6 @@ class NotificationsRepository {
       return NotificationModel.fromDTO(dto, dto.postId != null ? tweets[dto.postId!.toString()] : null);
     }).toList() ?? [];
     
-    return notifications;
+    return (notifications, (notificationsDto.metadata?.totalPages ?? 0) != (notificationsDto.metadata?.page ?? 0));
   }
 }

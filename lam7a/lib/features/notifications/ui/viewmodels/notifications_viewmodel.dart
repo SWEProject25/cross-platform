@@ -23,7 +23,7 @@ class NotificationsViewModel extends PaginationNotifier<NotificationModel> {
   }
 
   @override
-  Future<List<NotificationModel>> fetchPage(int page){
+  Future<(List<NotificationModel> data, bool hasMore)> fetchPage(int page){
     return _notificationsRepository.fetchNotifications(page, 20);
   }
 

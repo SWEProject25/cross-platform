@@ -50,16 +50,14 @@ abstract class PaginationNotifier<T> extends Notifier<PaginationState<T>> {
   final int pageSize;
   PaginationNotifier({this.pageSize = 20}) : super();
 
-  // initial load
   Future<void> loadInitial() async {
     if (state.isLoading) return;
     state = state.copyWith(isLoading: true, error: null);
     try {
       final newPage = 1;
-      final List<T> items = await fetchPage(newPage);
-      final hasMore = items.length == pageSize;
+      final (newItems, hasMore) = await fetchPage(newPage);
       state = state.copyWith(
-        items: items,
+        items: newItems,
         page: newPage,
         isLoading: false,
         hasMore: hasMore,
@@ -70,16 +68,14 @@ abstract class PaginationNotifier<T> extends Notifier<PaginationState<T>> {
     }
   }
 
-  // refresh (pull-to-refresh)
   Future<void> refresh() async {
     if (state.isRefreshing) return;
     state = state.copyWith(isRefreshing: true, error: null);
     try {
       final newPage = 1;
-      final items = await fetchPage(newPage);
-      final hasMore = items.length == pageSize;
+      final (newItems, hasMore) = await fetchPage(newPage);
       state = state.copyWith(
-        items: items,
+        items: newItems,
         page: newPage,
         isRefreshing: false,
         hasMore: hasMore,
@@ -90,7 +86,6 @@ abstract class PaginationNotifier<T> extends Notifier<PaginationState<T>> {
     }
   }
 
-  // load more (pagination)
   Future<void> loadMore() async {
     if (!state.hasMore ||
         state.isLoadingMore ||
@@ -100,8 +95,7 @@ abstract class PaginationNotifier<T> extends Notifier<PaginationState<T>> {
     state = state.copyWith(isLoadingMore: true, error: null);
     try {
       final nextPage = state.page + 1;
-      final newItems = await fetchPage(nextPage);
-      final hasMore = newItems.length == pageSize;
+      final (newItems, hasMore) = await fetchPage(nextPage);
       state = state.copyWith(
         items: mergeList(state.items, newItems),
         page: nextPage,
@@ -116,8 +110,10 @@ abstract class PaginationNotifier<T> extends Notifier<PaginationState<T>> {
 
   // helper: use repo to fetch, adapt to T
 
-  Future<List<T>> fetchPage(int page);
-  List<T> mergeList(List<T> a, List<T> b);
+  Future<(List<T> items, bool hasMore)> fetchPage(int page);
+  List<T> mergeList(List<T> a, List<T> b) {
+    return [...a, ...b];
+  }
 }
 
 class ConversationsNotifier extends PaginationNotifier<Conversation> {
@@ -196,15 +192,15 @@ class ConversationsNotifier extends PaginationNotifier<Conversation> {
       List<Conversation> updatedConv = [...state.items, conv];
 
       var updatedFirstPage = await fetchPage(1);
-      updatedConv = mergeList(state.items, updatedFirstPage);
+      updatedConv = mergeList(state.items, updatedFirstPage.$1);
 
       state = state.copyWith(items: updatedConv);
     }
   }
 
   @override
-  Future<List<Conversation>> fetchPage(int page) {
-    return _conversationsRepository.fetchConversations();
+  Future<(List<Conversation> items, bool hasMore)> fetchPage(int page) async {
+    return await _conversationsRepository.fetchConversations();
   }
 
   @override

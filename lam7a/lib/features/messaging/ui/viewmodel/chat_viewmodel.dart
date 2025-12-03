@@ -68,6 +68,10 @@ class ChatViewModel extends _$ChatViewModel {
     _typingTimer = null;
 
     _disposed = true;
+    Future.microtask(() {
+      _messagesRepository.leaveConversation(_conversationId);
+    });
+
   }
 
 
