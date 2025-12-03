@@ -3,6 +3,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/features/profile/dtos/profile_dto.dart';
+import 'package:lam7a/features/profile/dtos/follow_user_dto.dart';
 import 'package:lam7a/features/profile/services/profile_api_service.dart';
 
 part 'profile_repository.g.dart';
@@ -18,18 +19,19 @@ class ProfileRepository {
 
   ProfileRepository(this._api);
 
-  // ================== GET PROFILE ==================
+  // ---------------- GET PROFILE BY USERNAME ----------------
   Future<UserModel> getProfile(String username) async {
     final dto = await _api.getProfileByUsername(username);
-    return _mapDtoToUser(dto);
+    return _fromDto(dto);
   }
 
+  // ---------------- GET MY PROFILE ----------------
   Future<UserModel> getMyProfile() async {
     final dto = await _api.getMyProfile();
-    return _mapDtoToUser(dto);
+    return _fromDto(dto);
   }
 
-  // ================== UPDATE PROFILE ==================
+  // ---------------- UPDATE MY PROFILE ----------------
   Future<UserModel> updateMyProfile(
     UserModel user, {
     String? avatarPath,
@@ -56,48 +58,82 @@ class ProfileRepository {
       "banner_image_url": bannerUrl,
     });
 
-    return _mapDtoToUser(dto);
+    return _fromDto(dto);
   }
 
-  // ================== FOLLOW SYSTEM ==================
+  // ---------------- FOLLOW / UNFOLLOW ----------------
   Future<void> followUser(int id) => _api.followUser(id);
   Future<void> unfollowUser(int id) => _api.unfollowUser(id);
 
-  // ================== FOLLOWERS / FOLLOWING ==================
+  // ---------------- GET FOLLOWERS / FOLLOWING ----------------
+  /// These endpoints return a list of lightweight "user" objects (not full profile DTOs).
+  /// We parse them with FollowUserDto and convert to UserModel.
   Future<List<UserModel>> getFollowers(int id) async {
     final list = await _api.getFollowers(id);
-    return list.map((e) => UserModel.fromJson(e)).toList();
+    // list is List<Map<String, dynamic>>
+    return list.map<UserModel>((raw) {
+      final f = FollowUserDto.fromJson(Map<String, dynamic>.from(raw));
+      return UserModel(
+        id: f.id,
+        username: f.username,
+        name: f.name,
+        bio: f.bio,
+        profileImageUrl: f.profileImageUrl,
+        // conservative defaults for counts / other states
+        followersCount: 0,
+        followingCount: 0,
+        stateFollow: (f.isFollowedByMe ?? false)
+            ? ProfileStateOfFollow.following
+            : ProfileStateOfFollow.notfollowing,
+      );
+    }).toList();
   }
 
   Future<List<UserModel>> getFollowing(int id) async {
     final list = await _api.getFollowing(id);
-    return list.map((e) => UserModel.fromJson(e)).toList();
+    return list.map<UserModel>((raw) {
+      final f = FollowUserDto.fromJson(Map<String, dynamic>.from(raw));
+      return UserModel(
+        id: f.id,
+        username: f.username,
+        name: f.name,
+        bio: f.bio,
+        profileImageUrl: f.profileImageUrl,
+        followersCount: 0,
+        followingCount: 0,
+        stateFollow: (f.isFollowedByMe ?? false)
+            ? ProfileStateOfFollow.following
+            : ProfileStateOfFollow.notfollowing,
+      );
+    }).toList();
   }
 
-  // ================== DTO → USER MODEL ==================
-  UserModel _mapDtoToUser(ProfileDto dto) {
+  // ---------------- DTO → USER MODEL (full profile) ----------------
+  UserModel _fromDto(ProfileDto dto) {
     return UserModel(
-      id: dto.userId,
-      profileId: dto.id,
-      
+      id: dto.id,
+      profileId: dto.userId,
       username: dto.user?["username"],
       name: dto.name,
-      
       birthDate: dto.birthDate,
       bio: dto.bio,
       location: dto.location,
       website: dto.website,
       createdAt: dto.createdAt,
-
       profileImageUrl: dto.profileImageUrl,
       bannerImageUrl: dto.bannerImageUrl,
-
-      followersCount: dto.user?["followers_count"] ?? dto.followersCount ?? 0,
-      followingCount: dto.user?["following_count"] ?? dto.followingCount ?? 0,
-
+      followersCount: dto.followersCount ?? 0,
+      followingCount: dto.followingCount ?? 0,
       stateFollow: (dto.isFollowedByMe ?? false)
           ? ProfileStateOfFollow.following
           : ProfileStateOfFollow.notfollowing,
+      // if backend returns these fields for full profile
+      stateMute: (dto.toJson().containsKey('is_muted_by_me') && dto.toJson()['is_muted_by_me'] == true)
+          ? ProfileStateOfMute.muted
+          : ProfileStateOfMute.notmuted,
+      stateBlocked: (dto.toJson().containsKey('is_blocked_by_me') && dto.toJson()['is_blocked_by_me'] == true)
+          ? ProfileStateBlocked.blocked
+          : ProfileStateBlocked.notblocked,
     );
   }
 }
