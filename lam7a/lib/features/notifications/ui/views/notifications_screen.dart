@@ -81,7 +81,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           separatorBuilder: (context, index) => Divider(height: 1),
           itemBuilder: (context, index) {
             final n = data[index];
-            return NotificationItem(notification: n);
+            return NotificationItem(notification: n, onTap: () {
+              viewModel.handleNotificationAction(n);
+            });
           },
         ),
       ),
