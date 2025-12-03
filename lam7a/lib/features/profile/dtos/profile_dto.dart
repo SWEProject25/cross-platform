@@ -1,4 +1,3 @@
-// profile_dto.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'profile_dto.freezed.dart';
@@ -8,9 +7,11 @@ part 'profile_dto.g.dart';
 abstract class ProfileDto with _$ProfileDto {
   const factory ProfileDto({
     required int id,
-    @JsonKey(name: 'user_id') required int userId,
-    required String name,
 
+    @JsonKey(name: 'user_id') required int userId,
+    @JsonKey(name: 'profile_id') int? profileId,
+
+    required String name,
     @JsonKey(name: 'birth_date') String? birthDate,
 
     @JsonKey(name: 'profile_image_url') String? profileImageUrl,
@@ -25,18 +26,15 @@ abstract class ProfileDto with _$ProfileDto {
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
 
-    // backend returns a nested user object
+    // Nested user object (backend usually returns something like user.username etc)
     @JsonKey(name: 'User') Map<String, dynamic>? user,
 
-    // IMPORTANT! backend returns:
-    // "followers_count": 0,
-    // "following_count": 0
     @JsonKey(name: 'followers_count') int? followersCount,
     @JsonKey(name: 'following_count') int? followingCount,
-    
-    // backend returns:
-    // "is_followed_by_me": false
+
     @JsonKey(name: 'is_followed_by_me') bool? isFollowedByMe,
+    @JsonKey(name: 'is_muted_by_me') bool? isMutedByMe,
+    @JsonKey(name: 'is_blocked_by_me') bool? isBlockedByMe,
   }) = _ProfileDto;
 
   factory ProfileDto.fromJson(Map<String, dynamic> json) =>

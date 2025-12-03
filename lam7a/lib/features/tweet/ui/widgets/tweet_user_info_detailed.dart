@@ -88,7 +88,7 @@ class _TweetUserInfoDetailed extends ConsumerState<TweetUserInfoDetailed> {
         ),
         const SizedBox(width: 8),
         asyncProfile.when(
-          data: (profile) => FollowButton(initialProfile: profile),
+          data: (profile) => FollowButton(user: profile),
           loading: () => OutlinedButton(
             onPressed: null,
             style: OutlinedButton.styleFrom(
