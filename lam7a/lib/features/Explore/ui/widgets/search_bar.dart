@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../view/search_and_auto_complete/search_page.dart';
 
-class SearchAppbar extends StatelessWidget implements PreferredSizeWidget {
-  const SearchAppbar({super.key, required this.width, required this.hintText});
+class Searchbar extends StatelessWidget implements PreferredSizeWidget {
+  const Searchbar({super.key, required this.width, required this.hintText});
 
   final double width;
   final String hintText;
@@ -12,20 +12,14 @@ class SearchAppbar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     return AppBar(
       automaticallyImplyLeading: false,
-      backgroundColor: Colors.black,
+      backgroundColor: theme.scaffoldBackgroundColor,
       elevation: 0,
       titleSpacing: 0,
       title: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
-            onPressed: () {
-              int count = 0;
-              Navigator.popUntil(context, (route) => count++ >= 2);
-            },
-          ),
           Expanded(
             child: GestureDetector(
               onTap: () {
@@ -38,25 +32,24 @@ class SearchAppbar extends StatelessWidget implements PreferredSizeWidget {
                 height: 38,
                 padding: EdgeInsets.symmetric(horizontal: width * 0.04),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF202328),
+                  color: theme.brightness == Brightness.light
+                      ? const Color(0xFFeff3f4)
+                      : const Color(0xFF202328),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 alignment: Alignment.centerLeft,
                 child: Text(
                   hintText,
-                  style: const TextStyle(color: Colors.white54, fontSize: 15),
+                  style: TextStyle(
+                    color: theme.brightness == Brightness.light
+                        ? const Color(0xFF53646e)
+                        : const Color(0xFF53595f),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
             ),
-          ),
-
-          SizedBox(width: width * 0.04),
-
-          IconButton(
-            padding: const EdgeInsets.only(top: 4),
-            iconSize: width * 0.06,
-            icon: const Icon(Icons.settings_outlined, color: Colors.white),
-            onPressed: () {},
           ),
         ],
       ),

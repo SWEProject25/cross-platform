@@ -5,7 +5,6 @@ import '../../../../core/models/user_model.dart';
 class SearchState {
   final List<UserModel>? recentSearchedUsers;
   final List<String>? recentSearchedTerms;
-  final TextEditingController searchController = TextEditingController();
   final List<String>? suggestedAutocompletions;
   final List<UserModel>? suggestedUsers;
 

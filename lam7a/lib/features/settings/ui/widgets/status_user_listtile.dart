@@ -75,7 +75,7 @@ class StatusUserTile extends StatelessWidget {
 
           const SizedBox(width: 12),
           FilledButton(
-            key: const Key("change_password_submit_button"),
+            key: const Key("action_button"),
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFFF4222F),
               shape: const StadiumBorder(),

@@ -1,140 +1,285 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../state/search_result_state.dart';
+import '../../repository/search_repository.dart';
 import '../../../common/models/tweet_model.dart';
 import '../../../../core/models/user_model.dart';
-import '../state/search_result_state.dart';
 
 final searchResultsViewModelProvider =
-    AsyncNotifierProvider<SearchResultsViewmodel, SearchResultState>(() {
+    AsyncNotifierProvider.autoDispose<
+      SearchResultsViewmodel,
+      SearchResultState
+    >(() {
       return SearchResultsViewmodel();
     });
 
 class SearchResultsViewmodel extends AsyncNotifier<SearchResultState> {
-  final List<UserModel> _mockPeople = [
-    UserModel(id: 1, username: "Ahmed"),
-    UserModel(id: 2, username: "Mona"),
-    UserModel(id: 3, username: "Sara"),
-    UserModel(id: 4, username: "Kareem"),
-    UserModel(id: 5, username: "Omar"),
-  ];
+  static const int _limit = 10;
 
-  final _mockTweets = <String, TweetModel>{
-    't1': TweetModel(
-      id: 't1',
-      userId: '1',
-      body: 'This is a mocked tweet about Riverpod with multiple images!',
-      likes: 23,
-      repost: 4,
-      comments: 3,
-      views: 230,
-      date: DateTime.now().subtract(const Duration(days: 1)),
-      mediaImages: [
-        'https://media.istockphoto.com/id/1703754111/photo/sunset-dramatic-sky-clouds.jpg?s=612x612&w=0&k=20&c=6vevvAvvqvu5MxfOC0qJuxLZXmus3hyUCfzVAy-yFPA=',
-        'https://picsum.photos/seed/img1/800/600',
-        'https://picsum.photos/seed/img2/800/600',
-      ],
-      mediaVideos: [],
-      qoutes: 777000,
-      bookmarks: 6000000,
-    ),
-    't2': TweetModel(
-      id: 't2',
-      userId: '2',
-      body: 'Mock tweet #2 — Flutter is amazing with videos!',
-      likes: 54,
-      repost: 2,
-      comments: 10,
-      views: 980,
-      date: DateTime.now().subtract(const Duration(hours: 5)),
-      mediaImages: [],
-      mediaVideos: [
-        'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
-        'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
-      ],
-      qoutes: 1000000,
-      bookmarks: 5000000000,
-    ),
-    't3': TweetModel(
-      id: "t3",
-      userId: "1",
-      body: "Hi This Is The Tweet Body\nHappiness comes from within...",
-      mediaImages: [
-        'https://tse4.mm.bing.net/th/id/OIP.u7kslI7potNthBAIm93JDwHaHa?cb=12&rs=1&pid=ImgDetMain&o=7&rm=3',
-        'https://picsum.photos/seed/nature/800/600',
-      ],
-      mediaVideos: [
-        'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
-      ],
-      date: DateTime.now().subtract(const Duration(days: 1)),
-      likes: 999,
-      comments: 8900,
-      views: 5700000,
-      repost: 54,
-      qoutes: 9000000000,
-      bookmarks: 10,
-    ),
-  };
+  int _pageTop = 1;
+  int _pageLatest = 1;
+  int _pagePeople = 1;
 
-  int _peopleIndex = 0;
-  int _tweetIndex = 0;
-  final int _batchSize = 2;
+  String _query = "";
+  bool _isLoadingMore = false;
+  bool _hasInitialized = false;
 
   @override
   Future<SearchResultState> build() async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    print("BUILD CALLED");
+    ref.keepAlive();
+    return SearchResultState.initial();
+  }
 
-    return SearchResultState(
-      currentResultType: CurrentResultType.top,
-      searchedPeople: _loadInitialPeople(),
-      searchedTweets: _loadInitialTweets(),
+  // NEW SEARCH (full reset) - but only runs once per query
+  Future<void> search(String query) async {
+    // Prevent double initialization
+    if (_hasInitialized && _query == query) {
+      print("SEARCH SKIPPED - Already initialized with same query");
+      return;
+    }
+
+    print("SEARCH CALLED WITH QUERY: $query");
+    _query = query;
+    _pageTop = 1;
+    _pageLatest = 1;
+    _pagePeople = 1;
+    _isLoadingMore = false;
+    _hasInitialized = true;
+
+    state = const AsyncLoading();
+
+    final searchRepo = ref.read(searchRepositoryProvider);
+    final top = await searchRepo.searchTweets(_query, _limit, _pageTop);
+
+    state = AsyncData(
+      SearchResultState.initial().copyWith(
+        currentResultType: CurrentResultType.top,
+        topTweets: top,
+        hasMoreTop: top.length == _limit,
+        isTopLoading: false,
+      ),
     );
+
+    if (top.length == _limit) _pageTop++;
   }
 
-  void selectTab(CurrentResultType type) {
-    final prev = state.value!;
+  // SWITCH TAB
+
+  Future<void> selectTab(CurrentResultType type) async {
+    SearchResultState prev = state.value!;
     state = AsyncData(prev.copyWith(currentResultType: type));
+
+    if (type == CurrentResultType.people && prev.searchedPeople.isEmpty) {
+      loadPeople(reset: true);
+    } else if (type == CurrentResultType.latest && prev.latestTweets.isEmpty) {
+      loadLatest(reset: true);
+    }
   }
 
-  List<UserModel> _loadInitialPeople() {
-    final end = (_peopleIndex + _batchSize).clamp(0, _mockPeople.length);
-    final items = _mockPeople.sublist(_peopleIndex, end);
-    _peopleIndex = end;
-    return items;
-  }
+  // PEOPLE
 
-  List<TweetModel> _loadInitialTweets() {
-    final end = (_tweetIndex + _batchSize).clamp(0, _mockTweets.length);
-    final items = _mockTweets.values.toList().sublist(_tweetIndex, end);
-    _tweetIndex = end;
-    return items;
+  Future<void> loadPeople({bool reset = false}) async {
+    if (reset) {
+      _pagePeople = 1;
+      _isLoadingMore = false;
+    }
+
+    final previousPeople = reset
+        ? List<UserModel>.empty()
+        : state.value!.searchedPeople;
+
+    state = AsyncData(
+      state.value!.copyWith(
+        searchedPeople: previousPeople,
+        hasMorePeople: true,
+        isPeopleLoading: true,
+      ),
+    );
+
+    final searchRepo = ref.read(searchRepositoryProvider);
+    final list = await searchRepo.searchUsers(_query, _limit, _pagePeople);
+
+    state = AsyncData(
+      state.value!.copyWith(
+        searchedPeople: [...previousPeople, ...list],
+        hasMorePeople: list.length == _limit,
+        isPeopleLoading: false,
+      ),
+    );
+
+    if (list.length == _limit) _pagePeople++;
   }
 
   Future<void> loadMorePeople() async {
     final prev = state.value!;
-    await Future.delayed(const Duration(milliseconds: 300));
+    if (!prev.hasMorePeople || _isLoadingMore) return;
 
-    if (_peopleIndex >= _mockPeople.length) return;
+    _isLoadingMore = true;
 
-    final end = (_peopleIndex + _batchSize).clamp(0, _mockPeople.length);
-    final newItems = _mockPeople.sublist(_peopleIndex, end);
-    _peopleIndex = end;
+    final previousPeople = prev.searchedPeople;
+    state = AsyncData(prev.copyWith(isPeopleLoading: true));
+
+    final searchRepo = ref.read(searchRepositoryProvider);
+    final list = await searchRepo.searchUsers(_query, _limit, _pagePeople);
+
+    _isLoadingMore = false;
 
     state = AsyncData(
-      prev.copyWith(searchedPeople: [...prev.searchedPeople, ...newItems]),
+      state.value!.copyWith(
+        searchedPeople: [...previousPeople, ...list],
+        hasMorePeople: list.length == _limit,
+        isPeopleLoading: false,
+      ),
     );
+
+    if (list.length == _limit) _pagePeople++;
   }
 
-  Future<void> loadMoreTweets() async {
-    final prev = state.value!;
-    await Future.delayed(const Duration(milliseconds: 300));
+  // TOP
 
-    if (_tweetIndex >= _mockTweets.length) return;
+  Future<void> loadTop({bool reset = false}) async {
+    print("LOAD TOP CALLED");
 
-    final end = (_tweetIndex + _batchSize).clamp(0, _mockTweets.length);
-    final newItems = _mockTweets.values.toList().sublist(_tweetIndex, end);
-    _tweetIndex = end;
+    if (reset) {
+      _pageTop = 1;
+      _isLoadingMore = false;
+    }
+
+    final previousTweets = reset
+        ? List<TweetModel>.empty()
+        : state.value!.topTweets;
 
     state = AsyncData(
-      prev.copyWith(searchedTweets: [...prev.searchedTweets, ...newItems]),
+      state.value!.copyWith(
+        topTweets: previousTweets,
+        hasMoreTop: true,
+        isTopLoading: true,
+      ),
     );
+
+    final searchRepo = ref.read(searchRepositoryProvider);
+    final posts = await searchRepo.searchTweets(_query, _limit, _pageTop);
+
+    print("LOAD TOP RECEIVED POSTS");
+    print(posts);
+
+    state = AsyncData(
+      state.value!.copyWith(
+        topTweets: [...previousTweets, ...posts],
+        hasMoreTop: posts.length == _limit,
+        isTopLoading: false,
+      ),
+    );
+
+    if (posts.length == _limit) _pageTop++;
+  }
+
+  Future<void> loadMoreTop() async {
+    print("LOAD MORE TOP CALLED");
+    final prev = state.value!;
+    if (!prev.hasMoreTop || _isLoadingMore) return;
+
+    _isLoadingMore = true;
+
+    final previousTweets = prev.topTweets;
+    state = AsyncData(prev.copyWith(isTopLoading: true));
+
+    final searchRepo = ref.read(searchRepositoryProvider);
+    final posts = await searchRepo.searchTweets(_query, _limit, _pageTop);
+
+    _isLoadingMore = false;
+
+    state = AsyncData(
+      state.value!.copyWith(
+        topTweets: [...previousTweets, ...posts],
+        hasMoreTop: posts.length == _limit,
+        isTopLoading: false,
+      ),
+    );
+
+    if (posts.length == _limit) _pageTop++;
+  }
+
+  // LATEST
+
+  Future<void> loadLatest({bool reset = false}) async {
+    if (reset) {
+      _pageLatest = 1;
+      _isLoadingMore = false;
+    }
+
+    final previousTweets = reset
+        ? List<TweetModel>.empty()
+        : state.value!.latestTweets;
+
+    state = AsyncData(
+      state.value!.copyWith(
+        latestTweets: previousTweets,
+        hasMoreLatest: true,
+        isLatestLoading: true,
+      ),
+    );
+
+    final searchRepo = ref.read(searchRepositoryProvider);
+    final posts = await searchRepo.searchTweets(
+      _query,
+      _limit,
+      _pageLatest,
+      tweetsOrder: "latest",
+    );
+
+    state = AsyncData(
+      state.value!.copyWith(
+        latestTweets: [...previousTweets, ...posts],
+        hasMoreLatest: posts.length == _limit,
+        isLatestLoading: false,
+      ),
+    );
+
+    if (posts.length == _limit) _pageLatest++;
+  }
+
+  Future<void> loadMoreLatest() async {
+    final prev = state.value!;
+    if (!prev.hasMoreLatest || _isLoadingMore) return;
+
+    _isLoadingMore = true;
+
+    final previousTweets = prev.latestTweets;
+    state = AsyncData(prev.copyWith(isLatestLoading: true));
+
+    final searchRepo = ref.read(searchRepositoryProvider);
+    final posts = await searchRepo.searchTweets(
+      _query,
+      _limit,
+      _pageLatest,
+      tweetsOrder: "latest",
+    );
+
+    _isLoadingMore = false;
+
+    state = AsyncData(
+      state.value!.copyWith(
+        latestTweets: [...previousTweets, ...posts],
+        hasMoreLatest: posts.length == _limit,
+        isLatestLoading: false,
+      ),
+    );
+
+    if (posts.length == _limit) _pageLatest++;
+  }
+
+  // REFRESH
+
+  Future<void> refreshCurrentTab() async {
+    final current = state.value!.currentResultType;
+
+    if (current == CurrentResultType.top) {
+      await loadTop(reset: true);
+    } else if (current == CurrentResultType.latest) {
+      await loadLatest(reset: true);
+    } else if (current == CurrentResultType.people) {
+      await loadPeople(reset: true);
+    }
   }
 }

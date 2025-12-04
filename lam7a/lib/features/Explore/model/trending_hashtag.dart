@@ -12,4 +12,12 @@ class TrendingHashtag {
       tweetsCount: tweetsCount ?? this.tweetsCount,
     );
   }
+
+  factory TrendingHashtag.fromJson(Map<String, dynamic> json) {
+    return TrendingHashtag(
+      hashtag: json['hashtag'] as String,
+      order: json['order'] as int?,
+      tweetsCount: json['tweetsCount'] as int?,
+    );
+  }
 }

@@ -1,105 +1,122 @@
 import 'package:flutter/material.dart';
-import '../../tweet/ui/widgets/tweet_summary_widget.dart';
-import '../models/tweet_model.dart';
-import '../../../core/theme/app_pallete.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lam7a/features/common/models/tweet_model.dart';
+import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 
-enum CurrentPage { searchresult } //we testing
+class TweetsListView extends ConsumerStatefulWidget {
+  final List<TweetModel> tweets;
+  final bool hasMore;
+  final Future<void> Function() onRefresh;
+  final Future<void> Function() onLoadMore;
 
-class TweetListView extends StatefulWidget {
-  final List<TweetModel> initialTweets;
-  final Comparator<TweetModel> sortCriteria;
-  final Future<List<TweetModel>> Function(int page)? loadMore;
-  final CurrentPage? currentPage;
-
-  const TweetListView({
+  const TweetsListView({
     super.key,
-    required this.initialTweets,
-    required this.sortCriteria,
-    this.loadMore,
-    this.currentPage,
+    required this.tweets,
+    required this.hasMore,
+    required this.onRefresh,
+    required this.onLoadMore,
   });
 
   @override
-  State<TweetListView> createState() => _TweetListViewState();
+  ConsumerState<TweetsListView> createState() => _TweetsListViewState();
 }
 
-class _TweetListViewState extends State<TweetListView> {
+class _TweetsListViewState extends ConsumerState<TweetsListView> {
   final ScrollController _scrollController = ScrollController();
-  late List<TweetModel> _tweets;
   bool _isLoadingMore = false;
-  int _pageIndex = 1;
+  double _lastOffset = 0;
+  bool _isBarVisible = true;
 
   @override
   void initState() {
     super.initState();
-    _tweets = [...widget.initialTweets]..sort(widget.sortCriteria);
-    _scrollController.addListener(_scrollListener);
+    _scrollController.addListener(_onScroll);
   }
 
-  void _scrollListener() async {
-    if (widget.loadMore == null) return;
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-    if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 100 &&
-        !_isLoadingMore) {
+  void _onScroll() {
+    // Load more
+    if (!_isLoadingMore &&
+        widget.hasMore &&
+        _scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent * 0.7) {
       _loadMore();
     }
   }
 
   Future<void> _loadMore() async {
+    if (_isLoadingMore) return;
+
     setState(() => _isLoadingMore = true);
-
-    final newTweets = await widget.loadMore!.call(_pageIndex);
-    _pageIndex++;
-
-    _tweets.addAll(newTweets);
-    _tweets.sort(widget.sortCriteria);
-
-    if (mounted) {
-      setState(() => _isLoadingMore = false);
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant TweetListView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Re-sort on external update
-    _tweets = [...widget.initialTweets]..sort(widget.sortCriteria);
+    await widget.onLoadMore();
+    if (mounted) setState(() => _isLoadingMore = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_tweets.isEmpty) {
-      return const Center(
-        child: Text(
-          'No tweets yet. Tap + to create your first tweet!',
-          style: TextStyle(color: Pallete.greyColor, fontSize: 16),
-          textAlign: TextAlign.center,
-        ),
+    return NotificationListener<ScrollNotification>(
+      onNotification: _handleScrollNotification,
+      child: RefreshIndicator(
+        onRefresh: widget.onRefresh,
+        child: _buildTweetList(),
+      ),
+    );
+  }
+
+  bool _handleScrollNotification(ScrollNotification scroll) {
+    if (scroll.metrics.axis != Axis.vertical) return false;
+
+    if (scroll is ScrollUpdateNotification) {
+      final current = scroll.metrics.pixels;
+
+      if (current > _lastOffset + 10 && _isBarVisible) {
+        setState(() => _isBarVisible = false);
+      } else if (current < _lastOffset - 5 && !_isBarVisible) {
+        setState(() => _isBarVisible = true);
+      }
+
+      _lastOffset = current;
+    }
+    return false;
+  }
+
+  Widget _buildTweetList() {
+    if (widget.tweets.isEmpty && !widget.hasMore) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: 300,
+            child: Center(
+              child: Text("No tweets found", style: GoogleFonts.oxanium()),
+            ),
+          ),
+        ],
       );
     }
 
     return ListView.builder(
       controller: _scrollController,
-      itemCount: _tweets.length + (widget.loadMore != null ? 1 : 0),
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: widget.tweets.length + (widget.hasMore ? 1 : 0),
       itemBuilder: (context, index) {
-        if (index == _tweets.length && widget.loadMore != null) {
+        if (index == widget.tweets.length) {
           return const Padding(
-            padding: EdgeInsets.all(12.0),
+            padding: EdgeInsets.all(16),
             child: Center(child: CircularProgressIndicator()),
           );
         }
 
-        final tweet = _tweets[index];
-        return Column(
-          children: [
-            TweetSummaryWidget(tweetId: tweet.id, tweetData: tweet),
-            const Divider(
-              color: Pallete.borderColor,
-              thickness: 0.5,
-              height: 1,
-            ),
-          ],
+        return TweetSummaryWidget(
+          tweetId: widget.tweets[index].id,
+          tweetData: widget.tweets[index],
         );
       },
     );

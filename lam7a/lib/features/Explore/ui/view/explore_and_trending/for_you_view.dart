@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../model/trending_hashtag.dart';
-import '../../../../core/models/user_model.dart';
-import '../widgets/hashtag_list_item.dart';
-import '../widgets/suggested_user_item.dart';
+import '../../../model/trending_hashtag.dart';
+import '../../../../../core/models/user_model.dart';
+import '../../widgets/hashtag_list_item.dart';
+import '../../../../common/widgets/user_tile.dart';
 
 class ForYouView extends StatelessWidget {
   final List<TrendingHashtag> trendingHashtags;
@@ -17,7 +17,7 @@ class ForYouView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(0),
       children: [
         // ----- Trending Hashtags Header ---
 
@@ -29,13 +29,16 @@ class ForYouView extends StatelessWidget {
           itemBuilder: (context, index) {
             final hashtag = trendingHashtags[index];
             return Padding(
-              padding: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.only(top: 22),
               child: HashtagItem(hashtag: hashtag),
             );
           },
         ),
+        const SizedBox(height: 10),
 
-        const SizedBox(height: 20),
+        const Divider(color: Colors.white24, thickness: 0.3),
+
+        const SizedBox(height: 10),
 
         // ----- Who to follow Header -----
         const Text(
@@ -53,7 +56,7 @@ class ForYouView extends StatelessWidget {
             final user = suggestedUsers[index];
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: SuggestedUserItem(text: user.username ?? "Unknown"),
+              child: UserTile(user: user),
             );
           },
         ),

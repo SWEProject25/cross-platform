@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../model/trending_hashtag.dart';
-import '../widgets/hashtag_list_item.dart';
+import '../../../model/trending_hashtag.dart';
+import '../../widgets/hashtag_list_item.dart';
 
 class TrendingView extends StatelessWidget {
   final List<TrendingHashtag> trendingHashtags;

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../state/search_state.dart';
 import '../../viewmodel/search_viewmodel.dart';
 import '../../../../../core/models/user_model.dart';
+import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 
 class SearchAutocompleteView extends ConsumerWidget {
   const SearchAutocompleteView({super.key});
@@ -14,7 +15,7 @@ class SearchAutocompleteView extends ConsumerWidget {
     final state = async.value ?? SearchState();
 
     return ListView(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(0),
       children: [
         // -----------------------------------------------------------
         // 🔵 AUTOCOMPLETE SUGGESTIONS
@@ -22,13 +23,18 @@ class SearchAutocompleteView extends ConsumerWidget {
         ...state.suggestedAutocompletions!.map(
           (term) => _AutoCompleteTermRow(
             term: term,
-            onInsert: () => vm.getAutocompleteTerms(term),
+            onInsert: () => vm.insertSearchedTerm(term),
           ),
         ),
 
-        const SizedBox(height: 10),
-        const Divider(color: Colors.white24, thickness: 0.3),
-        const SizedBox(height: 10),
+        state.suggestedAutocompletions!.isNotEmpty
+            ? Column(
+                children: const [
+                  Divider(color: Colors.white24, thickness: 0.3),
+                  SizedBox(height: 10),
+                ],
+              )
+            : const SizedBox.shrink(),
 
         // -----------------------------------------------------------
         // 🟣 SUGGESTED USERS
@@ -36,8 +42,24 @@ class SearchAutocompleteView extends ConsumerWidget {
         ...state.suggestedUsers!.map(
           (user) => _AutoCompleteUserTile(
             user: user,
-            onTap: () =>
-                vm.getAutoCompleteUsers(user.name ?? user.username ?? ''),
+            onTap: () => {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ProfileScreen(),
+                  settings: RouteSettings(
+                    arguments: {"username": user.username},
+                  ),
+                ),
+              ),
+              state.suggestedUsers!.isNotEmpty
+                  ? Column(
+                      children: const [
+                        Divider(color: Colors.white24, thickness: 0.3),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            },
           ),
         ),
       ],
@@ -52,15 +74,16 @@ class SearchAutocompleteView extends ConsumerWidget {
 class _AutoCompleteTermRow extends StatelessWidget {
   final String term;
   final VoidCallback onInsert;
-
+  //final void Function() getResult;
   const _AutoCompleteTermRow({required this.term, required this.onInsert});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-      color: const Color(0xFF0E0E0E),
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(left: 4),
+      color: theme.scaffoldBackgroundColor, // No border radius
       child: Row(
         children: [
           Expanded(
@@ -68,13 +91,13 @@ class _AutoCompleteTermRow extends StatelessWidget {
               term,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white, fontSize: 15),
+              style: const TextStyle(color: Colors.white, fontSize: 16),
             ),
           ),
           IconButton(
             onPressed: onInsert,
             icon: Transform.rotate(
-              angle: -0.8,
+              angle: -0.8, // top-left arrow
               child: const Icon(Icons.arrow_forward_ios, color: Colors.grey),
             ),
           ),

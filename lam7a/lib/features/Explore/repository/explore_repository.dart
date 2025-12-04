@@ -1,11 +1,31 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../services/explore_api_service.dart';
+import 'package:lam7a/features/Explore/model/trending_hashtag.dart';
+import 'package:lam7a/core/models/user_model.dart';
+import 'package:lam7a/features/common/models/tweet_model.dart';
+
+part 'explore_repository.g.dart';
+
+@riverpod
+ExploreRepository exploreRepository(Ref ref) {
+  return ExploreRepository(ref.read(exploreApiServiceMockProvider));
+}
+
 class ExploreRepository {
   final ExploreApiService _api;
 
   ExploreRepository(this._api);
-  // things to fetch in total
-  //
-  //1- trending hashtags
-  //2- suggested users
-  //10- explore page tweets
-  //11- explore page with certain filter
+  Future<List<TrendingHashtag>> getTrendingHashtags() =>
+      _api.fetchTrendingHashtags();
+  Future<List<TrendingHashtag>> getInterestHashtags(String interest) =>
+      _api.fetchInterestHashtags(interest);
+  Future<List<UserModel>> getSuggestedUsers({int? limit}) =>
+      _api.fetchSuggestedUsers(limit: limit);
+  Future<List<TweetModel>> getForYouTweets(int limit, int page) =>
+      _api.fetchForYouTweets(limit, page);
+  Future<List<TweetModel>> getExploreTweetsWithFilter(
+    int limit,
+    int page,
+    String filter,
+  ) => _api.fetchInterestBasedTweets(limit, page, filter);
 }

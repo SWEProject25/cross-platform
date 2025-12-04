@@ -1,132 +1,203 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/explore_state.dart';
-import '../widgets/tab_button.dart';
-import 'search_and_auto_complete/recent_searchs_view.dart';
 import '../viewmodel/explore_viewmodel.dart';
-import 'for_you_view.dart';
-import 'trending_view.dart';
-import '../widgets/search_appbar.dart';
 
-class ExplorePage extends ConsumerWidget {
+import 'explore_and_trending/for_you_view.dart';
+import 'explore_and_trending/trending_view.dart';
+
+import '../../../common/widgets/tweets_list.dart';
+
+class ExplorePage extends ConsumerStatefulWidget {
   const ExplorePage({super.key});
+  @override
+  ConsumerState<ExplorePage> createState() => _ExplorePageState();
+}
+
+class _ExplorePageState extends ConsumerState<ExplorePage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  final tabs = ["For You", "Trending", "News", "Sports", "Entertainment"];
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: tabs.length, vsync: this);
+
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) return;
+      final vm = ref.read(exploreViewModelProvider.notifier);
+      vm.selectTab(ExplorePageView.values[_tabController.index]);
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(exploreViewModelProvider);
     final vm = ref.read(exploreViewModelProvider.notifier);
 
     final width = MediaQuery.of(context).size.width;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: SearchAppbar(width: width, hintText: "Search X"),
+    return state.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, st) => Text("Error: $e"),
+      data: (data) {
+        final index = ExplorePageView.values.indexOf(data.selectedPage);
 
-      body: state.when(
-        loading: () =>
-            const Center(child: CircularProgressIndicator(color: Colors.white)),
-        error: (err, st) => Center(
-          child: Text("Error: $err", style: const TextStyle(color: Colors.red)),
-        ),
-        data: (data) {
-          return Column(
+        // Sync TabBar with state
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_tabController.index != index &&
+              !_tabController.indexIsChanging) {
+            _tabController.animateTo(index);
+          }
+        });
+
+        return Scaffold(
+          backgroundColor: Colors.black,
+          body: Column(
             children: [
-              _tabs(vm, data.selectedPage, width),
-              const Divider(height: 1, color: Color(0x20FFFFFF)),
+              _buildTabBar(width),
+
+              const Divider(color: Colors.white12, height: 1),
 
               Expanded(
-                child: RefreshIndicator(
-                  color: Colors.white,
-                  backgroundColor: Colors.black,
-                  onRefresh: () async {
-                    if (data.selectedPage == ExplorePageView.forYou) {
-                      await Future.wait([
-                        vm.refreshHashtags(),
-                        vm.refreshUsers(),
-                      ]);
-                    } else {
-                      await vm.refreshHashtags();
-                    }
-                  },
-
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 350),
-                    child: data.selectedPage == ExplorePageView.forYou
-                        ? ForYouView(
-                            trendingHashtags: data.trendingHashtags!,
-                            suggestedUsers: data.suggestedUsers!,
-                            key: const ValueKey("foryou"),
-                          )
-                        : TrendingView(
-                            trendingHashtags: data.trendingHashtags!,
-                            key: const ValueKey("trending"),
-                          ),
-                  ),
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _forYouTab(data, vm),
+                    _trendingTab(data, vm),
+                    _newsTab(data, vm),
+                    _sportsTab(data, vm),
+                    _entertainmentTab(data, vm),
+                  ],
                 ),
               ),
             ],
-          );
-        },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTabBar(double width) {
+    return Container(
+      color: Colors.black,
+      child: TabBar(
+        controller: _tabController,
+        isScrollable: true,
+        indicatorColor: Colors.blue,
+        indicatorWeight: 3,
+        labelPadding: EdgeInsets.symmetric(horizontal: width * 0.06),
+        tabs: const [
+          Tab(text: "For You"),
+          Tab(text: "Trending"),
+          Tab(text: "News"),
+          Tab(text: "Sports"),
+          Tab(text: "Entertainment"),
+        ],
       ),
     );
   }
 }
 
-Widget _tabs(ExploreViewModel vm, ExplorePageView selected, double width) {
-  return Column(
-    children: [
-      Padding(
-        padding: EdgeInsets.symmetric(horizontal: width * 0.04),
-        child: Row(
-          children: [
-            Expanded(
-              child: TabButton(
-                label: "For You",
-                selected: selected == ExplorePageView.forYou,
-                onTap: () => vm.selectTap(ExplorePageView.forYou),
-              ),
-            ),
-            SizedBox(width: width * 0.03),
-            Expanded(
-              child: TabButton(
-                label: "Trending",
-                selected: selected == ExplorePageView.trending,
-                onTap: () => vm.selectTap(ExplorePageView.trending),
-              ),
-            ),
-          ],
-        ),
+Widget _forYouTab(ExploreState data, ExploreViewModel vm) {
+  if (data.isForYouTweetsLoading) {
+    return const Center(child: CircularProgressIndicator(color: Colors.white));
+  }
+  if (data.forYouTweets.isEmpty) {
+    return const Center(
+      child: Text(
+        "No tweets found for you",
+        style: TextStyle(color: Colors.white54),
       ),
+    );
+  }
+  return TweetsListView(
+    tweets: data.forYouTweets,
+    hasMore: data.hasMoreForYouTweets,
+    onRefresh: () async => vm.refreshCurrentTab(),
+    onLoadMore: () async => vm.loadMoreForYou(),
+  );
+}
 
-      // ===== INDICATOR (blue sliding bar) ===== //
-      SizedBox(
-        height: 3,
-        child: Stack(
-          children: [
-            // background transparent line (sits above divider)
-            Container(color: Colors.transparent),
-
-            // blue sliding indicator
-            AnimatedAlign(
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeInOutSine,
-              alignment: selected == ExplorePageView.forYou
-                  ? Alignment(-0.56, 0)
-                  : Alignment(0.57, 0),
-              child: Container(
-                width: width * 0.15,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(
-                    20,
-                  ), // full round pill shape
-                ),
-              ),
-            ),
-          ],
-        ),
+Widget _trendingTab(ExploreState data, ExploreViewModel vm) {
+  if (data.isHashtagsLoading) {
+    return const Center(child: CircularProgressIndicator(color: Colors.white));
+  }
+  if (data.trendingHashtags.isEmpty) {
+    return const Center(
+      child: Text(
+        "No trending hashtags found",
+        style: TextStyle(color: Colors.white54),
       ),
-    ],
+    );
+  }
+  return TrendingView(trendingHashtags: data.trendingHashtags);
+}
+
+Widget _newsTab(ExploreState data, ExploreViewModel vm) {
+  if (data.isNewsTweetsLoading) {
+    return const Center(child: CircularProgressIndicator(color: Colors.white));
+  }
+  if (data.newsTweets.isEmpty) {
+    return const Center(
+      child: Text(
+        "No news tweets found",
+        style: TextStyle(color: Colors.white54),
+      ),
+    );
+  }
+  return TweetsListView(
+    tweets: data.newsTweets,
+    hasMore: data.hasMoreNewsTweets,
+    onRefresh: () async => vm.refreshCurrentTab(),
+    onLoadMore: () async => vm.loadMoreNews(),
+  );
+}
+
+Widget _sportsTab(ExploreState data, ExploreViewModel vm) {
+  if (data.isSportsTweetsLoading) {
+    return const Center(child: CircularProgressIndicator(color: Colors.white));
+  }
+  if (data.sportsTweets.isEmpty) {
+    return const Center(
+      child: Text(
+        "No sports tweets found",
+        style: TextStyle(color: Colors.white54),
+      ),
+    );
+  }
+  return TweetsListView(
+    tweets: data.sportsTweets,
+    hasMore: data.hasMoreSportsTweets,
+    onRefresh: () async => vm.refreshCurrentTab(),
+    onLoadMore: () async => vm.loadMoreSports(),
+  );
+}
+
+Widget _entertainmentTab(ExploreState data, ExploreViewModel vm) {
+  if (data.isEntertainmentTweetsLoading) {
+    return const Center(child: CircularProgressIndicator(color: Colors.white));
+  }
+  if (data.entertainmentTweets.isEmpty) {
+    return const Center(
+      child: Text(
+        "No entertainment tweets found",
+        style: TextStyle(color: Colors.white54),
+      ),
+    );
+  }
+  return TweetsListView(
+    tweets: data.entertainmentTweets,
+    hasMore: data.hasMoreEntertainmentTweets,
+    onRefresh: () async => vm.refreshCurrentTab(),
+    onLoadMore: () async => vm.loadMoreEntertainment(),
   );
 }

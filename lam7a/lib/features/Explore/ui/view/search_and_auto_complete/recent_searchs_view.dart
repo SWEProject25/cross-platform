@@ -1,9 +1,9 @@
 // lib/features/search/views/recent_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../state/search_state.dart';
 import '../../viewmodel/search_viewmodel.dart';
 import '../../../../../core/models/user_model.dart';
+import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 
 class RecentView extends ConsumerWidget {
   const RecentView({super.key});
@@ -11,40 +11,64 @@ class RecentView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(searchViewModelProvider);
+
+    if (async.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (async.hasError) {
+      return const Center(child: Text("Error loading recent data"));
+    }
+
     final vm = ref.read(searchViewModelProvider.notifier);
-    final state = async.value ?? SearchState();
+    final state = async.value!;
 
     return ListView(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       children: [
         const Text(
           "Recent",
-          style: TextStyle(color: Colors.white, fontSize: 20),
+          style: TextStyle(
+            color: Color.fromARGB(155, 187, 186, 186),
+            fontSize: 19,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 15),
 
-        SizedBox(
-          height: 120,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: state.recentSearchedUsers!.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final user = state.recentSearchedUsers![index];
-              return _HorizontalUserCard(
-                p: user,
-                onTap: () => vm.selectRecentProfile(user),
-              );
-            },
+        // -------------------- USERS ---------------------
+        if (state.recentSearchedUsers!.isNotEmpty)
+          SizedBox(
+            height: 120,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: state.recentSearchedUsers!.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final user = state.recentSearchedUsers![index];
+                return _HorizontalUserCard(
+                  p: user,
+                  onTap: () => () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ProfileScreen(),
+                        settings: RouteSettings(
+                          arguments: {"username": user.username},
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
-        ),
 
-        const SizedBox(height: 20),
-
+        // -------------------- TERMS ---------------------
         ...state.recentSearchedTerms!.map(
           (term) => _RecentTermRow(
             term: term,
-            onInsert: () => vm.selectRecentTerm(term),
+            onInsert: () => vm.insertSearchedTerm(term),
           ),
         ),
       ],
@@ -59,14 +83,15 @@ class _HorizontalUserCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         width: 90,
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(0),
         decoration: BoxDecoration(
-          color: const Color(0xFF111111),
+          color: theme.scaffoldBackgroundColor,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -113,14 +138,16 @@ class _HorizontalUserCard extends StatelessWidget {
 class _RecentTermRow extends StatelessWidget {
   final String term;
   final VoidCallback onInsert;
+  //final void Function() getResult;
   const _RecentTermRow({required this.term, required this.onInsert});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-      color: const Color(0xFF0E0E0E), // No border radius
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(left: 4),
+      color: theme.scaffoldBackgroundColor, // No border radius
       child: Row(
         children: [
           Expanded(
@@ -128,14 +155,15 @@ class _RecentTermRow extends StatelessWidget {
               term,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white, fontSize: 15),
+              style: const TextStyle(color: Colors.white, fontSize: 16),
             ),
           ),
           IconButton(
             onPressed: onInsert,
-            icon: Transform.rotate(
-              angle: -0.8, // top-left arrow
-              child: const Icon(Icons.arrow_forward_ios, color: Colors.grey),
+            icon: Image.asset(
+              'assets/images/top-left-svgrepo-com-dark.png',
+              width: 20,
+              height: 20,
             ),
           ),
         ],
