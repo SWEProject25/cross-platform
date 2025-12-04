@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
 import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
+import 'package:lam7a/main.dart';
 import 'package:path/path.dart';
 import '../viewmodel/conversations_viewmodel.dart';
 
@@ -20,7 +21,7 @@ class FindContactsScreen extends ConsumerWidget {
         centerTitle: false,
         elevation: 0,
       ),
-      body: Column(
+      body: state.loadingConversationId ? const Center(child: CircularProgressIndicator()) : Column(
         children: [
           // Search bar
           Padding(
@@ -69,12 +70,15 @@ class FindContactsScreen extends ConsumerWidget {
                       c.handle,
                       style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
-                    onTap: () {
-                      // Signal navigation (can be triggered from ViewModel)
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => ChatScreen(userId: c.id),
-                        ),
+                    onTap: () async {
+                      var convId = await viewModel.createConversationId(c.id);
+
+                      if (navigatorKey.currentState == null) return;
+
+                      navigatorKey.currentState!.pop();
+                      navigatorKey.currentState!.pushNamed(
+                        ChatScreen.routeName,
+                        arguments: {'userId': c.id, 'conversationId': convId},
                       );
                     },
                   );

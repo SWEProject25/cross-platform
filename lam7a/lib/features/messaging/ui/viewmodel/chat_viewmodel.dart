@@ -14,7 +14,7 @@ part 'chat_viewmodel.g.dart';
 @riverpod
 class ChatViewModel extends _$ChatViewModel {  
   final Logger _logger = getLogger(ChatViewModel);
-  late int? _conversationId;
+  late int _conversationId;
   late int _userId;
 
   late ConversationsRepository _conversationsRepository;
@@ -27,7 +27,7 @@ class ChatViewModel extends _$ChatViewModel {
   bool _disposed = false;
 
   @override
-  ChatState build({required int userId, int? conversationId}) {
+  ChatState build({required int userId, required int conversationId}) {
     _userId = userId;
     _conversationId = conversationId;
 
@@ -38,13 +38,13 @@ class ChatViewModel extends _$ChatViewModel {
     _authState = ref.watch(authenticationProvider);
 
     Future.microtask(() async {
-      await _getConvId();
+      // await _getConvId();
 
-      _newMessagesSub = _messagesRepository.onMessageRecieved(state.conversationId).listen((_)=>_onNewMessagesArrive());
-      _userTypingSub = _messagesRepository.onUserTyping(state.conversationId).listen(((isTyping)=> _onOtherTyping(isTyping)));
+      _newMessagesSub = _messagesRepository.onMessageRecieved(_conversationId).listen((_)=>_onNewMessagesArrive());
+      _userTypingSub = _messagesRepository.onUserTyping(_conversationId).listen(((isTyping)=> _onOtherTyping(isTyping)));
       
-      _messagesRepository.joinConversation(state.conversationId);
-      _messagesRepository.sendMarkAsSeen(state.conversationId);
+      _messagesRepository.joinConversation(_conversationId);
+      _messagesRepository.sendMarkAsSeen(_conversationId);
       _loadContact();
       _loadMessages();
 
@@ -53,7 +53,7 @@ class ChatViewModel extends _$ChatViewModel {
     });
   
 
-    return ChatState(conversationId: conversationId ?? -1);
+    return ChatState();
   }
 
   void _onDispose() {
@@ -68,25 +68,29 @@ class ChatViewModel extends _$ChatViewModel {
     _typingTimer = null;
 
     _disposed = true;
+    Future.microtask(() {
+      _messagesRepository.leaveConversation(_conversationId);
+    });
+
   }
 
 
-  Future<void> _getConvId() async{
-    if(_conversationId == null){
-      _logger.d("Getting ConvId from UserId {$_userId}");
-      int convId = await _conversationsRepository.getConversationIdByUserId(_userId);
+  // Future<void> _getConvId() async{
+  //   if(_conversationId == null){
+  //     _logger.d("Getting ConvId from UserId {$_userId}");
+  //     int convId = await _conversationsRepository.getConversationIdByUserId(_userId);
 
-      if(convId == -1){
-        _logger.e("UserId {$_userId} conversion got {$convId}");
-        return;
-      }
+  //     if(convId == -1){
+  //       _logger.e("UserId {$_userId} conversion got {$convId}");
+  //       return;
+  //     }
 
-      _logger.d("Converted UserId to {$convId}");
-      state = state.copyWith(conversationId: convId);
-    }else{
-      state = state.copyWith(conversationId: _conversationId ?? -1);
-    }
-  }
+  //     _logger.d("Converted UserId to {$convId}");
+  //     state = state.copyWith(conversationId: convId);
+  //   }else{
+  //     state = state.copyWith(conversationId: _conversationId ?? -1);
+  //   }
+  // }
 
   Future<void> _loadContact() async {
 
@@ -105,7 +109,7 @@ class ChatViewModel extends _$ChatViewModel {
   Future<void> _loadMessages() async {
     state = state.copyWith(messages: const AsyncLoading());
     try {
-      final data = _messagesRepository.fetchMessage(state.conversationId);
+      final data = _messagesRepository.fetchMessage(_conversationId);
       state = state.copyWith(messages: AsyncData(data));
     } catch (e, st) {
       state = state.copyWith(messages: AsyncError(e, st));
@@ -114,7 +118,7 @@ class ChatViewModel extends _$ChatViewModel {
 
   void _onNewMessagesArrive(){
     _refreshMessages();
-    _messagesRepository.sendMarkAsSeen(state.conversationId);
+    _messagesRepository.sendMarkAsSeen(_conversationId);
   }
 
   void _onOtherTyping (bool isTyping) {
@@ -123,7 +127,7 @@ class ChatViewModel extends _$ChatViewModel {
 
   void _refreshMessages() {
     try {
-      final data = _messagesRepository.fetchMessage(state.conversationId);
+      final data = _messagesRepository.fetchMessage(_conversationId);
       state = state.copyWith(messages: AsyncData(data));
     } catch (e, st) {
       state = state.copyWith(messages: AsyncError(e, st));
@@ -133,20 +137,20 @@ class ChatViewModel extends _$ChatViewModel {
   void updateDraftMessage(String draft){
     state = state.copyWith(draftMessage: draft);
 
-    _messagesRepository.updateTypingStatus(state.conversationId, true);
+    _messagesRepository.updateTypingStatus(_conversationId, true);
     if (_typingTimer?.isActive ?? false) {
       _typingTimer!.cancel();
     }
 
     _typingTimer = Timer(const Duration(seconds: 3), () {
-      _messagesRepository.updateTypingStatus(state.conversationId, false);
+      _messagesRepository.updateTypingStatus(_conversationId, false);
       _typingTimer = null;
     });
   }
 
   Future<void> sendMessage() async {
-    _messagesRepository.sendMessage(_authState.user!.id!, state.conversationId, state.draftMessage.trim());
-    _messagesRepository.updateTypingStatus(state.conversationId, false);
+    _messagesRepository.sendMessage(_authState.user!.id!, _conversationId, state.draftMessage.trim());
+    _messagesRepository.updateTypingStatus(_conversationId, false);
     state = state.copyWith(draftMessage: "");
   }
 
@@ -159,7 +163,7 @@ class ChatViewModel extends _$ChatViewModel {
     }
     state = state.copyWith(loadingMoreMessages: true);
 
-    var hasMore = await _messagesRepository.loadMessageHistory(state.conversationId);
+    var hasMore = await _messagesRepository.loadMessageHistory(_conversationId);
 
     if(_disposed) return;
     state = state.copyWith(loadingMoreMessages: false, hasMoreMessages: hasMore);

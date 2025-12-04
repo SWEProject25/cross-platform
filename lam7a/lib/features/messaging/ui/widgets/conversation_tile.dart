@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/widgets/time_ago_text.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/conversation_viewmodel.dart';
 import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
-import 'package:lam7a/features/messaging/utils.dart';
 
 class ConversationTile extends ConsumerWidget {
   final int id;
@@ -42,26 +42,31 @@ class ConversationTile extends ConsumerWidget {
             ),
           ),
           if (state.conversation.lastMessage != null)
-            Text(
-              " ${timeToTimeAgo(state.conversation.lastMessageTime!)}",
-              style: state.isTyping ? theme.textTheme.bodyMedium : theme.textTheme.bodyMedium,
+            TimeAgoText(
+              time: state.conversation.lastMessageTime!,
+              style: theme.textTheme.bodyMedium,
             ),
         ],
       ),
       subtitle: (state.conversation.lastMessage != null)
           ? Text(
               state.isTyping ? "Typing..." : state.conversation.lastMessage!,
-              style: state.isTyping ? theme.textTheme.bodyMedium?.copyWith(color: Colors.green.shade900) : theme.textTheme.bodyMedium,
+              style: state.isTyping
+                  ? theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.green.shade900,
+                    )
+                  : theme.textTheme.bodyMedium,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             )
           : null,
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) =>
-                ChatScreen(userId: state.conversation.userId, conversationId: state.conversation.id),
-          ),
+        Navigator.of(context).pushNamed(
+          ChatScreen.routeName,
+          arguments: {
+            'userId': state.conversation.userId,
+            'conversationId': state.conversation.id,
+          },
         );
       },
     );

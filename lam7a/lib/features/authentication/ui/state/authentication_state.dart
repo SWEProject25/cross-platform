@@ -10,6 +10,8 @@ class AuthenticationState with _$AuthenticationState {
     @Default("") String passwordLogin,
     @Default(0) int currentLoginStep,
     @Default(false) bool isLoadingLogin,
+    @Default(false) bool hasCompeletedFollowing,
+    @Default(false) bool hasCompeletedInterests,
     String? toastMessageLogin,
 
   }) = _LoginState;
@@ -210,5 +212,20 @@ class AuthenticationState with _$AuthenticationState {
         "";
   }
 
-  // bool get isValidSignupPassword => isValidSignupPassword;
+  bool get hasCompeletedFollowing {
+    return mapOrNull(
+          login: (loginstate) {
+            return loginstate.hasCompeletedFollowing;
+          },
+        ) ??
+        false;
+  }
+  bool get hasCompeletedInterests {
+    return mapOrNull(
+          login: (loginstate) {
+            return loginstate.hasCompeletedInterests;
+          },
+        ) ??
+        false;
+  }
 }

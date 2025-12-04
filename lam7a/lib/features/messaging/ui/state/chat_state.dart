@@ -8,7 +8,7 @@ part 'chat_state.freezed.dart';
 @freezed
 abstract class ChatState with _$ChatState {
   const factory ChatState({
-    @Default(-1) int conversationId,
+    // @Default(-1) int conversationId,
     @Default(AsyncValue.loading()) AsyncValue<Contact> contact,
     @Default(AsyncValue.loading()) AsyncValue<List<ChatMessage>> messages,
     @Default(true) bool hasMoreMessages,

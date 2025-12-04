@@ -28,18 +28,17 @@ class _AuthenticationStepButtonState extends State<AuthenticationStepButton> {
     return Consumer(
       builder: (context, ref, child) {
         return ElevatedButton(
-
+          
           onPressed: () {
             widget.onPressedEffect();
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: widget.bgColor,
-            foregroundColor: widget.enable ? widget.textColor : Pallete.greyColor,
+            backgroundColor:widget.enable ?  widget.bgColor : const Color.fromARGB(141, 100, 98, 98),
+            foregroundColor: widget.textColor,
             elevation: 0,
             shadowColor: Pallete.transparentColor,
             shape: RoundedRectangleBorder(
-              side: BorderSide(color: Pallete.blackColor),
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(30,),
             ),
           ),
           child: Text(widget.label),

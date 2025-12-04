@@ -45,7 +45,6 @@ class _loginFlowtate extends State<LogInScreen> {
         });
         final state = ref.watch(authenticationViewmodelProvider);
         final viewmodel = ref.watch(authenticationViewmodelProvider.notifier);
-        final authenticationState = ref.watch(authenticationProvider);
         int currentIndex = state.currentLoginStep;
         ///////////////////////////////////////////////////////////////////////////
         ///////////////////////////////////////////////////////////////////////////
@@ -118,8 +117,14 @@ class _loginFlowtate extends State<LogInScreen> {
                                         AuthenticationConstants.finishLogin) {
                                       await viewmodel.login();
                                       String? message = ref
-                                          .read(authenticationViewmodelProvider)
+                                          .watch(
+                                            authenticationViewmodelProvider,
+                                          )
                                           .toastMessageLogin;
+                                      final updateState = ref.read(
+                                        authenticationViewmodelProvider,
+                                      );
+
                                       if (message != null) {
                                         AuthenticationConstants.flushMessage(
                                           message,
@@ -127,15 +132,27 @@ class _loginFlowtate extends State<LogInScreen> {
                                           "loginMessage",
                                         );
                                       }
+                                      final authenticationState = ref.read(
+                                        authenticationProvider,
+                                      );
                                       if (authenticationState.isAuthenticated) {
-                                        Navigator.pop(context);
-                                        // Navigate to transmission screen (after auth page)
-                                        Navigator.pushNamedAndRemoveUntil(
-                                          context,
-                                          AuthenticationTransmissionScreen
-                                              .routeName,
-                                          (route) => false,
-                                        );
+                                        if (updateState
+                                                .hasCompeletedFollowing &&
+                                            updateState
+                                                .hasCompeletedInterests) {
+                                          Navigator.pushNamedAndRemoveUntil(
+                                            context,
+                                            NavigationHomeScreen.routeName,
+                                            (route) => false,
+                                          );
+                                        } else {
+                                          Navigator.pushNamedAndRemoveUntil(
+                                            context,
+                                            AuthenticationTransmissionScreen
+                                                .routeName,
+                                            (route) => false,
+                                          );
+                                        }
                                       }
                                     } else if (viewmodel
                                         .shouldEnableNextLogin()) {
