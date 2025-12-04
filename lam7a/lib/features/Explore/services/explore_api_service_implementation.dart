@@ -3,7 +3,6 @@ import '../../../core/services/api_service.dart';
 import '../../../core/models/user_model.dart';
 import '../model/trending_hashtag.dart';
 import '../../../features/common/models/tweet_model.dart';
-import '../../../features/profile/model/profile_model.dart';
 
 class ExploreApiServiceImpl implements ExploreApiService {
   final ApiService _apiService;

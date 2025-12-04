@@ -1,7 +1,6 @@
 import 'search_api_service.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/models/user_model.dart';
-import '../../../features/profile/model/profile_model.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 
 class SearchApiServiceImpl implements SearchApiService {

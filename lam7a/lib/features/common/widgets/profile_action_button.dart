@@ -1,10 +1,8 @@
 // lib/features/profile/ui/widgets/follow_button.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:lam7a/features/profile/repository/profile_repository.dart';
 import 'package:lam7a/core/models/user_model.dart';
-import 'package:lam7a/features/profile/model/profile_model.dart';
 
 class FollowButton extends ConsumerStatefulWidget {
   final UserModel initialProfile;

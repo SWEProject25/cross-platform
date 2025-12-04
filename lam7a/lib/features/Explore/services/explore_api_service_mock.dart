@@ -1,4 +1,3 @@
-import 'package:lam7a/features/profile/model/profile_model.dart';
 import 'explore_api_service.dart';
 import 'package:lam7a/features/Explore/model/trending_hashtag.dart';
 import 'package:lam7a/core/models/user_model.dart';
