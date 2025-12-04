@@ -1,12 +1,90 @@
-// lib/features/profile/ui/widgets/blocked_profile_view.dart
+// // lib/features/profile/ui/widgets/blocked_profile_view.dart
 
+// import 'package:flutter/material.dart';
+// import 'package:flutter_riverpod/flutter_riverpod.dart';
+// import 'package:lam7a/features/profile/repository/profile_repository.dart';
+
+// class BlockedProfileView extends ConsumerWidget {
+//   final String username;
+//   final int? userId;
+//   final VoidCallback onUnblock;
+
+//   const BlockedProfileView({
+//     super.key,
+//     required this.username,
+//     required this.userId,
+//     required this.onUnblock,
+//   });
+
+//   @override
+//   Widget build(BuildContext context, WidgetRef ref) {
+//     final repo = ref.watch(profileRepositoryProvider);
+
+//     return Scaffold(
+//       appBar: AppBar(
+//         leading: IconButton(
+//             icon: const Icon(Icons.arrow_back),
+//             onPressed: () => Navigator.pop(context)),
+//         backgroundColor: Colors.white,
+//         elevation: 0,
+//         iconTheme: const IconThemeData(color: Colors.black),
+//       ),
+//       body: Center(
+//         child: Padding(
+//           padding: const EdgeInsets.all(24),
+//           child: Column(
+//             mainAxisAlignment: MainAxisAlignment.center,
+//             children: [
+//               const Icon(Icons.block, size: 80, color: Colors.red),
+//               const SizedBox(height: 22),
+
+//               Text(
+//                 "You blocked @$username",
+//                 style: const TextStyle(
+//                     fontSize: 22, fontWeight: FontWeight.bold),
+//                 textAlign: TextAlign.center,
+//               ),
+
+//               const SizedBox(height: 12),
+//               const Text(
+//                 "You can't follow or see their posts.",
+//                 textAlign: TextAlign.center,
+//                 style: TextStyle(color: Colors.grey),
+//               ),
+
+//               const SizedBox(height: 26),
+
+//               // ----------------------------
+//               // UNBLOCK BUTTON
+//               // ----------------------------
+//               ElevatedButton(
+//                 onPressed: () async {
+//                   if (userId != null) {
+//                     await repo.unblockUser(userId!);
+//                     onUnblock();
+//                   }
+//                 },
+//                 style: ElevatedButton.styleFrom(
+//                   backgroundColor: Colors.blue,
+//                   padding: const EdgeInsets.symmetric(
+//                       vertical: 12, horizontal: 24),
+//                 ),
+//                 child: const Text("Unblock"),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/profile/repository/profile_repository.dart';
 
 class BlockedProfileView extends ConsumerWidget {
   final String username;
-  final int? userId;
+  final int userId;
   final VoidCallback onUnblock;
 
   const BlockedProfileView({
@@ -23,12 +101,14 @@ class BlockedProfileView extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context)),
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
+
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -36,41 +116,34 @@ class BlockedProfileView extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.block, size: 80, color: Colors.red),
-              const SizedBox(height: 22),
+              const SizedBox(height: 20),
 
               Text(
                 "You blocked @$username",
-                style: const TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
 
               const SizedBox(height: 12),
               const Text(
                 "You can't follow or see their posts.",
-                textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey),
+                textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: 26),
+              const SizedBox(height: 25),
 
-              // ----------------------------
-              // UNBLOCK BUTTON
-              // ----------------------------
               ElevatedButton(
                 onPressed: () async {
-                  if (userId != null) {
-                    await repo.unblockUser(userId!);
-                    onUnblock();
-                  }
+                  await repo.unblockUser(userId);
+                  onUnblock();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 12, horizontal: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
                 child: const Text("Unblock"),
-              ),
+              )
             ],
           ),
         ),
