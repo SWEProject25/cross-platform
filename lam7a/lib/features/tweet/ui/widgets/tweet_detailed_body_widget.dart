@@ -5,6 +5,7 @@ import 'package:lam7a/core/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:lam7a/features/tweet/ui/widgets/full_screen_media_viewer.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
+import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 
 class TweetDetailedBodyWidget extends StatelessWidget {
   final TweetState tweetState;
@@ -55,6 +56,16 @@ class TweetDetailedBodyWidget extends StatelessWidget {
                     Navigator.of(context).pushNamed(
                       '/profile',
                       arguments: {'username': handle},
+                    );
+                  },
+                  onHashtagTap: (tag) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => NavigationHomeScreen(
+                          initialIndex: 1,
+                          initialSearchQuery: '#$tag',
+                        ),
+                      ),
                     );
                   },
                 ),

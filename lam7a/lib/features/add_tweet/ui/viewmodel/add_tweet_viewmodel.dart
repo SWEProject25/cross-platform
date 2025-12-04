@@ -88,7 +88,7 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
   }
 
   // Post the tweet
-  Future<void> postTweet() async {
+  Future<void> postTweet({List<int>? mentionsIds}) async {
     if (!canPostTweet()) {
       print('⚠️ Cannot post tweet: validation failed');
       state = state.copyWith(
@@ -128,6 +128,7 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
         mediaVideoPath: state.mediaVideoPath,
         type: state.postType,
         parentPostId: state.parentPostId,
+        mentionsIds: mentionsIds,
       );
 
       print('📝 Tweet created:');

@@ -8,6 +8,7 @@ class StyledTweetText extends StatelessWidget {
   final int? maxLines;
   final TextOverflow? overflow;
   final void Function(String username)? onMentionTap;
+  final void Function(String hashtag)? onHashtagTap;
   final TextStyle? style;
 
   const StyledTweetText({
@@ -17,6 +18,7 @@ class StyledTweetText extends StatelessWidget {
     this.maxLines,
     this.overflow,
     this.onMentionTap,
+    this.onHashtagTap,
     this.style,
   });
 
@@ -51,8 +53,10 @@ class StyledTweetText extends StatelessWidget {
   ) {
     final List<TextSpan> spans = [];
     
-    // Regex to match hashtags (#word) and mentions (@word)
-    final RegExp pattern = RegExp(r'(#\w+|@\w+)');
+    // Regex to match hashtags (#word) and mentions (@handle), allowing
+    // underscores, dots, and hyphens in mentions so usernames like
+    // @omar-nabil are fully matched.
+    final RegExp pattern = RegExp(r'(#\w+|@[A-Za-z0-9_.-]+)');
     
     int lastMatchEnd = 0;
     
@@ -67,24 +71,36 @@ class StyledTweetText extends StatelessWidget {
       
       final matchedText = match.group(0) ?? '';
       final isMention = matchedText.startsWith('@');
+      final isHashtag = matchedText.startsWith('#');
 
-      // Add hashtag or mention with grey color and optional tap for mentions
+      GestureRecognizer? recognizer;
+      if (isMention && onMentionTap != null) {
+        recognizer = TapGestureRecognizer()
+          ..onTap = () {
+            final handle = matchedText.substring(1);
+            if (handle.isNotEmpty) {
+              onMentionTap!(handle);
+            }
+          };
+      } else if (isHashtag && onHashtagTap != null) {
+        recognizer = TapGestureRecognizer()
+          ..onTap = () {
+            final tag = matchedText.substring(1);
+            if (tag.isNotEmpty) {
+              onHashtagTap!(tag);
+            }
+          };
+      }
+
+      // Add hashtag or mention with grey color and optional taps
       spans.add(
         TextSpan(
           text: matchedText,
           style: baseStyle.copyWith(
-            color: Colors.grey,
+            color: Colors.blue,
             fontWeight: FontWeight.w500,
           ),
-          recognizer: isMention && onMentionTap != null
-              ? (TapGestureRecognizer()
-                ..onTap = () {
-                  final handle = matchedText.substring(1);
-                  if (handle.isNotEmpty) {
-                    onMentionTap!(handle);
-                  }
-                })
-              : null,
+          recognizer: recognizer,
         ),
       );
       
@@ -95,7 +111,7 @@ class StyledTweetText extends StatelessWidget {
     if (lastMatchEnd < text.length) {
       spans.add(TextSpan(
         text: text.substring(lastMatchEnd),
-        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        style: baseStyle,
       ));
     }
     

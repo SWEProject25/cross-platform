@@ -36,6 +36,7 @@ class AddTweetScreen extends ConsumerStatefulWidget {
 class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
   final TextEditingController _bodyController = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
+  final Set<int> _mentionUserIds = {};
 
   @override
   void initState() {
@@ -64,7 +65,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
   void _showImageSourceDialog() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Pallete.cardColor,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -211,7 +212,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
 
   Future<void> _handleImagePick(ImageSource source) async {
     try {
-      final hasPermission = await _ensureMediaPermission(source);
+      final hasPermission = await _ensureMediaPermission(source, isVideo: false);
       if (!hasPermission) {
         return;
       }
@@ -284,7 +285,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
   void _showVideoSourceDialog() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Pallete.cardColor,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -319,7 +320,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
 
   Future<void> _handleVideoPick(ImageSource source) async {
     try {
-      final hasPermission = await _ensureMediaPermission(source);
+      final hasPermission = await _ensureMediaPermission(source, isVideo: true);
       if (!hasPermission) {
         return;
       }
@@ -373,7 +374,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
     }
   }
 
-  Future<bool> _ensureMediaPermission(ImageSource source) async {
+  Future<bool> _ensureMediaPermission(ImageSource source, {required bool isVideo}) async {
     if (source == ImageSource.camera) {
       final status = await Permission.camera.request();
       if (!status.isGranted) {
@@ -393,7 +394,9 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
 
     PermissionStatus status;
     if (Platform.isAndroid) {
-      status = await Permission.storage.request();
+      status = isVideo
+          ? await Permission.videos.request()
+          : await Permission.photos.request();
     } else if (Platform.isIOS) {
       status = await Permission.photos.request();
     } else {
@@ -459,7 +462,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
     mentionVm.updateQuery(query);
   }
 
-  void _insertMention(String handle) {
+  void _insertMention(String handle, int handleUserId) {
     final text = _bodyController.text;
     final cursorPosition = _bodyController.selection.baseOffset;
     if (cursorPosition < 0 || cursorPosition > text.length) {
@@ -484,6 +487,12 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
 
     final viewmodel = ref.read(addTweetViewmodelProvider.notifier);
     viewmodel.updateBody(newText);
+
+    // Track mentioned user IDs so we can send them to backend when posting
+    // (IDs are added from the suggestions list on tap).
+    // Note: _mentionUserIds is managed locally in this screen.
+    // The actual IDs are passed to AddTweetViewmodel.postTweet.
+    _mentionUserIds.add(handleUserId);
 
     ref.read(mentionSuggestionsViewModelProvider.notifier).clear();
   }
@@ -536,7 +545,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 onTap: () {
-                  _insertMention(contact.handle);
+                  _insertMention(contact.handle, contact.id);
                 },
               ),
           ],
@@ -547,7 +556,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
 
   void _handlePost() async {
     final viewmodel = ref.read(addTweetViewmodelProvider.notifier);
-    await viewmodel.postTweet();
+    await viewmodel.postTweet(mentionsIds: _mentionUserIds.toList());
 
     if (mounted) {
       final state = ref.read(addTweetViewmodelProvider);

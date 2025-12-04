@@ -7,6 +7,7 @@ import 'package:lam7a/features/tweet/ui/view/tweet_screen.dart';
 import 'package:lam7a/features/tweet/ui/widgets/full_screen_media_viewer.dart';
 import 'package:lam7a/features/tweet/ui/widgets/styled_tweet_text_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/video_player_widget.dart';
+import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 
 class TweetBodySummaryWidget extends StatelessWidget {
   final TweetModel post;
@@ -48,6 +49,16 @@ class TweetBodySummaryWidget extends StatelessWidget {
                         Navigator.of(context).pushNamed(
                           '/profile',
                           arguments: {'username': handle},
+                        );
+                      },
+                      onHashtagTap: (tag) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => NavigationHomeScreen(
+                              initialIndex: 1,
+                              initialSearchQuery: '#$tag',
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -337,6 +348,16 @@ class OriginalTweetCard extends StatelessWidget {
                   Navigator.of(context).pushNamed(
                     '/profile',
                     arguments: {'username': handle},
+                  );
+                },
+                onHashtagTap: (tag) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => NavigationHomeScreen(
+                        initialIndex: 1,
+                        initialSearchQuery: '#$tag',
+                      ),
+                    ),
                   );
                 },
               ),

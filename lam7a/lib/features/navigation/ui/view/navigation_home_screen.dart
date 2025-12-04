@@ -24,7 +24,14 @@ import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
 
-  const NavigationHomeScreen({super.key});
+  final int initialIndex;
+  final String? initialSearchQuery;
+
+  const NavigationHomeScreen({
+    super.key,
+    this.initialIndex = 0,
+    this.initialSearchQuery,
+  });
 
   @override
   State<NavigationHomeScreen> createState() => _NavigationHomeScreenState();
@@ -37,6 +44,12 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
   bool _isAppBarVisible = true;
   double _lastOffset = 0;
   String? themeMode;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
 
   // Define custom AppBar height
   final double _appBarHeight = 80.0; // Change this value to adjust height
@@ -373,7 +386,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         );
       // replaces currentCo;
       case 1:
-        return SearchBarCustomized();
+        return SearchBarCustomized(initialText: widget.initialSearchQuery);
       case 2:
         return Text(
           "Notifications",
