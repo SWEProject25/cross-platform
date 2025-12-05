@@ -881,6 +881,26 @@ Future<List<TweetModel>> getRepliesByUser(String userId) async {
   if (data is! List) return [];
 
   return data.map<TweetModel>((json) {
+      // Map parent/original tweet (if present) so UI can render reply context
+      TweetModel? originalTweet;
+      final originalJson = json['originalPostData'];
+      if (originalJson is Map) {
+        originalTweet = TweetModel(
+          id: originalJson['postId'].toString(),
+          userId: originalJson['userId'].toString(),
+          username: originalJson['username'],
+          authorName: originalJson['name'],
+          authorProfileImage: originalJson['avatar'],
+          body: originalJson['text'] ?? '',
+          date: DateTime.parse(originalJson['date']),
+          likes: originalJson['likesCount'] ?? 0,
+          repost: originalJson['retweetsCount'] ?? 0,
+          comments: originalJson['commentsCount'] ?? 0,
+          mediaImages: _extractImages(originalJson),
+          mediaVideos: _extractVideos(originalJson),
+        );
+      }
+
       return TweetModel(
         id: json['postId'].toString(),
         userId: json['userId'].toString(),
@@ -896,6 +916,7 @@ Future<List<TweetModel>> getRepliesByUser(String userId) async {
         isQuote: json['isQuote'] ?? false,
         mediaImages: _extractImages(json),
         mediaVideos: _extractVideos(json),
+        originalTweet: originalTweet,
       );
     }).toList();
   }

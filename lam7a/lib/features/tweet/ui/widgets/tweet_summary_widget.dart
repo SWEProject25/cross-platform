@@ -55,6 +55,8 @@ class TweetSummaryWidget extends ConsumerWidget {
         color: Theme.of(context).colorScheme.surface,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (isReply && parentTweet != null) ...[
               OriginalTweetCard(tweet: parentTweet),
