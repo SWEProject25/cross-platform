@@ -2,14 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lam7a/features/profile/model/profile_model.dart';
+import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/features/profile/repository/profile_repository.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 import '../widgets/follow_button.dart';
 
 class FollowersFollowingPage extends ConsumerStatefulWidget {
   final int userId;
-  final int initialTab;
+  final int initialTab; // 0 = followers, 1 = following
 
   const FollowersFollowingPage({
     super.key,
@@ -18,15 +18,15 @@ class FollowersFollowingPage extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<FollowersFollowingPage> createState() => _FollowersFollowingPageState();
+  ConsumerState<FollowersFollowingPage> createState() =>
+      _FollowersFollowingPageState();
 }
 
 class _FollowersFollowingPageState extends ConsumerState<FollowersFollowingPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
-  List<ProfileModel>? _followers;
-  List<ProfileModel>? _following;
+  List<UserModel>? _followers;
+  List<UserModel>? _following;
 
   bool _loadingFollowers = true;
   bool _loadingFollowing = true;
@@ -34,7 +34,11 @@ class _FollowersFollowingPageState extends ConsumerState<FollowersFollowingPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this, initialIndex: widget.initialTab);
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.initialTab,
+    );
     _loadData();
   }
 
@@ -46,16 +50,14 @@ class _FollowersFollowingPageState extends ConsumerState<FollowersFollowingPage>
       final g = await repo.getFollowing(widget.userId);
 
       if (!mounted) return;
-
       setState(() {
         _followers = f;
         _following = g;
         _loadingFollowers = false;
         _loadingFollowing = false;
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
-
       setState(() {
         _followers = [];
         _following = [];
@@ -65,31 +67,48 @@ class _FollowersFollowingPageState extends ConsumerState<FollowersFollowingPage>
     }
   }
 
-  Widget _buildTile(ProfileModel p) {
+  Widget _buildTile(UserModel u) {
+    final hasImage = u.profileImageUrl != null && u.profileImageUrl!.isNotEmpty;
     return ListTile(
-      leading: CircleAvatar(radius: 24, backgroundImage: NetworkImage(p.avatarImage)),
+      leading: CircleAvatar(
+        radius: 24,
+        backgroundColor: Colors.grey.shade200,
+        backgroundImage: hasImage ? NetworkImage(u.profileImageUrl!) : null,
+        child: !hasImage ? const Icon(Icons.person, color: Colors.white) : null,
+      ),
       title: Row(
         children: [
-          Text(p.displayName, style: const TextStyle(fontWeight: FontWeight.bold)),
-          if (p.isVerified) const SizedBox(width: 6),
-          if (p.isVerified) const Icon(Icons.verified, size: 16, color: Colors.blue),
+          Expanded(
+            child: Text(u.name ?? "Unknown",
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          // Follow button
+          FollowButton(user: u),
         ],
       ),
-      subtitle: Text('@${p.handle}\n${p.bio}', maxLines: 2, overflow: TextOverflow.ellipsis),
-      trailing: FollowButton(initialProfile: p),
+      subtitle: Text(
+        "@${u.username ?? ''}${(u.bio != null && u.bio!.isNotEmpty) ? '\n${u.bio}' : ''}",
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
       isThreeLine: true,
       onTap: () {
+        // navigate to profile and pass username as argument
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ProfileScreen(
-              key: UniqueKey(),
-            ),
-            settings: RouteSettings(arguments: {"username": p.handle}),
+            builder: (_) => const ProfileScreen(),
+            settings: RouteSettings(arguments: {"username": u.username}),
           ),
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -110,18 +129,22 @@ class _FollowersFollowingPageState extends ConsumerState<FollowersFollowingPage>
         children: [
           _loadingFollowers
               ? const Center(child: CircularProgressIndicator())
-              : ListView.separated(
-                  itemCount: _followers!.length,
-                  separatorBuilder: (_, __) => const Divider(height: 0.5),
-                  itemBuilder: (_, i) => _buildTile(_followers![i]),
-                ),
+              : (_followers == null || _followers!.isEmpty)
+                  ? const Center(child: Text('No followers yet'))
+                  : ListView.separated(
+                      itemCount: _followers!.length,
+                      separatorBuilder: (_, __) => const Divider(height: 0.5),
+                      itemBuilder: (_, i) => _buildTile(_followers![i]),
+                    ),
           _loadingFollowing
               ? const Center(child: CircularProgressIndicator())
-              : ListView.separated(
-                  itemCount: _following!.length,
-                  separatorBuilder: (_, __) => const Divider(height: 0.5),
-                  itemBuilder: (_, i) => _buildTile(_following![i]),
-                ),
+              : (_following == null || _following!.isEmpty)
+                  ? const Center(child: Text('Not following anyone'))
+                  : ListView.separated(
+                      itemCount: _following!.length,
+                      separatorBuilder: (_, __) => const Divider(height: 0.5),
+                      itemBuilder: (_, i) => _buildTile(_following![i]),
+                    ),
         ],
       ),
     );

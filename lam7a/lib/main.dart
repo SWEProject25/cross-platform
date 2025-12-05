@@ -20,20 +20,32 @@ import 'package:lam7a/features/notifications/notifications_receiver.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
+import 'package:lam7a/features/tweet/ui/view/tweet_screen.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    print("Post Frame Callback: Handling initial message if any.");
+    NotificationsReceiver().handleInitialMessageIfAny();
+  });
+
+  await NotificationsReceiver().initialize();
+
   final container = ProviderContainer();
   await Future.wait([container.read(apiServiceProvider).initialize()]);
   await container.read(authenticationProvider.notifier).isAuthenticated();
 
   container.listen(socketInitializerProvider, (_, _) => {});
   container.read(messagesSocketServiceProvider).setUpListners();
-
-  NotificationsReceiver().initialize();
+  container.listen(fcmTokenUpdaterProvider, (_, _) => {});
 
   runApp(UncontrolledProviderScope(container: container, child: OverlaySupport.global(child:  MyApp())));
+
+
+
+
 
   // TO TEST ADD TWEET SCREEN ONLY (No auth): Uncomment lines below
   //runApp(ProviderScope(child: TestAddTweetApp()));
@@ -84,6 +96,12 @@ class _MyAppState extends ConsumerState<MyApp> {
               final username = args['username'] as String;
 
               return const ProfileScreen();
+            },
+            '/tweet': (context) {
+              final args = ModalRoute.of(context)!.settings.arguments as Map;
+              final tweetId = args['tweetId'] as String;
+              final tweetData = args['tweetData'] as TweetModel?;
+              return TweetScreen(tweetId: tweetId, tweetData: tweetData);
             },
           },
           home: !ref.watch(authenticationProvider).isAuthenticated

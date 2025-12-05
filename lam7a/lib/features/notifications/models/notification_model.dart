@@ -2,7 +2,11 @@ import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/notifications/dtos/notification_dtos.dart';
 import 'package:lam7a/features/notifications/models/actor_model.dart';
 
-enum NotificationType {like, repost, quote, follow, mention, reply, dm, unknown}
+enum NotificationType {
+  repost, like, follow,  // Not View
+  quote, mention, reply, // Post View
+  dm,                    // Pop up not
+  unknown}
 
 class NotificationModel {
   final String notificationId;
@@ -11,6 +15,9 @@ class NotificationModel {
   final DateTime createdAt;
   final TweetModel? post;
   final String? postPreviewText;
+
+  final int? conversationId;
+  final String? textMessage;
 
   final ActorModel actor;
 
@@ -22,6 +29,8 @@ class NotificationModel {
     required this.actor,
     this.post,
     this.postPreviewText,
+    this.conversationId,
+    this.textMessage
   });
 
   factory NotificationModel.fromDTO(NotificationDto dto, TweetModel? post) {
@@ -52,9 +61,17 @@ class NotificationModel {
       type: mapType(dto.type),
       isRead: dto.isRead ?? false,
       createdAt: dto.createdAt ?? DateTime.now(),
-      actor: ActorModel.fromDTO(dto.actor!),
+      actor: ActorModel.fromDTO(dto.actor ??
+          ActorDto(
+            id: dto.actorId,
+            username: dto.actorUsername,
+            displayName: dto.actorDisplayName,
+            avatarUrl: dto.actorAvatarUrl,
+          )),
       post: post,
       postPreviewText: dto.postPreviewText,
+      conversationId: dto.conversationId,
+      textMessage: dto.messagePreview,
     );
   }
 }

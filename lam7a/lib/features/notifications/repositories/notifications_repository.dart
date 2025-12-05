@@ -3,6 +3,7 @@ import 'package:lam7a/features/notifications/models/notification_model.dart';
 import 'package:lam7a/features/notifications/services/notifications_service.dart';
 import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'notifications_repository.g.dart';
 
@@ -18,7 +19,28 @@ class NotificationsRepository {
 
   NotificationsRepository(this._apiService, this._tweetRepository);
 
-  Future<List<NotificationModel>> fetchNotifications(int page, [int limit = 20]) async {
+
+  void setFCMToken(String token) {
+    removeFCMToken();
+
+    _apiService.sendFCMToken(token);
+
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString('fcm_token', token);
+    });
+  }
+
+  void removeFCMToken() {
+    SharedPreferences.getInstance().then((prefs) {
+      String? token = prefs.getString('fcm_token');
+      if(token != null){
+        _apiService.removeFCMToken(token);
+        prefs.remove('fcm_token');
+      }
+    });
+  }
+
+  Future<(List<NotificationModel>, bool)> fetchNotifications(int page, [int limit = 20]) async {
     var notificationsDto = await _apiService.getNotifications(page, limit);
     
     // Collect all tweet IDs that need to be fetched
@@ -42,6 +64,6 @@ class NotificationsRepository {
       return NotificationModel.fromDTO(dto, dto.postId != null ? tweets[dto.postId!.toString()] : null);
     }).toList() ?? [];
     
-    return notifications;
+    return (notifications, (notificationsDto.metadata?.totalPages ?? 0) != (notificationsDto.metadata?.page ?? 0));
   }
 }

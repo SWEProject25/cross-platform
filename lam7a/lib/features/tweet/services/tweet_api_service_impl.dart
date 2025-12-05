@@ -396,23 +396,28 @@ class TweetsApiServiceImpl implements TweetsApiService {
       );
 
       final json = response['data'];
-      // Map backend fields to frontend model
+      // Map backend fields to frontend model (supports both transformed and legacy shapes)
       final tweetId =
-          json['id']?.toString() ??
-          DateTime.now().millisecondsSinceEpoch.toString();
+          (json['postId'] ?? json['id'] ?? DateTime.now().millisecondsSinceEpoch)
+              .toString();
 
-      // Parse user data from nested User/Profile structure
+      // Parse user data from either transformed flat structure or nested User/Profile
       String? username;
       String? authorName;
       String? authorProfileImage;
 
-      // Check if User object exists (nested structure from backend)
-      if (json['User'] != null && json['User'] is Map) {
+      // Prefer transformed flat structure when available
+      if (json['username'] != null || json['name'] != null || json['avatar'] != null) {
+        username = json['username']?.toString();
+        authorName = (json['authorName'] ?? json['name'])?.toString();
+        authorProfileImage =
+            (json['authorProfileImage'] ?? json['avatar'])?.toString();
+      } else if (json['User'] != null && json['User'] is Map) {
+        // Nested User/Profile structure (legacy)
         final user = json['User'] as Map;
 
         username = user['username']?.toString();
 
-        // Check for nested Profile
         if (user['Profile'] != null && user['Profile'] is Map) {
           final profile = user['Profile'] as Map;
 
@@ -420,11 +425,11 @@ class TweetsApiServiceImpl implements TweetsApiService {
           authorProfileImage = profile['profile_image_url']?.toString();
         }
       } else {
-        // Flat structure (fallback)
-
+        // Flat legacy structure
         username = json['username']?.toString();
-        authorName = json['authorName']?.toString();
-        authorProfileImage = json['authorProfileImage']?.toString();
+        authorName = (json['authorName'] ?? json['name'])?.toString();
+        authorProfileImage =
+            (json['authorProfileImage'] ?? json['avatar'])?.toString();
       }
 
       // Fallback avatar field used by some endpoints (e.g. transformed feeds)
@@ -441,13 +446,20 @@ class TweetsApiServiceImpl implements TweetsApiService {
       int quotes = 0;
       int bookmarks = 0;
 
+      // New transformed post counts (For You / getPostById)
+      likes = parseInt(json['likesCount'] ?? likes);
+      reposts = parseInt(json['retweetsCount'] ?? reposts);
+      comments = parseInt(json['commentsCount'] ?? comments);
+
+      // Legacy _count structure (Prisma style)
       final countData = json['_count'];
       if (countData is Map) {
-        likes = parseInt(countData['likes']);
-        reposts = parseInt(countData['repostedBy']);
-        comments = parseInt(countData['Replies']);
+        likes = parseInt(countData['likes'] ?? likes);
+        reposts = parseInt(countData['repostedBy'] ?? reposts);
+        comments = parseInt(countData['Replies'] ?? comments);
       }
 
+      // Direct numeric fields (fallback)
       likes = parseInt(json['likes'] ?? likes);
       reposts = parseInt(json['repost'] ?? json['reposts'] ?? reposts);
       comments = parseInt(json['comments'] ?? comments);
@@ -457,17 +469,18 @@ class TweetsApiServiceImpl implements TweetsApiService {
 
       final mappedJson = <String, dynamic>{
         'id': tweetId,
-        'userId': (json['user_id'] ?? json['userId'])?.toString() ?? '0',
-        'body': (json['content'] ?? json['body'] ?? '').toString(),
+        'userId': (json['userId'] ?? json['user_id'])?.toString() ?? '0',
+        'body': (json['text'] ?? json['content'] ?? json['body'] ?? '')
+            .toString(),
         'date':
-            (json['createdAt'] ??
+            (json['date'] ??
+                    json['createdAt'] ??
                     json['created_at'] ??
-                    json['date'] ??
                     DateTime.now().toIso8601String())
                 .toString(),
         // User information from backend
         'username': username,
-        'authorName': authorName,
+        'authorName': authorName ?? username,
         'authorProfileImage': authorProfileImage,
         // Engagement counts from backend
         'likes': likes,
@@ -485,14 +498,16 @@ class TweetsApiServiceImpl implements TweetsApiService {
       final imageUrls = <String>[];
       final videoUrls = <String>[];
 
-      // Format 1: media array with type info (from getPostById)
+      // Format 1: media array with type info (from transformed or legacy getPostById)
       if (json['media'] != null &&
           json['media'] is List &&
           (json['media'] as List).isNotEmpty) {
         final mediaArray = json['media'] as List;
 
         for (final mediaItem in mediaArray) {
-          final url = mediaItem['media_url']?.toString();
+          if (mediaItem is! Map) continue;
+          final url =
+              (mediaItem['url'] ?? mediaItem['media_url'])?.toString();
           final type = mediaItem['type']?.toString();
 
           if (url != null && url.isNotEmpty) {
@@ -825,5 +840,155 @@ Future<List<TweetModel>> getTweets(int limit, int page, String tweetsType) async
   // Future<Future<List<TweetModel>>> getFollowingTweets(int limit, int page) {
 
   // }
+
+  // for the profile feature
+  // POSTS for a user
+@override
+Future<List<TweetModel>> getTweetsByUser(String userId) async {
+  final response = await _apiService.get(endpoint: "/posts/profile/$userId");
+  final data = response["data"];
+
+  if (data is! List) return [];
+
+  return data.map<TweetModel>((json) {
+    return TweetModel(
+        id: json['postId'].toString(),
+        userId: json['userId'].toString(),
+        username: json['username'],
+        authorName: json['name'],
+        authorProfileImage: json['avatar'],
+        body: json['text'] ?? '',
+        date: DateTime.parse(json['date']),
+        likes: json['likesCount'] ?? 0,
+        repost: json['retweetsCount'] ?? 0,
+        comments: json['commentsCount'] ?? 0,
+        isRepost: json['isRepost'] ?? false,
+        isQuote: json['isQuote'] ?? false,
+        mediaImages: _extractImages(json),
+        mediaVideos: _extractVideos(json),
+      );
+    }).toList();
+  }
+
+
+  // REPLIES for a user
+@override
+Future<List<TweetModel>> getRepliesByUser(String userId) async {
+  final response =
+      await _apiService.get(endpoint: "/posts/profile/$userId/replies");
+
+  final data = response["data"];
+  if (data is! List) return [];
+
+  return data.map<TweetModel>((json) {
+      // Map parent/original tweet (if present) so UI can render reply context
+      TweetModel? originalTweet;
+      final originalJson = json['originalPostData'];
+      if (originalJson is Map) {
+        originalTweet = TweetModel(
+          id: originalJson['postId'].toString(),
+          userId: originalJson['userId'].toString(),
+          username: originalJson['username'],
+          authorName: originalJson['name'],
+          authorProfileImage: originalJson['avatar'],
+          body: originalJson['text'] ?? '',
+          date: DateTime.parse(originalJson['date']),
+          likes: originalJson['likesCount'] ?? 0,
+          repost: originalJson['retweetsCount'] ?? 0,
+          comments: originalJson['commentsCount'] ?? 0,
+          mediaImages: _extractImages(originalJson),
+          mediaVideos: _extractVideos(originalJson),
+        );
+      }
+
+      return TweetModel(
+        id: json['postId'].toString(),
+        userId: json['userId'].toString(),
+        username: json['username'],
+        authorName: json['name'],
+        authorProfileImage: json['avatar'],
+        body: json['text'] ?? '',
+        date: DateTime.parse(json['date']),
+        likes: json['likesCount'] ?? 0,
+        repost: json['retweetsCount'] ?? 0,
+        comments: json['commentsCount'] ?? 0,
+        isRepost: json['isRepost'] ?? false,
+        isQuote: json['isQuote'] ?? false,
+        mediaImages: _extractImages(json),
+        mediaVideos: _extractVideos(json),
+        originalTweet: originalTweet,
+      );
+    }).toList();
+  }
+
+
+  // LIKED POSTS for a user
+  @override
+  Future<List<TweetModel>> getUserLikedPosts(String userId) async {
+    final response =
+        await _apiService.get(endpoint: "/posts/liked/$userId");
+
+    final data = response["data"];
+    if (data is! List) return [];
+
+    return data.map<TweetModel>((json) {
+      return TweetModel(
+        id: json['postId'].toString(),
+        userId: json['userId'].toString(),
+        username: json['username'],
+        authorName: json['name'],
+        authorProfileImage: json['avatar'],
+        body: json['text'] ?? '',
+        date: DateTime.parse(json['date']),
+        likes: json['likesCount'] ?? 0,
+        repost: json['retweetsCount'] ?? 0,
+        comments: json['commentsCount'] ?? 0,
+        isRepost: json['isRepost'] ?? false,
+        isQuote: json['isQuote'] ?? false,
+        mediaImages: _extractImages(json),
+        mediaVideos: _extractVideos(json),
+      );
+    }).toList();
+  }
+
+  List<String> _extractImages(Map json) {
+    if (json['media'] is! List) return [];
+    return (json['media'] as List)
+        .where((m) => m['type'] != 'VIDEO')
+        .map<String>((m) => m['url'].toString())
+        .toList();
+  }
+
+  List<String> _extractVideos(Map json) {
+    if (json['media'] is! List) return [];
+    return (json['media'] as List)
+        .where((m) => m['type'] == 'VIDEO')
+        .map<String>((m) => m['url'].toString())
+        .toList();
+  }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+  Map<String, dynamic> _mapProfilePost(Map json) {
+    return {
+      'id': json['id'].toString(),
+      'userId': json['user_id'].toString(),
+      'body': json['content'] ?? '',
+      'date': json['created_at'] ?? DateTime.now().toIso8601String(),
+
+      'likes': 0,
+      'repost': 0,
+      'comments': 0,
+
+      'username': json["username"],
+      'authorName': json["name"],
+      'authorProfileImage': json["avatar"],
+
+      'mediaImages': [],
+      'mediaVideos': [],
+
+      'isRepost': false,
+      'isQuote': false,
+    };
+  }
 
 }

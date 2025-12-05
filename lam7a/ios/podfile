@@ -1,0 +1,11 @@
+platform :ios, '15.0'
+
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  # Install all Flutter iOS pods
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+end

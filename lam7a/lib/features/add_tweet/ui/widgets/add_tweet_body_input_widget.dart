@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
+import 'package:lam7a/core/widgets/app_user_avatar.dart';
 
 class AddTweetBodyInputWidget extends StatelessWidget {
   final TextEditingController controller;
   final Function(String) onChanged;
   final int maxLength;
+  final String? authorProfileImage;
+  final String? authorName;
+  final String? username;
 
   const AddTweetBodyInputWidget({
     super.key,
     required this.controller,
     required this.onChanged,
     required this.maxLength,
+    this.authorProfileImage,
+    this.authorName,
+    this.username,
   });
 
   @override
@@ -19,14 +26,11 @@ class AddTweetBodyInputWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // User avatar
-        CircleAvatar(
+        AppUserAvatar(
           radius: 20,
-          backgroundColor: Pallete.borderHover,
-          child: const Icon(
-            Icons.person,
-            color: Pallete.whiteColor,
-            size: 24,
-          ),
+          imageUrl: authorProfileImage,
+          displayName: authorName,
+          username: username,
         ),
         const SizedBox(width: 12),
         
@@ -38,16 +42,10 @@ class AddTweetBodyInputWidget extends StatelessWidget {
             maxLines: null,
             minLines: 5,
             maxLength: maxLength,
-            style: const TextStyle(
-              color: Pallete.whiteColor,
-              fontSize: 18,
-            ),
-            decoration: const InputDecoration(
+            style: Theme.of(context).textTheme.bodyLarge,
+            decoration:  InputDecoration(
               hintText: "What's happening?",
-              hintStyle: TextStyle(
-                color: Pallete.greyColor,
-                fontSize: 18,
-              ),
+              hintStyle: Theme.of(context).textTheme.bodyLarge,
               border: InputBorder.none,
               counterText: '', // Hide the default counter
               filled: false, // Ensure no fill

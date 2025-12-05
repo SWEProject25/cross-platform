@@ -1,8 +1,9 @@
 // lib/features/profile/repository/profile_repository.dart
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/features/profile/dtos/profile_dto.dart';
-import 'package:lam7a/features/profile/model/profile_model.dart';
+import 'package:lam7a/features/profile/dtos/follow_user_dto.dart';
 import 'package:lam7a/features/profile/services/profile_api_service.dart';
 
 part 'profile_repository.g.dart';
@@ -19,26 +20,25 @@ class ProfileRepository {
   ProfileRepository(this._api);
 
   // ---------------- GET PROFILE BY USERNAME ----------------
-  Future<ProfileModel> getProfile(String username) async {
+  Future<UserModel> getProfile(String username) async {
     final dto = await _api.getProfileByUsername(username);
     return _fromDto(dto);
   }
 
   // ---------------- GET MY PROFILE ----------------
-  Future<ProfileModel> getMyProfile() async {
+  Future<UserModel> getMyProfile() async {
     final dto = await _api.getMyProfile();
     return _fromDto(dto);
   }
 
   // ---------------- UPDATE MY PROFILE ----------------
-  Future<ProfileModel> updateMyProfile(
-    ProfileModel profile, {
+  Future<UserModel> updateMyProfile(
+    UserModel user, {
     String? avatarPath,
     String? bannerPath,
   }) async {
-
-    String avatarUrl = profile.avatarImage;
-    String bannerUrl = profile.bannerImage;
+    String avatarUrl = user.profileImageUrl ?? "";
+    String bannerUrl = user.bannerImageUrl ?? "";
 
     if (avatarPath != null && !avatarPath.startsWith("http")) {
       avatarUrl = await _api.uploadProfilePicture(avatarPath);
@@ -49,11 +49,11 @@ class ProfileRepository {
     }
 
     final dto = await _api.updateMyProfile({
-      "name": profile.displayName,
-      "bio": profile.bio,
-      "location": profile.location,
-      "website": profile.website,
-      "birth_date": profile.birthday,
+      "name": user.name,
+      "bio": user.bio,
+      "location": user.location,
+      "website": user.website,
+      "birth_date": user.birthDate,
       "profile_image_url": avatarUrl,
       "banner_image_url": bannerUrl,
     });
@@ -65,38 +65,84 @@ class ProfileRepository {
   Future<void> followUser(int id) => _api.followUser(id);
   Future<void> unfollowUser(int id) => _api.unfollowUser(id);
 
+  // ------------ MUTE / UNMUTE ------------
+  Future<void> muteUser(int id) => _api.muteUser(id);
+  Future<void> unmuteUser(int id) => _api.unmuteUser(id);
+
+  // ------------ BLOCK / UNBLOCK ----------
+  Future<void> blockUser(int id) => _api.blockUser(id);
+  Future<void> unblockUser(int id) => _api.unblockUser(id);
+
+
   // ---------------- GET FOLLOWERS / FOLLOWING ----------------
-  Future<List<ProfileModel>> getFollowers(int id) async {
+  /// These endpoints return a list of lightweight "user" objects (not full profile DTOs).
+  /// We parse them with FollowUserDto and convert to UserModel.
+  Future<List<UserModel>> getFollowers(int id) async {
     final list = await _api.getFollowers(id);
-    return list.map(ProfileModel.fromRaw).toList();
+    // list is List<Map<String, dynamic>>
+    return list.map<UserModel>((raw) {
+      final f = FollowUserDto.fromJson(Map<String, dynamic>.from(raw));
+      return UserModel(
+        id: f.id,
+        username: f.username,
+        name: f.name,
+        bio: f.bio,
+        profileImageUrl: f.profileImageUrl,
+        // conservative defaults for counts / other states
+        followersCount: 0,
+        followingCount: 0,
+        stateFollow: (f.isFollowedByMe ?? false)
+            ? ProfileStateOfFollow.following
+            : ProfileStateOfFollow.notfollowing,
+      );
+    }).toList();
   }
 
-  Future<List<ProfileModel>> getFollowing(int id) async {
+  Future<List<UserModel>> getFollowing(int id) async {
     final list = await _api.getFollowing(id);
-    return list.map(ProfileModel.fromRaw).toList();
+    return list.map<UserModel>((raw) {
+      final f = FollowUserDto.fromJson(Map<String, dynamic>.from(raw));
+      return UserModel(
+        id: f.id,
+        username: f.username,
+        name: f.name,
+        bio: f.bio,
+        profileImageUrl: f.profileImageUrl,
+        followersCount: 0,
+        followingCount: 0,
+        stateFollow: (f.isFollowedByMe ?? false)
+            ? ProfileStateOfFollow.following
+            : ProfileStateOfFollow.notfollowing,
+      );
+    }).toList();
   }
 
-  // ---------------- DTO → MODEL ----------------
-  ProfileModel _fromDto(ProfileDto dto) {
-    return ProfileModel(
+  // ---------------- DTO → USER MODEL (full profile) ----------------
+  UserModel _fromDto(ProfileDto dto) {
+    return UserModel(
       id: dto.id,
-      userId: dto.userId,
-      displayName: dto.name,
-      handle: dto.user?["username"] ?? "",
-      bio: dto.bio ?? "",
-      avatarImage: dto.profileImageUrl ?? "",
-      bannerImage: dto.bannerImageUrl ?? "",
-      location: dto.location ?? "",
-      birthday: dto.birthDate ?? "",
-      joinedDate: dto.createdAt ?? "",
-      website: dto.website ?? "",
-
+      profileId: dto.userId,
+      username: dto.user?["username"],
+      name: dto.name,
+      birthDate: dto.birthDate,
+      bio: dto.bio,
+      location: dto.location,
+      website: dto.website,
+      createdAt: dto.createdAt,
+      profileImageUrl: dto.profileImageUrl,
+      bannerImageUrl: dto.bannerImageUrl,
       followersCount: dto.followersCount ?? 0,
       followingCount: dto.followingCount ?? 0,
-
       stateFollow: (dto.isFollowedByMe ?? false)
           ? ProfileStateOfFollow.following
           : ProfileStateOfFollow.notfollowing,
+      // if backend returns these fields for full profile
+      stateMute: (dto.toJson().containsKey('is_muted_by_me') && dto.toJson()['is_muted_by_me'] == true)
+          ? ProfileStateOfMute.muted
+          : ProfileStateOfMute.notmuted,
+      stateBlocked: (dto.toJson().containsKey('is_blocked_by_me') && dto.toJson()['is_blocked_by_me'] == true)
+          ? ProfileStateBlocked.blocked
+          : ProfileStateBlocked.notblocked,
     );
   }
 }
