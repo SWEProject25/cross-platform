@@ -22,7 +22,7 @@ class ProfileHeaderMain extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text("Error: $err")),
         data: (profile) => ProfileHeaderWidget(
-          profile: profile,
+          user: profile,
           isOwnProfile: true, // set false to test other users
         ),
       ),
