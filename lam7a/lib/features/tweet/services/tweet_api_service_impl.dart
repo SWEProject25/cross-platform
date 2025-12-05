@@ -826,4 +826,133 @@ Future<List<TweetModel>> getTweets(int limit, int page, String tweetsType) async
 
   // }
 
+  // for the profile feature
+  // POSTS for a user
+@override
+Future<List<TweetModel>> getTweetsByUser(String userId) async {
+  final response = await _apiService.get(endpoint: "/posts/profile/$userId");
+  final data = response["data"];
+
+  if (data is! List) return [];
+
+  return data.map<TweetModel>((json) {
+    return TweetModel(
+        id: json['postId'].toString(),
+        userId: json['userId'].toString(),
+        username: json['username'],
+        authorName: json['name'],
+        authorProfileImage: json['avatar'],
+        body: json['text'] ?? '',
+        date: DateTime.parse(json['date']),
+        likes: json['likesCount'] ?? 0,
+        repost: json['retweetsCount'] ?? 0,
+        comments: json['commentsCount'] ?? 0,
+        isRepost: json['isRepost'] ?? false,
+        isQuote: json['isQuote'] ?? false,
+        mediaImages: _extractImages(json),
+        mediaVideos: _extractVideos(json),
+      );
+    }).toList();
+  }
+
+
+  // REPLIES for a user
+@override
+Future<List<TweetModel>> getRepliesByUser(String userId) async {
+  final response =
+      await _apiService.get(endpoint: "/posts/profile/$userId/replies");
+
+  final data = response["data"];
+  if (data is! List) return [];
+
+  return data.map<TweetModel>((json) {
+      return TweetModel(
+        id: json['postId'].toString(),
+        userId: json['userId'].toString(),
+        username: json['username'],
+        authorName: json['name'],
+        authorProfileImage: json['avatar'],
+        body: json['text'] ?? '',
+        date: DateTime.parse(json['date']),
+        likes: json['likesCount'] ?? 0,
+        repost: json['retweetsCount'] ?? 0,
+        comments: json['commentsCount'] ?? 0,
+        isRepost: json['isRepost'] ?? false,
+        isQuote: json['isQuote'] ?? false,
+        mediaImages: _extractImages(json),
+        mediaVideos: _extractVideos(json),
+      );
+    }).toList();
+  }
+
+
+  // LIKED POSTS for a user
+  @override
+  Future<List<TweetModel>> getUserLikedPosts(String userId) async {
+    final response =
+        await _apiService.get(endpoint: "/posts/liked/$userId");
+
+    final data = response["data"];
+    if (data is! List) return [];
+
+    return data.map<TweetModel>((json) {
+      return TweetModel(
+        id: json['postId'].toString(),
+        userId: json['userId'].toString(),
+        username: json['username'],
+        authorName: json['name'],
+        authorProfileImage: json['avatar'],
+        body: json['text'] ?? '',
+        date: DateTime.parse(json['date']),
+        likes: json['likesCount'] ?? 0,
+        repost: json['retweetsCount'] ?? 0,
+        comments: json['commentsCount'] ?? 0,
+        isRepost: json['isRepost'] ?? false,
+        isQuote: json['isQuote'] ?? false,
+        mediaImages: _extractImages(json),
+        mediaVideos: _extractVideos(json),
+      );
+    }).toList();
+  }
+
+  List<String> _extractImages(Map json) {
+    if (json['media'] is! List) return [];
+    return (json['media'] as List)
+        .where((m) => m['type'] != 'VIDEO')
+        .map<String>((m) => m['url'].toString())
+        .toList();
+  }
+
+  List<String> _extractVideos(Map json) {
+    if (json['media'] is! List) return [];
+    return (json['media'] as List)
+        .where((m) => m['type'] == 'VIDEO')
+        .map<String>((m) => m['url'].toString())
+        .toList();
+  }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+  Map<String, dynamic> _mapProfilePost(Map json) {
+    return {
+      'id': json['id'].toString(),
+      'userId': json['user_id'].toString(),
+      'body': json['content'] ?? '',
+      'date': json['created_at'] ?? DateTime.now().toIso8601String(),
+
+      'likes': 0,
+      'repost': 0,
+      'comments': 0,
+
+      'username': json["username"],
+      'authorName': json["name"],
+      'authorProfileImage': json["avatar"],
+
+      'mediaImages': [],
+      'mediaVideos': [],
+
+      'isRepost': false,
+      'isQuote': false,
+    };
+  }
+
 }
