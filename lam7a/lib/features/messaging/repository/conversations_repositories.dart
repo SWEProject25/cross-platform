@@ -21,8 +21,8 @@ class ConversationsRepository {
 
   ConversationsRepository(this._apiService, this._authState);
 
-  Future<List<Conversation>> fetchConversations() async {
-    if (!_authState.isAuthenticated) return [];
+  Future<(List<Conversation> data, bool hasMore)> fetchConversations() async {
+    if (!_authState.isAuthenticated) return ([] as List<Conversation>, false);
 
     var conversationsDto = await _apiService.getConversations();
 
@@ -38,7 +38,7 @@ class ConversationsRepository {
       );
     }).toList();
 
-    return conversations;
+    return (conversations, conversationsDto.metadata.totalPages != conversationsDto.metadata.page);
   }
 
   Future<int> getConversationIdByUserId(int userId) async {

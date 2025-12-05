@@ -1,124 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/features/common/providers/pagination_notifier.dart';
+import 'package:lam7a/features/common/states/pagination_state.dart';
 import 'package:lam7a/features/messaging/model/chat_message.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:lam7a/features/messaging/repository/conversations_repositories.dart';
 import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
-
-class PaginationState<T> {
-  final List<T> items;
-  final int page;
-  final bool isLoading;
-  final bool isRefreshing;
-  final bool isLoadingMore;
-  final bool hasMore;
-  final Object? error;
-
-  const PaginationState({
-    this.items = const [],
-    this.page = 0,
-    this.isLoading = false,
-    this.isRefreshing = false,
-    this.isLoadingMore = false,
-    this.hasMore = true,
-    this.error,
-  });
-
-  PaginationState<T> copyWith({
-    List<T>? items,
-    int? page,
-    bool? isLoading,
-    bool? isRefreshing,
-    bool? isLoadingMore,
-    bool? hasMore,
-    Object? error,
-  }) {
-    return PaginationState<T>(
-      items: items ?? this.items,
-      page: page ?? this.page,
-      isLoading: isLoading ?? this.isLoading,
-      isRefreshing: isRefreshing ?? this.isRefreshing,
-      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-      hasMore: hasMore ?? this.hasMore,
-      error: error,
-    );
-  }
-}
-// ----- Pagination notifier -----
-abstract class PaginationNotifier<T> extends Notifier<PaginationState<T>> {
-  final int pageSize;
-  PaginationNotifier({this.pageSize = 20}) : super();
-
-  // initial load
-  Future<void> loadInitial() async {
-    if (state.isLoading) return;
-    state = state.copyWith(isLoading: true, error: null);
-    try {
-      final newPage = 1;
-      final List<T> items = await fetchPage(newPage);
-      final hasMore = items.length == pageSize;
-      state = state.copyWith(
-        items: items,
-        page: newPage,
-        isLoading: false,
-        hasMore: hasMore,
-        error: null,
-      );
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e);
-    }
-  }
-
-  // refresh (pull-to-refresh)
-  Future<void> refresh() async {
-    if (state.isRefreshing) return;
-    state = state.copyWith(isRefreshing: true, error: null);
-    try {
-      final newPage = 1;
-      final items = await fetchPage(newPage);
-      final hasMore = items.length == pageSize;
-      state = state.copyWith(
-        items: items,
-        page: newPage,
-        isRefreshing: false,
-        hasMore: hasMore,
-        error: null,
-      );
-    } catch (e) {
-      state = state.copyWith(isRefreshing: false, error: e);
-    }
-  }
-
-  // load more (pagination)
-  Future<void> loadMore() async {
-    if (!state.hasMore ||
-        state.isLoadingMore ||
-        state.isLoading ||
-        state.isRefreshing)
-      return;
-    state = state.copyWith(isLoadingMore: true, error: null);
-    try {
-      final nextPage = state.page + 1;
-      final newItems = await fetchPage(nextPage);
-      final hasMore = newItems.length == pageSize;
-      state = state.copyWith(
-        items: mergeList(state.items, newItems),
-        page: nextPage,
-        isLoadingMore: false,
-        hasMore: hasMore,
-        error: null,
-      );
-    } catch (e) {
-      state = state.copyWith(isLoadingMore: false, error: e);
-    }
-  }
-
-  // helper: use repo to fetch, adapt to T
-
-  Future<List<T>> fetchPage(int page);
-  List<T> mergeList(List<T> a, List<T> b);
-}
 
 class ConversationsNotifier extends PaginationNotifier<Conversation> {
   late AuthState _authState;
@@ -196,15 +84,15 @@ class ConversationsNotifier extends PaginationNotifier<Conversation> {
       List<Conversation> updatedConv = [...state.items, conv];
 
       var updatedFirstPage = await fetchPage(1);
-      updatedConv = mergeList(state.items, updatedFirstPage);
+      updatedConv = mergeList(state.items, updatedFirstPage.$1);
 
       state = state.copyWith(items: updatedConv);
     }
   }
 
   @override
-  Future<List<Conversation>> fetchPage(int page) {
-    return _conversationsRepository.fetchConversations();
+  Future<(List<Conversation> items, bool hasMore)> fetchPage(int page) async {
+    return await _conversationsRepository.fetchConversations();
   }
 
   @override

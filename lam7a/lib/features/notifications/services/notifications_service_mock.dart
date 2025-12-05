@@ -59,6 +59,16 @@ class MockNotificationsAPIService extends NotificationsAPIService {
       metadata: metadata,
     );
   }
+  
+  @override
+  void removeFCMToken(String token) {
+    // TODO: implement removeFCMToken
+  }
+  
+  @override
+  void sendFCMToken(String token) {
+    // TODO: implement sendFCMToken
+  }
 }
 
 

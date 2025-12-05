@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/services/socket_service.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/active_chat_screens.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/chat_viewmodel.dart';
 import 'package:lam7a/features/messaging/ui_keys.dart';
 import 'package:lam7a/features/messaging/ui/widgets/chat_input_bar.dart';
@@ -11,28 +12,44 @@ import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
 import 'package:lam7a/features/messaging/utils.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-class ChatScreen extends ConsumerWidget {
+class ChatScreen extends ConsumerStatefulWidget {
   static const routeName = '/chat';
-
-  final int? conversationId;
-  final int? userId;
-  final Contact? contact;
 
   const ChatScreen({
     super.key,
-    this.conversationId,
-    this.userId,
-    this.contact,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // get conv id and user id from args if not provided
-    var args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    final conversationId = this.conversationId ?? args?['conversationId'];
-    final userId = this.userId ?? args?['userId'];
-    
+  ConsumerState<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends ConsumerState<ChatScreen> {
+  late final int userId;
+  late final int conversationId;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (args != null) {
+      userId = args['userId'];
+      conversationId = args['conversationId'];
+    }
+
+    ActiveChatScreens.setActive(conversationId);
+  }
+
+
+  @override
+  void dispose() {
+    ActiveChatScreens.setInactive(conversationId);
+
+    super.dispose();
+  }
+
+@override
+  Widget build(BuildContext context) {
     var connectionState = ref.watch(socketConnectionProvider);
     var chatState = ref.watch(
       chatViewModelProvider(conversationId: conversationId, userId: userId),

@@ -24,16 +24,27 @@ import 'package:overlay_support/overlay_support.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    print("Post Frame Callback: Handling initial message if any.");
+    NotificationsReceiver().handleInitialMessageIfAny();
+  });
+
+  await NotificationsReceiver().initialize();
+
   final container = ProviderContainer();
   await Future.wait([container.read(apiServiceProvider).initialize()]);
   await container.read(authenticationProvider.notifier).isAuthenticated();
 
   container.listen(socketInitializerProvider, (_, _) => {});
   container.read(messagesSocketServiceProvider).setUpListners();
-
-  NotificationsReceiver().initialize();
+  container.listen(fcmTokenUpdaterProvider, (_, _) => {});
 
   runApp(UncontrolledProviderScope(container: container, child: OverlaySupport.global(child:  MyApp())));
+
+
+
+
 
   // TO TEST ADD TWEET SCREEN ONLY (No auth): Uncomment lines below
   //runApp(ProviderScope(child: TestAddTweetApp()));

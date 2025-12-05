@@ -253,11 +253,13 @@ class MessagesRepository {
     _socket.markSeen(req);
   }
   void joinConversation(int conversationId) {
+    _logger.i("Joining conversation $conversationId");
     _socket.joinConversation(conversationId);
     _joinedConversations.add(conversationId);
   }
 
   void leaveConversation(int conversationId) {
+    _logger.i("Leaving conversation $conversationId");
     _socket.leaveConversation(conversationId);
     _joinedConversations.remove(conversationId);
   }

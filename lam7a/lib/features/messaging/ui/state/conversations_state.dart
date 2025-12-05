@@ -13,5 +13,7 @@ abstract class ConversationsState with _$ConversationsState {
     @Default("") String searchQuery,
     @Default(null) String? searchQueryError,
     @Default({}) Map<String, bool> isTyping,
+
+    @Default(false) bool loadingConversationId,
   }) = _ConversationsState;
 }
