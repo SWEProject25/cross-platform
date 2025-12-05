@@ -64,28 +64,42 @@ class AuthenticationRepositoryImpl {
   Future<void> test() async {
     final data = await apiService.test();
   }
+
   Future<List<InterestDto>> getInterests() async {
     List<dynamic> interests = await apiService.getInterests();
     return interests.map((e) => InterestDto.fromJson(e)).toList();
   }
+
   Future<List<UserToFollowDto>> getUsersToFollow() async {
     List<dynamic> users = await apiService.getUsersToFollow();
     return users.map((e) => UserToFollowDto.fromJson(e)).toList();
   }
+
   Future<void> selectInterests(List<int> interestIds) async {
     await apiService.selectInterests(interestIds);
   }
+
   Future<bool> followUser(int userId) async {
     final res = await apiService.followUsers(userId);
-    return res[AuthenticationConstants.status] == AuthenticationConstants.success;  
+    return res[AuthenticationConstants.status] ==
+        AuthenticationConstants.success;
   }
 
   Future<bool> unFollowUser(int userId) async {
     final res = await apiService.unFollowUsers(userId);
-    return res[AuthenticationConstants.status] == AuthenticationConstants.success;
+    return res[AuthenticationConstants.status] ==
+        AuthenticationConstants.success;
   }
-  Future<String> oAuthGoogleRedirect() async {
-    String res = await apiService.oAuthGoogleRedirect();
-    return res;
+
+  Future<RootData> oAuthGoogleLogin(String idToken) async {
+    Map<String, dynamic> res = await apiService.oAuthGoogleLogin(idToken);
+    RootData userModel = RootData.fromJson(res['data']);
+    return userModel;
+  }
+
+  Future<RootData> oAuthGithubLogin(String code) async {
+    Map<String, dynamic> res = await apiService.oAuthGithubLogin(code);
+    RootData userModel = RootData.fromJson(res['data']);
+    return userModel;
   }
 }

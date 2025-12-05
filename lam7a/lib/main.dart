@@ -86,7 +86,7 @@ class _MyAppState extends ConsumerState<MyApp> {
               return const ProfileScreen();
             },
           },
-          home: !state.isAuthenticated
+          home: !ref.watch(authenticationProvider).isAuthenticated
               ? FirstTimeScreen()
               : NavigationHomeScreen(),
         );

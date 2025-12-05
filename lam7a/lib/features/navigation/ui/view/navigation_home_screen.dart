@@ -241,7 +241,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                   border: Border(
                     top: BorderSide(
                       color: const Color.fromARGB(255, 190, 190, 190),
-                      width: 0.5,
+                      width: 0.5, 
                     ),
                   ),
                 ),
@@ -405,14 +405,8 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         ),
         TextButton(
           onPressed: () async {
-            bool isloggedOut = await viewmodel.logoutButtonPressed();
-            if (isloggedOut) {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                FirstTimeScreen.routeName,
-                (route) => false,
-              );
-            }
+            Navigator.pop(context);
+            await ref.read(authenticationProvider.notifier).logout();
           },
           child: Text('Logout', style: TextStyle(color: Pallete.errorColor)),
         ),

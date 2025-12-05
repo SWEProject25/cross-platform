@@ -109,10 +109,12 @@ class AuthenticationApiService {
       endpoint: "/users/${userId}/follow",
     );
   }
-  Future<String> oAuthGoogleRedirect() async {
-    String res = await apiService.get(
-      endpoint: ServerConstant.oAuthGoogleRedirect,
-    );
-    return res;
+  Future<Map<String, dynamic>> oAuthGoogleLogin(String idToken) async {
+    final response = await apiService.post(endpoint: ServerConstant.oAuthGoogleLogin, data: {'idToken' : idToken});
+    return response;
+  }
+  Future<Map<String, dynamic>> oAuthGithubLogin(String code) async {
+    final response = await apiService.post(endpoint: ServerConstant.oAuthExchangeCode, data: {'code' : code});
+    return response;
   }
 }

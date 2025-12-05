@@ -22,6 +22,7 @@ class Authentication extends _$Authentication {
   Future<void> isAuthenticated() async {
     try {
       final response = await _apiService.get(endpoint: ServerConstant.profileMe);
+      print(response['data']);
       if (response['data'] != null) {
         UserDtoAuth user =  UserDtoAuth.fromJson(response['data']);
         print("this is my user ${user}");
@@ -34,17 +35,16 @@ class Authentication extends _$Authentication {
 UserModel userDtoToUserModel(UserDtoAuth dto) {
   return UserModel(
     id: dto.id,
-    username: dto.user.username,
-    email: dto.user.email,
-    role: dto.user.role,
+    username: dto.user?.username ?? null,
+    email: dto.user?.email ?? null,
+    role: dto.user?.role ?? null,
     name: dto.name,
-    birthDate: dto.birthDate.toIso8601String(),
     profileImageUrl: dto.profileImageUrl?.toString(),
     bannerImageUrl: dto.bannerImageUrl?.toString(),
     bio: dto.bio?.toString(),
     location: dto.location?.toString(),
     website: dto.website?.toString(),
-    createdAt: dto.createdAt.toIso8601String(),
+    createdAt: dto.createdAt?.toIso8601String(),
     followersCount: dto.followersCount,
     followingCount: dto.followingCount
   );
