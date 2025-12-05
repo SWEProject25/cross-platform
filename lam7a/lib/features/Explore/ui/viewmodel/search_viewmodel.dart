@@ -114,8 +114,4 @@ class SearchViewModel extends AsyncNotifier<SearchState> {
 
     onChanged(term);
   }
-
-  void _search(String q) {
-    // TODO
-  }
 }

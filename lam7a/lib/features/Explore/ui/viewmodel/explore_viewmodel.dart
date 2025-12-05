@@ -75,7 +75,8 @@ class ExploreViewModel extends AsyncNotifier<ExploreState> {
         break;
 
       case ExplorePageView.exploreNews:
-        if (prev.newsTweets.isEmpty || prev.newsHashtags.isEmpty) {
+        if (prev.newsTweets.isEmpty) {
+          //|| prev.newsHashtags.isEmpty) {
           await loadNews(reset: true);
         }
         break;
@@ -194,7 +195,7 @@ class ExploreViewModel extends AsyncNotifier<ExploreState> {
     state = AsyncData(
       prev.copyWith(
         newsTweets: oldList,
-        isNewsTweetsLoading: true,
+        isNewsTweetsLoading: false,
         hasMoreNewsTweets: true,
       ),
     );
@@ -208,7 +209,7 @@ class ExploreViewModel extends AsyncNotifier<ExploreState> {
     state = AsyncData(
       state.value!.copyWith(
         newsTweets: [...oldList, ...list],
-        isNewsTweetsLoading: false,
+        isNewsTweetsLoading: true,
         hasMoreNewsTweets: list.length == _limit,
       ),
     );

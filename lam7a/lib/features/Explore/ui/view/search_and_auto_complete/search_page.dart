@@ -16,15 +16,13 @@ class SearchMainPage extends ConsumerStatefulWidget {
 class _SearchMainPageState extends ConsumerState<SearchMainPage> {
   @override
   Widget build(BuildContext context) {
-    final asyncState = ref.watch(searchViewModelProvider);
     final vm = ref.read(searchViewModelProvider.notifier);
-
-    final state = asyncState.value;
+    ThemeData theme = Theme.of(context);
 
     final searchController = vm.searchController;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: _buildAppBar(context, searchController, vm),
       body: Column(
         children: [
@@ -51,15 +49,22 @@ class _SearchMainPageState extends ConsumerState<SearchMainPage> {
     TextEditingController? controller,
     SearchViewModel vm,
   ) {
+    final theme = Theme.of(context);
     return AppBar(
-      backgroundColor: Colors.black,
+      backgroundColor: theme.scaffoldBackgroundColor,
       elevation: 0,
       titleSpacing: 0,
       automaticallyImplyLeading: false,
       title: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
+            icon: Icon(
+              Icons.arrow_back,
+              color: theme.brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white,
+              size: 26,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
 
@@ -85,18 +90,24 @@ class _SearchMainPageState extends ConsumerState<SearchMainPage> {
 
                 decoration: InputDecoration(
                   hintText: "Search X",
-                  hintStyle: const TextStyle(color: Colors.white38),
+                  hintStyle: TextStyle(
+                    color: theme.brightness == Brightness.light
+                        ? Colors.black54
+                        : Colors.white54,
+                  ),
                   border: InputBorder.none,
                   focusedBorder: InputBorder.none,
                   enabledBorder: InputBorder.none,
-                  fillColor: Colors.black,
+                  fillColor: theme.scaffoldBackgroundColor,
                   contentPadding: const EdgeInsets.symmetric(vertical: 10),
 
                   suffixIcon: (controller?.text.isNotEmpty ?? false)
                       ? IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.close,
-                            color: Colors.white,
+                            color: theme.brightness == Brightness.light
+                                ? Colors.black54
+                                : Colors.white54,
                             size: 20,
                           ),
                           onPressed: () {

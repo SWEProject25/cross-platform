@@ -1,28 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../widgets/tab_button.dart';
 import '../widgets/search_appbar.dart';
 import '../../../common/widgets/user_tile.dart';
 import '../../../common/widgets/tweets_list.dart';
 import '../viewmodel/search_results_viewmodel.dart';
 import '../state/search_result_state.dart';
+import 'search_result/Toptab.dart';
+import 'search_result/latesttab.dart';
+import 'search_result/peopletab.dart';
 
 class SearchResultPage extends ConsumerStatefulWidget {
   const SearchResultPage({super.key, required this.hintText});
-
   final String hintText;
 
   @override
   ConsumerState<SearchResultPage> createState() => _SearchResultPageState();
 }
 
-class _SearchResultPageState extends ConsumerState<SearchResultPage> {
+class _SearchResultPageState extends ConsumerState<SearchResultPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  final tabs = ["Top", "Latest", "People"];
+
   @override
   void initState() {
     super.initState();
+
+    _tabController = TabController(length: tabs.length, vsync: this);
+
+    // 🔵 Correct tab change listener:
+    // Fires only when tab is fully changed
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) return;
+
+      final vm = ref.read(searchResultsViewModelProvider.notifier);
+      vm.selectTab(CurrentResultType.values[_tabController.index]);
+    });
+
+    // initial search
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(searchResultsViewModelProvider.notifier).search(widget.hintText);
     });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -30,216 +55,86 @@ class _SearchResultPageState extends ConsumerState<SearchResultPage> {
     final state = ref.watch(searchResultsViewModelProvider);
     final vm = ref.read(searchResultsViewModelProvider.notifier);
 
+    final theme = Theme.of(context);
     final width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: Colors.black,
       appBar: SearchAppbar(width: width, hintText: widget.hintText),
-
       body: state.when(
-        loading: () =>
-            const Center(child: CircularProgressIndicator(color: Colors.white)),
+        loading: () => Center(
+          child: CircularProgressIndicator(
+            color: theme.brightness == Brightness.light
+                ? Colors.black
+                : Colors.white,
+          ),
+        ),
 
         error: (e, st) => Center(
           child: Text("Error: $e", style: const TextStyle(color: Colors.red)),
         ),
 
         data: (data) {
+          // Sync controller with state-selected tab
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_tabController.index != data.currentResultType.index &&
+                !_tabController.indexIsChanging) {
+              _tabController.animateTo(data.currentResultType.index);
+            }
+          });
+
           return Column(
             children: [
-              _tabs(vm, data.currentResultType, width),
+              _buildTabBar(theme),
+
               const Divider(color: Colors.white12, height: 1),
 
-              Expanded(child: _buildTabContent(data, vm)),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    TopTab(data: data, vm: vm),
+                    LatestTab(data: data, vm: vm),
+                    PeopleTab(data: data, vm: vm),
+                  ],
+                ),
+              ),
             ],
           );
         },
       ),
     );
   }
-}
 
-/// ---------------------------------------------------------------------------
-///  TABS
-/// ---------------------------------------------------------------------------
+  Widget _buildTabBar(ThemeData theme) {
+    return Material(
+      color: Colors.transparent,
+      child: TabBar(
+        controller: _tabController,
+        indicatorColor: const Color(0xFF1d9bf0),
+        indicatorWeight: 3,
+        labelPadding: const EdgeInsets.only(right: 28),
 
-Widget _tabs(
-  SearchResultsViewmodel vm,
-  CurrentResultType selected,
-  double width,
-) {
-  Alignment getAlignment() {
-    switch (selected) {
-      case CurrentResultType.top:
-        return const Alignment(-0.74, 0);
-      case CurrentResultType.latest:
-        return const Alignment(0.0, 0);
-      case CurrentResultType.people:
-        return const Alignment(0.76, 0);
-    }
-  }
+        labelColor: theme.brightness == Brightness.light
+            ? const Color(0xFF0f1418)
+            : const Color(0xFFd9d9d9),
 
-  return Column(
-    children: [
-      Padding(
-        padding: EdgeInsets.symmetric(horizontal: width * 0.04),
-        child: Row(
-          children: [
-            Expanded(
-              child: TabButton(
-                label: "Top",
-                selected: selected == CurrentResultType.top,
-                onTap: () => vm.selectTab(CurrentResultType.top),
-              ),
-            ),
-            SizedBox(width: width * 0.03),
-            Expanded(
-              child: TabButton(
-                label: "Latest",
-                selected: selected == CurrentResultType.latest,
-                onTap: () => vm.selectTab(CurrentResultType.latest),
-              ),
-            ),
-            SizedBox(width: width * 0.03),
-            Expanded(
-              child: TabButton(
-                label: "People",
-                selected: selected == CurrentResultType.people,
-                onTap: () => vm.selectTab(CurrentResultType.people),
-              ),
-            ),
-          ],
-        ),
-      ),
+        unselectedLabelColor: theme.brightness == Brightness.light
+            ? const Color(0xFF526470)
+            : const Color(0xFF7c838b),
 
-      // Sliding indicator bar
-      SizedBox(
-        height: 3,
-        child: Stack(
-          children: [
-            Container(color: Colors.transparent),
-            AnimatedAlign(
-              duration: const Duration(milliseconds: 250),
-              alignment: getAlignment(),
-              child: Container(
-                width: width * 0.15,
-                height: 3,
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ],
-  );
-}
+        labelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
 
-/// ---------------------------------------------------------------------------
-///  TAB CONTENT HANDLER
-/// ---------------------------------------------------------------------------
+        dividerColor: theme.brightness == Brightness.light
+            ? const Color(0xFFE5E5E5)
+            : const Color(0xFF2A2A2A),
+        dividerHeight: 0.3,
 
-Widget _buildTabContent(SearchResultState data, SearchResultsViewmodel vm) {
-  switch (data.currentResultType) {
-    case CurrentResultType.people:
-      return _peopleTab(data, vm);
-
-    case CurrentResultType.top:
-      return _topTab(data, vm);
-
-    case CurrentResultType.latest:
-      return _latestTab(data, vm);
-  }
-}
-
-/// ---------------------------------------------------------------------------
-///  PEOPLE TAB
-/// ---------------------------------------------------------------------------
-
-Widget _peopleTab(SearchResultState data, SearchResultsViewmodel vm) {
-  if (data.isPeopleLoading) {
-    return const Center(child: CircularProgressIndicator(color: Colors.white));
-  }
-  if (data.searchedPeople.isEmpty && data.isPeopleLoading) {
-    return const Center(
-      child: Text(
-        "No users found",
-        style: TextStyle(color: Colors.white54, fontSize: 16),
+        tabs: const [
+          Tab(text: "Top"),
+          Tab(text: "Latest"),
+          Tab(text: "People"),
+        ],
       ),
     );
   }
-  print("BUILDING PEOPLE TAB WITH ${data.searchedPeople.length} USERS");
-  return RefreshIndicator(
-    color: Colors.white,
-    backgroundColor: Colors.black,
-    onRefresh: () async {}, // if needed later
-
-    child: ListView.builder(
-      padding: const EdgeInsets.only(top: 12),
-      itemCount: data.searchedPeople.length,
-      itemBuilder: (context, i) {
-        final user = data.searchedPeople[i];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: UserTile(user: user),
-        );
-      },
-    ),
-  );
-}
-
-/// ---------------------------------------------------------------------------
-///  TOP TAB
-/// ---------------------------------------------------------------------------
-
-Widget _topTab(SearchResultState data, SearchResultsViewmodel vm) {
-  if (data.isTopLoading) {
-    return const Center(child: CircularProgressIndicator(color: Colors.white));
-  }
-  if (data.topTweets.isEmpty && data.isTopLoading) {
-    return const Center(
-      child: Text(
-        "No tweets found",
-        style: TextStyle(color: Colors.white54, fontSize: 16),
-      ),
-    );
-  }
-  print(
-    "BUILDING TOP TAB WITH ${data.topTweets.length} TWEETS\n${data.topTweets.map((t) => t.id.toString()).join("\n")}",
-  );
-  return TweetsListView(
-    tweets: data.topTweets,
-    hasMore: data.hasMoreTop,
-    onRefresh: () async => vm.refreshCurrentTab(),
-    onLoadMore: () async => vm.loadMoreTop(),
-  );
-}
-
-/// ---------------------------------------------------------------------------
-///  LATEST TAB
-/// ---------------------------------------------------------------------------
-
-Widget _latestTab(SearchResultState data, SearchResultsViewmodel vm) {
-  if (data.isLatestLoading) {
-    return const Center(child: CircularProgressIndicator(color: Colors.white));
-  }
-  if (data.latestTweets.isEmpty && data.isLatestLoading) {
-    return const Center(
-      child: Text(
-        "No tweets found",
-        style: TextStyle(color: Colors.white54, fontSize: 16),
-      ),
-    );
-  }
-  print(
-    "BUILDING LATEST TAB WITH ${data.latestTweets.length} TWEETS\n${data.latestTweets.map((t) => t.id.toString()).join("\n")}",
-  );
-  return TweetsListView(
-    tweets: data.latestTweets,
-    hasMore: data.hasMoreLatest,
-    onRefresh: () async => vm.refreshCurrentTab(),
-    onLoadMore: () async => vm.loadMoreLatest(),
-  );
 }

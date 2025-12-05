@@ -12,20 +12,28 @@ class SearchAppbar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     return AppBar(
       automaticallyImplyLeading: false,
-      backgroundColor: Colors.black,
+      backgroundColor: theme.scaffoldBackgroundColor,
       elevation: 0,
       titleSpacing: 0,
       title: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
+            icon: Icon(
+              Icons.arrow_back,
+              color: theme.brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white,
+              size: 26,
+            ),
             onPressed: () {
               int count = 0;
               Navigator.popUntil(context, (route) => count++ >= 2);
             },
           ),
+          SizedBox(width: width * 0.03),
           Expanded(
             child: GestureDetector(
               onTap: () {
@@ -36,15 +44,23 @@ class SearchAppbar extends StatelessWidget implements PreferredSizeWidget {
               },
               child: Container(
                 height: 38,
-                padding: EdgeInsets.symmetric(horizontal: width * 0.04),
+                padding: EdgeInsets.symmetric(horizontal: width * 0.02),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF202328),
+                  color: theme.brightness == Brightness.light
+                      ? const Color(0xFFeff3f4)
+                      : const Color(0xFF202328),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 alignment: Alignment.centerLeft,
                 child: Text(
                   hintText,
-                  style: const TextStyle(color: Colors.white54, fontSize: 15),
+                  style: TextStyle(
+                    color: theme.brightness == Brightness.light
+                        ? const Color(0xFF53646e)
+                        : const Color(0xFF7c8289),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
             ),
@@ -55,7 +71,12 @@ class SearchAppbar extends StatelessWidget implements PreferredSizeWidget {
           IconButton(
             padding: const EdgeInsets.only(top: 4),
             iconSize: width * 0.06,
-            icon: const Icon(Icons.settings_outlined, color: Colors.white),
+            icon: Icon(
+              Icons.settings_outlined,
+              color: theme.brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white,
+            ),
             onPressed: () {},
           ),
         ],

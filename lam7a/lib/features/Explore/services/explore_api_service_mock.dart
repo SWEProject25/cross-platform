@@ -87,7 +87,7 @@ class MockExploreApiService implements ExploreApiService {
     await Future.delayed(const Duration(milliseconds: 200));
 
     final start = (page - 1) * limit;
-    return mockTweets.values.skip(start).take(limit).toList();
+    return mockTweets.values.take(1).toList();
   }
 
   @override
@@ -101,6 +101,6 @@ class MockExploreApiService implements ExploreApiService {
     final filtered = mockTweets.values;
 
     final start = (page - 1) * limit;
-    return filtered.skip(start).take(limit).toList();
+    return filtered.take(1).toList();
   }
 }

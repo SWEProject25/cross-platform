@@ -87,14 +87,36 @@ class _ExplorePageState extends ConsumerState<ExplorePage>
   }
 
   Widget _buildTabBar(double width) {
+    final ThemeData theme = Theme.of(context);
+
     return Container(
-      color: Colors.black,
+      color: theme.scaffoldBackgroundColor,
+      padding: EdgeInsets.zero,
       child: TabBar(
         controller: _tabController,
         isScrollable: true,
-        indicatorColor: Colors.blue,
+
+        // INDICATOR
+        indicatorColor: const Color(0xFF1d9bf0),
         indicatorWeight: 3,
-        labelPadding: EdgeInsets.symmetric(horizontal: width * 0.06),
+
+        labelPadding: const EdgeInsets.only(right: 28),
+
+        // TEXT COLORS
+        labelColor: theme.brightness == Brightness.light
+            ? const Color(0xFF0f1418)
+            : const Color(0xFFd9d9d9),
+        unselectedLabelColor: theme.brightness == Brightness.light
+            ? const Color(0xFF526470)
+            : const Color(0xFF7c838b),
+
+        labelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+
+        dividerColor: theme.brightness == Brightness.light
+            ? const Color(0xFFE5E5E5)
+            : const Color(0xFF2A2A2A),
+        dividerHeight: 0.3,
+
         tabs: const [
           Tab(text: "For You"),
           Tab(text: "Trending"),
@@ -108,6 +130,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage>
 }
 
 Widget _forYouTab(ExploreState data, ExploreViewModel vm) {
+  print("For You Tab rebuilt");
   if (data.isForYouTweetsLoading) {
     return const Center(child: CircularProgressIndicator(color: Colors.white));
   }
@@ -128,6 +151,7 @@ Widget _forYouTab(ExploreState data, ExploreViewModel vm) {
 }
 
 Widget _trendingTab(ExploreState data, ExploreViewModel vm) {
+  print("Trending Tab rebuilt");
   if (data.isHashtagsLoading) {
     return const Center(child: CircularProgressIndicator(color: Colors.white));
   }
@@ -143,6 +167,7 @@ Widget _trendingTab(ExploreState data, ExploreViewModel vm) {
 }
 
 Widget _newsTab(ExploreState data, ExploreViewModel vm) {
+  print("News Tab rebuilt");
   if (data.isNewsTweetsLoading) {
     return const Center(child: CircularProgressIndicator(color: Colors.white));
   }
@@ -163,6 +188,7 @@ Widget _newsTab(ExploreState data, ExploreViewModel vm) {
 }
 
 Widget _sportsTab(ExploreState data, ExploreViewModel vm) {
+  print("Sports Tab rebuilt");
   if (data.isSportsTweetsLoading) {
     return const Center(child: CircularProgressIndicator(color: Colors.white));
   }
@@ -183,6 +209,7 @@ Widget _sportsTab(ExploreState data, ExploreViewModel vm) {
 }
 
 Widget _entertainmentTab(ExploreState data, ExploreViewModel vm) {
+  print("Entertainment Tab rebuilt");
   if (data.isEntertainmentTweetsLoading) {
     return const Center(child: CircularProgressIndicator(color: Colors.white));
   }

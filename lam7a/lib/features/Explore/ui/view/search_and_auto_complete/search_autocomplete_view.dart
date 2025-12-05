@@ -119,12 +119,13 @@ class _AutoCompleteUserTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-        color: Colors.black, // full rectangle
+        color: theme.scaffoldBackgroundColor, // full rectangle
         child: Row(
           children: [
             // Profile Picture
@@ -133,11 +134,18 @@ class _AutoCompleteUserTile extends StatelessWidget {
               backgroundImage: (user.profileImageUrl?.isNotEmpty ?? false)
                   ? NetworkImage(user.profileImageUrl!)
                   : null,
-              backgroundColor: Colors.white12,
+              backgroundColor: theme.brightness == Brightness.light
+                  ? Color(0xFFd8d8d8)
+                  : Color(0xFF4a4a4a),
               child:
                   (user.profileImageUrl == null ||
                       user.profileImageUrl!.isEmpty)
-                  ? const Icon(Icons.person, color: Colors.white30)
+                  ? Icon(
+                      Icons.person,
+                      color: theme.brightness == Brightness.light
+                          ? Color(0xFF57646e)
+                          : Color(0xFF7b7f85),
+                    )
                   : null,
             ),
             const SizedBox(width: 12),
@@ -151,18 +159,25 @@ class _AutoCompleteUserTile extends StatelessWidget {
                     user.name ?? user.username ?? "",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: theme.brightness == Brightness.light
+                          ? Color(0xFF0f1317)
+                          : Color(0xFFd8d8d8),
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 1),
                   Text(
                     "@${user.username}",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    style: TextStyle(
+                      color: theme.brightness == Brightness.light
+                          ? Color(0xFF57646e)
+                          : Color(0xFF7b7f85),
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),

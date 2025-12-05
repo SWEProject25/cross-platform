@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 
@@ -23,102 +22,116 @@ class TweetsListView extends ConsumerStatefulWidget {
 }
 
 class _TweetsListViewState extends ConsumerState<TweetsListView> {
-  final ScrollController _scrollController = ScrollController();
-  bool _isLoadingMore = false;
-  double _lastOffset = 0;
-  bool _isBarVisible = true;
+  final ScrollController _controller = ScrollController();
 
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
+  // overscroll pull distance
+  double _pullDistance = 0.0;
+  bool _loadTriggered = false;
+  bool _isLoadingMore = false;
+
+  static const double triggerDistance = 90.0;
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  void _onScroll() {
-    // Load more
-    if (!_isLoadingMore &&
-        widget.hasMore &&
-        _scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent * 0.7) {
-      _loadMore();
-    }
-  }
-
-  Future<void> _loadMore() async {
-    if (_isLoadingMore) return;
-
+  Future<void> _triggerLoadMore() async {
+    if (_isLoadingMore || !widget.hasMore) return;
     setState(() => _isLoadingMore = true);
+
     await widget.onLoadMore();
-    if (mounted) setState(() => _isLoadingMore = false);
+
+    if (mounted) {
+      setState(() {
+        _isLoadingMore = false;
+        _pullDistance = 0;
+        _loadTriggered = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: _handleScrollNotification,
-      child: RefreshIndicator(
-        onRefresh: widget.onRefresh,
-        child: _buildTweetList(),
-      ),
-    );
-  }
+    return RefreshIndicator(
+      onRefresh: widget.onRefresh,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          // ➤ Detect overscroll at bottom
+          if (notification is OverscrollNotification &&
+              notification.overscroll > 0 &&
+              widget.hasMore) {
+            setState(() {
+              _pullDistance += notification.overscroll;
 
-  bool _handleScrollNotification(ScrollNotification scroll) {
-    if (scroll.metrics.axis != Axis.vertical) return false;
+              if (_pullDistance > triggerDistance && !_loadTriggered) {
+                _loadTriggered = true;
+                _triggerLoadMore();
+              }
+            });
+          }
 
-    if (scroll is ScrollUpdateNotification) {
-      final current = scroll.metrics.pixels;
+          // ➤ Reset when scrolling stops
+          if (notification is ScrollEndNotification) {
+            setState(() {
+              if (!_isLoadingMore) {
+                _pullDistance = 0;
+                _loadTriggered = false;
+              }
+            });
+          }
 
-      if (current > _lastOffset + 10 && _isBarVisible) {
-        setState(() => _isBarVisible = false);
-      } else if (current < _lastOffset - 5 && !_isBarVisible) {
-        setState(() => _isBarVisible = true);
-      }
-
-      _lastOffset = current;
-    }
-    return false;
-  }
-
-  Widget _buildTweetList() {
-    if (widget.tweets.isEmpty && !widget.hasMore) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          SizedBox(
-            height: 300,
-            child: Center(
-              child: Text("No tweets found", style: GoogleFonts.oxanium()),
+          return false;
+        },
+        child: Stack(
+          children: [
+            // MAIN LIST
+            AnimatedPadding(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.only(
+                bottom: (_isLoadingMore
+                    ? 70
+                    : _pullDistance.clamp(0, triggerDistance)),
+              ),
+              child: ListView.builder(
+                controller: _controller,
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: widget.tweets.length,
+                itemBuilder: (context, index) {
+                  return TweetSummaryWidget(
+                    tweetId: widget.tweets[index].id,
+                    tweetData: widget.tweets[index],
+                  );
+                },
+              ),
             ),
-          ),
-        ],
-      );
-    }
 
-    return ListView.builder(
-      controller: _scrollController,
-      physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: widget.tweets.length + (widget.hasMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index == widget.tweets.length) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        return TweetSummaryWidget(
-          tweetId: widget.tweets[index].id,
-          tweetData: widget.tweets[index],
-        );
-      },
+            // BOTTOM GAP + LOADER
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: _isLoadingMore
+                  ? 50
+                  : _pullDistance.clamp(0, triggerDistance),
+              child: Center(
+                child: (_isLoadingMore || _pullDistance > 10)
+                    ? const SizedBox(
+                        height: 28,
+                        width: 28,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          color: Color(0xFF1d9bf0),
+                        ),
+                      )
+                    : null,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

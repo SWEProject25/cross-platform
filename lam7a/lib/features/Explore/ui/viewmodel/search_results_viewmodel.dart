@@ -66,6 +66,7 @@ class SearchResultsViewmodel extends AsyncNotifier<SearchResultState> {
   // SWITCH TAB
 
   Future<void> selectTab(CurrentResultType type) async {
+    print("SELECT TAB CALLED: $type");
     SearchResultState prev = state.value!;
     state = AsyncData(prev.copyWith(currentResultType: type));
 
