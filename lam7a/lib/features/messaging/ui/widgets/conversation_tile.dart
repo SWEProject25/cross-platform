@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/widgets/app_user_avatar.dart';
 import 'package:lam7a/core/widgets/time_ago_text.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/conversation_viewmodel.dart';
@@ -18,7 +19,8 @@ class ConversationTile extends ConsumerWidget {
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      leading: NetworkAvatar(url: state.conversation.avatarUrl, radius: 28),
+      leading: 
+            AppUserAvatar(radius: 24, displayName: state.conversation.name, imageUrl: state.conversation.avatarUrl),
       title: Row(
         children: [
           Expanded(

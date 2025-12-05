@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/services/socket_service.dart';
+import 'package:lam7a/core/widgets/app_user_avatar.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/active_chat_screens.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/chat_viewmodel.dart';
@@ -63,7 +65,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
-        backgroundColor: Colors.white,
+        // backgroundColor: Colors.white,
         appBar: _buildAppBar(connectionState, context, chatState.contact),
 
         // Body
@@ -80,7 +82,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     messages: messages,
                     leading: chatState.hasMoreMessages
                         ? null
-                        : _buildProfileInfo(chatState.contact),
+                        : _buildProfileInfo(context, chatState.contact),
                     loadMore: () => chatViewModel.loadMoreMessages(),
                   ),
                 ),
@@ -98,7 +100,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
 
             Container(
-              color: Colors.white,
+              // color: Colors.white,
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
               child: Row(
                 children: [
@@ -120,47 +122,52 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   AppBar _buildAppBar(AsyncValue<bool> connectionState, BuildContext context, AsyncValue<Contact> contact) {
+    ThemeData themeData = Theme.of(context);
+    String displayName =contact.isLoading? 'Ask PlayStation' : contact.value?.name ?? 'Unknown';
+    
     return AppBar(
       elevation: 0,
-      backgroundColor: Colors.white,
+      // backgroundColor: Colors.white,
       title: Skeletonizer(
         enabled: contact.isLoading,
         child: Row(
           children: [
-            Container(   
-              width: 36,           
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Theme.of(context).primaryColor,
-              ),
-              child: ClipOval(
-                child: Image.network(
-                  contact.value?.avatarUrl ?? '',
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.person, size: 24),
-                ),
-              ),
-            ),
+            AppUserAvatar(radius: 16, displayName: displayName, imageUrl: contact.value?.avatarUrl),
+            // Container(   
+            //   width: 36,           
+            //   height: 36,
+            //   decoration: BoxDecoration(
+            //     shape: BoxShape.circle,
+            //     color: Theme.of(context).primaryColor,
+            //   ),
+            //   child: ClipOval(
+            //     child: Image.network(
+            //       contact.value?.avatarUrl ?? '',
+            //       width: double.infinity,
+            //       height: double.infinity,
+            //       fit: BoxFit.cover,
+            //       errorBuilder: (context, error, stackTrace) =>
+            //           const Icon(Icons.person, size: 24),
+            //     ),
+            //   ),
+            // ),
             const SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  contact.isLoading? 'Ask PlayStation' : contact.value?.name ?? 'Unknown',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
+                  displayName,
+                  style: themeData.textTheme.titleMedium,
+                    //  TextStyle(
+                    // color: Colors.black,
+                    // fontWeight: FontWeight.w600,
+                    // fontSize: 16,
+                  // ),
                 ),
-                Text(
-                  contact.isLoading? '@AskPlayStation' : contact.value?.handle ?? '@Unknown',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
+                // Text(
+                //   contact.isLoading? '@AskPlayStation' : contact.value?.handle ?? '@Unknown',
+                //   style: TextStyle(color: Colors.grey, fontSize: 12),
+                // ),
               ],
             ),
           ],
@@ -171,11 +178,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
 
       actions: [
+        if(kDebugMode) 
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: CircleAvatar(
             key: Key(MessagingUIKeys.chatScreenConnectionStatus),
-            radius: 16,
+            radius: 8,
             backgroundColor: !connectionState.hasValue || !connectionState.value! ? Colors.red : Colors.green,
           ),
         )
@@ -183,7 +191,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildProfileInfo(AsyncValue<Contact> contact) {
+  Widget _buildProfileInfo(BuildContext context, AsyncValue<Contact> contact) {
+    ThemeData theme = Theme.of(context);
     return Skeletonizer(
       enabled: contact.isLoading,
       child: Column(
@@ -193,7 +202,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           const SizedBox(height: 8),
           Text(
             contact.isLoading? 'Ask PlayStation' : contact.value?.name ?? "Unknown",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
           
           if(contact.isLoading || contact.value?.bio != null)
@@ -202,12 +211,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           Text(
             contact.isLoading? 'Official NA Twitter Support. You can connect with PlayStation Support for assistance with' : contact.value?.bio ?? '',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey, fontSize: 13),
+            style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13),
           ),
           const SizedBox(height: 4),
           Text(
             contact.isLoading? '1,000,000 Followers' : '${compressFollowerCount(contact.value?.totalFollowers ?? 1000000)} Followers',
-            style: TextStyle(color: Colors.black87, fontSize: 13),
+            style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13),
           ),
           const SizedBox(height: 24),
         ],
