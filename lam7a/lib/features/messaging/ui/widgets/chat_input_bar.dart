@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lam7a/core/utils.dart';
 import 'package:lam7a/features/messaging/ui_keys.dart';
 
 class ChatInputBar extends StatefulWidget {
@@ -105,7 +106,8 @@ class _ChatInputBarState extends State<ChatInputBar>
         clipBehavior: Clip.hardEdge,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.grey.shade200,
+          color: theme.brightness == Brightness.light? hexToColor("eef2f5") : hexToColor("21282e"),
+          //  Colors.grey.shade200,
           borderRadius: BorderRadius.circular(25),
         ),
         child: Column(
@@ -132,7 +134,7 @@ class _ChatInputBarState extends State<ChatInputBar>
                   child: IconButton(
                     key: Key(MessagingUIKeys.chatInputSendButton),
                     onPressed: 
-                        widget.draftMessage.isEmpty
+                        widget.draftMessage.trim().isEmpty
                         ? null
                         : () {
                             widget.onSend?.call();

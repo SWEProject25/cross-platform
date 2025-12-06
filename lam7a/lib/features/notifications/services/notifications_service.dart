@@ -14,6 +14,8 @@ NotificationsAPIService notificationsAPIService(Ref ref) {
 
 abstract class NotificationsAPIService {
   Future<NotificationsResponse> getNotifications([int page = 1, int limit = 20]);
+  Future<int> getUnReadCount();
+  void markAllAsRead();
   void sendFCMToken(String token);
   void removeFCMToken(String token);
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lam7a/core/app_icons.dart';
 import 'package:lam7a/core/widgets/app_svg_icon.dart';
+import 'package:lam7a/core/widgets/app_user_avatar.dart';
 
 class TwitterDMNotification extends StatelessWidget {
   final String sender;
@@ -73,10 +74,7 @@ class TwitterDMNotification extends StatelessWidget {
                       child: CircleAvatar(
                         radius: 14,
                         backgroundColor: backColor,
-                        child: CircleAvatar(
-                          radius: 14 - 2,
-                          backgroundImage: NetworkImage(avatarUrl),
-                        ),
+                        child: AppUserAvatar(radius: 12, displayName: sender,imageUrl: avatarUrl,)
                       ),
                     ),
                   ],

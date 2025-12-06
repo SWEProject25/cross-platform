@@ -40,17 +40,17 @@ class FindContactsScreen extends ConsumerWidget {
           const Divider(height: 0),
 
           // "Create a group" row
-          ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.blue.shade50,
-              child: const Icon(Icons.group_add, color: Colors.blue),
-            ),
-            title: const Text(
-              'Create a group',
-              style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
-            ),
-            onTap: () {},
-          ),
+          // ListTile(
+          //   leading: CircleAvatar(
+          //     backgroundColor: Colors.blue.shade50,
+          //     child: const Icon(Icons.group_add, color: Colors.blue),
+          //   ),
+          //   title: const Text(
+          //     'Create a group',
+          //     style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
+          //   ),
+          //   onTap: () {},
+          // ),
 
           // Conversation list
           Expanded(
