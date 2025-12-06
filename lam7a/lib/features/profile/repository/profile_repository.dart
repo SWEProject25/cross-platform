@@ -65,6 +65,15 @@ class ProfileRepository {
   Future<void> followUser(int id) => _api.followUser(id);
   Future<void> unfollowUser(int id) => _api.unfollowUser(id);
 
+  // ------------ MUTE / UNMUTE ------------
+  Future<void> muteUser(int id) => _api.muteUser(id);
+  Future<void> unmuteUser(int id) => _api.unmuteUser(id);
+
+  // ------------ BLOCK / UNBLOCK ----------
+  Future<void> blockUser(int id) => _api.blockUser(id);
+  Future<void> unblockUser(int id) => _api.unblockUser(id);
+
+
   // ---------------- GET FOLLOWERS / FOLLOWING ----------------
   /// These endpoints return a list of lightweight "user" objects (not full profile DTOs).
   /// We parse them with FollowUserDto and convert to UserModel.

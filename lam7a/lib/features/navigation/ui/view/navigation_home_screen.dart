@@ -8,12 +8,14 @@ import 'package:lam7a/core/providers/theme_provider.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
+import 'package:lam7a/features/messaging/providers/unread_conversations_count.dart';
 import 'package:lam7a/features/messaging/ui/view/conversations_screen.dart';
 import 'package:lam7a/features/navigation/ui/viewmodel/navigation_viewmodel.dart';
 import 'package:lam7a/features/navigation/ui/widgets/list_memeber.dart';
 import 'package:lam7a/features/navigation/ui/widgets/profile_block.dart';
 import 'package:lam7a/features/navigation/ui/widgets/search_bar.dart';
 import 'package:lam7a/features/navigation/utils/models/user_main_data.dart';
+import 'package:lam7a/features/notifications/proveriders/new_notifications_count.dart';
 import 'package:lam7a/features/notifications/ui/views/notifications_screen.dart';
 import 'package:lam7a/features/settings/ui/view/main_settings_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -26,7 +28,14 @@ import 'package:lam7a/features/Explore/ui/widgets/search_bar.dart';
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
 
-  const NavigationHomeScreen({super.key});
+  final int initialIndex;
+  final String? initialSearchQuery;
+
+  const NavigationHomeScreen({
+    super.key,
+    this.initialIndex = 0,
+    this.initialSearchQuery,
+  });
 
   @override
   State<NavigationHomeScreen> createState() => _NavigationHomeScreenState();
@@ -39,6 +48,12 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
   bool _isAppBarVisible = true;
   double _lastOffset = 0;
   String? themeMode;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
 
   // Define custom AppBar height
   final double _appBarHeight = 80.0; // Change this value to adjust height
@@ -233,7 +248,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           bottomNavigationBar: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeInOut,
-            height: _isVisible ? 60 : 0.00,
+            height: _isVisible ? null : 0.00,
             child: AnimatedOpacity(
               duration: const Duration(milliseconds: 100),
               curve: Curves.easeInOut,
@@ -247,12 +262,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                     ),
                   ),
                 ),
-                child: Theme(
-                  data: ThemeData(
-                    canvasColor: Theme.of(context).colorScheme.surface,
-                    splashColor: Colors.transparent,
-                  ),
-                  child: IgnorePointer(
+                child: IgnorePointer(
                     ignoring: !_isVisible,
                     child: SafeArea(
                       child: ClipRect(
@@ -305,45 +315,13 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                                 label: "search",
                               ),
                               BottomNavigationBarItem(
-                                icon: SvgPicture.asset(
-                                  AppAssets.notificationsIcon,
-                                  height: _isVisible ? 22 : 0,
-                                  width: _isVisible ? 22 : 0,
-                                  colorFilter: ColorFilter.mode(
-                                    Pallete.greyColor,
-                                    BlendMode.srcIn,
-                                  ),
-                                ),
-                                activeIcon: SvgPicture.asset(
-                                  AppAssets.notificationsIcon,
-                                  height: 20,
-                                  width: 20,
-                                  colorFilter: ColorFilter.mode(
-                                    Theme.of(context).colorScheme.onSurface,
-                                    BlendMode.srcIn,
-                                  ),
-                                ),
+                                icon: Consumer(builder: (context, ref, child) => getIcon(AppAssets.notificationsIcon, true, _isVisible, ref.watch(unReadNotificationCountProvider)),),
+                                activeIcon: Consumer(builder: (context, ref, child) => getIcon(AppAssets.notificationsIcon, false, _isVisible, ref.watch(unReadNotificationCountProvider)),),
                                 label: "notifications",
                               ),
                               BottomNavigationBarItem(
-                                icon: SvgPicture.asset(
-                                  AppAssets.messagesIcon,
-                                  height: _isVisible ? 22 : 0,
-                                  width: _isVisible ? 22 : 0,
-                                  colorFilter: ColorFilter.mode(
-                                    Pallete.greyColor,
-                                    BlendMode.srcIn,
-                                  ),
-                                ),
-                                activeIcon: SvgPicture.asset(
-                                  AppAssets.messagesIcon,
-                                  height: 20,
-                                  width: 20,
-                                  colorFilter: ColorFilter.mode(
-                                    Theme.of(context).colorScheme.onSurface,
-                                    BlendMode.srcIn,
-                                  ),
-                                ),
+                                icon: Consumer(builder: (context, ref, child) => getIcon(AppAssets.messagesIcon, true, _isVisible, ref.watch(unReadConversationsCountProvider)),),
+                                activeIcon: Consumer(builder: (context, ref, child) => getIcon(AppAssets.messagesIcon, false, _isVisible, ref.watch(unReadConversationsCountProvider)),),
                                 label: "messages",
                               ),
                             ],
@@ -352,12 +330,52 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                       ),
                     ),
                   ),
-                ),
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget getIcon(String icon, bool selected, bool isVisible, int unreadCount) {
+    var theme = Theme.of(context);
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        SvgPicture.asset(
+          icon,
+          height: isVisible ? 22 : 0,
+          width: isVisible ? 22 : 0,
+          colorFilter: ColorFilter.mode(
+            selected? Pallete.greyColor : Theme.of(context).colorScheme.onSurface,
+            BlendMode.srcIn,
+          ),
+        ),
+        if(unreadCount > 0)
+        Positioned(
+          right: -8,
+          top: -5,
+          child: 
+            CircleAvatar(
+            radius: 8 + 2,
+            backgroundColor: theme.scaffoldBackgroundColor,
+            child: CircleAvatar(
+              radius: 8,
+              backgroundColor: Pallete.borderHover,
+              child: Text(
+                unreadCount > 99 ? '99+' : '$unreadCount',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          )
+        ),
+      ],
     );
   }
 

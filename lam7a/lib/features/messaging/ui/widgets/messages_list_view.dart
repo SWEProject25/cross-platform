@@ -81,7 +81,7 @@ class _MessagesListViewState extends State<MessagesListView> {
               key: Key('${MessagingUIKeys.messagesTile}${message.id}'),
               text: message.text,
               isMine: message.isMine,
-              timeText: DateFormat('h:mm a').format(message.time),
+              timeText: DateFormat('h:mm a').format(message.time.toLocal()),
               isDelivered: message.isDelivered,
               isRead: message.isSeen,
 
@@ -109,7 +109,7 @@ class _DateSeparator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = DateFormat('MMMM d, yyyy').format(date);
+    final text = DateFormat('MMMM d, yyyy').format(date.toLocal());
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(

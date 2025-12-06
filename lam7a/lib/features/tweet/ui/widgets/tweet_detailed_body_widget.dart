@@ -5,6 +5,7 @@ import 'package:lam7a/core/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:lam7a/features/tweet/ui/widgets/full_screen_media_viewer.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
+import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 
 class TweetDetailedBodyWidget extends StatelessWidget {
   final TweetState tweetState;
@@ -28,7 +29,7 @@ class TweetDetailedBodyWidget extends StatelessWidget {
     
     final post = tweetState.tweet.value!;
     final responsive = context.responsive;
-    final fontSize = responsive.fontSize(17);
+
     final imageHeight = responsive.isTablet 
         ? 500.0 
         : responsive.isLandscape 
@@ -46,13 +47,32 @@ class TweetDetailedBodyWidget extends StatelessWidget {
                 padding: EdgeInsets.symmetric(
                   horizontal: responsive.padding(0),
                 ),
-                child: Text(
-                  bodyText,
+                child: StyledTweetText(
+                  text: bodyText,
+                  maxLines: null,
+                  overflow: TextOverflow.visible,
                   style: Theme.of(context).textTheme.bodyLarge,
+                  onMentionTap: (handle) {
+                    Navigator.of(context).pushNamed(
+                      '/profile',
+                      arguments: {'username': handle},
+                    );
+                  },
+                  onHashtagTap: (tag) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => NavigationHomeScreen(
+                          initialIndex: 1,
+                          initialSearchQuery: '#$tag',
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
               SizedBox(height: responsive.padding(12)),
             ],
+
             // Display multiple images
             if (post.mediaImages.isNotEmpty)
               Column(

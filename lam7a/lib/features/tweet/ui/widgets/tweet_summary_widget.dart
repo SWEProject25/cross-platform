@@ -27,9 +27,14 @@ class TweetSummaryWidget extends ConsumerWidget {
   }
 
   Widget _buildTweetUI(BuildContext context, WidgetRef ref, TweetModel tweet) {
-    final daysPosted = DateTime.now().day - tweet.date.day;
+    final diff = DateTime.now().difference(tweet.date);
+    final daysPosted = diff.inDays < 0 ? 0 : diff.inDays;
     final isPureRepost =
         tweet.isRepost && !tweet.isQuote && tweet.originalTweet != null;
+    final isReply =
+        !tweet.isRepost && !tweet.isQuote && tweet.originalTweet != null;
+    final parentTweet = tweet.originalTweet;
+    final replyingToUsername = parentTweet?.username;
     final username = tweet.username ?? 'unknown';
     final displayName =
         (tweet.authorName != null && tweet.authorName!.isNotEmpty)
@@ -51,7 +56,29 @@ class TweetSummaryWidget extends ConsumerWidget {
         color: Theme.of(context).colorScheme.surface,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (isReply && parentTweet != null) ...[
+              OriginalTweetCard(tweet: parentTweet),
+              const SizedBox(height: 8),
+              if (replyingToUsername != null && replyingToUsername.isNotEmpty)
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).pushNamed(
+                      '/profile',
+                      arguments: {'username': replyingToUsername},
+                    );
+                  },
+                  child: Text(
+                    'Replying to @${replyingToUsername}',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.blueAccent),
+                  ),
+                ),
+              const SizedBox(height: 8),
+            ],
             if (isPureRepost) ...[
               Row(
                 children: [
@@ -107,6 +134,22 @@ class TweetSummaryWidget extends ConsumerWidget {
                           ),
                         ],
                       ),
+                      if (isPureRepost &&
+                          (tweet.body.isEmpty || tweet.body.trim().isEmpty))
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => TweetScreen(
+                                  tweetId: tweetId,
+                                  tweetData: tweet,
+                                ),
+                              ),
+                            );
+                          },
+                          child: const SizedBox(height: 20),
+                        ),
                       GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -119,21 +162,11 @@ class TweetSummaryWidget extends ConsumerWidget {
                             ),
                           );
                         },
-                        child: SizedBox(height: 20),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => TweetScreen(
-                                tweetId: tweetId,
-                                tweetData: tweet,
-                              ),
-                            ),
-                          );
-                        },
-                        child: TweetBodySummaryWidget(post: tweet),
+                        behavior: HitTestBehavior.opaque,
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: TweetBodySummaryWidget(post: tweet),
+                        ),
                       ),
                       TweetFeed(tweetState: localTweetState),
                     ],

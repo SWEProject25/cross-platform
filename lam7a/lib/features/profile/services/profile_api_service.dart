@@ -20,6 +20,12 @@ abstract class ProfileApiService {
   Future<void> followUser(int id);
   Future<void> unfollowUser(int id);
 
+  Future<void> muteUser(int id);
+  Future<void> unmuteUser(int id);
+
+  Future<void> blockUser(int id);
+  Future<void> unblockUser(int id);
+
   Future<List<Map<String, dynamic>>> getFollowers(int id);
   Future<List<Map<String, dynamic>>> getFollowing(int id);
 }

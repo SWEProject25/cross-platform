@@ -46,5 +46,8 @@ abstract class TweetsApiService {
 
   // Future<Future<List<TweetModel>>> getFollowingTweets(int limit, int page, String tweetsType) async {}
 
-  //explore -(I invited my self here)
+  // Profile related methods
+  Future<List<TweetModel>> getTweetsByUser(String userId);
+  Future<List<TweetModel>> getRepliesByUser(String userId);
+  Future<List<TweetModel>> getUserLikedPosts(String userId);
 }

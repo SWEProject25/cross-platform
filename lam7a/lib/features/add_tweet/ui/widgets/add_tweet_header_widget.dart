@@ -6,6 +6,7 @@ class AddTweetHeaderWidget extends StatelessWidget {
   final VoidCallback onPost;
   final bool canPost;
   final bool isLoading;
+  final String actionLabel;
 
   const AddTweetHeaderWidget({
     super.key,
@@ -13,6 +14,7 @@ class AddTweetHeaderWidget extends StatelessWidget {
     required this.onPost,
     required this.canPost,
     required this.isLoading,
+    this.actionLabel = 'Post',
   });
 
   @override
@@ -35,7 +37,7 @@ class AddTweetHeaderWidget extends StatelessWidget {
             onPressed: isLoading ? null : onCancel,
             icon: Icon(
               Icons.close,
-              color: isLoading ? Pallete.greyColor : Pallete.whiteColor,
+              color:  Pallete.greyColor ,
               size: 24,
             ),
             padding: EdgeInsets.zero,
@@ -62,13 +64,9 @@ class AddTweetHeaderWidget extends StatelessWidget {
                         strokeWidth: 2,
                       ),
                     )
-                  : const Text(
-                      'Post',
-                      style: TextStyle(
-                        color: Pallete.whiteColor,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  : Text(
+                      actionLabel,
+                      style: Theme.of(context).textTheme.bodyLarge,
                     ),
             ),
           ),

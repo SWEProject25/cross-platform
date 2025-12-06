@@ -98,4 +98,25 @@ class ProfileApiServiceImpl implements ProfileApiService {
     final res = await _api.get(endpoint: "/users/$id/following");
     return _extractList(res);
   }
+
+  @override
+  Future<void> muteUser(int id) async {
+    await _api.post(endpoint: "/users/$id/mute");
+  }
+
+  @override
+  Future<void> unmuteUser(int id) async {
+    await _api.delete(endpoint: "/users/$id/mute");
+  }
+
+  @override
+  Future<void> blockUser(int id) async {
+    await _api.post(endpoint: "/users/$id/block");
+  }
+
+  @override
+  Future<void> unblockUser(int id) async {
+    await _api.delete(endpoint: "/users/$id/block");
+  }
+
 }

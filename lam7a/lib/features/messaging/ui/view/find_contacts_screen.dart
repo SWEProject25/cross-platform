@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/widgets/app_user_avatar.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
-import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
 import 'package:lam7a/main.dart';
 import 'package:path/path.dart';
 import '../viewmodel/conversations_viewmodel.dart';
@@ -40,17 +40,17 @@ class FindContactsScreen extends ConsumerWidget {
           const Divider(height: 0),
 
           // "Create a group" row
-          ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.blue.shade50,
-              child: const Icon(Icons.group_add, color: Colors.blue),
-            ),
-            title: const Text(
-              'Create a group',
-              style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
-            ),
-            onTap: () {},
-          ),
+          // ListTile(
+          //   leading: CircleAvatar(
+          //     backgroundColor: Colors.blue.shade50,
+          //     child: const Icon(Icons.group_add, color: Colors.blue),
+          //   ),
+          //   title: const Text(
+          //     'Create a group',
+          //     style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
+          //   ),
+          //   onTap: () {},
+          // ),
 
           // Conversation list
           Expanded(
@@ -61,7 +61,12 @@ class FindContactsScreen extends ConsumerWidget {
                 itemBuilder: (context, index) {
                   final c = conversations[index];
                   return ListTile(
-                    leading: NetworkAvatar(url: c.avatarUrl, radius: 19),
+                    leading: AppUserAvatar(
+                      radius: 19,
+                      imageUrl: c.avatarUrl,
+                      displayName: c.name,
+                      username: c.handle,
+                    ),
                     title: Text(
                       c.name,
                       style: const TextStyle(fontWeight: FontWeight.w600),

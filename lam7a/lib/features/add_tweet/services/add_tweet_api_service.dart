@@ -19,5 +19,6 @@ abstract class AddTweetApiService {
     String? mediaVideoPath,
     String type = 'POST',
     int? parentPostId,
+    List<int>? mentionsIds,
   });
 }

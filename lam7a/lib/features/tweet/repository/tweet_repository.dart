@@ -1,3 +1,4 @@
+// feature/tweet/repository/tweet_repository.dart
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/services/tweet_api_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -40,7 +41,28 @@ class TweetRepository {
     await _apiService.deleteTweet(id);
   }
 
+  // Add other repository methods as needed for the profile feature
+
+  Future<List<TweetModel>> fetchUserPosts(String userId) async {
+    // API already returns List<TweetModel>
+    final posts = await _apiService.getTweetsByUser(userId);
+    return posts;
+  }
+
+  Future<List<TweetModel>> fetchUserReplies(String userId) async {
+    // API already returns List<TweetModel>
+    final replies = await _apiService.getRepliesByUser(userId);
+    return replies;
+  }
+
+  Future<List<TweetModel>> fetchUserLikes(String userId) async {
+    // API already returns List<TweetModel>
+    final likes = await _apiService.getUserLikedPosts(userId);
+    return likes;
+  }
+
   Future<String> getTweetSummery(String tweetId) async {
-    return await _apiService.getTweetSummery(tweetId);
+    final summary = await _apiService.getTweetSummery(tweetId);
+    return summary;
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
@@ -24,6 +25,7 @@ class ChatViewModel extends _$ChatViewModel {
   StreamSubscription<void>? _newMessagesSub;
   StreamSubscription<bool>? _userTypingSub;
   Timer? _typingTimer;
+  Timer? _othertypingTimer;
   bool _disposed = false;
 
   @override
@@ -123,6 +125,21 @@ class ChatViewModel extends _$ChatViewModel {
 
   void _onOtherTyping (bool isTyping) {
     state = state.copyWith(isTyping: isTyping);
+
+    if (isTyping) {
+      if (_othertypingTimer?.isActive ?? false) {
+        _othertypingTimer!.cancel();
+        _othertypingTimer = null;
+      }
+
+      _othertypingTimer = Timer(const Duration(seconds: 5), () {
+        state = state.copyWith(isTyping: false);
+        _othertypingTimer = null;
+      });
+    } else {
+      _othertypingTimer?.cancel();
+      _othertypingTimer = null;
+    }
   }
 
   void _refreshMessages() {
@@ -135,7 +152,7 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   void updateDraftMessage(String draft){
-    state = state.copyWith(draftMessage: draft);
+    state = state.copyWith(draftMessage: draft.substring(0, min(draft.length, 1000)));
 
     _messagesRepository.updateTypingStatus(_conversationId, true);
     if (_typingTimer?.isActive ?? false) {
