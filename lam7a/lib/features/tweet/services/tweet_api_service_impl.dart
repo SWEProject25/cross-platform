@@ -761,88 +761,98 @@ class TweetsApiServiceImpl implements TweetsApiService {
     }
   }
 
-List<String> parseMedia(dynamic media) {
-  if (media == null) return [];
+  List<String> parseMedia(dynamic media) {
+    if (media == null) return [];
 
-  if (media is List) {
-    return media.map<String>((item) {
-      if (item is String) return item; 
+    if (media is List) {
+      return media
+          .map<String>((item) {
+            if (item is String) return item;
 
-      if (item is Map) return item['url'] ?? ""; 
+            if (item is Map) return item['url'] ?? "";
 
-      return "";
-    }).where((e) => e.isNotEmpty).toList();
-  }
-
-  return [];
-}
-@override
-Future<List<TweetModel>> getTweets(int limit, int page, String tweetsType) async {
-  String endpoint = ServerConstant.tweetsForYou;
-  Map<String, dynamic> response =
-      await _apiService.get(endpoint: "/posts/timeline/" + tweetsType, queryParameters: {"limit" : limit, "page": page});
-
-  List<dynamic> postsJson = response['data']['posts'];
-
-  List<TweetModel> tweets = postsJson.map((post) {
-    bool isRepost = post['isRepost'] ?? false;
-    bool isQuote = post['isQuote'] ?? false;
-
-    Map<String, dynamic>? originalJson;
-    final rawOriginal = post['originalPostData'];
-    if ((isRepost || isQuote) && rawOriginal is Map<String, dynamic>) {
-      originalJson = rawOriginal;
+            return "";
+          })
+          .where((e) => e.isNotEmpty)
+          .toList();
     }
 
-    return TweetModel(
-      id: post['postId'].toString(),
-      body: post['text'] ?? '',
+    return [];
+  }
 
-      mediaImages: parseMedia(post['media']),
-      mediaVideos: const [],
-
-      date: DateTime.parse(post['date']),
-      likes: post['likesCount'] ?? 0,
-      qoutes: post['commentsCount'] ?? 0,
-      repost: post['retweetsCount'] ?? 0,
-      comments: post['commentsCount'] ?? 0,
-      userId: post['userId'].toString(),
-
-      username: post['username'],
-      authorName: post['name'],
-      authorProfileImage: post['avatar'],
-
-      isRepost: isRepost,
-      isQuote: isQuote,
-
-      originalTweet: originalJson != null
-          ? TweetModel(
-              id: originalJson['postId'].toString(),
-              body: originalJson['text'] ?? '',
-
-              mediaImages: parseMedia(originalJson['media']),
-              mediaVideos: const [],
-
-              date: DateTime.parse(originalJson['date']),
-              likes: originalJson['likesCount'] ?? 0,
-              qoutes: originalJson['commentsCount'] ?? 0,
-              repost: originalJson['retweetsCount'] ?? 0,
-              comments: originalJson['commentsCount'] ?? 0,
-              userId: originalJson['userId'].toString(),
-
-              username: originalJson['username'],
-              authorName: originalJson['name'],
-              authorProfileImage: originalJson['avatar'],
-
-              isRepost: false,
-              isQuote: false,
-            )
-          : null,
+  @override
+  Future<List<TweetModel>> getTweets(
+    int limit,
+    int page,
+    String tweetsType,
+  ) async {
+    String endpoint = ServerConstant.tweetsForYou;
+    Map<String, dynamic> response = await _apiService.get(
+      endpoint: "/posts/timeline/" + tweetsType,
+      queryParameters: {"limit": limit, "page": page},
     );
-  }).toList();
 
-  return tweets;
-}
+    List<dynamic> postsJson = response['data']['posts'];
+
+    List<TweetModel> tweets = postsJson.map((post) {
+      bool isRepost = post['isRepost'] ?? false;
+      bool isQuote = post['isQuote'] ?? false;
+
+      Map<String, dynamic>? originalJson;
+      final rawOriginal = post['originalPostData'];
+      if ((isRepost || isQuote) && rawOriginal is Map<String, dynamic>) {
+        originalJson = rawOriginal;
+      }
+
+      return TweetModel(
+        id: post['postId'].toString(),
+        body: post['text'] ?? '',
+
+        mediaImages: parseMedia(post['media']),
+        mediaVideos: const [],
+
+        date: DateTime.parse(post['date']),
+        likes: post['likesCount'] ?? 0,
+        qoutes: post['commentsCount'] ?? 0,
+        repost: post['retweetsCount'] ?? 0,
+        comments: post['commentsCount'] ?? 0,
+        userId: post['userId'].toString(),
+
+        username: post['username'],
+        authorName: post['name'],
+        authorProfileImage: post['avatar'],
+
+        isRepost: isRepost,
+        isQuote: isQuote,
+
+        originalTweet: originalJson != null
+            ? TweetModel(
+                id: originalJson['postId'].toString(),
+                body: originalJson['text'] ?? '',
+
+                mediaImages: parseMedia(originalJson['media']),
+                mediaVideos: const [],
+
+                date: DateTime.parse(originalJson['date']),
+                likes: originalJson['likesCount'] ?? 0,
+                qoutes: originalJson['commentsCount'] ?? 0,
+                repost: originalJson['retweetsCount'] ?? 0,
+                comments: originalJson['commentsCount'] ?? 0,
+                userId: originalJson['userId'].toString(),
+
+                username: originalJson['username'],
+                authorName: originalJson['name'],
+                authorProfileImage: originalJson['avatar'],
+
+                isRepost: false,
+                isQuote: false,
+              )
+            : null,
+      );
+    }).toList();
+
+    return tweets;
+  }
 
   // @override
   // Future<Future<List<TweetModel>>> getFollowingTweets(int limit, int page) {

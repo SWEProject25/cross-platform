@@ -22,6 +22,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lam7a/features/tweet/ui/view/pages/tweet_home_screen.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
+import 'package:lam7a/features/Explore/ui/view/explore_page.dart';
+import 'package:lam7a/features/Explore/ui/widgets/search_bar.dart';
 
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
@@ -64,7 +66,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         UserModel? user = ref.watch(authenticationProvider).user;
         List<Widget> pages = [
           Center(child: TweetHomeScreen()),
-          Center(child: Text("Search Screen")),
+          Center(child: ExplorePage()),
           Center(child: NotificationsScreen()),
           Center(child: ConversationsScreen()),
         ];
@@ -391,7 +393,12 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         );
       // replaces currentCo;
       case 1:
-        return SearchBarCustomized(initialText: widget.initialSearchQuery);
+        return Searchbar(
+          width: MediaQuery.of(context).size.width,
+          hintText: "Search",
+        );
+      // return SizedBox(width: 2);
+      //return SearchBarCustomized();
       case 2:
         return Text(
           "Notifications",

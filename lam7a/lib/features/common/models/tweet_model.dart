@@ -3,8 +3,27 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'tweet_model.freezed.dart';
 part 'tweet_model.g.dart';
 
+List<String> parseMedia(dynamic media) {
+  if (media == null) return [];
+
+  if (media is List) {
+    return media
+        .map<String>((item) {
+          if (item is String) return item;
+
+          if (item is Map) return item['url'] ?? "";
+
+          return "";
+        })
+        .where((e) => e.isNotEmpty)
+        .toList();
+  }
+
+  return [];
+}
+
 @freezed
-abstract class  TweetModel with _$TweetModel {
+abstract class TweetModel with _$TweetModel {
   const factory TweetModel({
     required String id,
     required String body,
@@ -30,14 +49,45 @@ abstract class  TweetModel with _$TweetModel {
   }) = _TweetModel;
 
   /// Empty factory constructor
-  factory TweetModel.empty() => TweetModel(
-        id: '',
-        body: '',
-        date: DateTime.now(),
-        userId: '',
-      );
+  factory TweetModel.empty() =>
+      TweetModel(id: '', body: '', date: DateTime.now(), userId: '');
 
   /// From JSON
   factory TweetModel.fromJson(Map<String, dynamic> json) =>
       _$TweetModelFromJson(json);
+
+  factory TweetModel.fromJsonPosts(Map<String, dynamic> json) {
+    final isRepost = json['isRepost'] ?? false;
+    final isQuote = json['isQuote'] ?? false;
+
+    // nested original post
+    final originalJson = json['originalPostData'];
+    TweetModel? originalTweet;
+
+    if ((isRepost || isQuote) && originalJson is Map<String, dynamic>) {
+      originalTweet = TweetModel.fromJson(originalJson);
+    }
+
+    return TweetModel(
+      id: json['postId'].toString(),
+      body: json['text'] ?? '',
+      mediaImages: parseMedia(json['media']),
+      mediaVideos: const [],
+
+      date: DateTime.parse(json['date']),
+      likes: json['likesCount'] ?? 0,
+      qoutes: json['commentsCount'] ?? 0,
+      repost: json['retweetsCount'] ?? 0,
+      comments: json['commentsCount'] ?? 0,
+
+      userId: json['userId'].toString(),
+      username: json['username'],
+      authorName: json['name'],
+      authorProfileImage: json['avatar'],
+
+      isRepost: isRepost,
+      isQuote: isQuote,
+      originalTweet: originalTweet,
+    );
+  }
 }

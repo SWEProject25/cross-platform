@@ -2,7 +2,7 @@ import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/services/tweet_api_service.dart';
 
 // Dummy in-memory mock tweets with multiple media support
-final _mockTweets = <String, TweetModel>{
+final mockTweets = <String, TweetModel>{
   't1': TweetModel(
     id: 't1',
     userId: '1',
@@ -220,7 +220,7 @@ final _mockTweets = <String, TweetModel>{
 };
 
 abstract class TweetsApiServiceMock implements TweetsApiService {
-  final Map<String, TweetModel> _tweets = Map.of(_mockTweets);
+  final Map<String, TweetModel> _tweets = Map.of(mockTweets);
   final Map<String, Map<String, bool>> _interactionFlags = {};
   final Map<String, int> _localViews = {};
 
