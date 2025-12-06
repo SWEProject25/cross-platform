@@ -402,8 +402,9 @@ class TweetsApiServiceImpl implements TweetsApiService {
       final response = await _apiService.get<Map<String, dynamic>>(
         endpoint: '${ApiConfig.postsEndpoint}/$id',
       );
-
-      final json = response['data'];
+      final data = response['data'];
+      final dynamic json =
+          (data is List && data.isNotEmpty) ? data.first : data;
       // Map backend fields to frontend model (supports both transformed and legacy shapes)
       final tweetId =
           (json['postId'] ?? json['id'] ?? DateTime.now().millisecondsSinceEpoch)
