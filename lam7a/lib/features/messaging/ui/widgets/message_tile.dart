@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_typing_indicator/flutter_typing_indicator.dart';
+import 'package:lam7a/core/utils.dart';
+import 'package:lam7a/core/widgets/clickable_text.dart';
+import 'package:lam7a/core/widgets/expandable_text.dart';
 
 class MessageTile extends StatelessWidget {
   const MessageTile({
@@ -15,7 +18,6 @@ class MessageTile extends StatelessWidget {
     this.showFooter = false,
   });
 
-
   final bool isMine;
   final String text;
   final String timeText;
@@ -28,16 +30,19 @@ class MessageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ThemeData themeData = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
-        crossAxisAlignment: isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: isMine
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           Container(
             margin: const EdgeInsets.symmetric(vertical: 4),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: isMine ? Colors.blueAccent : Colors.grey.shade300,
+              color: isMine ? hexToColor("1d9bf0") : (themeData.brightness == Brightness.dark ? hexToColor("242e37") : Colors.grey.shade300),
               borderRadius: !showFooter
                   ? BorderRadius.circular(16)
                   : BorderRadius.only(
@@ -53,19 +58,21 @@ class MessageTile extends StatelessWidget {
                     dotColor: Colors.black,
                     dotSize: 4,
                   )
-                : Text(
+                : ExpandableText(
                     text,
+                    trimLines: 5,
                     style: TextStyle(
-                      color: isMine ? Colors.white : Colors.black,
+                      color: (isMine || themeData.brightness == Brightness.dark) ? Colors.white : Colors.black,
                     ),
                   ),
           ),
           if (showFooter)
             Padding(
               padding: const EdgeInsets.only(bottom: 6),
-              child: Text( 
-                showStatus  && !isDelivered ? "Sending" :
-                timeText + (showStatus ? " · ${getStatusText()}" : ""),
+              child: Text(
+                showStatus && !isDelivered
+                    ? "Sending"
+                    : timeText + (showStatus ? " · ${getStatusText()}" : ""),
                 style: const TextStyle(fontSize: 11, color: Colors.grey),
               ),
             ),
@@ -77,11 +84,11 @@ class MessageTile extends StatelessWidget {
   String getStatusText() {
     if (showStatus && isRead) {
       return "Seen";
-    }else if (!isDelivered) {
+    } else if (!isDelivered) {
       return "Sending";
-    } else if ( isDelivered ) {
+    } else if (isDelivered) {
       return "Sent";
-    } 
+    }
     return "";
   }
 }

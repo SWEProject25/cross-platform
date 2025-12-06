@@ -25,17 +25,18 @@ import 'package:overlay_support/overlay_support.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final container = ProviderContainer();
 
   WidgetsBinding.instance.addPostFrameCallback((_) {
     print("Post Frame Callback: Handling initial message if any.");
-    NotificationsReceiver().handleInitialMessageIfAny();
+    container.read(notificationsReceiverProvider).handleInitialMessageIfAny();
   });
 
-  await NotificationsReceiver().initialize();
 
-  final container = ProviderContainer();
+  container.read(notificationsReceiverProvider).initialize();
   await Future.wait([container.read(apiServiceProvider).initialize()]);
   await container.read(authenticationProvider.notifier).isAuthenticated();
+
 
   container.listen(socketInitializerProvider, (_, _) => {});
   container.read(messagesSocketServiceProvider).setUpListners();

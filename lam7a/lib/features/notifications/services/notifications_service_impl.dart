@@ -23,4 +23,15 @@ class NotificationsAPIServiceImpl implements NotificationsAPIService {
   void removeFCMToken(String token) {
     _apiService.delete(endpoint: "/notifications/device", data: {"token": token});
   }
+
+  @override
+  Future<int> getUnReadCount() async{
+    var response = await _apiService.get(endpoint: "/notifications/unread-count");
+
+    return response["unreadCount"];
+  }
+
+  void markAllAsRead() async {
+    var response = await _apiService.patch(endpoint: "/notifications/read-all");
+  }
 }

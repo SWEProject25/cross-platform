@@ -20,7 +20,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   void initState() {
     _allScrollController.addListener(() => scrollListener(_allScrollController));
     _mentionsScrollController.addListener(() => scrollListener(_mentionsScrollController));
-
     super.initState();
   }
 
@@ -30,6 +29,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     if (controller.position.pixels > trigger) {
       ref.read(notificationsViewModelProvider.notifier).loadMore();
     }
+  }
+
+  @override
+  void deactivate() {
+    // TODO: implement deactivate
+    ref.read(notificationsViewModelProvider.notifier).markAllAsRead();
+
+    super.deactivate();
   }
 
 @override

@@ -66,4 +66,12 @@ class NotificationsRepository {
     
     return (notifications, (notificationsDto.metadata?.totalPages ?? 0) != (notificationsDto.metadata?.page ?? 0));
   }
+
+  Future<int> getUnReadCount(){
+    return _apiService.getUnReadCount();
+  }
+
+  void markAllAsRead(){
+    _apiService.markAllAsRead();
+  }
 }
