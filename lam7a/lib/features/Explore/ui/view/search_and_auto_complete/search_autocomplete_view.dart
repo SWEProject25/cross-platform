@@ -20,13 +20,6 @@ class SearchAutocompleteView extends ConsumerWidget {
         // -----------------------------------------------------------
         // 🔵 AUTOCOMPLETE SUGGESTIONS
         // -----------------------------------------------------------
-        ...state.suggestedAutocompletions!.map(
-          (term) => _AutoCompleteTermRow(
-            term: term,
-            onInsert: () => vm.insertSearchedTerm(term),
-          ),
-        ),
-
         state.suggestedAutocompletions!.isNotEmpty
             ? Column(
                 children: const [
@@ -66,50 +59,6 @@ class SearchAutocompleteView extends ConsumerWidget {
     );
   }
 }
-
-// =====================================================================
-// AUTOCOMPLETE TERM ROW — Same style as RecentTermRow
-// =====================================================================
-
-class _AutoCompleteTermRow extends StatelessWidget {
-  final String term;
-  final VoidCallback onInsert;
-  //final void Function() getResult;
-  const _AutoCompleteTermRow({required this.term, required this.onInsert});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 4),
-      padding: const EdgeInsets.only(left: 4),
-      color: theme.scaffoldBackgroundColor, // No border radius
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              term,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ),
-          IconButton(
-            onPressed: onInsert,
-            icon: Transform.rotate(
-              angle: -0.8, // top-left arrow
-              child: const Icon(Icons.arrow_forward_ios, color: Colors.grey),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// =====================================================================
-// USER TILE FOR AUTOCOMPLETE USERS
-// =====================================================================
 
 class _AutoCompleteUserTile extends StatelessWidget {
   final UserModel user;

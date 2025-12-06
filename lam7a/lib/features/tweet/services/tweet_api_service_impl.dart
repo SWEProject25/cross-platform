@@ -831,6 +831,16 @@ class TweetsApiServiceImpl implements TweetsApiService {
     return tweets;
   }
 
+  @override
+  Future<String> getTweetSummery(String tweetId) async {
+    Map<String, dynamic> response = await _apiService.get(
+      endpoint: "/posts/summary/$tweetId",
+    );
+
+    String summary = response['data'] ?? "";
+
+    return summary;
+  }
   // @override
   // Future<Future<List<TweetModel>>> getFollowingTweets(int limit, int page) {
 

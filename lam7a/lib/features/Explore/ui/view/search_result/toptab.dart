@@ -20,6 +20,7 @@ class _TopTabState extends ConsumerState<TopTab>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     print("Top Tab rebuilt");
     super.build(context);
 
@@ -32,10 +33,15 @@ class _TopTabState extends ConsumerState<TopTab>
     }
 
     if (data.topTweets.isEmpty && !data.isTopLoading) {
-      return const Center(
+      return Center(
         child: Text(
           "No tweets found",
-          style: TextStyle(color: Colors.white54, fontSize: 16),
+          style: TextStyle(
+            color: theme.brightness == Brightness.light
+                ? Colors.black
+                : Colors.white54,
+            fontSize: 16,
+          ),
         ),
       );
     }

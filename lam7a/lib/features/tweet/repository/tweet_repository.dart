@@ -39,4 +39,8 @@ class TweetRepository {
   Future<void> deleteTweet(String id) async {
     await _apiService.deleteTweet(id);
   }
+
+  Future<String> getTweetSummery(String tweetId) async {
+    return await _apiService.getTweetSummery(tweetId);
+  }
 }

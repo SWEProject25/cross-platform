@@ -42,6 +42,8 @@ abstract class TweetsApiService {
   // use this to get the tweets in my explore and intresets
   Future<List<TweetModel>> getTweets(int limit, int page, String tweetsType);
 
+  Future<String> getTweetSummery(String tweetId);
+
   // Future<Future<List<TweetModel>>> getFollowingTweets(int limit, int page, String tweetsType) async {}
 
   //explore -(I invited my self here)

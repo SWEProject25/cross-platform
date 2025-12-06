@@ -282,7 +282,6 @@ class TweetViewModel extends _$TweetViewModel {
     apiService.setLocalViews(currentTweet.id, updatedViews);
   }
 
-
   void summarizeBody() {
     // TODO: implement tweet summarization
   }

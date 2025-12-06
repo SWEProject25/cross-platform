@@ -9,6 +9,7 @@ import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_summary.dart';
+import 'tweet_ai_summery.dart';
 
 class TweetSummaryWidget extends ConsumerWidget {
   const TweetSummaryWidget({
@@ -32,8 +33,8 @@ class TweetSummaryWidget extends ConsumerWidget {
     final username = tweet.username ?? 'unknown';
     final displayName =
         (tweet.authorName != null && tweet.authorName!.isNotEmpty)
-            ? tweet.authorName!
-            : username;
+        ? tweet.authorName!
+        : username;
 
     // Local TweetState from pre-fetched tweet data so we don't refetch
     final localTweetState = TweetState(
@@ -51,26 +52,21 @@ class TweetSummaryWidget extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         child: Column(
           children: [
-               if (isPureRepost) ...[
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.repeat,
-                          size: 16,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '$displayName reposted',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                  ],
+            if (isPureRepost) ...[
+              Row(
+                children: [
+                  const Icon(Icons.repeat, size: 16, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$displayName reposted',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+            ],
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -86,7 +82,6 @@ class TweetSummaryWidget extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                   
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -102,9 +97,12 @@ class TweetSummaryWidget extends ConsumerWidget {
                               color: Colors.blueAccent,
                             ),
                             onTap: () {
-                              ref
-                                  .read(tweetViewModelProvider(tweet.id).notifier)
-                                  .summarizeBody();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => TweetAiSummery(tweet: tweet),
+                                ),
+                              );
                             },
                           ),
                         ],
@@ -121,8 +119,7 @@ class TweetSummaryWidget extends ConsumerWidget {
                             ),
                           );
                         },
-                        child : SizedBox(height: 20)
-
+                        child: SizedBox(height: 20),
                       ),
                       GestureDetector(
                         onTap: () {
@@ -150,4 +147,3 @@ class TweetSummaryWidget extends ConsumerWidget {
     );
   }
 }
-

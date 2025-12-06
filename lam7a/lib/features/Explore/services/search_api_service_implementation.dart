@@ -43,6 +43,7 @@ class SearchApiServiceImpl implements SearchApiService {
     int limit,
     int page, {
     String? tweetsOrder,
+    String? time,
   }) async {
     print("running searchTweets API");
     Map<String, dynamic> response = await _apiService.get(
@@ -51,7 +52,9 @@ class SearchApiServiceImpl implements SearchApiService {
         "limit": limit,
         "page": page,
         "searchQuery": query,
+
         if (tweetsOrder != null) "tweetsOrder": tweetsOrder,
+        if (time != null) "time": time,
       },
     );
 
@@ -71,6 +74,7 @@ class SearchApiServiceImpl implements SearchApiService {
     int limit,
     int page, {
     String? tweetsOrder,
+    String? time,
   }) async {
     Map<String, dynamic> response = await _apiService.get(
       endpoint: "/posts/search/hashtag",
@@ -79,6 +83,7 @@ class SearchApiServiceImpl implements SearchApiService {
         "page": page,
         "hashtag": hashtag,
         if (tweetsOrder != null) "tweetsOrder": tweetsOrder,
+        if (time != null) "time": time,
       },
     );
 
