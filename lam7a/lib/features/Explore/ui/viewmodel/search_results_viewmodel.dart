@@ -254,9 +254,21 @@ class SearchResultsViewmodel extends AsyncNotifier<SearchResultState> {
 
     late final List<TweetModel> posts;
     if (_query[0] == '#') {
-      posts = await searchRepo.searchHashtagTweets(_query, _limit, _pageLatest);
+      posts = await searchRepo.searchHashtagTweets(
+        _query,
+        _limit,
+        _pageLatest,
+        tweetsOrder: "latest",
+        time: timestamp,
+      );
     } else {
-      posts = await searchRepo.searchTweets(_query, _limit, _pageLatest);
+      posts = await searchRepo.searchTweets(
+        _query,
+        _limit,
+        _pageLatest,
+        tweetsOrder: "latest",
+        time: timestamp,
+      );
     }
 
     state = AsyncData(

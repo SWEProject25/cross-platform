@@ -53,8 +53,8 @@ class SearchApiServiceImpl implements SearchApiService {
         "page": page,
         "searchQuery": query,
 
-        if (tweetsOrder != null) "tweetsOrder": tweetsOrder,
-        if (time != null) "time": time,
+        if (tweetsOrder != null) "order_by": tweetsOrder,
+        if (time != null) "before_date": time,
       },
     );
 
@@ -82,8 +82,8 @@ class SearchApiServiceImpl implements SearchApiService {
         "limit": limit,
         "page": page,
         "hashtag": hashtag,
-        if (tweetsOrder != null) "tweetsOrder": tweetsOrder,
-        if (time != null) "time": time,
+        if (tweetsOrder != null) "order_by": tweetsOrder,
+        if (time != null) "before_date": time,
       },
     );
 
