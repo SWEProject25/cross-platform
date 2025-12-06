@@ -23,4 +23,7 @@ class ServerConstant {
   static String getInterests = "/users/interests";
   static String addInterests = "/users/interests/me";
   static String toFollowUsers = "/users/suggested";
+  static String oAuthGoogleLogin = "/auth/google/mobile";
+  static String oAuthGithubedirect = "/auth/github/login";
+  static String oAuthExchangeCode = "/auth/oauth/exchange-code";
 }
