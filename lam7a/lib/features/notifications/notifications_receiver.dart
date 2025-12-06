@@ -7,6 +7,7 @@ import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/features/notifications/dtos/notification_dtos.dart';
 import 'package:lam7a/features/notifications/models/notification_model.dart';
 import 'package:lam7a/features/notifications/notifiactions_calls.dart';
+import 'package:lam7a/features/notifications/proveriders/new_notifications_count.dart';
 import 'package:lam7a/features/notifications/repositories/notifications_repository.dart';
 import 'package:lam7a/firebase_options.dart';
 import 'package:logger/logger.dart';
@@ -49,14 +50,16 @@ void handleFCMTokenUpdate(
   }
 }
 
+@riverpod
+NotificationsReceiver notificationsReceiver(Ref ref){
+  return NotificationsReceiver(ref.read(unReadNotificationCountProvider.notifier));
+}
+
 class NotificationsReceiver {
   Logger logger = getLogger(NotificationsReceiver);
-  NotificationsReceiver._privateConstructor();
-  static final NotificationsReceiver _instance =
-      NotificationsReceiver._privateConstructor();
-  factory NotificationsReceiver() {
-    return _instance;
-  }
+  NewNotificationCount _newNotificationCount;
+
+  NotificationsReceiver(this._newNotificationCount);
 
   RemoteMessage? _initialMessage;
 
@@ -105,6 +108,8 @@ class NotificationsReceiver {
   }
 
   void _onMessageReceived(RemoteMessage message) {
+    _newNotificationCount.updateNotificationsCount(increament: true);
+
     logger.i('Got a message whilst in the foreground!');
     logger.i('Message data: ${message.data.toString()}');
 
@@ -143,9 +148,11 @@ class NotificationsReceiver {
     );
 
     handleNotificationAction(notifiacation);
+    _newNotificationCount.updateNotificationsCount();
   }
 
   void handleNotificationAction(NotificationModel notifiacation) {
+
     switch (notifiacation.type) {
       case NotificationType.dm:
         if (notifiacation.conversationId != null) {

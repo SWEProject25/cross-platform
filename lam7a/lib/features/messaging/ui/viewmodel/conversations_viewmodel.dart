@@ -29,7 +29,19 @@ class ConversationsViewModel extends _$ConversationsViewModel {
       asyncConversation = AsyncData(conversations.items);
     }
 
+    Future.microtask(() async {
+      loadSearchSuggestion();
+    });
+
     return ConversationsState(conversations: asyncConversation);
+  }
+
+  void loadSearchSuggestion() async {
+    state = state.copyWith(contacts: AsyncLoading());
+    
+    var contacts = await _conversationsRepository.searchForContactsExtended("", 1);
+    state = state.copyWith(contacts: AsyncData(contacts));
+
   }
 
   Future<void> onQueryChanged(String v) async {
@@ -39,18 +51,18 @@ class ConversationsViewModel extends _$ConversationsViewModel {
   }
 
   String? _validateQuery(String v) {
-    if (v.trim().isEmpty) return 'Query is required';
-    if (v.length < 2) return 'Too short';
+    // if (v.trim().isEmpty) return 'Query is required';
+    if (v.length == 1) return 'Too short. Here are some suggested Results:';
     return null;
   }
 
   Future<void> updateSerch(String query) async {
-    if (state.searchQueryError != null) {
-      return;
-    }
+    // if (state.searchQueryError != null) {
+    //   return;
+    // }
 
     try {
-      var data = await _conversationsRepository.searchForContacts(query, 1);
+      var data = await _conversationsRepository.searchForContactsExtended(query, 1);
       state = state.copyWith(contacts: AsyncData(data));
     } catch (e, st) {
       state = state.copyWith(contacts: AsyncError(e, st));

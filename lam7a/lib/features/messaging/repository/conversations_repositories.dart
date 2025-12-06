@@ -1,5 +1,6 @@
 import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/features/authentication/repository/authentication_impl_repository.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:lam7a/features/messaging/services/dms_api_service.dart';
@@ -12,14 +13,16 @@ ConversationsRepository conversationsRepository(Ref ref) {
   return ConversationsRepository(
     ref.read(dmsApiServiceProvider),
     ref.watch(authenticationProvider),
+    ref.read(authenticationImplRepositoryProvider)
   );
 }
 
 class ConversationsRepository {
   final DMsApiService _apiService;
   final AuthState _authState;
+  final AuthenticationRepositoryImpl authRepo;
 
-  ConversationsRepository(this._apiService, this._authState);
+  ConversationsRepository(this._apiService, this._authState, this.authRepo);
 
   Future<(List<Conversation> data, bool hasMore)> fetchConversations() async {
     if (!_authState.isAuthenticated) return ([] as List<Conversation>, false);
@@ -51,6 +54,19 @@ class ConversationsRepository {
     int limit = 20,
   ]) async {
     return await _apiService.searchForContacts(query, page, limit);
+  }
+
+  Future<List<Contact>> searchForContactsExtended(
+    String query,
+    int page, [
+    int limit = 20,
+  ]) async {
+    if(query.length <= 1){
+      var res = await authRepo.getUsersToFollow();
+      return res.map((x)=> Contact(id: x.id??-1, name: x.profile?.name?? "Unkown", handle: x.username?? "@unkown")).toList();
+    }else{
+      return await _apiService.searchForContacts(query, page, limit);
+    }
   }
 
   Future<Contact> getContactByUserId(int userId) async {

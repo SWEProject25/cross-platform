@@ -7,6 +7,7 @@ import 'package:lam7a/features/tweet/ui/view/tweet_screen.dart';
 import 'package:lam7a/features/tweet/ui/widgets/full_screen_media_viewer.dart';
 import 'package:lam7a/features/tweet/ui/widgets/styled_tweet_text_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/video_player_widget.dart';
+import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 
 class TweetBodySummaryWidget extends StatelessWidget {
   final TweetModel post;
@@ -39,11 +40,27 @@ class TweetBodySummaryWidget extends StatelessWidget {
                 children: [
                   SizedBox(width: leftPadding),
                   Flexible(
-                    child: Text(
-                      bodyText,
+                    child: StyledTweetText(
+                      text: bodyText,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodyLarge,
+                      onMentionTap: (handle) {
+                        Navigator.of(context).pushNamed(
+                          '/profile',
+                          arguments: {'username': handle},
+                        );
+                      },
+                      onHashtagTap: (tag) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => NavigationHomeScreen(
+                              initialIndex: 1,
+                              initialSearchQuery: '#$tag',
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -236,7 +253,7 @@ class TweetBodySummaryWidget extends StatelessWidget {
                 ],
               ),
 
-            if (post.originalTweet != null)
+            if ((post.isRepost || post.isQuote) && post.originalTweet != null)
               disableOriginalTap
                   ? IgnorePointer(
                       child: OriginalTweetCard(tweet: post.originalTweet!),
@@ -321,12 +338,28 @@ class OriginalTweetCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             if (tweet.body.trim().isNotEmpty)
-              Text(
-                tweet.body,
+              StyledTweetText(
+                text: tweet.body.trim(),
+                fontSize:
+                    Theme.of(context).textTheme.bodyLarge?.fontSize ?? 16,
                 maxLines: 6,
                 overflow: TextOverflow.ellipsis,
-                style:  Theme.of(context).textTheme.bodyLarge
-                
+                onMentionTap: (handle) {
+                  Navigator.of(context).pushNamed(
+                    '/profile',
+                    arguments: {'username': handle},
+                  );
+                },
+                onHashtagTap: (tag) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => NavigationHomeScreen(
+                        initialIndex: 1,
+                        initialSearchQuery: '#$tag',
+                      ),
+                    ),
+                  );
+                },
               ),
             if (tweet.mediaImages.isNotEmpty) ...[
               const SizedBox(height: 6),

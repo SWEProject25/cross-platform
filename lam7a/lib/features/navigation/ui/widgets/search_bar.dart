@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 
 class SearchBarCustomized extends StatefulWidget {
+  final String? initialText;
+
+  const SearchBarCustomized({super.key, this.initialText});
+
   @override
   State<SearchBarCustomized> createState() => _SearchBarCustomizedState();
 }
@@ -14,6 +18,11 @@ class _SearchBarCustomizedState extends State<SearchBarCustomized> {
   @override
   void initState() {
     super.initState();
+
+    if (widget.initialText != null && widget.initialText!.isNotEmpty) {
+      _controller.text = widget.initialText!;
+    }
+
     _focusNode.addListener(() {
       setState(() {
         print('Focus changed: ${_focusNode.hasFocus}');
@@ -42,7 +51,8 @@ class _SearchBarCustomizedState extends State<SearchBarCustomized> {
         ),
       ),
       child: SearchBar(
-
+        controller: _controller,
+        focusNode: _focusNode,
         hintText: 'Search X',
         hintStyle: WidgetStatePropertyAll<TextStyle>(
           TextStyle(

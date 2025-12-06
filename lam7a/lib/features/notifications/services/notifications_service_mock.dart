@@ -69,6 +69,17 @@ class MockNotificationsAPIService extends NotificationsAPIService {
   void sendFCMToken(String token) {
     // TODO: implement sendFCMToken
   }
+  
+  @override
+  Future<int> getUnReadCount() {
+    // TODO: implement getUnReadCount
+    throw UnimplementedError();
+  }
+  
+  @override
+  void markAllAsRead() {
+    // TODO: implement markAllAsRead
+  }
 }
 
 

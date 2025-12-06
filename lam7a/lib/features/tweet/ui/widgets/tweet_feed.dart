@@ -57,26 +57,39 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
         .read(tweetViewModelProvider(tweetId).notifier)
         .handleRepost(controllerRepost: _controllerRepost);
     if (ref.read(tweetViewModelProvider(tweetId).notifier).getisReposted()) {
-      showTopSnackBar(
-        Overlay.of(context),
-        Card(
-          color: Colors.blueAccent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children:  [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 10),
-              Text(
-                "Reposted Successfully",
-                style: Theme.of(context).textTheme.bodyLarge,
+      Future.delayed(const Duration(milliseconds: 250), () {
+        final overlay = Overlay.of(context);
+        if (!mounted || overlay == null) {
+          return;
+        }
+        showTopSnackBar(
+          overlay,
+          Card(
+            color: Colors.green,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white),
+                  const SizedBox(width: 10),
+                  Text(
+                    "Reposted Successfully",
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(color: Colors.white),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      );
+        );
+      });
     }
   }
 

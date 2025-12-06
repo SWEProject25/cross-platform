@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/api/api_config.dart';
@@ -24,6 +25,7 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
     String? mediaVideoPath,
     String type = 'POST',
     int? parentPostId,
+    List<int>? mentionsIds,
   }) async {
     try {
       print('📤 Creating tweet on backend...');
@@ -47,6 +49,11 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
       // Only include parentId when this is a reply/quote
       if (parentPostId != null) {
         formFields['parentId'] = parentPostId;
+      }
+
+      // Optional array of user IDs to mention (backend expects JSON string)
+      if (mentionsIds != null && mentionsIds.isNotEmpty) {
+        formFields['mentionsIds'] = jsonEncode(mentionsIds);
       }
 
       final formData = FormData.fromMap(formFields);

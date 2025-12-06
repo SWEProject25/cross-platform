@@ -57,6 +57,8 @@ dependencies:
   firebase_messaging: ^16.0.4
   firebase_core: ^4.2.1
   overlay_support: ^2.1.0
+  flutter_linkify: ^6.0.0
+  flutter_web_browser: ^0.17.3
   
 dev_dependencies:
   freezed: ^3.1.0

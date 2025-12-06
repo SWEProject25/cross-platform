@@ -2,6 +2,7 @@ import 'package:lam7a/features/add_tweet/ui/state/add_tweet_state.dart';
 import 'package:lam7a/features/add_tweet/services/add_tweet_api_service_impl.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_home_viewmodel.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/user_new_tweets_viewmodel.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'add_tweet_viewmodel.g.dart';
@@ -87,7 +88,7 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
   }
 
   // Post the tweet
-  Future<void> postTweet() async {
+  Future<void> postTweet({List<int>? mentionsIds}) async {
     if (!canPostTweet()) {
       print('⚠️ Cannot post tweet: validation failed');
       state = state.copyWith(
@@ -127,6 +128,7 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
         mediaVideoPath: state.mediaVideoPath,
         type: state.postType,
         parentPostId: state.parentPostId,
+        mentionsIds: mentionsIds,
       );
 
       print('📝 Tweet created:');
@@ -153,6 +155,11 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
         isLoading: false,
         isTweetPosted: true,
       );
+
+      // Always keep track of newly created tweets (including replies) in a
+      // dedicated viewmodel so UI can listen to a provider of "my new tweets".
+      final newTweetsVm = ref.read(userNewTweetsViewModelProvider.notifier);
+      newTweetsVm.addTweet(tweetForFeed);
 
       // Only inject into the main home timeline for top-level posts and quotes.
       // Replies should stay scoped to the detailed tweet view (replies list),
