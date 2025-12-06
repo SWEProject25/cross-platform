@@ -2,16 +2,16 @@ class UserDtoAuth {
   int id;
   int userId;
   String name;
-  DateTime birthDate;
+  DateTime? birthDate;
   String? profileImageUrl;
   String? bannerImageUrl;
   String? bio;
   String? location;
   String? website;
   bool isDeactivated;
-  DateTime createdAt;
-  DateTime updatedAt;
-  UserDash user;
+  DateTime? createdAt;
+  DateTime? updatedAt;
+  UserDash? user;
   int followersCount;
   int followingCount;
   bool isFollowedByMe;
@@ -42,7 +42,7 @@ class UserDtoAuth {
       id: json['id'],
       userId: json['user_id'],
       name: json['name'],
-      birthDate: DateTime.parse(json['birth_date']),
+      birthDate: json['birth_date'] != null ? DateTime.parse(json['birth_date']) : null,
       profileImageUrl: json['profile_image_url'],
       bannerImageUrl: json['banner_image_url'],
       bio: json['bio'],

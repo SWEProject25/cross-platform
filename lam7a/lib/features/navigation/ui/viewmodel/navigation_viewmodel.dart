@@ -14,8 +14,8 @@ class NavigationViewModel extends _$NavigationViewModel {
 
   @override
   int build() {
-    authController  = ref.watch(authenticationProvider.notifier);
-    authState = ref.watch(authenticationProvider);
+    authController  = ref.read(authenticationProvider.notifier);
+    authState = ref.read(authenticationProvider);
     return 0;
   }
   Future<bool> logoutButtonPressed() async {

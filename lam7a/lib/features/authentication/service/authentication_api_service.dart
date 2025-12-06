@@ -104,9 +104,17 @@ class AuthenticationApiService {
     );
   }
 
-  Future unFollowUsers(int userId) async {
+  Future<Map<String, dynamic>> unFollowUsers(int userId) async {
     return await apiService.delete(
       endpoint: "/users/${userId}/follow",
     );
+  }
+  Future<Map<String, dynamic>> oAuthGoogleLogin(String idToken) async {
+    final response = await apiService.post(endpoint: ServerConstant.oAuthGoogleLogin, data: {'idToken' : idToken});
+    return response;
+  }
+  Future<Map<String, dynamic>> oAuthGithubLogin(String code) async {
+    final response = await apiService.post(endpoint: ServerConstant.oAuthExchangeCode, data: {'code' : code});
+    return response;
   }
 }

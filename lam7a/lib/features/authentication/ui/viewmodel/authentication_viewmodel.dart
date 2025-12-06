@@ -1,4 +1,5 @@
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lam7a/core/models/user_dto.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
@@ -32,6 +33,8 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   final Validator validator = Validator();
   late AuthenticationRepositoryImpl repo;
   late Authentication authController;
+  static const String serverClientIdGoogle =
+      "202615777766-iqebkqj9243m77lvl081bupfaf762f9t.apps.googleusercontent.com";
   // the initial state of my state is signup
   @override
   AuthenticationState build() {
@@ -301,7 +304,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         state = state.map(
           login: (login) => login.copyWith(
             toastMessageLogin: "the email or password is wrong",
-            isLoadingLogin: false
+            isLoadingLogin: false,
           ),
           signup: (signup) => signup,
         );
@@ -342,6 +345,26 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         return signupState;
       },
     );
+  }
+
+  Future<void> oAuthLoginGoogle() async {
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+      googleSignIn.initialize(serverClientId: serverClientIdGoogle);
+      final GoogleSignInAccount? user = await googleSignIn.authenticate();
+      String idToken = user?.authentication.idToken ?? "";
+      if (idToken != "") {
+        RootData myUserData = await repo.oAuthGoogleLogin(idToken);
+        authController.authenticateUser(myUserData.user.mapToUserDtoAuth());
+      }
+    } catch (e) {
+      print("Google Sign-In Error: $e");
+    }
+  }
+
+  Future<void> oAuthGithubLogin(String code) async {
+    RootData myUserData = await repo.oAuthGithubLogin(code);
+    authController.authenticateUser(myUserData.user.mapToUserDtoAuth());
   }
 
   ///////////////////////////////////////////////

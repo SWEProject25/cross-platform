@@ -7,9 +7,14 @@ class RootData {
   RootData({required this.user, required this.onboardingStatus});
 
   factory RootData.fromJson(Map<String, dynamic> json) {
+    String onBoard = "onboardingStatus";
+    if (json['onboardingStatus'] == null)
+    {
+      onBoard = "onboarding";
+    }
     return RootData(
       user: User.fromJson(json['user']),
-      onboardingStatus: OnboardingStatus.fromJson(json['onboardingStatus']),
+      onboardingStatus: OnboardingStatus.fromJson(json[onBoard]),
     );
   }
 }
