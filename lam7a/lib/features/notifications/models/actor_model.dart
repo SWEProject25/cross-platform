@@ -13,12 +13,12 @@ class ActorModel {
     required this.profileImageUrl,
   });
 
-  factory ActorModel.fromDTO(ActorDto dto) {
+  factory ActorModel.fromJson(Map<String, dynamic> json) {
     return ActorModel(
-      id: dto.id ?? -1,
-      username: dto.username ?? '@unknown',
-      displayName: dto.displayName ?? 'unknown',
-      profileImageUrl: dto.avatarUrl,
+      id: json['id'] as int? ?? -1,
+      username: json['username'] as String? ?? '@unknown',
+      displayName: json['displayName'] as String? ?? 'unknown',
+      profileImageUrl: json['avatarUrl'] as String?,
     );
   }
 }

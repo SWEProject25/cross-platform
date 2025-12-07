@@ -13,7 +13,7 @@ NotificationsAPIService notificationsAPIService(Ref ref) {
 }
 
 abstract class NotificationsAPIService {
-  Future<NotificationsResponse> getNotifications([int page = 1, int limit = 20]);
+  Future<Map<String, dynamic>> getNotifications([List<String>? includeTypes, List<String>? excludeTypes, int page = 1, int limit = 20]);
   Future<int> getUnReadCount();
   void markAllAsRead();
   void sendFCMToken(String token);
