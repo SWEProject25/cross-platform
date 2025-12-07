@@ -33,7 +33,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     bioCtrl = TextEditingController(text: widget.user.bio ?? '');
     locationCtrl = TextEditingController(text: widget.user.location ?? '');
     websiteCtrl = TextEditingController(text: widget.user.website ?? '');
-    birthDateCtrl = TextEditingController(text: widget.user.birthDate ?? '');
+    birthDateCtrl = TextEditingController(text: (widget.user.birthDate ?? '').split('T').first);
   }
 
   @override
