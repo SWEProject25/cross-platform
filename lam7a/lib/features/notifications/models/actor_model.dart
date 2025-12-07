@@ -1,5 +1,3 @@
-import 'package:lam7a/features/notifications/dtos/notification_dtos.dart';
-
 class ActorModel {
   final int id;
   final String username;

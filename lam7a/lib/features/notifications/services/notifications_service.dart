@@ -1,5 +1,4 @@
 import 'package:lam7a/core/services/api_service.dart';
-import 'package:lam7a/features/notifications/dtos/notification_dtos.dart';
 import 'package:lam7a/features/notifications/services/notifications_service_impl.dart';
 import 'package:lam7a/features/notifications/services/notifications_service_mock.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

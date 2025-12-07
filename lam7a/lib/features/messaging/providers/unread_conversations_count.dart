@@ -1,30 +1,51 @@
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lam7a/features/notifications/repositories/notifications_repository.dart';
+import 'dart:async';
 
-// @riverpod
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/models/auth_state.dart';
+import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/core/utils/logger.dart';
+import 'package:lam7a/features/messaging/repository/conversations_repositories.dart';
+import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
+import 'package:logger/logger.dart';
 
 final unReadConversationsCountProvider = NotifierProvider<UnReadConversationsCount, int>(
   UnReadConversationsCount.new,
 );
 
-
 class UnReadConversationsCount extends Notifier<int> {
-  late NotificationsRepository repository;
-
+  final Logger _logger = getLogger(UnReadConversationsCount);
+  StreamSubscription? _sub;
   @override
   int build() {
-    repository = ref.read(notificationsRepositoryProvider);
+    ref.keepAlive();
+    AuthState auth = ref.watch(authenticationProvider);
+    _sub = ref.read(messagesSocketServiceProvider).incomingMessagesNotifications.listen((event) {
+      refresh();
+    });
+
+    _logger.i("Initialized NewNotificationCount");
 
     Future.microtask(() async {
-      // updateNotificationsCount();
+      if(auth.user != null){
+         refresh();
+      }
+    });
+
+    ref.onDispose(() {
+      _sub?.cancel();
+      _logger.i("Disposed NewNotificationCount");
     });
 
     return 0;
   }
   
-  // void updateNotificationsCount() async {
-  //   var count = await repository.getUnReadCount();
-  //   state = count;
-  // }
+  void refresh({bool reset = false, bool increament = false}) async {
+    if (reset ) state = 0;
+    else if (increament)  state = state+1;
+  
+    var count = await ref.read(conversationsRepositoryProvider).getAllUnseenConversations();
+
+    state = count;
+  }
 }

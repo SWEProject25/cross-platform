@@ -13,6 +13,7 @@ abstract class Conversation with _$Conversation {
     String? avatarUrl,
     String? lastMessage,
     DateTime? lastMessageTime,
+    @Default(0) int unseenCount,
   }) = _Conversation;
 
   factory Conversation.fromJson(Map<String, dynamic> json) =>

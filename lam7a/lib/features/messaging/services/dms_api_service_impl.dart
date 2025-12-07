@@ -97,4 +97,12 @@ class DMsApiServiceImpl extends DMsApiService {
       totalFollowers: followersJson['metadata']['totalItems'],
     );
   }
+  
+  @override
+  Future<int> getNumberOfUnseenConversations(int? conversationId) {
+    return _apiService.get<int>(
+      endpoint: "/conversations/unseen/${conversationId == null ? "" : "$conversationId"}",
+      fromJson: (x) => x['data']['unseen_count'] as int,
+    );
+  }
 }

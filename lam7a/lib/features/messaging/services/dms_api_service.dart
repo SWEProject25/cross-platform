@@ -26,4 +26,6 @@ abstract class DMsApiService {
   Future<List<Contact>> searchForContacts(String query, int page, [int limit = 20]);
 
   Future<Contact> getContactByUserId(int userId);
+
+  Future<int> getNumberOfUnseenConversations(int? conversationId);
 }

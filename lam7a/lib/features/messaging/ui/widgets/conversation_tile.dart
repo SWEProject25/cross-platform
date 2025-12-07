@@ -48,6 +48,15 @@ class ConversationTile extends ConsumerWidget {
               time: state.conversation.lastMessageTime!,
               style: theme.textTheme.bodyMedium,
             ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: CircleAvatar(
+              radius: 3,
+              backgroundColor:
+                state.conversation.unseenCount > 0 ? theme.colorScheme.primary : Colors.transparent,
+            ),
+          ),
+
         ],
       ),
       subtitle: (state.conversation.lastMessage != null)
@@ -57,7 +66,9 @@ class ConversationTile extends ConsumerWidget {
                   ? theme.textTheme.bodyMedium?.copyWith(
                       color: Colors.green.shade900,
                     )
-                  : theme.textTheme.bodyMedium,
+                  : theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: state.conversation.unseenCount > 0 ? FontWeight.bold : null
+                  ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             )

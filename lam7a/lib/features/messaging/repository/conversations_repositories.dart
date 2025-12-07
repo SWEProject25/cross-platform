@@ -72,4 +72,8 @@ class ConversationsRepository {
   Future<Contact> getContactByUserId(int userId) async {
     return await _apiService.getContactByUserId(userId);
   }
+
+  Future<int> getAllUnseenConversations() async {
+    return await _apiService.getNumberOfUnseenConversations(null);
+  }
 }

@@ -244,4 +244,9 @@ class MockDMsApiService implements DMsApiService {
       ));
     }
   }
+  
+  @override
+  Future<int> getNumberOfUnseenConversations(int? conversationId) {
+    return Future.value(_rand.nextInt(10));
+  }
 }
