@@ -69,7 +69,14 @@ void handleLikeNotificationAction(String postId) {
   getLogger(
     NotificationsReceiver,
   ).i("Handling Like notification action for postId: $postId");
-  navigatorKey.currentState?.pushNamed("/post", arguments: {'postId': postId});
+  navigatorKey.currentState?.pushNamed("/tweet", arguments: {'tweetId': postId});
+}
+
+void handleRetweetedNotificationAction(String postId) {
+  getLogger(
+    NotificationsReceiver,
+  ).i("Handling Retweeted notification action for postId: $postId");
+  navigatorKey.currentState?.pushNamed("/tweet", arguments: {'tweetId': postId});
 }
 
 void handleFollowNotificationAction(String username) {

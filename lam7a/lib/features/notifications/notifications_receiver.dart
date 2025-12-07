@@ -163,6 +163,8 @@ class NotificationsReceiver {
         break;
 
       case NotificationType.repost:
+        handleRetweetedNotificationAction(notifiacation.post?.id ?? '');
+        break;
       case NotificationType.mention:
       case NotificationType.reply:
       case NotificationType.quote:
