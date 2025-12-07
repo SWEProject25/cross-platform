@@ -5,7 +5,7 @@ import '../../../common/widgets/user_tile.dart';
 import '../../../common/widgets/tweets_list.dart';
 import '../viewmodel/search_results_viewmodel.dart';
 import '../state/search_result_state.dart';
-import 'search_result/Toptab.dart';
+import 'search_result/toptab.dart';
 import 'search_result/latesttab.dart';
 import 'search_result/peopletab.dart';
 
