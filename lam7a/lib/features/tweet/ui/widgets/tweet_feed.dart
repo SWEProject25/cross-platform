@@ -9,7 +9,6 @@ import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
-
 class TweetFeed extends ConsumerStatefulWidget {
   const TweetFeed({super.key, required this.tweetState});
   final TweetState tweetState;
@@ -71,18 +70,16 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
             ),
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               child: Row(
                 children: [
                   const Icon(Icons.check_circle, color: Colors.white),
                   const SizedBox(width: 10),
                   Text(
                     "Reposted Successfully",
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyLarge
-                        ?.copyWith(color: Colors.white),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(color: Colors.white),
                   ),
                 ],
               ),
@@ -113,7 +110,7 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                 children: [
                   ListTile(
                     leading: const Icon(Icons.repeat, color: Colors.blue),
-                    title:  Text(
+                    title: Text(
                       "Repost",
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
@@ -127,7 +124,7 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                       Icons.format_quote,
                       color: Colors.green,
                     ),
-                    title:  Text(
+                    title: Text(
                       "Quote",
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
@@ -186,9 +183,9 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
   @override
   Widget build(BuildContext context) {
     // Safe null check
-    var themeData= Theme.of(context);
+    var themeData = Theme.of(context);
     final tweet = widget.tweetState.tweet.value;
-    final postId =widget.tweetState.tweet.value!.id;
+    final postId = widget.tweetState.tweet.value!.id;
     if (tweet == null) {
       return const SizedBox.shrink(); // Return empty if no tweet data
     }
@@ -234,46 +231,56 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                   BlendMode.srcIn,
                 ),
               ),
-              Text(
-          commentsNumStr,
-          style: themeData.textTheme.bodyMedium
-        ),
+              ref
+                  .watch(tweetViewModelProvider(tweetId))
+                  .when(
+                    data: (state) => Text(
+                      "${state.commentCountUpdated ?? commentsNumStr}",
+                      style: themeData.textTheme.bodyMedium,
+                    ),
+                    loading: () => Text(
+                      commentsNumStr,
+                      style: themeData.textTheme.bodyMedium,
+                    ),
+
+                    error: (_, __) => Text(
+                      commentsNumStr,
+                      style: themeData.textTheme.bodyMedium,
+                    ),
+                  ),
             ],
-            
           ),
-           onPressed: () async {
-                      final authState = ref.read(authenticationProvider);
-                      final user = authState.user;
-                      if (user == null || user.id == null) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Please log in to reply'),
-                            ),
-                          );
-                        }
-                        return;
-                      }
+          onPressed: () async {
+            final authState = ref.read(authenticationProvider);
+            final user = authState.user;
+            if (user == null || user.id == null) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please log in to reply')),
+                );
+              }
+              return;
+            }
 
-                      final parentId = int.tryParse(postId);
-                      if (parentId == null) {
-                        return;
-                      }
+            final parentId = int.tryParse(postId);
+            if (parentId == null) {
+              return;
+            }
 
-                      await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => AddTweetScreen(
-                            userId: user.id!,
-                            parentPostId: parentId,
-                            isReply: true,
-                          ),
-                        ),
-                      );
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => AddTweetScreen(
+                  userId: user.id!,
+                  parentPostId: parentId,
+                  isReply: true,
+                ),
+              ),
+            );
 
-                      // Refresh replies and parent tweet (comments count) after returning
-                      ref.invalidate(tweetRepliesViewModelProvider(postId));
-                      ref.invalidate(tweetViewModelProvider(postId));
-                    },
+            // Refresh replies and parent tweet (comments count) after returning
+            ref.invalidate(tweetRepliesViewModelProvider(postId));
+            ref.invalidate(tweetViewModelProvider(postId));
+          },
         ),
 
         // Repost
@@ -300,14 +307,13 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                         ),
                       ),
                       Text(
-                        repostsNumStr,
-                        style:state.isReposted
+                        '${state.repostCountUpdated ?? repostsNumStr}',
+                        style: state.isReposted
                             ? themeData.textTheme.bodyMedium?.copyWith(
                                 color: Colors.green,
                               )
                             : themeData.textTheme.bodyMedium,
                       ),
-                      
                     ],
                   ),
                   loading: () => SvgPicture.asset(
@@ -361,7 +367,7 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                         ),
                       ),
                       Text(
-                        likesNumStr,
+                        "${state.likeCountUpdated ?? likesNumStr}",
                         style: TextStyle(
                           color: ref
                               .watch(tweetViewModelProvider(tweetId))
@@ -411,15 +417,12 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
           constraints: const BoxConstraints(),
           icon: Row(
             children: [
-               Icon(
+              Icon(
                 Icons.bar_chart_outlined,
                 color: themeData.colorScheme.secondary,
                 size: 20,
               ),
-              Text(
-          veiwsNumStr,
-          style: themeData.textTheme.bodyMedium,
-        ),
+              Text(veiwsNumStr, style: themeData.textTheme.bodyMedium),
             ],
           ),
           onPressed: ref

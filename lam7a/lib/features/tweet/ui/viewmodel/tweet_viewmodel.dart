@@ -56,22 +56,49 @@ class TweetViewModel extends _$TweetViewModel {
       isReposted: isReposted,
       isViewed: isViewed,
       tweet: AsyncData(effectiveTweet),
+      
     );
   }
 
   void _onLikeUpdate(int count) {
-    // TODO: implement _onLikeUpdate to update like count
     logger.i("Received like update: $count through socket on tweet id ${state.value?.tweet.value?.id ?? 'unknown'}");
+    if (state.value == null || !state.value!.tweet.hasValue || state.value!.tweet.value == null) {
+      logger.w("Cannot update like count: tweet not loaded");
+      return;
+    }
+
+    state = AsyncData(
+      state.value!.copyWith(
+        likeCountUpdated: count,
+      ),
+    );
   }
 
   void _onRepostUpdate(int count) {
-    // TODO: implement _onRepostUpdate to update repost count
     logger.i("Received repost update: $count through socket on tweet id ${state.value?.tweet.value?.id ?? 'unknown'}");
+  
+    if (state.value == null || !state.value!.tweet.hasValue || state.value!.tweet.value == null) {
+      logger.w("Cannot update repost count: tweet not loaded");
+      return;
+    }
+    state = AsyncData(
+      state.value!.copyWith(
+        repostCountUpdated: count,
+      ),
+    );  
   }
 
   void _onCommentUpdate(int count) {
-    // TODO: implement _onCommentUpdate to update comment count
     logger.i("Received comment update: $count through socket on tweet id ${state.value?.tweet.value?.id ?? 'unknown'}");
+    if (state.value == null || !state.value!.tweet.hasValue || state.value!.tweet.value == null) {
+      logger.w("Cannot update comment count: tweet not loaded");
+      return;
+    }
+    state = AsyncData(
+      state.value!.copyWith(
+        commentCountUpdated: count,
+      ),
+    );
   }
 
   //  Handle Like toggle
