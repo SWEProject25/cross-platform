@@ -46,6 +46,11 @@ class TweetViewModel extends _$TweetViewModel {
     tweetsUpdateRepo.onPostRepostUpdates(int.parse(tweetId)).listen(_onRepostUpdate);
     tweetsUpdateRepo.onPostCommentUpdates(int.parse(tweetId)).listen(_onCommentUpdate);
 
+    ref.onDispose(() {
+      logger.i("Disposing TweetViewModel for tweetId: $tweetId");
+      tweetsUpdateRepo.leavePost(int.parse(tweetId));
+    });
+
     return TweetState(
       isLiked: isLiked,
       isReposted: isReposted,
