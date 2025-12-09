@@ -84,10 +84,10 @@ class AuthenticationApiService {
     );
     return res['data'];
   }
-  Future<List<dynamic>> getUsersToFollow() async {
+  Future<List<dynamic>> getUsersToFollow([int limit = 10]) async {
     Map<String, dynamic> res = await apiService.get(
       endpoint: ServerConstant.toFollowUsers,
-      queryParameters: {'limit': 10}
+      queryParameters: {'limit': limit}
     );
     return res['data']['users'];
   }

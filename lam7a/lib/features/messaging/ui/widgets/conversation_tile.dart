@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/widgets/app_user_avatar.dart';
 import 'package:lam7a/core/widgets/time_ago_text.dart';
+import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/conversation_viewmodel.dart';
-import 'package:lam7a/features/messaging/ui/widgets/network_avatar.dart';
 
 class ConversationTile extends ConsumerWidget {
   final int id;
+  final Conversation conversation;
 
-  const ConversationTile({required this.id, super.key});
+  const ConversationTile({required this.id, required this.conversation, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,17 +18,22 @@ class ConversationTile extends ConsumerWidget {
 
     var state = ref.watch(conversationViewmodelProvider(id));
 
+    var lastMessage = state.lastMessage ?? conversation.lastMessage;
+    var lastMessageTime = state.lastMessageTime ?? conversation.lastMessageTime;
+    var unseenCount = state.unseenCount ?? conversation.unseenCount;
+
+
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: 
-            AppUserAvatar(radius: 24, displayName: state.conversation.name, imageUrl: state.conversation.avatarUrl),
+            AppUserAvatar(radius: 24, displayName: conversation.name, imageUrl: conversation.avatarUrl),
       title: Row(
         children: [
           Expanded(
             child: Row(
               children: [
                 Text(
-                  state.conversation.name,
+                  conversation.name,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
@@ -35,7 +41,7 @@ class ConversationTile extends ConsumerWidget {
                 ),
                 Expanded(
                   child: Text(
-                    " @${state.conversation.username.toLowerCase().replaceAll(' ', '')}",
+                    " @${conversation.username.toLowerCase().replaceAll(' ', '')}",
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium,
                   ),
@@ -43,9 +49,9 @@ class ConversationTile extends ConsumerWidget {
               ],
             ),
           ),
-          if (state.conversation.lastMessage != null)
+          if (lastMessage != null)
             TimeAgoText(
-              time: state.conversation.lastMessageTime!,
+              time: lastMessageTime!,
               style: theme.textTheme.bodyMedium,
             ),
           Padding(
@@ -53,32 +59,33 @@ class ConversationTile extends ConsumerWidget {
             child: CircleAvatar(
               radius: 3,
               backgroundColor:
-                state.conversation.unseenCount > 0 ? theme.colorScheme.primary : Colors.transparent,
+                unseenCount > 0 ? theme.colorScheme.primary : Colors.transparent,
             ),
           ),
 
         ],
       ),
-      subtitle: (state.conversation.lastMessage != null)
+      subtitle: (lastMessage != null)
           ? Text(
-              state.isTyping ? "Typing..." : state.conversation.lastMessage!,
+              state.isTyping ? "Typing..." : lastMessage,
               style: state.isTyping
                   ? theme.textTheme.bodyMedium?.copyWith(
                       color: Colors.green.shade900,
                     )
                   : theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: state.conversation.unseenCount > 0 ? FontWeight.bold : null
+                    fontWeight: unseenCount > 0 ? FontWeight.bold : null
                   ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             )
           : null,
       onTap: () {
+        ref.read(conversationViewmodelProvider(id).notifier).markConversationAsSeen();
         Navigator.of(context).pushNamed(
           ChatScreen.routeName,
           arguments: {
-            'userId': state.conversation.userId,
-            'conversationId': state.conversation.id,
+            'userId': conversation.userId,
+            'conversationId': conversation.id,
           },
         );
       },
