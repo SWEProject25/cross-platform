@@ -62,12 +62,12 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
         foregroundColor: isFollowing ? Colors.black : Colors.white,
         side: const BorderSide(color: Colors.black),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),// Adjusted padding
       ),
       child: _loading
           ? const SizedBox(
               width: 16,
-              height: 16,
+              height: 8,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : Text(
