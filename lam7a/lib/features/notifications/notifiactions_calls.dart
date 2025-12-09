@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:lam7a/core/utils/logger.dart';
+import 'package:lam7a/features/messaging/active_chat_screens.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
-import 'package:lam7a/features/messaging/ui/viewmodel/active_chat_screens.dart';
 import 'package:lam7a/features/notifications/models/notification_model.dart';
 import 'package:lam7a/features/notifications/notifications_receiver.dart';
 import 'package:lam7a/features/notifications/ui/widgets/notification_overlay.dart';

@@ -70,8 +70,8 @@ class AuthenticationRepositoryImpl {
     return interests.map((e) => InterestDto.fromJson(e)).toList();
   }
 
-  Future<List<UserToFollowDto>> getUsersToFollow() async {
-    List<dynamic> users = await apiService.getUsersToFollow();
+  Future<List<UserToFollowDto>> getUsersToFollow([int limit = 10]) async {
+    List<dynamic> users = await apiService.getUsersToFollow(limit);
     return users.map((e) => UserToFollowDto.fromJson(e)).toList();
   }
 

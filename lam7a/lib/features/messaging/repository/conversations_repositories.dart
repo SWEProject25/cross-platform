@@ -30,18 +30,15 @@ class ConversationsRepository {
     var conversationsDto = await _apiService.getConversations();
 
     var conversations = conversationsDto.data.map((x) {
-      return Conversation(
-        id: x.id,
-        userId: x.user.id,
-        name: x.user.displayName,
-        username: x.user.username,
-        avatarUrl: x.user.profileImageUrl,
-        lastMessage: x.lastMessage?.text,
-        lastMessageTime: x.updatedAt,
-      );
+      return Conversation.fromDto(x);
     }).toList();
 
     return (conversations, conversationsDto.metadata.totalPages != conversationsDto.metadata.page);
+  }
+
+  Future<Conversation> getConversationById(int convId) async {
+    var conversationDto = await _apiService.getConversationById(convId);
+    return Conversation.fromDto(conversationDto.data);
   }
 
   Future<int> getConversationIdByUserId(int userId) async {
@@ -62,7 +59,7 @@ class ConversationsRepository {
     int limit = 20,
   ]) async {
     if(query.length <= 1){
-      var res = await authRepo.getUsersToFollow();
+      var res = await authRepo.getUsersToFollow(50);
       return res.map((x)=> Contact(id: x.id??-1, name: x.profile?.name?? "Unkown", handle: x.username?? "@unkown")).toList();
     }else{
       return await _apiService.searchForContacts(query, page, limit);

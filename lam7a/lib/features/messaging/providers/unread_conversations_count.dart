@@ -45,7 +45,7 @@ class UnReadConversationsCount extends Notifier<int> {
     else if (increament)  state = state+1;
   
     var count = await ref.read(conversationsRepositoryProvider).getAllUnseenConversations();
-
+    _logger.i("Unread conversations count updated: $count from ${state}");
     state = count;
   }
 }
