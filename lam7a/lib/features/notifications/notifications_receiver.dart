@@ -1,10 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/utils/logger.dart';
-import 'package:lam7a/features/notifications/dtos/notification_dtos.dart';
 import 'package:lam7a/features/notifications/models/notification_model.dart';
 import 'package:lam7a/features/notifications/notifiactions_calls.dart';
 import 'package:lam7a/features/notifications/proveriders/new_notifications_count.dart';
@@ -108,10 +106,13 @@ class NotificationsReceiver {
   }
 
   void _onMessageReceived(RemoteMessage message) {
-    _newNotificationCount.updateNotificationsCount(increament: true);
+    _newNotificationCount.updateNotificationsCount();
+    _newNotificationCount.notifyViewModels();
 
     logger.i('Got a message whilst in the foreground!');
     logger.i('Message data: ${message.data.toString()}');
+    logger.i('Message data: ${message.data.toString()} ${message.data.runtimeType.toString()}');
+
 
     if (message.notification != null) {
       logger.i(
@@ -119,11 +120,7 @@ class NotificationsReceiver {
       );
     } 
 
-    NotificationDto notificationDTO = NotificationDto.fromJson(message.data);
-    NotificationModel notifiacation = NotificationModel.fromDTO(
-      notificationDTO,
-      null,
-    );
+    NotificationModel notifiacation = NotificationModel.fromJson(message.data);
 
     switch (notifiacation.type) {
       case NotificationType.dm:
@@ -140,12 +137,9 @@ class NotificationsReceiver {
     await Firebase.initializeApp();
 
     logger.i("Handling a background message: ${message.messageId}");
+    logger.i('Message data: ${message.data.toString()} ${message.data.runtimeType.toString()}');
+    NotificationModel notifiacation = NotificationModel.fromJson(message.data);
 
-    NotificationDto notificationDTO = NotificationDto.fromJson(message.data);
-    NotificationModel notifiacation = NotificationModel.fromDTO(
-      notificationDTO,
-      null,
-    );
 
     handleNotificationAction(notifiacation);
     _newNotificationCount.updateNotificationsCount();
@@ -169,6 +163,8 @@ class NotificationsReceiver {
         break;
 
       case NotificationType.repost:
+        handleRetweetedNotificationAction(notifiacation.post?.id ?? '');
+        break;
       case NotificationType.mention:
       case NotificationType.reply:
       case NotificationType.quote:

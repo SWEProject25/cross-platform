@@ -15,10 +15,12 @@ class TweetSummaryWidget extends ConsumerWidget {
     super.key,
     required this.tweetId,
     required this.tweetData,
+    this.backGroundColor,
   });
 
   final String tweetId;
   final TweetModel tweetData;
+  final Color? backGroundColor;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -52,7 +54,7 @@ class TweetSummaryWidget extends ConsumerWidget {
       child: Container(
         alignment: Alignment.center,
         key: Key(tweetId),
-        color: Theme.of(context).colorScheme.surface,
+        color: backGroundColor ?? Theme.of(context).colorScheme.surface,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,

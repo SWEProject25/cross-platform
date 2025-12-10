@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/widgets/app_user_avatar.dart';
-import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/contact_search_viewmodel.dart';
 import 'package:lam7a/main.dart';
-import 'package:path/path.dart';
-import '../viewmodel/conversations_viewmodel.dart';
 
 class FindContactsScreen extends ConsumerWidget {
   const FindContactsScreen({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var theme = Theme.of(context);
-    final state = ref.watch(conversationsViewModelProvider);
-    final viewModel = ref.read(conversationsViewModelProvider.notifier);
+    final state = ref.watch(contactSearchViewModelProvider);
+    final viewModel = ref.read(contactSearchViewModelProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -38,19 +36,6 @@ class FindContactsScreen extends ConsumerWidget {
             ),
           ),
           const Divider(height: 0),
-
-          // "Create a group" row
-          // ListTile(
-          //   leading: CircleAvatar(
-          //     backgroundColor: Colors.blue.shade50,
-          //     child: const Icon(Icons.group_add, color: Colors.blue),
-          //   ),
-          //   title: const Text(
-          //     'Create a group',
-          //     style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
-          //   ),
-          //   onTap: () {},
-          // ),
 
           // Conversation list
           Expanded(

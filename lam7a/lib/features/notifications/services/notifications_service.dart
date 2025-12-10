@@ -1,5 +1,4 @@
 import 'package:lam7a/core/services/api_service.dart';
-import 'package:lam7a/features/notifications/dtos/notification_dtos.dart';
 import 'package:lam7a/features/notifications/services/notifications_service_impl.dart';
 import 'package:lam7a/features/notifications/services/notifications_service_mock.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -13,7 +12,7 @@ NotificationsAPIService notificationsAPIService(Ref ref) {
 }
 
 abstract class NotificationsAPIService {
-  Future<NotificationsResponse> getNotifications([int page = 1, int limit = 20]);
+  Future<Map<String, dynamic>> getNotifications([List<String>? includeTypes, List<String>? excludeTypes, int page = 1, int limit = 20]);
   Future<int> getUnReadCount();
   void markAllAsRead();
   void sendFCMToken(String token);

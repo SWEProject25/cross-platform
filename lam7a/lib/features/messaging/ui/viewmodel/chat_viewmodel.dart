@@ -7,6 +7,7 @@ import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/features/messaging/repository/conversations_repositories.dart';
 import 'package:lam7a/features/messaging/repository/messages_repository.dart';
 import 'package:lam7a/features/messaging/ui/state/chat_state.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/conversation_viewmodel.dart';
 import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -39,6 +40,10 @@ class ChatViewModel extends _$ChatViewModel {
     _messagesRepository = ref.read(messagesRepositoryProvider);
     _authState = ref.watch(authenticationProvider);
 
+    if(_authState.user == null){
+      throw Exception("User not authenticated");
+    }
+
     Future.microtask(() async {
       // await _getConvId();
 
@@ -47,6 +52,7 @@ class ChatViewModel extends _$ChatViewModel {
       
       _messagesRepository.joinConversation(_conversationId);
       _messagesRepository.sendMarkAsSeen(_conversationId);
+      ref.read(conversationViewmodelProvider(_conversationId).notifier).markConversationAsSeen();
       _loadContact();
       _loadMessages();
 
@@ -121,6 +127,7 @@ class ChatViewModel extends _$ChatViewModel {
   void _onNewMessagesArrive(){
     _refreshMessages();
     _messagesRepository.sendMarkAsSeen(_conversationId);
+    ref.read(conversationViewmodelProvider(_conversationId).notifier).markConversationAsSeen();
   }
 
   void _onOtherTyping (bool isTyping) {
