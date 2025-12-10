@@ -416,7 +416,6 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
 
   void showLogoutDialog(WidgetRef ref) {
     bool isDark = ref.watch(themeProviderProvider);
-    final viewmodel = ref.watch(navigationViewModelProvider.notifier);
     Widget dialog = AlertDialog(
       backgroundColor: isDark
           ? const Color.fromARGB(255, 71, 71, 71)

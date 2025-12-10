@@ -61,7 +61,6 @@ class AuthenticationApiService {
       endpoint: ServerConstant.login,
       data: userCredentials.toJson(),
     );
-    
   }
 
   Future<void> test() async {
@@ -76,18 +75,21 @@ class AuthenticationApiService {
       endpoint: ServerConstant.logout,
     );
     print(res[AuthenticationConstants.status]);
-    return res[AuthenticationConstants.status] == AuthenticationConstants.success;
+    return res[AuthenticationConstants.status] ==
+        AuthenticationConstants.success;
   }
+
   Future<List<dynamic>> getInterests() async {
     Map<String, dynamic> res = await apiService.get(
       endpoint: ServerConstant.getInterests,
     );
     return res['data'];
   }
+
   Future<List<dynamic>> getUsersToFollow([int limit = 10]) async {
     Map<String, dynamic> res = await apiService.get(
       endpoint: ServerConstant.toFollowUsers,
-      queryParameters: {'limit': limit}
+      queryParameters: {'limit': limit},
     );
     return res['data']['users'];
   }
@@ -98,23 +100,36 @@ class AuthenticationApiService {
       data: {'interestIds': interestIds},
     );
   }
+
   Future<Map<String, dynamic>> followUsers(int userId) async {
-    return await apiService.post(
-      endpoint: "/users/${userId}/follow",
-    );
+    return await apiService.post(endpoint: "/users/${userId}/follow");
   }
 
   Future<Map<String, dynamic>> unFollowUsers(int userId) async {
-    return await apiService.delete(
-      endpoint: "/users/${userId}/follow",
-    );
+    return await apiService.delete(endpoint: "/users/${userId}/follow");
   }
+
   Future<Map<String, dynamic>> oAuthGoogleLogin(String idToken) async {
-    final response = await apiService.post(endpoint: ServerConstant.oAuthGoogleLogin, data: {'idToken' : idToken});
+    final response = await apiService.post(
+      endpoint: ServerConstant.oAuthGoogleLogin,
+      data: {'idToken': idToken},
+    );
     return response;
   }
+
   Future<Map<String, dynamic>> oAuthGithubLogin(String code) async {
-    final response = await apiService.post(endpoint: ServerConstant.oAuthExchangeCode, data: {'code' : code});
+    final response = await apiService.post(
+      endpoint: ServerConstant.oAuthExchangeCode,
+      data: {'code': code},
+    );
+    return response;
+  }
+
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    final response = await apiService.post(
+      endpoint: ServerConstant.forgotPasswordConst,
+      data: {'email': email, 'type': "MOBILE"},
+    );
     return response;
   }
 }

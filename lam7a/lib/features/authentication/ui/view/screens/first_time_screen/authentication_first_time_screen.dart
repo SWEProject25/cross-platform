@@ -16,6 +16,7 @@ import 'package:lam7a/core/constants/server_constant.dart';
 import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/reset_password.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_icon_button_widget.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_login_text.dart';
@@ -70,7 +71,12 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
   }
 
   void openAppLink(Uri uri) {
-    _navigatorKey.currentState?.pushNamed(uri.fragment);
+    if (uri.queryParameters.containsKey('token')) {
+      Navigator.pushNamed(context, ResetPassword.routeName);
+      print(uri.queryParameters['token']);
+    } else {
+      _navigatorKey.currentState?.pushNamed(ResetPassword.routeName);
+    }
   }
 
   @override

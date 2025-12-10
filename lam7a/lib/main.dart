@@ -6,6 +6,8 @@ import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/core/services/socket_service.dart';
 import 'package:lam7a/core/theme/theme.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/following_screen/following_screen.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/forgot_password_screen.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/reset_password.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/interests_screen/interests_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authentication_login_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
@@ -92,6 +94,9 @@ class _MyAppState extends ConsumerState<MyApp> {
             InterestsScreen.routeName: (context) => InterestsScreen(),
             FollowingScreen.routeName: (context) => FollowingScreen(),
             OauthWebview.routeName: (context) => OauthWebview(),
+            ResetPassword.routeName: (context) => ResetPassword(),
+
+            ForgotPasswordScreen.routeName: (context) => ForgotPasswordScreen(),
             '/profile': (context) {
               final args = ModalRoute.of(context)!.settings.arguments as Map;
               final username = args['username'] as String;

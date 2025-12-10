@@ -102,4 +102,8 @@ class AuthenticationRepositoryImpl {
     RootData userModel = RootData.fromJson(res['data']);
     return userModel;
   }
+  Future<bool> forgotPassword(String email) async {
+    final res = await apiService.forgotPassword(email);
+    return res[AuthenticationConstants.status] == AuthenticationConstants.success;
+  }
 }
