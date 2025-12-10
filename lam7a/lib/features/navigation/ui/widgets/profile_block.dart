@@ -59,7 +59,7 @@ class ProfileBlock extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                       '${userData!.followingCount}',
+                       '${userData?.followingCount ?? 0}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.onSurface,
@@ -71,7 +71,7 @@ class ProfileBlock extends StatelessWidget {
                       ),
                       SizedBox(width: 20),
                       Text(
-                         '${userData!.followersCount}',
+                         '${userData?.followersCount ?? 0}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.onSurface,

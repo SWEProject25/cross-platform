@@ -6,10 +6,12 @@ import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/model/interest_dto.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/following_screen/following_screen.dart';
+import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/interests_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
 import 'package:lam7a/features/authentication/ui/widgets/interest_widget.dart';
 import 'package:lam7a/features/authentication/ui/widgets/loading_circle.dart';
+import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 
 class InterestsScreen extends ConsumerStatefulWidget {
   static const String routeName = "interests_screen";
@@ -105,14 +107,14 @@ class _InterestsScreenState extends ConsumerState<InterestsScreen> {
                               child: Text('Error loading interests'),
                             ),
                           ),
-                          loading: () => SliverToBoxAdapter(
-                            child: Center(child: LoadingCircle()),
+                          loading: () => SliverFillRemaining(
+                            child: Expanded(child: LoadingCircle()),
                           ),
                         ),
                       )
-                    :  SliverFillRemaining(
-        child: Center(child: LoadingCircle()),
-      ),
+                    : SliverFillRemaining(
+                        child: Expanded(child: LoadingCircle()),
+                      ),
               ],
             ),
           ),
@@ -142,11 +144,23 @@ class _InterestsScreenState extends ConsumerState<InterestsScreen> {
                         await ref
                             .read(interestsViewModelProvider.notifier)
                             .selectInterests(selectedInterests);
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          FollowingScreen.routeName,
-                          (route) => false,
+                        final snapshot = ref.read(
+                          authenticationViewmodelProvider,
                         );
+
+                        if (!snapshot.hasCompeletedFollowing) {
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            FollowingScreen.routeName,
+                            (route) => false,
+                          );
+                        } else {
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            NavigationHomeScreen.routeName,
+                            (route) => false,
+                          );
+                        }
                         isLoading = false;
                         setState(() {});
                       }
