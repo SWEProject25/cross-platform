@@ -294,4 +294,8 @@ class TweetViewModel extends _$TweetViewModel {
   bool getisReposted() {
     return state.value!.isReposted;
   }
+
+  Future<String> getSummary(String tweetId) async {
+    return ref.read(tweetRepositoryProvider).getTweetSummery(tweetId);
+  }
 }

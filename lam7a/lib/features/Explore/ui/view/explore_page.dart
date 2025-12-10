@@ -6,7 +6,6 @@ import '../viewmodel/explore_viewmodel.dart';
 import 'explore_and_trending/for_you_view.dart';
 import 'explore_and_trending/trending_view.dart';
 
-import '../../../common/widgets/tweets_list.dart';
 import '../widgets/hashtag_list_item.dart';
 
 class ExplorePage extends ConsumerStatefulWidget {

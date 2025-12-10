@@ -2,26 +2,50 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'tweet_body_summary_widget.dart';
-import '../../repository/tweet_repository.dart';
+import '../viewmodel/tweet_viewmodel.dart';
 
 ///  FutureProvider → Fetches summary when page opens
-final aiSummaryProvider = FutureProvider.family<String, String>((
-  ref,
-  tweetId,
-) async {
-  final repo = ref.read(tweetRepositoryProvider);
-  final summary = await repo.getTweetSummery(tweetId);
-  return summary;
-});
-
-class TweetAiSummery extends ConsumerWidget {
+class TweetAiSummery extends ConsumerStatefulWidget {
   final TweetModel tweet;
 
   const TweetAiSummery({super.key, required this.tweet});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final summaryAsync = ref.watch(aiSummaryProvider(tweet.id));
+  ConsumerState<TweetAiSummery> createState() => _TweetAiSummeryState();
+}
+
+class _TweetAiSummeryState extends ConsumerState<TweetAiSummery> {
+  String? summary;
+  bool loading = true;
+  String? error;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Call after first build (same behaviour as FutureProvider)
+    Future.microtask(() async {
+      try {
+        final vm = ref.read(tweetViewModelProvider(widget.tweet.id).notifier);
+        final String result = await vm.getSummary(widget.tweet.id);
+
+        if (mounted) {
+          setState(() {
+            summary = result;
+            loading = false;
+          });
+        }
+      } catch (e) {
+        setState(() {
+          error = e.toString();
+          loading = false;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -35,29 +59,34 @@ class TweetAiSummery extends ConsumerWidget {
       ),
 
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            OriginalTweetCard(tweet: tweet),
-
+            OriginalTweetCard(tweet: widget.tweet),
             const SizedBox(height: 16),
 
             Expanded(
-              child: summaryAsync.when(
-                loading: () => const Center(
-                  child: CircularProgressIndicator(color: Colors.blue),
-                ),
-                error: (err, stack) => Center(
+              child: () {
+                if (loading) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.blue),
+                  );
+                }
+
+                if (error != null) {
+                  return Center(
+                    child: Text(
+                      "Failed to load summary.\n$error",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  );
+                }
+
+                return SingleChildScrollView(
                   child: Text(
-                    "Failed to load summary.\n$err",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
-                data: (summary) => SingleChildScrollView(
-                  child: Text(
-                    summary,
+                    summary ?? "",
                     style: TextStyle(
                       fontSize: 16,
                       color: theme.brightness == Brightness.light
@@ -65,8 +94,8 @@ class TweetAiSummery extends ConsumerWidget {
                           : Colors.white,
                     ),
                   ),
-                ),
-              ),
+                );
+              }(),
             ),
           ],
         ),
