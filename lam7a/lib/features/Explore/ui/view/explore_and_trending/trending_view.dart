@@ -21,7 +21,7 @@ class TrendingView extends StatelessWidget {
         itemBuilder: (context, index) {
           final hashtag = trendingHashtags[index];
           return Padding(
-            padding: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.only(bottom: 25),
             child: HashtagItem(hashtag: hashtag),
           );
         },

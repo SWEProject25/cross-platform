@@ -7,6 +7,7 @@ import 'explore_and_trending/for_you_view.dart';
 import 'explore_and_trending/trending_view.dart';
 
 import '../../../common/widgets/tweets_list.dart';
+import '../widgets/hashtag_list_item.dart';
 
 class ExplorePage extends ConsumerStatefulWidget {
   const ExplorePage({super.key});
@@ -60,7 +61,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage>
         });
 
         return Scaffold(
-          backgroundColor: Colors.black,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: Column(
             children: [
               _buildTabBar(width),
@@ -73,9 +74,9 @@ class _ExplorePageState extends ConsumerState<ExplorePage>
                   children: [
                     _forYouTab(data, vm),
                     _trendingTab(data, vm),
-                    _newsTab(data, vm),
-                    _sportsTab(data, vm),
-                    _entertainmentTab(data, vm),
+                    _newsTab(data, vm, context),
+                    _sportsTab(data, vm, context),
+                    _entertainmentTab(data, vm, context),
                   ],
                 ),
               ),
@@ -131,22 +132,16 @@ class _ExplorePageState extends ConsumerState<ExplorePage>
 
 Widget _forYouTab(ExploreState data, ExploreViewModel vm) {
   print("For You Tab rebuilt");
-  if (data.isForYouTweetsLoading) {
+  if (data.isForYouHashtagsLoading ||
+      data.isSuggestedUsersLoading ||
+      data.isInterestMapLoading) {
     return const Center(child: CircularProgressIndicator(color: Colors.white));
   }
-  if (data.forYouTweets.isEmpty) {
-    return const Center(
-      child: Text(
-        "No tweets found for you",
-        style: TextStyle(color: Colors.white54),
-      ),
-    );
-  }
-  return TweetsListView(
-    tweets: data.forYouTweets,
-    hasMore: data.hasMoreForYouTweets,
-    onRefresh: () async => vm.refreshCurrentTab(),
-    onLoadMore: () async => vm.loadMoreForYou(),
+
+  return ForYouView(
+    trendingHashtags: data.forYouHashtags,
+    suggestedUsers: data.suggestedUsers,
+    forYouTweetsMap: data.interestBasedTweets,
   );
 }
 
@@ -166,65 +161,139 @@ Widget _trendingTab(ExploreState data, ExploreViewModel vm) {
   return TrendingView(trendingHashtags: data.trendingHashtags);
 }
 
-Widget _newsTab(ExploreState data, ExploreViewModel vm) {
+Widget _newsTab(ExploreState data, ExploreViewModel vm, BuildContext context) {
+  final theme = Theme.of(context);
   print("News Tab rebuilt");
-  if (data.isNewsTweetsLoading) {
-    return const Center(child: CircularProgressIndicator(color: Colors.white));
-  }
-  if (data.newsTweets.isEmpty) {
-    return const Center(
-      child: Text(
-        "No news tweets found",
-        style: TextStyle(color: Colors.white54),
+  if (data.isNewsHashtagsLoading) {
+    return Center(
+      child: CircularProgressIndicator(
+        color: theme.brightness == Brightness.light
+            ? const Color(0xFF1D9BF0)
+            : Colors.white,
       ),
     );
   }
-  return TweetsListView(
-    tweets: data.newsTweets,
-    hasMore: data.hasMoreNewsTweets,
-    onRefresh: () async => vm.refreshCurrentTab(),
-    onLoadMore: () async => vm.loadMoreNews(),
+  if (data.newsHashtags.isEmpty) {
+    return Center(
+      child: Text(
+        "No News Trending hashtags found",
+        style: TextStyle(
+          color: theme.brightness == Brightness.light
+              ? const Color(0xFF52636d)
+              : const Color(0xFF7c838c),
+        ),
+      ),
+    );
+  }
+  return Scrollbar(
+    interactive: true,
+    radius: const Radius.circular(20),
+    thickness: 6,
+
+    child: ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: data.newsHashtags.length,
+      itemBuilder: (context, index) {
+        final hashtag = data.newsHashtags[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 25),
+          child: HashtagItem(hashtag: hashtag),
+        );
+      },
+    ),
   );
 }
 
-Widget _sportsTab(ExploreState data, ExploreViewModel vm) {
+Widget _sportsTab(
+  ExploreState data,
+  ExploreViewModel vm,
+  BuildContext context,
+) {
+  final theme = Theme.of(context);
   print("Sports Tab rebuilt");
-  if (data.isSportsTweetsLoading) {
-    return const Center(child: CircularProgressIndicator(color: Colors.white));
-  }
-  if (data.sportsTweets.isEmpty) {
-    return const Center(
-      child: Text(
-        "No sports tweets found",
-        style: TextStyle(color: Colors.white54),
+  if (data.isSportsHashtagsLoading) {
+    return Center(
+      child: CircularProgressIndicator(
+        color: theme.brightness == Brightness.light
+            ? const Color(0xFF1D9BF0)
+            : Colors.white,
       ),
     );
   }
-  return TweetsListView(
-    tweets: data.sportsTweets,
-    hasMore: data.hasMoreSportsTweets,
-    onRefresh: () async => vm.refreshCurrentTab(),
-    onLoadMore: () async => vm.loadMoreSports(),
+  if (data.sportsHashtags.isEmpty) {
+    return Center(
+      child: Text(
+        "No Sports Trending hashtags found",
+        style: TextStyle(
+          color: theme.brightness == Brightness.light
+              ? const Color(0xFF52636d)
+              : const Color(0xFF7c838c),
+        ),
+      ),
+    );
+  }
+  return Scrollbar(
+    interactive: true,
+    radius: const Radius.circular(20),
+    thickness: 6,
+
+    child: ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: data.sportsHashtags.length,
+      itemBuilder: (context, index) {
+        final hashtag = data.sportsHashtags[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 25),
+          child: HashtagItem(hashtag: hashtag),
+        );
+      },
+    ),
   );
 }
 
-Widget _entertainmentTab(ExploreState data, ExploreViewModel vm) {
+Widget _entertainmentTab(
+  ExploreState data,
+  ExploreViewModel vm,
+  BuildContext context,
+) {
+  final theme = Theme.of(context);
   print("Entertainment Tab rebuilt");
-  if (data.isEntertainmentTweetsLoading) {
-    return const Center(child: CircularProgressIndicator(color: Colors.white));
-  }
-  if (data.entertainmentTweets.isEmpty) {
-    return const Center(
-      child: Text(
-        "No entertainment tweets found",
-        style: TextStyle(color: Colors.white54),
+  if (data.isEntertainmentHashtagsLoading) {
+    return Center(
+      child: CircularProgressIndicator(
+        color: theme.brightness == Brightness.light
+            ? const Color(0xFF1D9BF0)
+            : Colors.white,
       ),
     );
   }
-  return TweetsListView(
-    tweets: data.entertainmentTweets,
-    hasMore: data.hasMoreEntertainmentTweets,
-    onRefresh: () async => vm.refreshCurrentTab(),
-    onLoadMore: () async => vm.loadMoreEntertainment(),
+  if (data.entertainmentHashtags.isEmpty) {
+    return Center(
+      child: Text(
+        "No Entertainment Trending hashtags found",
+        style: TextStyle(
+          color: theme.brightness == Brightness.light
+              ? const Color(0xFF52636d)
+              : const Color(0xFF7c838c),
+        ),
+      ),
+    );
+  }
+  return Scrollbar(
+    interactive: true,
+    radius: const Radius.circular(20),
+    thickness: 6,
+
+    child: ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: data.entertainmentHashtags.length,
+      itemBuilder: (context, index) {
+        final hashtag = data.entertainmentHashtags[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 25),
+          child: HashtagItem(hashtag: hashtag),
+        );
+      },
+    ),
   );
 }

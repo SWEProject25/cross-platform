@@ -30,7 +30,7 @@ class _LatestTabState extends ConsumerState<LatestTab>
       return Center(
         child: CircularProgressIndicator(
           color: theme.brightness == Brightness.light
-              ? Colors.black
+              ? Color(0xFF1D9BF0)
               : Colors.white,
         ),
       );
