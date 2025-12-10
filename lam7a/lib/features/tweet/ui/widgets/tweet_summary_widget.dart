@@ -50,8 +50,10 @@ class TweetSummaryWidget extends ConsumerWidget {
       tweet: AsyncValue.data(tweet),
     );
 
+    const double avatarRadius = 19.0;
+
     final avatarWidget = AppUserAvatar(
-      radius: 19,
+      radius: avatarRadius,
       imageUrl: tweetData.authorProfileImage,
       displayName: tweetData.authorName,
       username: tweetData.username,
@@ -174,7 +176,16 @@ class TweetSummaryWidget extends ConsumerWidget {
                 ],
               ),
             ),
-            TweetFeed(tweetState: localTweetState),
+            const SizedBox(height: 4),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(width: avatarRadius * 2 + 9),
+                Expanded(
+                  child: TweetFeed(tweetState: localTweetState),
+                ),
+              ],
+            ),
           ],
         ),
       ),
