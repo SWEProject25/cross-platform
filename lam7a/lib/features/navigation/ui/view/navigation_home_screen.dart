@@ -393,9 +393,13 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         );
       // replaces currentCo;
       case 1:
+        final query = widget.initialSearchQuery;
         return Searchbar(
           width: MediaQuery.of(context).size.width,
-          hintText: "Search",
+          hintText: (query != null && query.trim().isNotEmpty)
+              ? query
+              : "Search",
+          initialQuery: query,
         );
       // return SizedBox(width: 2);
       //return SearchBarCustomized();
