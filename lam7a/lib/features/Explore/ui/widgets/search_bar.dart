@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import '../view/search_and_auto_complete/search_page.dart';
 
 class Searchbar extends StatelessWidget implements PreferredSizeWidget {
-  const Searchbar({super.key, required this.width, required this.hintText});
+  const Searchbar({
+    super.key,
+    required this.width,
+    required this.hintText,
+    this.initialQuery,
+  });
 
   final double width;
   final String hintText;
+  final String? initialQuery;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -25,7 +31,9 @@ class Searchbar extends StatelessWidget implements PreferredSizeWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const SearchMainPage()),
+                  MaterialPageRoute(
+                    builder: (_) => SearchMainPage(initialQuery: initialQuery),
+                  ),
                 );
               },
               child: Container(

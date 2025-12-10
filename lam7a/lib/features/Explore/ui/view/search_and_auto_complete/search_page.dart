@@ -7,13 +7,28 @@ import '../search_result_page.dart';
 import '../../viewmodel/search_results_viewmodel.dart';
 
 class SearchMainPage extends ConsumerStatefulWidget {
-  const SearchMainPage({super.key});
+  final String? initialQuery;
+
+  const SearchMainPage({super.key, this.initialQuery});
 
   @override
   ConsumerState<SearchMainPage> createState() => _SearchMainPageState();
 }
 
 class _SearchMainPageState extends ConsumerState<SearchMainPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    final initial = widget.initialQuery;
+    if (initial != null && initial.trim().isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final vm = ref.read(searchViewModelProvider.notifier);
+        vm.insertSearchedTerm(initial);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = ref.read(searchViewModelProvider.notifier);
