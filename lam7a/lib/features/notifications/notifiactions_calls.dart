@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:lam7a/core/utils/logger.dart';
+import 'package:lam7a/features/messaging/active_chat_screens.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
-import 'package:lam7a/features/messaging/ui/viewmodel/active_chat_screens.dart';
 import 'package:lam7a/features/notifications/models/notification_model.dart';
 import 'package:lam7a/features/notifications/notifications_receiver.dart';
 import 'package:lam7a/features/notifications/ui/widgets/notification_overlay.dart';
@@ -69,7 +68,14 @@ void handleLikeNotificationAction(String postId) {
   getLogger(
     NotificationsReceiver,
   ).i("Handling Like notification action for postId: $postId");
-  navigatorKey.currentState?.pushNamed("/post", arguments: {'postId': postId});
+  navigatorKey.currentState?.pushNamed("/tweet", arguments: {'tweetId': postId});
+}
+
+void handleRetweetedNotificationAction(String postId) {
+  getLogger(
+    NotificationsReceiver,
+  ).i("Handling Retweeted notification action for postId: $postId");
+  navigatorKey.currentState?.pushNamed("/tweet", arguments: {'tweetId': postId});
 }
 
 void handleFollowNotificationAction(String username) {

@@ -33,6 +33,8 @@ class AuthenticationState with _$AuthenticationState {
     @Default(0) int currentSignupStep,
     @Default(false) bool isLoadingSignup,
     @Default(false) bool isNextEnabled,
+    @Default(false) bool hasCompeletedFollowingSignUp,
+    @Default(false) bool hasCompeletedInterestsSignUp,
     String? toastMessage,
   }) = _SignupState;
   int get currentSignupStep {
@@ -224,6 +226,22 @@ class AuthenticationState with _$AuthenticationState {
     return mapOrNull(
           login: (loginstate) {
             return loginstate.hasCompeletedInterests;
+          },
+        ) ??
+        false;
+  }
+    bool get hasCompeletedFollowingSignUp {
+    return mapOrNull(
+          signup: (signupState) {
+            return signupState.hasCompeletedFollowing;
+          },
+        ) ??
+        false;
+  }
+  bool get hasCompeletedInterestsSignUp {
+    return mapOrNull(
+          signup: (signupState) {
+            return signupState.hasCompeletedInterests;
           },
         ) ??
         false;

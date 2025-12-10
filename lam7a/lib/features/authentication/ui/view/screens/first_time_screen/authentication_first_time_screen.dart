@@ -16,6 +16,8 @@ import 'package:lam7a/core/constants/server_constant.dart';
 import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/following_screen/following_screen.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/interests_screen/interests_screen.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_icon_button_widget.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_login_text.dart';
@@ -23,6 +25,8 @@ import 'package:lam7a/features/authentication/ui/widgets/authentication_terms_te
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
 import 'package:lam7a/features/authentication/ui/widgets/loading_circle.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
+import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
+import 'package:lam7a/features/profile/ui/view/followers_following_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const String githubRedirectUrl = "hankers://tech.hankers.app";
@@ -61,7 +65,7 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
       debugPrint('onAppLink: $uri');
       code = uri.queryParameters['code'];
       if (code != null) {
-        ref
+        await ref
             .read(authenticationViewmodelProvider.notifier)
             .oAuthGithubLogin(code!);
       }
@@ -70,7 +74,24 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
   }
 
   void openAppLink(Uri uri) {
-    _navigatorKey.currentState?.pushNamed(uri.fragment);
+    if (uri.queryParameters.containsKey('code')) {
+      final snapshot = ref.watch(authenticationViewmodelProvider);
+      if (!snapshot.hasCompeletedInterestsSignUp) {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          InterestsScreen.routeName,
+          (_) => false,
+        );
+      } else if (!snapshot.hasCompeletedFollowingSignUp) {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          FollowingScreen.routeName,
+          (_) => false,
+        );
+      } else {
+        Navigator.pushNamed(context, NavigationHomeScreen.routeName);
+      }
+    }
   }
 
   @override
@@ -139,6 +160,27 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
                             await ref
                                 .read(authenticationViewmodelProvider.notifier)
                                 .oAuthLoginGoogle();
+                            final snapshot = ref.read(
+                              authenticationViewmodelProvider,
+                            );
+                            if (!snapshot.hasCompeletedInterestsSignUp) {
+                              Navigator.pushNamedAndRemoveUntil(
+                                context,
+                                InterestsScreen.routeName,
+                                (_) => false,
+                              );
+                            } else if (!snapshot.hasCompeletedFollowingSignUp) {
+                              Navigator.pushNamedAndRemoveUntil(
+                                context,
+                                FollowingScreen.routeName,
+                                (_) => false,
+                              );
+                            } else {
+                              Navigator.pushNamed(
+                                context,
+                                NavigationHomeScreen.routeName,
+                              );
+                            }
                           },
                         ),
                         IconedButtonCentered(
@@ -150,13 +192,6 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
                           textColor: Pallete.blackColor,
                           isBorder: true,
                           pressEffect: () async {
-                            print("=== GitHub OAuth Debug Info ===");
-                            print("Server URL: ${ServerConstant.serverURL}");
-                            print("API Prefix: ${ServerConstant.apiPrefix}");
-                            print(
-                              "OAuth Endpoint: ${ServerConstant.oAuthGithubedirect}",
-                            );
-
                             final Uri authUrl = Uri(
                               scheme: "https",
                               host: ServerConstant.serverURL

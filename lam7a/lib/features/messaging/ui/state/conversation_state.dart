@@ -6,7 +6,9 @@ part 'conversation_state.freezed.dart';
 @freezed
 abstract class ConversationState with _$ConversationState {
   const factory ConversationState({
-    required Conversation conversation,
     @Default(false) bool isTyping,
+    String? lastMessage,
+    DateTime? lastMessageTime,
+    int? unseenCount,
   }) = _ConversationState;
 }

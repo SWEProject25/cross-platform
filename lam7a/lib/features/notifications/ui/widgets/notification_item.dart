@@ -18,7 +18,7 @@ class NotificationItem extends StatelessWidget {
 
     return isPostViewedNotification(notification.type)
         ? post != null
-              ? TweetSummaryWidget(tweetId: post.id, tweetData: post)
+              ? TweetSummaryWidget(tweetId: post.id, tweetData: post, backGroundColor: notification.isRead ? null : Colors.blue.shade50,)
               : Center(
                   child: Text(
                     'No post available ${post?.id ?? -1}',
@@ -69,6 +69,7 @@ class GeneralNotificationTile extends StatelessWidget {
     final actor = notification.actor;
 
     return Material(
+      color: notification.isRead ? Colors.white : Colors.blue.shade50,
       child: InkWell(
         onTap: onTap,
         child: Padding(

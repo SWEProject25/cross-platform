@@ -19,6 +19,8 @@ abstract class DMsApiService {
 
   Future<ApiResponse<List<ConversationDto>>> getConversations();
 
+  Future<ApiResponse<ConversationDto>> getConversationById(int id);
+
   Future<int> createConversation(int userId);
 
   Future<MessagesResponseDto> getMessageHistory(int conversationId, int? lastMessageId);
@@ -26,4 +28,6 @@ abstract class DMsApiService {
   Future<List<Contact>> searchForContacts(String query, int page, [int limit = 20]);
 
   Future<Contact> getContactByUserId(int userId);
+
+  Future<int> getNumberOfUnseenConversations(int? conversationId);
 }

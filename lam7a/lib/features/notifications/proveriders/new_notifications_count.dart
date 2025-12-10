@@ -4,6 +4,8 @@ import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/features/notifications/repositories/notifications_repository.dart';
+import 'package:lam7a/features/notifications/ui/viewmodels/all_notifications_viewmodel.dart';
+import 'package:lam7a/features/notifications/ui/viewmodels/mention_notifications_viewmodel.dart';
 import 'package:logger/logger.dart';
 
 // @riverpod
@@ -30,6 +32,11 @@ class NewNotificationCount extends Notifier<int> {
 
     return 0;
   }
+
+  void notifyViewModels() {
+    ref.read(allNotificationsViewModelProvider.notifier).refresh();
+    ref.read(mentionNotificationsViewModelProvider.notifier).refresh();
+  }
   
   void updateNotificationsCount({bool reset = false, bool increament = false}) async {
     if (reset ) state = 0;
@@ -38,6 +45,7 @@ class NewNotificationCount extends Notifier<int> {
     _logger.i("Updating Notification Unread Count");
     var count = await repository.getUnReadCount();
     _logger.i("Updated Count With $count");
+
     state = count;
   }
 }

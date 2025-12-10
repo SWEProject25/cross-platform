@@ -16,10 +16,12 @@ class TweetSummaryWidget extends ConsumerWidget {
     super.key,
     required this.tweetId,
     required this.tweetData,
+    this.backGroundColor,
   });
 
   final String tweetId;
   final TweetModel tweetData;
+  final Color? backGroundColor;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,131 +51,121 @@ class TweetSummaryWidget extends ConsumerWidget {
       tweet: AsyncValue.data(tweet),
     );
 
+    final avatarWidget = AppUserAvatar(
+      radius: 19,
+      imageUrl: tweetData.authorProfileImage,
+      displayName: tweetData.authorName,
+      username: tweetData.username,
+    );
+
+    void _openDetail() {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TweetScreen(tweetId: tweetId, tweetData: tweet),
+        ),
+      );
+    }
+
     return SafeArea(
       child: Container(
         alignment: Alignment.center,
         key: Key(tweetId),
-        color: Theme.of(context).colorScheme.surface,
+        color: backGroundColor ?? Theme.of(context).colorScheme.surface,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (isReply && parentTweet != null) ...[
-              OriginalTweetCard(tweet: parentTweet),
-              const SizedBox(height: 8),
-              if (replyingToUsername != null && replyingToUsername.isNotEmpty)
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).pushNamed(
-                      '/profile',
-                      arguments: {'username': replyingToUsername},
-                    );
-                  },
-                  child: Text(
-                    'Replying to @${replyingToUsername}',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: Colors.blueAccent),
-                  ),
-                ),
+              OriginalTweetCard(tweet: parentTweet, showConnectorLine: true),
               const SizedBox(height: 8),
             ],
-            if (isPureRepost) ...[
-              Row(
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _openDetail,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.repeat, size: 16, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Text(
-                    '$displayName reposted',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                  if (isReply &&
+                      replyingToUsername != null &&
+                      replyingToUsername.isNotEmpty) ...[
+                    Text(
+                      'Replying to @${replyingToUsername}',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.blueAccent),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (isPureRepost) ...[
+                    Row(
+                      children: [
+                        const Icon(Icons.repeat, size: 16, color: Colors.grey),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$displayName reposted',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                  ],
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      avatarWidget,
+                      const SizedBox(width: 9),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                TweetUserSummaryInfo(
+                                  tweetState: localTweetState,
+                                  daysPosted: daysPosted,
+                                  fallbackTweet: tweet,
+                                ),
+                                GestureDetector(
+                                  child: const Icon(
+                                    Icons.rocket,
+                                    size: 17,
+                                    color: Colors.blueAccent,
+                                  ),
+                                  onTap: () {
+                                    ref
+                                        .read(
+                                          tweetViewModelProvider(
+                                            tweet.id,
+                                          ).notifier,
+                                        )
+                                        .summarizeBody();
+                                  },
+                                ),
+                              ],
+                            ),
+                            if (isPureRepost &&
+                                (tweet.body.isEmpty ||
+                                    tweet.body.trim().isEmpty))
+                              const SizedBox(height: 20),
+                            SizedBox(
+                              width: double.infinity,
+                              child: TweetBodySummaryWidget(post: tweet),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 2),
-            ],
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppUserAvatar(
-                  radius: 19,
-                  imageUrl: tweetData.authorProfileImage,
-                  displayName: tweetData.authorName,
-                  username: tweetData.username,
-                ),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          TweetUserSummaryInfo(
-                            tweetState: localTweetState,
-                            daysPosted: daysPosted,
-                            fallbackTweet: tweet,
-                          ),
-                          GestureDetector(
-                            child: const Icon(
-                              Icons.rocket,
-                              size: 17,
-                              color: Colors.blueAccent,
-                            ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => TweetAiSummery(tweet: tweet),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      if (isPureRepost &&
-                          (tweet.body.isEmpty || tweet.body.trim().isEmpty))
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => TweetScreen(
-                                  tweetId: tweetId,
-                                  tweetData: tweet,
-                                ),
-                              ),
-                            );
-                          },
-                          child: const SizedBox(height: 20),
-                        ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => TweetScreen(
-                                tweetId: tweetId,
-                                tweetData: tweet,
-                              ),
-                            ),
-                          );
-                        },
-                        behavior: HitTestBehavior.opaque,
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: TweetBodySummaryWidget(post: tweet),
-                        ),
-                      ),
-                      TweetFeed(tweetState: localTweetState),
-                    ],
-                  ),
-                ),
-              ],
             ),
+            TweetFeed(tweetState: localTweetState),
           ],
         ),
       ),

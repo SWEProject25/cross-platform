@@ -245,6 +245,7 @@ class MessagesRepository {
     return messagesDto.metadata.hasMore;
   }
   void sendMarkAsSeen(int conversationId) async {
+    
     final req = MarkSeenRequest(
       conversationId: conversationId,
       userId: _authState.user!.id!,

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_typing_indicator/flutter_typing_indicator.dart';
 import 'package:lam7a/core/utils.dart';
+import 'package:lam7a/core/widgets/app_dialog.dart';
 import 'package:lam7a/core/widgets/clickable_text.dart';
 import 'package:lam7a/core/widgets/expandable_text.dart';
+import 'package:clipboard/clipboard.dart';
+
 
 class MessageTile extends StatelessWidget {
   const MessageTile({
@@ -31,7 +34,21 @@ class MessageTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ThemeData themeData = Theme.of(context);
-    return Padding(
+    return GestureDetector(
+      onLongPress: () {
+        print("Long Pressed");
+        showOptionsDialog(context, options: ["Copy Message text", "Delete message for you"], onSelected: [
+          () async {
+            await FlutterClipboard.copy(text);
+          },
+          () {
+            // Delete message logic here
+            Navigator.pop(context);
+          },
+
+        ]);
+      },
+      child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         crossAxisAlignment: isMine
@@ -78,7 +95,7 @@ class MessageTile extends StatelessWidget {
             ),
         ],
       ),
-    );
+    ),);
   }
 
   String getStatusText() {

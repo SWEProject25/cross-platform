@@ -68,17 +68,19 @@ class TweetBodySummaryWidget extends StatelessWidget {
               const SizedBox(height: 8),
             ],
 
-            // Display multiple images in summary (side by side, with skeleton while loading)
+            // Display up to 4 images in a 2x2 grid (with skeleton while loading)
             if (post.mediaImages.isNotEmpty)
               Padding(
                 padding: EdgeInsets.symmetric(
                   vertical: responsive.padding(4),
                 ),
-                child: SizedBox(
-                  height: imageHeight,
-                  child: Row(
-                    children: post.mediaImages.take(2).map((imageUrl) {
-                      // Show max 2 in summary
+                child: Builder(
+                  builder: (context) {
+                    final images = post.mediaImages.take(4).toList();
+                    final hasTwoRows = images.length > 2;
+                    final totalHeight = hasTwoRows ? imageHeight * 2 : imageHeight;
+
+                    Widget buildImageTile(String imageUrl) {
                       return Expanded(
                         child: Padding(
                           padding: EdgeInsets.symmetric(
@@ -131,8 +133,36 @@ class TweetBodySummaryWidget extends StatelessWidget {
                           ),
                         ),
                       );
-                    }).toList(),
-                  ),
+                    }
+
+                    return SizedBox(
+                      height: totalHeight,
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: images
+                                  .take(2)
+                                  .map((url) => buildImageTile(url))
+                                  .toList(),
+                            ),
+                          ),
+                          if (hasTwoRows) ...[
+                            SizedBox(height: responsive.padding(4)),
+                            Expanded(
+                              child: Row(
+                                children: images
+                                    .skip(2)
+                                    .take(2)
+                                    .map((url) => buildImageTile(url))
+                                    .toList(),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
             // Display multiple videos in summary
@@ -268,8 +298,13 @@ class TweetBodySummaryWidget extends StatelessWidget {
 
 class OriginalTweetCard extends StatelessWidget {
   final TweetModel tweet;
+  final bool showConnectorLine;
 
-  const OriginalTweetCard({super.key, required this.tweet});
+  const OriginalTweetCard({
+    super.key,
+    required this.tweet,
+    this.showConnectorLine = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -281,6 +316,7 @@ class OriginalTweetCard extends StatelessWidget {
         ? tweet.authorName!
         : username;
     final profileImage = tweet.authorProfileImage;
+    final theme = Theme.of(context);
 
     return GestureDetector(
       onTap: () {
@@ -300,106 +336,120 @@ class OriginalTweetCard extends StatelessWidget {
         padding: EdgeInsets.all(responsive.padding(8)),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color.fromARGB(255, 97, 97, 97)),
-          color: Theme.of(context).colorScheme.surface,
+          border: Border.all(
+            color: theme.dividerColor.withOpacity(0.6),
+            width: 0.5,
+          ),
+          color: theme.colorScheme.surface,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                AppUserAvatar(
-                  radius: 16,
-                  imageUrl: profileImage,
-                  displayName: displayName,
-                  username: username,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        displayName,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ), 
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        '@$username',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                children: [
+                  AppUserAvatar(
+                    radius: 16,
+                    imageUrl: profileImage,
+                    displayName: displayName,
+                    username: username,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            if (tweet.body.trim().isNotEmpty)
-              StyledTweetText(
-                text: tweet.body.trim(),
-                fontSize:
-                    Theme.of(context).textTheme.bodyLarge?.fontSize ?? 16,
-                maxLines: 6,
-                overflow: TextOverflow.ellipsis,
-                onMentionTap: (handle) {
-                  Navigator.of(context).pushNamed(
-                    '/profile',
-                    arguments: {'username': handle},
-                  );
-                },
-                onHashtagTap: (tag) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => NavigationHomeScreen(
-                        initialIndex: 1,
-                        initialSearchQuery: '#$tag',
+                  if (showConnectorLine) ...[
+                    const SizedBox(height: 4),
+                    Expanded(
+                      child: Container(
+                        width: 1,
+                        color: theme.dividerColor,
                       ),
                     ),
-                  );
-                },
+                  ],
+                ],
               ),
-            if (tweet.mediaImages.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  tweet.mediaImages.first,
-                  width: double.infinity,
-                  height: imageHeight,
-                  fit: BoxFit.cover,
-                  loadingBuilder:
-                      (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return SizedBox(
-                      height: imageHeight,
-                      child: const Center(
-                        child: CircularProgressIndicator(),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ), 
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      '@$username',
+                      style: theme.textTheme.bodyLarge?.copyWith(color: Colors.grey ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    if (tweet.body.trim().isNotEmpty)
+                      StyledTweetText(
+                        text: tweet.body.trim(),
+                        fontSize:
+                            theme.textTheme.bodyLarge?.fontSize ?? 16,
+                        maxLines: 6,
+                        overflow: TextOverflow.ellipsis,
+                        onMentionTap: (handle) {
+                          Navigator.of(context).pushNamed(
+                            '/profile',
+                            arguments: {'username': handle},
+                          );
+                        },
+                        onHashtagTap: (tag) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => NavigationHomeScreen(
+                                initialIndex: 1,
+                                initialSearchQuery: '#$tag',
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return SizedBox(
-                      height: imageHeight,
-                      child: const Center(
-                        child: Icon(
-                          Icons.error,
-                          color: Colors.red,
+                    if (tweet.mediaImages.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          tweet.mediaImages.first,
+                          width: double.infinity,
+                          height: imageHeight,
+                          fit: BoxFit.cover,
+                          loadingBuilder:
+                              (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return SizedBox(
+                              height: imageHeight,
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return SizedBox(
+                              height: imageHeight,
+                              child: const Center(
+                                child: Icon(
+                                  Icons.error,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
-                    );
-                  },
+                    ],
+                    if (tweet.mediaImages.isEmpty &&
+                        tweet.mediaVideos.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      VideoPlayerWidget(url: tweet.mediaVideos.first),
+                    ],
+                  ],
                 ),
               ),
             ],
-            if (tweet.mediaImages.isEmpty &&
-                tweet.mediaVideos.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              VideoPlayerWidget(url: tweet.mediaVideos.first),
-            ],
-          ],
+          ),
         ),
       ),
     );
