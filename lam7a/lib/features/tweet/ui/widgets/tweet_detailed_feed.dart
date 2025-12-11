@@ -434,6 +434,8 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
   }
 
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(height: 10),
         // date
