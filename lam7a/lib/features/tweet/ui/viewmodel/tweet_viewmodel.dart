@@ -1,8 +1,11 @@
 import 'package:flutter/animation.dart';
+import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
+import 'package:lam7a/features/tweet/repository/tweet_updates_repository.dart';
 import 'package:lam7a/features/tweet/services/post_interactions_service.dart';
 import 'package:lam7a/features/tweet/services/tweet_api_service.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
+import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'tweet_viewmodel.g.dart';
@@ -10,6 +13,8 @@ part 'tweet_viewmodel.g.dart';
 @riverpod
 @Riverpod(keepAlive: true)
 class TweetViewModel extends _$TweetViewModel {
+  final Logger logger = getLogger(TweetViewModel);
+
   @override
   FutureOr<TweetState> build(String tweetId) async {
     final repo = ref.read(tweetRepositoryProvider);
@@ -35,11 +40,64 @@ class TweetViewModel extends _$TweetViewModel {
         ? tweet.copyWith(views: localViewsOverride)
         : tweet;
 
+    final tweetsUpdateRepo = ref.read(tweetUpdatesRepositoryProvider);
+    tweetsUpdateRepo.joinPost(int.parse(tweetId));
+    tweetsUpdateRepo.onPostLikeUpdates(int.parse(tweetId)).listen(_onLikeUpdate);
+    tweetsUpdateRepo.onPostRepostUpdates(int.parse(tweetId)).listen(_onRepostUpdate);
+    tweetsUpdateRepo.onPostCommentUpdates(int.parse(tweetId)).listen(_onCommentUpdate);
+
+    ref.onDispose(() {
+      logger.i("Disposing TweetViewModel for tweetId: $tweetId");
+      tweetsUpdateRepo.leavePost(int.parse(tweetId));
+    });
+
     return TweetState(
       isLiked: isLiked,
       isReposted: isReposted,
       isViewed: isViewed,
       tweet: AsyncData(effectiveTweet),
+      
+    );
+  }
+
+  void _onLikeUpdate(int count) {
+    logger.i("Received like update: $count through socket on tweet id ${state.value?.tweet.value?.id ?? 'unknown'}");
+    if (state.value == null || !state.value!.tweet.hasValue || state.value!.tweet.value == null) {
+      logger.w("Cannot update like count: tweet not loaded");
+      return;
+    }
+
+    state = AsyncData(
+      state.value!.copyWith(
+        likeCountUpdated: count,
+      ),
+    );
+  }
+
+  void _onRepostUpdate(int count) {
+    logger.i("Received repost update: $count through socket on tweet id ${state.value?.tweet.value?.id ?? 'unknown'}");
+  
+    if (state.value == null || !state.value!.tweet.hasValue || state.value!.tweet.value == null) {
+      logger.w("Cannot update repost count: tweet not loaded");
+      return;
+    }
+    state = AsyncData(
+      state.value!.copyWith(
+        repostCountUpdated: count,
+      ),
+    );  
+  }
+
+  void _onCommentUpdate(int count) {
+    logger.i("Received comment update: $count through socket on tweet id ${state.value?.tweet.value?.id ?? 'unknown'}");
+    if (state.value == null || !state.value!.tweet.hasValue || state.value!.tweet.value == null) {
+      logger.w("Cannot update comment count: tweet not loaded");
+      return;
+    }
+    state = AsyncData(
+      state.value!.copyWith(
+        commentCountUpdated: count,
+      ),
     );
   }
 
