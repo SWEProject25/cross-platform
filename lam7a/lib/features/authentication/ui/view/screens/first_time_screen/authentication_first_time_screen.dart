@@ -13,6 +13,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:lam7a/core/constants/server_constant.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
@@ -163,23 +164,28 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
                             final snapshot = ref.read(
                               authenticationViewmodelProvider,
                             );
-                            if (!snapshot.hasCompeletedInterestsSignUp) {
-                              Navigator.pushNamedAndRemoveUntil(
-                                context,
-                                InterestsScreen.routeName,
-                                (_) => false,
-                              );
-                            } else if (!snapshot.hasCompeletedFollowingSignUp) {
-                              Navigator.pushNamedAndRemoveUntil(
-                                context,
-                                FollowingScreen.routeName,
-                                (_) => false,
-                              );
-                            } else {
-                              Navigator.pushNamed(
-                                context,
-                                NavigationHomeScreen.routeName,
-                              );
+                            if (ref
+                                .read(authenticationProvider)
+                                .isAuthenticated) {
+                              if (!snapshot.hasCompeletedInterestsSignUp) {
+                                Navigator.pushNamedAndRemoveUntil(
+                                  context,
+                                  InterestsScreen.routeName,
+                                  (_) => false,
+                                );
+                              } else if (!snapshot
+                                  .hasCompeletedFollowingSignUp) {
+                                Navigator.pushNamedAndRemoveUntil(
+                                  context,
+                                  FollowingScreen.routeName,
+                                  (_) => false,
+                                );
+                              } else {
+                                Navigator.pushNamed(
+                                  context,
+                                  NavigationHomeScreen.routeName,
+                                );
+                              }
                             }
                           },
                         ),
