@@ -34,8 +34,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter/services.dart';
 
 void main() async {
-
-  HiveTypes.initialize();
+  await HiveTypes.initialize();
 
   WidgetsFlutterBinding.ensureInitialized();
   final container = ProviderContainer();
