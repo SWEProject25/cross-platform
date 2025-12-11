@@ -49,7 +49,13 @@ class SearchResultsViewmodel extends AsyncNotifier<SearchResultState> {
     state = const AsyncLoading();
 
     final searchRepo = ref.read(searchRepositoryProvider);
-    final top = await searchRepo.searchTweets(_query, _limit, _pageTop);
+    late final List<TweetModel> top;
+
+    if (_query[0] == '#') {
+      top = await searchRepo.searchHashtagTweets(_query, _limit, _pageTop);
+    } else {
+      top = await searchRepo.searchTweets(_query, _limit, _pageTop);
+    }
 
     state = AsyncData(
       SearchResultState.initial().copyWith(
@@ -96,9 +102,16 @@ class SearchResultsViewmodel extends AsyncNotifier<SearchResultState> {
         isPeopleLoading: true,
       ),
     );
+    late final String searchQuery;
+
+    if (_query[0] == '#') {
+      searchQuery = _query.substring(1); // Remove '#' for hashtag search
+    } else {
+      searchQuery = _query;
+    }
 
     final searchRepo = ref.read(searchRepositoryProvider);
-    final list = await searchRepo.searchUsers(_query, _limit, _pagePeople);
+    final list = await searchRepo.searchUsers(searchQuery, _limit, _pagePeople);
 
     state = AsyncData(
       state.value!.copyWith(
@@ -120,8 +133,15 @@ class SearchResultsViewmodel extends AsyncNotifier<SearchResultState> {
     final previousPeople = prev.searchedPeople;
     state = AsyncData(prev.copyWith(isPeopleLoading: true));
 
+    late final String searchQuery;
+    if (_query[0] == '#') {
+      searchQuery = _query.substring(1); // Remove '#' for hashtag search
+    } else {
+      searchQuery = _query;
+    }
+
     final searchRepo = ref.read(searchRepositoryProvider);
-    final list = await searchRepo.searchUsers(_query, _limit, _pagePeople);
+    final list = await searchRepo.searchUsers(searchQuery, _limit, _pagePeople);
 
     _isLoadingMore = false;
 
@@ -184,9 +204,16 @@ class SearchResultsViewmodel extends AsyncNotifier<SearchResultState> {
 
     final previousTweets = prev.topTweets;
     state = AsyncData(prev.copyWith(isTopLoading: true));
-
-    final searchRepo = ref.read(searchRepositoryProvider);
-    final posts = await searchRepo.searchTweets(_query, _limit, _pageTop);
+    late final List<TweetModel> posts;
+    if (_query[0] == '#') {
+      posts = await ref
+          .read(searchRepositoryProvider)
+          .searchHashtagTweets(_query, _limit, _pageTop);
+    } else {
+      posts = await ref
+          .read(searchRepositoryProvider)
+          .searchTweets(_query, _limit, _pageTop);
+    }
 
     _isLoadingMore = false;
 
@@ -222,12 +249,27 @@ class SearchResultsViewmodel extends AsyncNotifier<SearchResultState> {
     );
 
     final searchRepo = ref.read(searchRepositoryProvider);
-    final posts = await searchRepo.searchTweets(
-      _query,
-      _limit,
-      _pageLatest,
-      tweetsOrder: "latest",
-    );
+    String timestamp = DateTime.now().toUtc().toIso8601String();
+    print("Timestamp for latest tweets: $timestamp");
+
+    late final List<TweetModel> posts;
+    if (_query[0] == '#') {
+      posts = await searchRepo.searchHashtagTweets(
+        _query,
+        _limit,
+        _pageLatest,
+        tweetsOrder: "latest",
+        time: timestamp,
+      );
+    } else {
+      posts = await searchRepo.searchTweets(
+        _query,
+        _limit,
+        _pageLatest,
+        tweetsOrder: "latest",
+        time: timestamp,
+      );
+    }
 
     state = AsyncData(
       state.value!.copyWith(
@@ -250,12 +292,12 @@ class SearchResultsViewmodel extends AsyncNotifier<SearchResultState> {
     state = AsyncData(prev.copyWith(isLatestLoading: true));
 
     final searchRepo = ref.read(searchRepositoryProvider);
-    final posts = await searchRepo.searchTweets(
-      _query,
-      _limit,
-      _pageLatest,
-      tweetsOrder: "latest",
-    );
+    late final List<TweetModel> posts;
+    if (_query[0] == '#') {
+      posts = await searchRepo.searchHashtagTweets(_query, _limit, _pageLatest);
+    } else {
+      posts = await searchRepo.searchTweets(_query, _limit, _pageLatest);
+    }
 
     _isLoadingMore = false;
 

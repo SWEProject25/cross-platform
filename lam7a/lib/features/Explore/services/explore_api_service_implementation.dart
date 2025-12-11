@@ -13,21 +13,26 @@ class ExploreApiServiceImpl implements ExploreApiService {
   // Fetch Trending Hashtags
   // -------------------------------------------------------
   @override
-  Future<List<TrendingHashtag>> fetchTrendingHashtags() async {
+  Future<List<TrendingHashtag>> fetchTrendingHashtags({int limit = 30}) async {
     try {
       Map<String, dynamic> response = await _apiService.get(
-        endpoint: "/explore/hashtags",
+        endpoint: "/hashtags/trending",
+        queryParameters: {"limit": limit, "Category": "general"},
       );
 
-      List<dynamic> jsonList = response["data"] ?? [];
+      List<dynamic> jsonList = response["data"]["trending"] ?? [];
 
       List<TrendingHashtag> hashtags = jsonList.map((item) {
-        return TrendingHashtag.fromJson(item);
+        return TrendingHashtag.fromJson(
+          item,
+          order: jsonList.indexOf(item) + 1,
+        );
       }).toList();
 
       print("Explore Hashtags fetched: ${hashtags.length}");
       return hashtags;
     } catch (e) {
+      // print("Error fetching trending hashtags: $e");
       rethrow;
     }
   }
@@ -39,14 +44,14 @@ class ExploreApiServiceImpl implements ExploreApiService {
   Future<List<TrendingHashtag>> fetchInterestHashtags(String interest) async {
     try {
       Map<String, dynamic> response = await _apiService.get(
-        endpoint: "/explore/hashtags/interests",
-        queryParameters: {"interest": interest},
+        endpoint: "/hashtags/trending",
+        queryParameters: {"Category": interest, "limit": 30},
       );
 
-      List<dynamic> jsonList = response["data"] ?? [];
+      List<dynamic> jsonList = response["data"]["trending"] ?? [];
 
       List<TrendingHashtag> hashtags = jsonList.map((item) {
-        return TrendingHashtag.fromJson(item);
+        return TrendingHashtag.fromJson(item, category: interest);
       }).toList();
 
       print("Interest-Based Hashtags fetched ($interest): ${hashtags.length}");
@@ -67,19 +72,19 @@ class ExploreApiServiceImpl implements ExploreApiService {
         queryParameters: (limit != null) ? {"limit": limit} : null,
       );
 
-      List<UserModel> users = (response['data'] as List).map((userJson) {
+      List<UserModel> users = (response['data']['users'] as List).map((
+        userJson,
+      ) {
         return UserModel(
-          id: userJson['user_id'],
-          username: userJson['User']['username'],
-          name: userJson['name'],
-          bio: userJson['bio'],
-          profileImageUrl: userJson['profile_image_url'],
-          bannerImageUrl: userJson['banner_image_url'],
-          followersCount: userJson['followers_count'],
-          followingCount: userJson['following_count'],
-          stateFollow: userJson['is_followed_by_me'] == 'true'
-              ? ProfileStateOfFollow.following
-              : ProfileStateOfFollow.notfollowing,
+          id: userJson['id'],
+          username: userJson['username'],
+          name: userJson['profile']['name'],
+          bio: userJson['profile']['bio'],
+          profileImageUrl: userJson['profile']['profileImageUrl'],
+          bannerImageUrl: userJson['profile']['bannerImageUrl'],
+          followersCount: userJson['followersCount'],
+
+          stateFollow: ProfileStateOfFollow.notfollowing,
         );
       }).toList();
 
@@ -92,24 +97,32 @@ class ExploreApiServiceImpl implements ExploreApiService {
   }
 
   // -------------------------------------------------------
-  // Fetch Explore Tweets (generic explore feed)
+  // Fetch Explore Tweets for certain interests
   // -------------------------------------------------------
+
   @override
-  Future<List<TweetModel>> fetchForYouTweets(int limit, int page) async {
+  Future<Map<String, List<TweetModel>>> fetchForYouTweets({
+    int? limit = 3,
+  }) async {
     try {
       Map<String, dynamic> response = await _apiService.get(
-        endpoint: "/posts/timeline/explore",
-        queryParameters: {"limit": limit, "page": page},
+        endpoint: "/posts/explore/for-you",
+        queryParameters: {"limit": limit},
       );
 
-      List<dynamic> postsJson = response["data"]["posts"] ?? [];
+      final data = response["data"] as Map<String, dynamic>? ?? {};
+      final Map<String, List<TweetModel>> result = {};
 
-      List<TweetModel> tweets = postsJson.map((post) {
-        return TweetModel.fromJsonPosts(post);
-      }).toList();
+      data.forEach((key, value) {
+        final List<dynamic> postsJson = value ?? [];
 
-      print("Explore Tweets fetched: ${tweets.length}");
-      return tweets;
+        result[key] = postsJson
+            .map((post) => TweetModel.fromJsonPosts(post))
+            .toList();
+      });
+
+      print("Explore Tweets fetched: ${result.length} categories");
+      return result;
     } catch (e) {
       rethrow;
     }
@@ -127,7 +140,9 @@ class ExploreApiServiceImpl implements ExploreApiService {
     try {
       Map<String, dynamic> response = await _apiService.get(
         endpoint: "/posts/timeline/explore/interests",
-        queryParameters: {"limit": limit, "page": page, "interests": interest},
+        // if there will be pagination
+        // queryParameters: {"limit": limit, "page": page, "interests": interest},
+        queryParameters: {"interests": interest},
       );
 
       List<dynamic> postsJson = response["data"]["posts"] ?? [];

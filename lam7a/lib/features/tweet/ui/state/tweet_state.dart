@@ -11,5 +11,9 @@ abstract class TweetState with _$TweetState {
     required bool isReposted,
     required bool isViewed,
     required AsyncValue<TweetModel> tweet,
+
+    int? likeCountUpdated,
+    int? repostCountUpdated,
+    int? commentCountUpdated,
   }) = _TweetState;
 }

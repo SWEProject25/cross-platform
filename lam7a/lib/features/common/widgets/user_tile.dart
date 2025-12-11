@@ -75,6 +75,8 @@ class UserTile extends StatelessWidget {
                         fontSize: 14,
                         height: 1.3,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                 ],
               ),

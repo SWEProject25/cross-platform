@@ -251,8 +251,14 @@ class MockDMsApiService implements DMsApiService {
   }
   
   @override
-  Future<ApiResponse<ConversationDto>> getConversationById(int id) {
+  Future<ConversationDto> getConversationById(int id) {
     // TODO: implement getConversationById
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<MessagesResponseDto> getLostMessages(int conversationId, int? lastMessageId) {
+    // TODO: implement getLostMessages
     throw UnimplementedError();
   }
 }

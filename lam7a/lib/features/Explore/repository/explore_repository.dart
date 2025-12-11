@@ -8,7 +8,7 @@ part 'explore_repository.g.dart';
 
 @riverpod
 ExploreRepository exploreRepository(Ref ref) {
-  return ExploreRepository(ref.read(exploreApiServiceMockProvider));
+  return ExploreRepository(ref.read(exploreApiServiceImplProvider));
 }
 
 class ExploreRepository {
@@ -21,8 +21,8 @@ class ExploreRepository {
       _api.fetchInterestHashtags(interest);
   Future<List<UserModel>> getSuggestedUsers({int? limit}) =>
       _api.fetchSuggestedUsers(limit: limit);
-  Future<List<TweetModel>> getForYouTweets(int limit, int page) =>
-      _api.fetchForYouTweets(limit, page);
+  Future<Map<String, List<TweetModel>>> getForYouTweets(int limit) =>
+      _api.fetchForYouTweets(limit: limit);
   Future<List<TweetModel>> getExploreTweetsWithFilter(
     int limit,
     int page,

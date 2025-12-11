@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/features/messaging/dtos/message_socket_dtos.dart';
 import 'package:lam7a/core/services/socket_service.dart';
+import 'package:lam7a/features/messaging/errors/blocked_user_error.dart';
 import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -124,14 +125,27 @@ class MessagesSocketService {
 
       var payload = resp;
       if (resp is List && resp.isNotEmpty) payload = resp.first;
-
       if (payload is Map) {
+        if (payload["status"] == "error") {
+          if (payload["message"] != null && payload["message"] is String) {
+            String errorMessage = payload["message"];
+            if (errorMessage.contains("blocked")) {
+              throw BlockedUserError();
+            } else {
+              throw Exception("Socket error: $errorMessage");
+            }
+          } else {
+            throw Exception("Unknown socket error");
+          }
+        }
         return MessageDto.fromJson(Map<String, dynamic>.from(payload["data"]));
       }
 
       // Unexpected format
       _logger.w("Unexpected socket response format: $resp");
       return null;
+    } on BlockedUserError catch (e) {
+      rethrow;
     } catch (e) {
       _logger.e("Failed to send message with ack: $e");
       rethrow;

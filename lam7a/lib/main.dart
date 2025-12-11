@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/hive_types.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/providers/theme_provider.dart';
 import 'package:lam7a/core/services/api_service.dart';
@@ -23,6 +24,8 @@ import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
 import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 import 'package:lam7a/features/notifications/notifications_receiver.dart';
+import 'package:lam7a/features/tweet/repository/tweet_updates_repository.dart';
+import 'package:lam7a/features/tweet/services/tweet_socket_service.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
@@ -30,6 +33,9 @@ import 'package:lam7a/features/tweet/ui/view/tweet_screen.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 void main() async {
+
+  HiveTypes.initialize();
+
   WidgetsFlutterBinding.ensureInitialized();
   final container = ProviderContainer();
 
@@ -44,6 +50,7 @@ void main() async {
 
   container.listen(socketInitializerProvider, (_, _) => {});
   container.read(messagesSocketServiceProvider).setUpListners();
+  container.read(tweetsSocketServiceProvider).setUpListners();
   container.listen(fcmTokenUpdaterProvider, (_, _) => {});
 
   runApp(
