@@ -2,10 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
-import 'package:lam7a/features/messaging/providers/conversations_provider.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/conversations_viewmodel.dart';
 import 'package:lam7a/features/messaging/repository/conversations_repositories.dart';
 import 'package:lam7a/features/messaging/ui/state/conversations_state.dart';
-import 'package:lam7a/features/messaging/ui/viewmodel/conversations_viewmodel.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/conversations_viewmodel_temp.dart';
 import 'package:mocktail/mocktail.dart';
 
 // Mock the repository

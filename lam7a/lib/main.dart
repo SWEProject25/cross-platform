@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/hive_types.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/providers/theme_provider.dart';
 import 'package:lam7a/core/services/api_service.dart';
@@ -30,6 +31,9 @@ import 'package:lam7a/features/tweet/ui/view/tweet_screen.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 void main() async {
+
+  HiveTypes.initialize();
+
   WidgetsFlutterBinding.ensureInitialized();
   final container = ProviderContainer();
 
