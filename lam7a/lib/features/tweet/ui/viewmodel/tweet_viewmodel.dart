@@ -5,6 +5,8 @@ import 'package:lam7a/features/tweet/repository/tweet_updates_repository.dart';
 import 'package:lam7a/features/tweet/services/post_interactions_service.dart';
 import 'package:lam7a/features/tweet/services/tweet_api_service.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_posts_viewmodel.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -166,6 +168,16 @@ class TweetViewModel extends _$TweetViewModel {
           tweet: AsyncData(currentTweet.copyWith(likes: actualCount)),
         ),
       );
+
+      // If user unliked this tweet, invalidate their profile Likes list
+      if (!backendIsLiked) {
+        final authState = ref.read(authenticationProvider);
+        final user = authState.user;
+        final profileId = user?.profileId;
+        if (profileId != null) {
+          ref.invalidate(profileLikesProvider(profileId.toString()));
+        }
+      }
 
       print(
         '✅ Backend like synced: isLiked=$backendIsLiked, count=$actualCount',
