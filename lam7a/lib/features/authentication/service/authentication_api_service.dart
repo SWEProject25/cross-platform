@@ -3,6 +3,7 @@ import 'package:lam7a/core/constants/server_constant.dart';
 import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/reset_password.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 // import 'package:lam7a/features/authentication/model/user_data_model.dart';
@@ -129,6 +130,24 @@ class AuthenticationApiService {
     final response = await apiService.post(
       endpoint: ServerConstant.forgotPasswordConst,
       data: {'email': email, 'type': "MOBILE"},
+    );
+    return response;
+  }
+
+  Future<Map<String, dynamic>> resetPassword({
+    required String password,
+    required String token,
+    required String email,
+    required int id,
+  }) async {
+    final response = await apiService.post(
+      endpoint: ServerConstant.resetPasswordForgot,
+      data: {
+        'userId': id,
+        'token': token,
+        'newPassword': password,
+        "email": email,
+      },
     );
     return response;
   }

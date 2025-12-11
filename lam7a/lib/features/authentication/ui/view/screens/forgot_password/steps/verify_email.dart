@@ -41,7 +41,7 @@ class VerifyEmail extends StatelessWidget {
             Container(
               margin: EdgeInsets.symmetric(horizontal: 30),
               child: Text(
-                "WBefore you can change your password we need to make sure it's really you",
+                "Before you can change your password we need to make sure it's really you",
                 style: GoogleFonts.outfit(
                   fontSize: 15,
                   color: Pallete.greyColor,
@@ -60,6 +60,7 @@ class VerifyEmail extends StatelessWidget {
                 ),
               ),
             ),
+
             RadioGroup<String>(
               groupValue: emaiToConfirm,
               onChanged: (value) {
@@ -71,7 +72,7 @@ class VerifyEmail extends StatelessWidget {
                     value: emaiToConfirm,
                     autofocus: true,
                     contentPadding: EdgeInsets.all(8),
-                    
+
                     visualDensity: VisualDensity(horizontal: -4, vertical: 0),
                     title: Text(
                       ref

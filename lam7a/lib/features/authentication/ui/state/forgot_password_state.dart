@@ -9,6 +9,8 @@ abstract class ForgotPasswordState with _$ForgotPasswordState {
     @Default(0) int currentForgotPasswordStep,
     @Default("") String email,
     @Default(false) bool isValidEmail,
+    @Default(false) bool isValidPassword,
+    @Default(false) bool isValidRePassword,
     @Default("") String password,
     @Default("") String reTypePassword
   }) = _ForgotPasswordState;

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -35,6 +38,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreen extends State<ForgotPasswordScreen> {
+  
   @override
   Widget build(BuildContext context) {
     bool isLoading = false;
@@ -92,7 +96,7 @@ class _ForgotPasswordScreen extends State<ForgotPasswordScreen> {
                       forgotPasswordFlow[safeStep],
                       Spacer(flex: 5),
 
-                      Expanded(
+                   safeStep  < forgotPasswordFlow.length - 1 ?  Expanded(
                         flex: 2,
                         child: Container(
                           margin: EdgeInsets.symmetric(horizontal: 10),
@@ -147,7 +151,7 @@ class _ForgotPasswordScreen extends State<ForgotPasswordScreen> {
                             ],
                           ),
                         ),
-                      ),
+                      ) : Container(),
                     ],
                   )
                 : Center(child: LoadingCircle()),

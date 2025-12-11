@@ -18,7 +18,7 @@ class ForgotPasswordViewmodel extends _$ForgotPasswordViewmodel {
 
   void gotoNextStep() {
     int currentIdx = state.currentForgotPasswordStep;
-      state = state.copyWith(currentForgotPasswordStep: currentIdx + 1);
+    state = state.copyWith(currentForgotPasswordStep: currentIdx + 1);
   }
 
   void updateEmail(String email) {
@@ -27,8 +27,25 @@ class ForgotPasswordViewmodel extends _$ForgotPasswordViewmodel {
       isValidEmail: validator.validateEmail(email),
     );
   }
-  String EncryptEmail(String email)
-  {
+
+  void updatePassword(String password) {
+    state = state.copyWith(
+      password: password,
+      isValidPassword: validator.validatePassword(password),
+      isValidRePassword: state.password == password,
+    );
+  }
+
+  void updateRePassword(String password) {
+    state = state.copyWith(
+      reTypePassword: password,
+      isValidRePassword: state.password == password,
+    );
+  }
+
+  String EncryptEmail(String email) {
+    if (email == "")
+      return email;
     List<String> parts = email.split("@");
     String local = parts[0];
     String domain = parts[1];
@@ -36,14 +53,27 @@ class ForgotPasswordViewmodel extends _$ForgotPasswordViewmodel {
     String maskedDomain = domain[0] + "*" * (domain.length - 1);
     return maskedLocal + "@" + maskedDomain;
   }
-  Future<void> isInstructionSent(String email) async
-  {
+
+  Future<void> isInstructionSent(String email) async {
     repo = ref.read(authenticationImplRepositoryProvider);
-      bool isSent = await repo.forgotPassword(email);
-      if (isSent)
-      {
-        gotoNextStep();
-      }
+    bool isSent = await repo.forgotPassword(email);
+    if (isSent) {
+      gotoNextStep();
+    }
   }
 
+  Future<bool> resetPassword(String token, int id) async {
+    repo = ref.read(authenticationImplRepositoryProvider);
+    print(
+      state.password +
+          "this is my password =========================================",
+    );
+    bool isReset = await repo.resetPassword(
+      password: state.password,
+      token: token,
+      email: state.email,
+      id: id,
+    );
+    return isReset;
+  }
 }
