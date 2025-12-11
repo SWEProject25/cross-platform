@@ -5,16 +5,16 @@ import 'tweet_body_summary_widget.dart';
 import '../viewmodel/tweet_viewmodel.dart';
 
 ///  FutureProvider → Fetches summary when page opens
-class TweetAiSummery extends ConsumerStatefulWidget {
+class TweetAiSummary extends ConsumerStatefulWidget {
   final TweetModel tweet;
 
-  const TweetAiSummery({super.key, required this.tweet});
+  const TweetAiSummary({super.key, required this.tweet});
 
   @override
-  ConsumerState<TweetAiSummery> createState() => _TweetAiSummeryState();
+  ConsumerState<TweetAiSummary> createState() => _TweetAiSummaryState();
 }
 
-class _TweetAiSummeryState extends ConsumerState<TweetAiSummery> {
+class _TweetAiSummaryState extends ConsumerState<TweetAiSummary> {
   String? summary;
   bool loading = true;
   String? error;

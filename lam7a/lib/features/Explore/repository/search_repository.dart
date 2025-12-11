@@ -78,11 +78,4 @@ class SearchRepository {
     await Future.delayed(const Duration(seconds: 1));
     return _usersCache;
   }
-
-  // things to fetch in total
-  //
-  //1- trending hashtags
-  //2- suggested users
-  //10- explore page tweets
-  //11- explore page with certain filter
 }
