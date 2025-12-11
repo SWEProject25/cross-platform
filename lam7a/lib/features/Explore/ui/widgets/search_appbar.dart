@@ -39,7 +39,9 @@ class SearchAppbar extends StatelessWidget implements PreferredSizeWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const SearchMainPage()),
+                  MaterialPageRoute(
+                    builder: (_) => SearchMainPage(initialQuery: hintText),
+                  ),
                 );
               },
               child: Container(
