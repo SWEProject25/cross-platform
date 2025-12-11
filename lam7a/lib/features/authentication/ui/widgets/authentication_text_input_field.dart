@@ -14,6 +14,7 @@ class TextInputField extends StatefulWidget {
   String content;
   bool enabled;
   bool isLoginField;
+  String errorText;
   TextInputField({
     super.key,
     required this.labelTextField,
@@ -27,6 +28,7 @@ class TextInputField extends StatefulWidget {
     this.content = "",
     this.enabled = true,
     this.isLoginField = false,
+    this.errorText = "",
   });
 
   @override
@@ -64,7 +66,10 @@ class _TextInputFieldState extends State<TextInputField> {
               children: [
                 Container(
                   child: TextFormField(
-                    style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.bold,
+                    ),
                     enabled: widget.enabled,
                     onChanged: (value) {
                       widget.onChangeEffect(value);
@@ -97,6 +102,9 @@ class _TextInputFieldState extends State<TextInputField> {
                       alignLabelWithHint: true,
                       labelText: widget.labelTextField,
                       labelStyle: TextStyle(color: Pallete.subtitleText),
+                      helperText:  _isFocused ? widget.errorText : "",
+                      helperStyle: TextStyle(color: Pallete.errorColor,),
+                      helperMaxLines: 10,
                       floatingLabelStyle: (_isFocused)
                           ? TextStyle(
                               color:
@@ -134,7 +142,7 @@ class _TextInputFieldState extends State<TextInputField> {
                   children: [
                     widget.isPassword
                         ? Container(
-                          margin: EdgeInsets.only(top: 5),
+                            margin: EdgeInsets.only(top: 5),
                             child: isVisible
                                 ? IconButton(
                                     icon: Icon(Icons.visibility_sharp),
@@ -152,19 +160,23 @@ class _TextInputFieldState extends State<TextInputField> {
                                   ),
                           )
                         : Container(),
-                    (_isFocused &&
-                            _controller.text.isNotEmpty &&
-                            !widget.isLoginField)
+                    (_controller.text.isNotEmpty && !widget.isLoginField)
                         ? ((widget.isValid)
                               ? Container(
-                                  margin: EdgeInsets.only(right: 5, top: !widget.isPassword ? 15 : 7),
+                                  margin: EdgeInsets.only(
+                                    right: 5,
+                                    top: !widget.isPassword ? 15 : 7,
+                                  ),
                                   child: Icon(
                                     Icons.check_circle_sharp,
                                     color: Pallete.greenColor,
                                   ),
                                 )
                               : Container(
-                                  margin: EdgeInsets.only(right: 5, top: !widget.isPassword ? 15 : 7),
+                                  margin: EdgeInsets.only(
+                                    right: 5,
+                                    top: !widget.isPassword ? 15 : 7,
+                                  ),
                                   child: Icon(
                                     Icons.error,
                                     color: Pallete.errorColor,
@@ -192,13 +204,20 @@ class _TextInputFieldState extends State<TextInputField> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: isDark ? ColorScheme.dark(            
-            primary: Colors.blue, // Header background & selected date
-            onPrimary: Colors.white, // Header text color
-            surface: const Color.fromARGB(255, 44, 44, 44)!, // Calendar background
-            onSurface: const Color.fromARGB(255, 165, 165, 165), 
-            ): Theme.of(context).colorScheme
-          ) ,
+            colorScheme: isDark
+                ? ColorScheme.dark(
+                    primary: Colors.blue, // Header background & selected date
+                    onPrimary: Colors.white, // Header text color
+                    surface: const Color.fromARGB(
+                      255,
+                      44,
+                      44,
+                      44,
+                    )!, // Calendar background
+                    onSurface: const Color.fromARGB(255, 165, 165, 165),
+                  )
+                : Theme.of(context).colorScheme,
+          ),
           child: child!,
         );
       },

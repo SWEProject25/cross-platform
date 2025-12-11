@@ -13,10 +13,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:lam7a/core/constants/server_constant.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/following_screen/following_screen.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/forgot_password_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/interests_screen/interests_screen.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_icon_button_widget.dart';
@@ -42,39 +44,38 @@ class FirstTimeScreen extends ConsumerStatefulWidget {
 }
 
 class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
-  StreamSubscription<Uri>? _linkSubscription;
-  String? code;
-  final _navigatorKey = GlobalKey<NavigatorState>();
+  // StreamSubscription<Uri>? _linkSubscription;
+  // String? code;
+  // final _navigatorKey = GlobalKey<NavigatorState>();
 
-  @override
-  void initState() {
-    super.initState();
+  // @override
+  // void initState() {
+  //   super.initState();
 
-    initDeepLinks();
-  }
+  //   initDeepLinks();
+  // }
 
-  @override
-  void dispose() {
-    _linkSubscription?.cancel();
+  // @override
+  // void dispose() {
+  //   _linkSubscription?.cancel();
 
-    super.dispose();
-  }
+  //   super.dispose();
+  // }
 
-  Future<void> initDeepLinks() async {
-    _linkSubscription = AppLinks().uriLinkStream.listen((uri) async {
-      debugPrint('onAppLink: $uri');
-      code = uri.queryParameters['code'];
-      if (code != null) {
-        await ref
-            .read(authenticationViewmodelProvider.notifier)
-            .oAuthGithubLogin(code!);
-      }
-      openAppLink(uri);
-    });
-  }
+  // Future<void> initDeepLinks() async {
+  //   _linkSubscription = AppLinks().uriLinkStream.listen((uri) async {
+  //     debugPrint('onAppLink: $uri');
+  //     code = uri.queryParameters['code'];
+  //     if (code != null) {
+  //       await ref
+  //           .read(authenticationViewmodelProvider.notifier)
+  //           .oAuthGithubLogin(code!);
+  //     }
+  //     openAppLink(uri);
+  //   });
+  // }
 
-  void openAppLink(Uri uri) {
-    if (uri.queryParameters.containsKey('code')) {
+  void openAppLink() {
       final snapshot = ref.watch(authenticationViewmodelProvider);
       if (!snapshot.hasCompeletedInterestsSignUp) {
         Navigator.pushNamedAndRemoveUntil(
@@ -91,7 +92,7 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
       } else {
         Navigator.pushNamed(context, NavigationHomeScreen.routeName);
       }
-    }
+
   }
 
   @override
@@ -163,23 +164,28 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
                             final snapshot = ref.read(
                               authenticationViewmodelProvider,
                             );
-                            if (!snapshot.hasCompeletedInterestsSignUp) {
-                              Navigator.pushNamedAndRemoveUntil(
-                                context,
-                                InterestsScreen.routeName,
-                                (_) => false,
-                              );
-                            } else if (!snapshot.hasCompeletedFollowingSignUp) {
-                              Navigator.pushNamedAndRemoveUntil(
-                                context,
-                                FollowingScreen.routeName,
-                                (_) => false,
-                              );
-                            } else {
-                              Navigator.pushNamed(
-                                context,
-                                NavigationHomeScreen.routeName,
-                              );
+                            if (ref
+                                .read(authenticationProvider)
+                                .isAuthenticated) {
+                              if (!snapshot.hasCompeletedInterestsSignUp) {
+                                Navigator.pushNamedAndRemoveUntil(
+                                  context,
+                                  InterestsScreen.routeName,
+                                  (_) => false,
+                                );
+                              } else if (!snapshot
+                                  .hasCompeletedFollowingSignUp) {
+                                Navigator.pushNamedAndRemoveUntil(
+                                  context,
+                                  FollowingScreen.routeName,
+                                  (_) => false,
+                                );
+                              } else {
+                                Navigator.pushNamed(
+                                  context,
+                                  NavigationHomeScreen.routeName,
+                                );
+                              }
                             }
                           },
                         ),

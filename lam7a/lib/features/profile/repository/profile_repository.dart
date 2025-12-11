@@ -94,6 +94,9 @@ class ProfileRepository {
         stateFollow: (f.isFollowedByMe ?? false)
             ? ProfileStateOfFollow.following
             : ProfileStateOfFollow.notfollowing,
+        stateFollowingMe: (f.isFollowingMe ?? false)
+            ? ProfileStateFollowingMe.followingme
+            : ProfileStateFollowingMe.notfollowingme,
       );
     }).toList();
   }
@@ -113,6 +116,9 @@ class ProfileRepository {
         stateFollow: (f.isFollowedByMe ?? false)
             ? ProfileStateOfFollow.following
             : ProfileStateOfFollow.notfollowing,
+        stateFollowingMe: (f.isFollowingMe ?? false)
+            ? ProfileStateFollowingMe.followingme
+            : ProfileStateFollowingMe.notfollowingme,
       );
     }).toList();
   }
@@ -143,6 +149,10 @@ class ProfileRepository {
       stateBlocked: (dto.toJson().containsKey('is_blocked_by_me') && dto.toJson()['is_blocked_by_me'] == true)
           ? ProfileStateBlocked.blocked
           : ProfileStateBlocked.notblocked,
+
+      stateFollowingMe: (dto.toJson().containsKey('is_following_me') && dto.toJson()['is_following_me'] == true)
+          ? ProfileStateFollowingMe.followingme
+          : ProfileStateFollowingMe.notfollowingme,
     );
   }
 }

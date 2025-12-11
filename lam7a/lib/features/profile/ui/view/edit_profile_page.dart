@@ -33,7 +33,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     bioCtrl = TextEditingController(text: widget.user.bio ?? '');
     locationCtrl = TextEditingController(text: widget.user.location ?? '');
     websiteCtrl = TextEditingController(text: widget.user.website ?? '');
-    birthDateCtrl = TextEditingController(text: widget.user.birthDate ?? '');
+    birthDateCtrl = TextEditingController(text: (widget.user.birthDate ?? '').split('T').first);
   }
 
   @override
@@ -82,16 +82,39 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
   }
 
-  Widget buildField(String label, TextEditingController c, {int maxLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+  // Widget buildField(String label, TextEditingController c, {int maxLines = 1}) {
+  //   return Padding(
+  //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+  //     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+  //       Text(label, style: const TextStyle(color: Colors.grey)),
+  //       const SizedBox(height: 6),
+  //       TextField(controller: c, maxLines: maxLines, decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)))),
+  //     ]),
+  //   );
+  // }
+
+  Widget buildField(String label, TextEditingController c, {int maxLines = 1, int? maxLength}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         Text(label, style: const TextStyle(color: Colors.grey)),
         const SizedBox(height: 6),
-        TextField(controller: c, maxLines: maxLines, decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)))),
-      ]),
-    );
-  }
+        TextField(
+          controller: c,
+          maxLines: maxLines,
+          maxLength: maxLength,  // <-- ADD THIS
+          decoration: InputDecoration(
+            counterText: "",
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +144,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           
           const SizedBox(height: 12),
           buildField('Name', nameCtrl),
-          buildField('Bio', bioCtrl, maxLines: 3),
+          buildField('Bio', bioCtrl, maxLines: 3, maxLength: 160),
           buildField('Location', locationCtrl),
           buildField('Website', websiteCtrl),
           buildField('Birthday (YYYY-MM-DD)', birthDateCtrl),

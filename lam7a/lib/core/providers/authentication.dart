@@ -75,4 +75,20 @@ UserModel userDtoToUserModel(UserDtoAuth dto) {
   void updateUser(UserModel updatedUser) {
     state = state.copyWith(user: updatedUser);
   }
+
+  // Refresh user data from the server
+  Future<void> refreshUser() async {
+    try {
+      final response = await _apiService.get(endpoint: ServerConstant.profileMe);
+
+      if (response['data'] != null) {
+        final dto = UserDtoAuth.fromJson(response['data']);
+        final updatedUser = userDtoToUserModel(dto);
+        state = state.copyWith(user: updatedUser);
+      }
+    } catch (e) {
+      print("Failed to refresh user: $e");
+    }
+  }
+
 }

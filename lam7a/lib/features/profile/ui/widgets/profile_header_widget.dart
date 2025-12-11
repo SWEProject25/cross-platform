@@ -67,8 +67,21 @@ class ProfileHeaderWidget extends ConsumerWidget {
           if ((user.location ?? '').isNotEmpty)
             Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.location_on_outlined, size: 16), const SizedBox(width: 4), Text(user.location ?? '')]),
 
+
           if ((user.birthDate ?? '').isNotEmpty)
-            Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.cake_outlined, size: 16), const SizedBox(width: 4), Text(user.birthDate ?? '')]),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.cake_outlined, size: 16),
+                  const SizedBox(width: 4),
+
+                  // Format the date properly
+                  Text(
+                    (user.birthDate ?? '').split("T").first, // <-- FIX
+                  ),
+                ],
+              ),
+
 
           if ((user.createdAt ?? '').isNotEmpty)
             Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.calendar_today_outlined, size: 16), const SizedBox(width: 4), Text('Joined ${user.createdAt!.split("T").first}')]),
