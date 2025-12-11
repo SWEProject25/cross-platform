@@ -31,6 +31,9 @@ abstract class UserModel with _$UserModel {
 
     @Default(ProfileStateBlocked.notblocked)
     ProfileStateBlocked stateBlocked,
+
+    @Default(ProfileStateFollowingMe.notfollowingme)
+    ProfileStateFollowingMe stateFollowingMe,
   }) = _UserModel;
 
   /// ✔ Required by Freezed. This MUST stay exactly like this.
@@ -84,6 +87,10 @@ abstract class UserModel with _$UserModel {
       stateBlocked: json['is_blocked_by_me'] == true
           ? ProfileStateBlocked.blocked
           : ProfileStateBlocked.notblocked,
+
+      stateFollowingMe: json['is_following_me'] == true
+          ? ProfileStateFollowingMe.followingme
+          : ProfileStateFollowingMe.notfollowingme,
     );
   }
 }
@@ -91,3 +98,4 @@ abstract class UserModel with _$UserModel {
 enum ProfileStateOfFollow { following, notfollowing }
 enum ProfileStateOfMute { muted, notmuted }
 enum ProfileStateBlocked { blocked, notblocked }
+enum ProfileStateFollowingMe { followingme, notfollowingme }

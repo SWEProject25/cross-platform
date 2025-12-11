@@ -67,43 +67,109 @@ class _FollowersFollowingPageState extends ConsumerState<FollowersFollowingPage>
     }
   }
 
-  Widget _buildTile(UserModel u) {
-    final hasImage = u.profileImageUrl != null && u.profileImageUrl!.isNotEmpty;
-    return ListTile(
-      leading: CircleAvatar(
-        radius: 24,
-        backgroundColor: Colors.grey.shade200,
-        backgroundImage: hasImage ? NetworkImage(u.profileImageUrl!) : null,
-        child: !hasImage ? const Icon(Icons.person, color: Colors.white) : null,
-      ),
-      title: Row(
+  // Widget _buildTile(UserModel u) {
+  //   final hasImage = u.profileImageUrl != null && u.profileImageUrl!.isNotEmpty;
+  //   return ListTile(
+  //     contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+  //     leading: CircleAvatar(
+  //       radius: 24,
+  //       backgroundColor: Colors.grey.shade200,
+  //       backgroundImage: hasImage ? NetworkImage(u.profileImageUrl!) : null,
+  //       child: !hasImage ? const Icon(Icons.person, color: Colors.white) : null,
+  //     ),
+      
+  //     title: Row(
+  //       children: [
+  //         Expanded(
+  //           child: Text(u.name ?? "Unknown",
+  //               style: const TextStyle(fontWeight: FontWeight.bold)),
+  //         ),
+  //         // Follow button
+  //         FollowButton(user: u),
+  //       ],
+  //     ),
+  //     subtitle: Text(
+  //       "@${u.username ?? ''}${(u.bio != null && u.bio!.isNotEmpty) ? '\n${u.bio}' : ''}",
+  //       maxLines: 2,
+  //       overflow: TextOverflow.ellipsis,
+  //     ),
+  //     isThreeLine: true,
+  //     onTap: () {
+  //       // navigate to profile and pass username as argument
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (_) => const ProfileScreen(),
+  //           settings: RouteSettings(arguments: {"username": u.username}),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
+
+Widget _buildTile(UserModel u) {
+  final hasImage = u.profileImageUrl != null && u.profileImageUrl!.isNotEmpty;
+
+  return InkWell(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const ProfileScreen(),
+          settings: RouteSettings(arguments: {"username": u.username}),
+        ),
+      );
+    },
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(u.name ?? "Unknown",
-                style: const TextStyle(fontWeight: FontWeight.bold)),
+          // Avatar
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: Colors.grey.shade200,
+            backgroundImage: hasImage ? NetworkImage(u.profileImageUrl!) : null,
+            child: !hasImage ? const Icon(Icons.person, color: Colors.white) : null,
           ),
-          // Follow button
-          FollowButton(user: u),
+
+          const SizedBox(width: 8), // <-- Reduce this to control spacing!
+
+          // Username + Bio + Follow button
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        u.name ?? "Unknown",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    FollowButton(user: u),
+                  ],
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  "@${u.username ?? ''}${(u.bio != null && u.bio!.isNotEmpty) ? '\n${u.bio}' : ''}",
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
-      subtitle: Text(
-        "@${u.username ?? ''}${(u.bio != null && u.bio!.isNotEmpty) ? '\n${u.bio}' : ''}",
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
-      isThreeLine: true,
-      onTap: () {
-        // navigate to profile and pass username as argument
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const ProfileScreen(),
-            settings: RouteSettings(arguments: {"username": u.username}),
-          ),
-        );
-      },
-    );
-  }
+    ),
+  );
+}
+
 
   @override
   void dispose() {
