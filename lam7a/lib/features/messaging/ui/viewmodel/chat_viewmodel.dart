@@ -4,9 +4,11 @@ import 'dart:math';
 import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/utils/logger.dart';
+import 'package:lam7a/features/messaging/errors/blocked_user_error.dart';
 import 'package:lam7a/features/messaging/repository/conversations_repositories.dart';
 import 'package:lam7a/features/messaging/repository/messages_repository.dart';
 import 'package:lam7a/features/messaging/ui/state/chat_state.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/conversation_viewmodel.dart';
 import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -21,7 +23,6 @@ class ChatViewModel extends _$ChatViewModel {
   late ConversationsRepository _conversationsRepository;
   late MessagesRepository _messagesRepository;
   late AuthState _authState;
-
   StreamSubscription<void>? _newMessagesSub;
   StreamSubscription<bool>? _userTypingSub;
   Timer? _typingTimer;
@@ -39,18 +40,24 @@ class ChatViewModel extends _$ChatViewModel {
     _messagesRepository = ref.read(messagesRepositoryProvider);
     _authState = ref.watch(authenticationProvider);
 
-    Future.microtask(() async {
-      // await _getConvId();
+    if(_authState.user == null){
+      throw Exception("User not authenticated");
+    }
 
-      _newMessagesSub = _messagesRepository.onMessageRecieved(_conversationId).listen((_)=>_onNewMessagesArrive());
-      _userTypingSub = _messagesRepository.onUserTyping(_conversationId).listen(((isTyping)=> _onOtherTyping(isTyping)));
-      
-      _messagesRepository.joinConversation(_conversationId);
-      _messagesRepository.sendMarkAsSeen(_conversationId);
+    _newMessagesSub = _messagesRepository.onMessageRecieved(_conversationId).listen((_)=>_onNewMessagesArrive());
+    _userTypingSub = _messagesRepository.onUserTyping(_conversationId).listen(((isTyping)=> _onOtherTyping(isTyping)));
+    
+    _messagesRepository.joinConversation(_conversationId);
+    _messagesRepository.sendMarkAsSeen(_conversationId);
+
+    Future.microtask(() async {
+
+      ref.read(conversationViewmodelProvider(_conversationId).notifier).markConversationAsSeen();
       _loadContact();
+      _prepareConversation();
       _loadMessages();
 
-      await loadMoreMessages();
+      await requestInitMessages();
 
     });
   
@@ -76,23 +83,16 @@ class ChatViewModel extends _$ChatViewModel {
 
   }
 
-
-  // Future<void> _getConvId() async{
-  //   if(_conversationId == null){
-  //     _logger.d("Getting ConvId from UserId {$_userId}");
-  //     int convId = await _conversationsRepository.getConversationIdByUserId(_userId);
-
-  //     if(convId == -1){
-  //       _logger.e("UserId {$_userId} conversion got {$convId}");
-  //       return;
-  //     }
-
-  //     _logger.d("Converted UserId to {$convId}");
-  //     state = state.copyWith(conversationId: convId);
-  //   }else{
-  //     state = state.copyWith(conversationId: _conversationId ?? -1);
-  //   }
-  // }
+  Future<void> _prepareConversation() async {
+    var conversationViewmodel = ref.read(conversationViewmodelProvider(_conversationId).notifier);
+    if (conversationViewmodel.state.conversation == null) {
+      var conv = await _conversationsRepository.getConversationById(_conversationId);
+      conversationViewmodel.setConversation(conv);
+      state = state.copyWith(conversation: AsyncData(conv));
+    }else{
+      state = state.copyWith(conversation: AsyncData(conversationViewmodel.state.conversation!));
+    }
+  }
 
   Future<void> _loadContact() async {
 
@@ -111,7 +111,7 @@ class ChatViewModel extends _$ChatViewModel {
   Future<void> _loadMessages() async {
     state = state.copyWith(messages: const AsyncLoading());
     try {
-      final data = _messagesRepository.fetchMessage(_conversationId);
+      final data = await _messagesRepository.fetchMessage(_conversationId);
       state = state.copyWith(messages: AsyncData(data));
     } catch (e, st) {
       state = state.copyWith(messages: AsyncError(e, st));
@@ -121,9 +121,12 @@ class ChatViewModel extends _$ChatViewModel {
   void _onNewMessagesArrive(){
     _refreshMessages();
     _messagesRepository.sendMarkAsSeen(_conversationId);
+    ref.read(conversationViewmodelProvider(_conversationId).notifier).markConversationAsSeen();
   }
 
   void _onOtherTyping (bool isTyping) {
+    if(state.conversation.value?.isBlocked ?? false) return;
+    
     state = state.copyWith(isTyping: isTyping);
 
     if (isTyping) {
@@ -142,9 +145,9 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
-  void _refreshMessages() {
+  Future<void> _refreshMessages() async {
     try {
-      final data = _messagesRepository.fetchMessage(_conversationId);
+      final data = await _messagesRepository.fetchMessage(_conversationId);
       state = state.copyWith(messages: AsyncData(data));
     } catch (e, st) {
       state = state.copyWith(messages: AsyncError(e, st));
@@ -166,9 +169,33 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   Future<void> sendMessage() async {
-    _messagesRepository.sendMessage(_authState.user!.id!, _conversationId, state.draftMessage.trim());
-    _messagesRepository.updateTypingStatus(_conversationId, false);
-    state = state.copyWith(draftMessage: "");
+    try {
+      _messagesRepository.updateTypingStatus(_conversationId, false);
+      state = state.copyWith(draftMessage: "");
+      await _messagesRepository.sendMessage(_authState.user!.id!, _conversationId, state.draftMessage.trim());
+    } on BlockedUserError catch (e) {
+      _logger.w("Cannot send message, user is blocked: $e");
+      ref.read(conversationViewmodelProvider(_conversationId).notifier).setConversationBlocked(true);
+      state = state.copyWith(
+        conversation: AsyncData(
+          state.conversation.value!.copyWith(isBlocked: true),
+        ),
+      );
+    } catch (e) {
+      _logger.e("Error sending message: $e");
+    }
+    
+  }
+
+  Future<void> requestInitMessages() async {
+    if(state.loadingMoreMessages) return;
+
+    state = state.copyWith(loadingMoreMessages: true);
+
+    var hasMore = await _messagesRepository.loadInitMessage(_conversationId);
+
+    if(_disposed) return;
+    state = state.copyWith(loadingMoreMessages: false, hasMoreMessages: hasMore);
   }
 
 

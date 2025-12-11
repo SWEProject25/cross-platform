@@ -1,85 +1,127 @@
-import 'dart:async';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/models/auth_state.dart';
+import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/features/common/providers/pagination_notifier.dart';
+import 'package:lam7a/features/common/states/pagination_state.dart';
+import 'package:lam7a/features/messaging/model/chat_message.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
-import 'package:lam7a/features/messaging/providers/conversations_provider.dart';
 import 'package:lam7a/features/messaging/repository/conversations_repositories.dart';
-import 'package:lam7a/features/messaging/ui/state/conversations_state.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/conversation_viewmodel.dart';
 
-part 'conversations_viewmodel.g.dart';
-
-@riverpod
-class ConversationsViewModel extends _$ConversationsViewModel {
+class ConversationsViewmodel extends PaginationNotifier<Conversation> {
+  late AuthState _authState;
+  late MessagesSocketService _socket;
   late ConversationsRepository _conversationsRepository;
-  // will listen to pagination provider updates instead of reading synchronously
-  final Map<int, StreamSubscription<void>?> newMessageSub = {};
+
+  ConversationsViewmodel() : super(pageSize: 3) {}
 
   @override
-  ConversationsState build() {
+  PaginationState<Conversation> build() {
+    _socket = ref.read(messagesSocketServiceProvider);
     _conversationsRepository = ref.read(conversationsRepositoryProvider);
-    var conversations = ref.watch(conversationsProvider);
-
-    AsyncValue<List<Conversation>> asyncConversation = const AsyncLoading();
-    if (conversations.error != null) {
-      asyncConversation = AsyncError(
-          conversations.error ?? 'Unknown',
-          StackTrace.current,
-        );
-    } else {
-      asyncConversation = AsyncData(conversations.items);
-    }
+    _authState = ref.watch(authenticationProvider);
 
     Future.microtask(() async {
-      loadSearchSuggestion();
+      await loadInitial();
     });
 
-    return ConversationsState(conversations: asyncConversation);
+    // Listen for new messages
+    _socket.incomingMessages.listen((messageDto) {
+      final message = ChatMessage.fromDto(
+        messageDto,
+        currentUserId: _authState.user!.id!,
+      );
+      onNewMessageReceived(message);
+    });
+
+    _socket.incomingMessagesNotifications.listen((messageDto) {
+      final message = ChatMessage.fromDto(
+        messageDto,
+        currentUserId: _authState.user!.id!,
+      );
+      onNewMessageReceived(message);
+    });
+
+    return const PaginationState<Conversation>();
   }
 
-  void loadSearchSuggestion() async {
-    state = state.copyWith(contacts: AsyncLoading());
-    
-    var contacts = await _conversationsRepository.searchForContactsExtended("", 1);
-    state = state.copyWith(contacts: AsyncData(contacts));
+  // on recived message check if it belongs to any conversation? if yes refresh that conversation and set last message else add new conversation
+  Future onNewMessageReceived(ChatMessage message) async {
+    final conversationId = message.conversationId;
+    final index = state.items.indexWhere((conv) => conv.id == conversationId);
+    if (index != -1) {
+      // refresh that conversation
+      if (message.senderId == _authState.user!.id!) {
+        return;
+      }
+      Conversation existingConv = state.items[index];
+      Conversation updatedConv = existingConv.copyWith(
+        lastMessage: message.text,
+        lastMessageTime: message.time,
+      );
+      List<Conversation> updatedConvList = List.from(state.items);
+      updatedConvList[index] = updatedConv;
+      updatedConvList.sort((a, b) {
+        var aTime = a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        var bTime = b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return bTime.compareTo(aTime);
+      });
+      state = state.copyWith(items: updatedConvList);
+      
+    } else {
+      // fetch new conversation and add
+      var user = await _conversationsRepository.getContactByUserId(message.senderId);
+      Conversation conv = Conversation(
+        id: conversationId ?? -1,
+        name: user.name,
+        userId: user.id,
+        username: user.handle,
+        lastMessageTime: message.time,
+        avatarUrl: user.avatarUrl,
+        lastMessage: message.text,
+      );
 
-  }
 
-  Future<void> onQueryChanged(String v) async {
-    state = state.copyWith(searchQuery: v, searchQueryError: _validateQuery(v));
+      ref.read(conversationViewmodelProvider(conversationId!).notifier).setConversation(conv);
 
-    await updateSerch(v);
-  }
+      List<Conversation> updatedConv = [...state.items, conv];
 
-  String? _validateQuery(String v) {
-    // if (v.trim().isEmpty) return 'Query is required';
-    if (v.length == 1) return 'Too short. Here are some suggested Results:';
-    return null;
-  }
+      var updatedFirstPage = await fetchPage(1);
+      updatedConv = mergeList(state.items, updatedFirstPage.$1);
 
-  Future<void> updateSerch(String query) async {
-    // if (state.searchQueryError != null) {
-    //   return;
-    // }
-
-    try {
-      var data = await _conversationsRepository.searchForContactsExtended(query, 1);
-      state = state.copyWith(contacts: AsyncData(data));
-    } catch (e, st) {
-      state = state.copyWith(contacts: AsyncError(e, st));
+      state = state.copyWith(items: updatedConv);
     }
   }
 
-  Future<int> createConversationId(int userId) async {
-    state = state.copyWith(loadingConversationId: true);
-    var res = await _conversationsRepository.getConversationIdByUserId(userId);
-    state = state.copyWith(loadingConversationId: false);
-
-    return res;
+  @override
+  Future<(List<Conversation> items, bool hasMore)> fetchPage(int page) async {
+    var (data, hasMore) = await _conversationsRepository.fetchConversations();
+    for (var conv in data) {
+      ref.read(conversationViewmodelProvider(conv.id).notifier).setConversation(conv);
+    }
+    return (data, hasMore);
   }
 
-  Future<void> refresh() async {
-    await Future.wait([
-      // _loadConversations(),
-    ]);
+  @override
+  List<Conversation> mergeList(List<Conversation> a, List<Conversation> b) {
+    //merge but remove dublicate ids and sort by last message time
+    final Map<int, Conversation> mergedMap = {
+      for (var conv in a) conv.id: conv,
+      for (var conv in b) conv.id: conv,
+    };
+    final mergedList = mergedMap.values.toList();
+    mergedList.sort((a, b) {
+      var aTime = a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+      var bTime = b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return bTime.compareTo(aTime);
+    });
+    return mergedList;
   }
+  
+
 }
+
+// Provider for the notifier
+final conversationsViewmodel = NotifierProvider<
+  ConversationsViewmodel, PaginationState<Conversation>>(() => ConversationsViewmodel());

@@ -93,8 +93,18 @@ class EditProfileFormState extends ConsumerState<EditProfileForm> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(children: [
-            TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Display name')),
-            TextField(controller: bioController, decoration: const InputDecoration(labelText: 'Bio')),
+            TextField(controller: nameController, maxLength: 20, decoration: const InputDecoration(labelText: 'Display name')),
+            //TextField(controller: bioController, decoration: const InputDecoration(labelText: 'Bio')),
+            TextField(
+              controller: bioController,
+              maxLength: 160,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Bio',
+                counterText: "", 
+              ),
+            ),
+
             TextField(controller: locationController, decoration: const InputDecoration(labelText: 'Location')),
             TextField(controller: websiteController, decoration: const InputDecoration(labelText: 'Website')),
             const SizedBox(height: 20),

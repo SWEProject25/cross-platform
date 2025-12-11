@@ -1,6 +1,10 @@
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:lam7a/core/hive_types.dart';
 import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/authentication/repository/authentication_impl_repository.dart';
+import 'package:lam7a/features/common/dtos/api_response.dart';
+import 'package:lam7a/features/messaging/dtos/conversation_dto.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:lam7a/features/messaging/services/dms_api_service.dart';
@@ -27,21 +31,37 @@ class ConversationsRepository {
   Future<(List<Conversation> data, bool hasMore)> fetchConversations() async {
     if (!_authState.isAuthenticated) return ([] as List<Conversation>, false);
 
-    var conversationsDto = await _apiService.getConversations();
+    
+    ApiResponse<List<ConversationDto>>? conversationsDto;
+    try {
+      conversationsDto = await _apiService.getConversations();
+    } catch (e) {
+      // Fallback to local storage
+      var hive = await HiveTypes().openBoxIfNeeded<Conversation>('conversations');
+      var conversations = hive.values.toList();
+      conversations.sort((a, b) {
+        var aTime = a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        var bTime = b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return bTime.compareTo(aTime);
+      });
+      return (conversations, false);
+    }
 
     var conversations = conversationsDto.data.map((x) {
-      return Conversation(
-        id: x.id,
-        userId: x.user.id,
-        name: x.user.displayName,
-        username: x.user.username,
-        avatarUrl: x.user.profileImageUrl,
-        lastMessage: x.lastMessage?.text,
-        lastMessageTime: x.updatedAt,
-      );
+      return Conversation.fromDto(x);
     }).toList();
 
+    var hive = await HiveTypes().openBoxIfNeeded<Conversation>('conversations');
+    for (var conv in conversations) {
+      hive.put(conv.id, conv);
+    }
+
     return (conversations, conversationsDto.metadata.totalPages != conversationsDto.metadata.page);
+  }
+
+  Future<Conversation> getConversationById(int convId) async {
+    var conversationDto = await _apiService.getConversationById(convId);
+    return Conversation.fromDto(conversationDto);
   }
 
   Future<int> getConversationIdByUserId(int userId) async {
@@ -62,7 +82,7 @@ class ConversationsRepository {
     int limit = 20,
   ]) async {
     if(query.length <= 1){
-      var res = await authRepo.getUsersToFollow();
+      var res = await authRepo.getUsersToFollow(50);
       return res.map((x)=> Contact(id: x.id??-1, name: x.profile?.name?? "Unkown", handle: x.username?? "@unkown")).toList();
     }else{
       return await _apiService.searchForContacts(query, page, limit);

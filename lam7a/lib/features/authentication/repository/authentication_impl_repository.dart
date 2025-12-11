@@ -70,8 +70,8 @@ class AuthenticationRepositoryImpl {
     return interests.map((e) => InterestDto.fromJson(e)).toList();
   }
 
-  Future<List<UserToFollowDto>> getUsersToFollow() async {
-    List<dynamic> users = await apiService.getUsersToFollow();
+  Future<List<UserToFollowDto>> getUsersToFollow([int limit = 10]) async {
+    List<dynamic> users = await apiService.getUsersToFollow(limit);
     return users.map((e) => UserToFollowDto.fromJson(e)).toList();
   }
 
@@ -101,5 +101,27 @@ class AuthenticationRepositoryImpl {
     Map<String, dynamic> res = await apiService.oAuthGithubLogin(code);
     RootData userModel = RootData.fromJson(res['data']);
     return userModel;
+  }
+
+  Future<bool> forgotPassword(String email) async {
+    final res = await apiService.forgotPassword(email);
+    return res[AuthenticationConstants.status] ==
+        AuthenticationConstants.success;
+  }
+
+  Future<bool> resetPassword({
+    required String password,
+    required String token,
+    required String email,
+    required int id,
+  }) async {
+    final res = await apiService.resetPassword(
+      id: id,
+      email: email,
+      password: password,
+      token: token,
+    );
+    return res[AuthenticationConstants.status] ==
+        AuthenticationConstants.success;
   }
 }

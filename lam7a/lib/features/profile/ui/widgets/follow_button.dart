@@ -54,6 +54,9 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
   Widget build(BuildContext context) {
     final isFollowing =
         _user.stateFollow == ProfileStateOfFollow.following;
+    
+    final isFollowingMe =
+        _user.stateFollowingMe == ProfileStateFollowingMe.followingme;
 
     return OutlinedButton(
       onPressed: _loading ? null : _toggle,
@@ -62,16 +65,16 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
         foregroundColor: isFollowing ? Colors.black : Colors.white,
         side: const BorderSide(color: Colors.black),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),// Adjusted padding
       ),
       child: _loading
           ? const SizedBox(
               width: 16,
-              height: 16,
+              height: 8,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : Text(
-              isFollowing ? "Following" : "Follow",
+              isFollowing ? "Following" : isFollowingMe ? "Follow Back" : "Follow",
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
     );

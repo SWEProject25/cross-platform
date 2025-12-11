@@ -102,7 +102,25 @@ class DMsApiServiceImpl extends DMsApiService {
   Future<int> getNumberOfUnseenConversations(int? conversationId) {
     return _apiService.get<int>(
       endpoint: "/conversations/unseen/${conversationId == null ? "" : "$conversationId"}",
-      fromJson: (x) => x['data']['unseen_count'] as int,
+      fromJson: (x) => x['unseenCount'] as int,
+    );
+  }
+  
+  @override
+  Future<ConversationDto> getConversationById(int id) {
+    return _apiService.get<ConversationDto>(
+      endpoint: "/conversations/$id",
+      fromJson: (x) => ConversationDto.fromJson(x['data']),
+    );
+  }
+  
+  @override
+  Future<MessagesResponseDto> getLostMessages(int conversationId, int? lastMessageId) {
+    
+    return _apiService.get<MessagesResponseDto>(
+      endpoint:"/messages/$conversationId/lost-messages",
+      queryParameters: {"firstMessageId": lastMessageId},
+      fromJson: (x) => MessagesResponseDto.fromJson(x),
     );
   }
 }

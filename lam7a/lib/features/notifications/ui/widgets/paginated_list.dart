@@ -66,19 +66,16 @@ class _PaginatedListViewState<T extends PaginationNotifier<K>, K>
       },
       child: state.isLoading
           ? Center(child: RefreshProgressIndicator())
+          : state.items.isEmpty
+          ? CustomScrollView(
+              slivers: [SliverFillRemaining(child: widget.noDataWidget)],
+            )
           : ListView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
               controller: _controller,
               itemCount: state.items.length + 1,
               itemBuilder: (_, i) {
                 if (i == state.items.length) {
-                  if (state.items.isEmpty) {
-                    return SizedBox(
-                      height: MediaQuery.of(context).size.height - AppBar().preferredSize.height - MediaQuery.of(context).padding.top,
-                      child: widget.noDataWidget,
-                    );
-                  }
-
                   if (state.isLoadingMore) {
                     return Center(
                       child: Padding(

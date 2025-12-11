@@ -11,7 +11,9 @@ abstract class ConversationDto with _$ConversationDto {
     required String createdAt,
     required DateTime updatedAt,
     MessageDto? lastMessage,
+    @Default(0) int unseenCount,
     required UserDto user,
+    bool? isBlocked,
   }) = _ConversationDto;
  
   factory ConversationDto.fromJson(Map<String, dynamic> json) =>

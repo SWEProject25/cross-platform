@@ -4,6 +4,8 @@ import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/features/messaging/dtos/message_socket_dtos.dart';
+import 'package:lam7a/features/messaging/dtos/messages_dtos.dart';
+import 'package:lam7a/features/messaging/errors/blocked_user_error.dart';
 import 'package:lam7a/features/messaging/model/chat_message.dart';
 import 'package:lam7a/features/messaging/services/dms_api_service.dart';
 import 'package:lam7a/features/messaging/services/messages_store.dart';
@@ -81,12 +83,12 @@ class MessagesRepository {
       _notifier.clear();
   }
 
-  void _onMessagesSeen(MessagesSeenDto dto) {
+  Future<void> _onMessagesSeen(MessagesSeenDto dto) async {
     try {
       final convId = dto.conversationId;
       _logger.i('Messages seen event received for conversation $convId by user ${dto.userId}');
 
-      final messages = _cache.getMessages(convId);
+      final messages = await _cache.getMessages(convId);
       var changed = false;
 
       for (var i = 0; i < messages.length; i++) {
@@ -155,8 +157,8 @@ class MessagesRepository {
 
   Stream<void> onConnected() => _socket.onConnected;
 
-  List<ChatMessage> fetchMessage(int chatId) {
-    return _cache.getMessages(chatId);
+  Future<List<ChatMessage>> fetchMessage(int chatId) async {
+    return await _cache.getMessages(chatId);
   }
 
   void updateTypingStatus(int conversationId, bool isTyping) {
@@ -172,49 +174,83 @@ class MessagesRepository {
     }
   }
 
-  void sendMessage(int senderId, int conversationId, String message) async {
+  Future<void> sendMessage(int senderId, int conversationId, String message) async {
     _logger.i("Sending message to conversation $conversationId: $message");
 
-    CreateMessageRequest request = CreateMessageRequest(
+    final request = CreateMessageRequest(
       conversationId: conversationId,
       senderId: senderId,
       text: message,
     );
 
-    int id = (_cache.getLastMessageId(conversationId) - 1);
+    // 1. Create a temporary local message (with negative ID to avoid conflicts)
+    final tempId = -DateTime.now().millisecondsSinceEpoch;
+
+    final optimisticMessage = ChatMessage(
+      id: tempId,
+      text: message,
+      time: DateTime.now(),
+      isMine: true,
+      isDelivered: false,
+      isSeen: false,
+      senderId: senderId,
+      conversationId: conversationId,
+    );
+
+    // Add optimistic message
+    _cache.addMessage(conversationId, optimisticMessage);
+    _getNotifier(conversationId).add(null);
+
+    MessageDto? messageDto;
+
+    try {
+      messageDto = await _socket.sendMessage(request);
+    } on BlockedUserError {
+      // Remove the optimistic message
+      _cache.removeMessage(conversationId, tempId);
+      _getNotifier(conversationId).add(null);
+      rethrow;
+    }
+
+    // If server sent nothing, just remove local optimistic message
+    if (messageDto == null) {
+      _logger.e("Failed to send message, server returned null");
+      _cache.removeMessage(conversationId, tempId);
+      _getNotifier(conversationId).add(null);
+      return;
+    }
+
+    // Remove the optimistic message
+    _cache.removeMessage(conversationId, tempId);
+
+    // Add the real server message
     _cache.addMessage(
       conversationId,
-      ChatMessage(
-        id: id,
-        text: message,
-        time: DateTime.now(),
-        isMine: true,
-        isDelivered: false,
-        isSeen: false,
-        senderId: _authState.user!.id!,
-        conversationId: conversationId,
+      ChatMessage.fromDto(
+        messageDto,
+        currentUserId: _authState.user!.id!,
       ),
     );
 
     _getNotifier(conversationId).add(null);
-
-    var messageDto = await _socket.sendMessage(request);
-    
-    _cache.removeMessage(conversationId, id);
-
-    if (messageDto == null) {
-      _logger.e("Failed to send message, server returned null");
-      return;
-    }
-
-    _cache.addMessage(conversationId, ChatMessage.fromDto(messageDto, currentUserId: _authState.user!.id!));
-    _getNotifier(conversationId).add(null);
   }
+
 
   Future<bool> _reSyncMessageHistory(int conversationId) async {
     _logger.i("Re-syncing Messages for conversation id {$conversationId}");
 
-    var messagesDto = await _apiService.getMessageHistory(conversationId, null);
+    int? newwestId = (await _cache.getMessages(conversationId))
+        .map((e) => e.id)
+        .fold<int?>(null, (previousValue, element) {
+      if (previousValue == null) return element;
+      return element > previousValue ? element : previousValue;
+    });
+    _logger.i("Re-syncing Lost Messages first message id is {$newwestId}");
+    
+    var messagesDto = await _apiService.getLostMessages(
+        conversationId,
+        newwestId,
+      );
 
     var messages = messagesDto.data
         .map((x) => ChatMessage.fromDto(x, currentUserId: _authState.user!.id!))
@@ -223,11 +259,11 @@ class MessagesRepository {
     _cache.addMessages(conversationId, messages);
     _getNotifier(conversationId).add(null);
 
-    return messagesDto.metadata.hasMore;
+    return messagesDto.metadata.hasMore ?? false;
   }
 
   Future<bool> loadMessageHistory(int conversationId) async {
-    int? lastMessageId = _cache.getMessages(conversationId).firstOrNull?.id;
+    int? lastMessageId = (await _cache.getMessages(conversationId)).firstOrNull?.id;
     _logger.i("Loading More Messages last message id is {$lastMessageId}");
 
     var messagesDto = await _apiService.getMessageHistory(
@@ -242,9 +278,45 @@ class MessagesRepository {
     _cache.addMessages(conversationId, messages);
     _getNotifier(conversationId).add(null);
 
-    return messagesDto.metadata.hasMore;
+    return messagesDto.metadata.hasMore ?? false;
   }
+  
+  Future<bool> loadInitMessage(int conversationId) async {
+
+    int? newwestId = (await _cache.getMessages(conversationId))
+        .map((e) => e.id)
+        .fold<int?>(null, (previousValue, element) {
+      if (previousValue == null) return element;
+      return element > previousValue ? element : previousValue;
+    });
+    _logger.i("Loading Lost Messages first message id is {$newwestId}");
+
+    late MessagesResponseDto messagesDto;
+
+    if(newwestId == null){
+      messagesDto = await _apiService.getMessageHistory(
+        conversationId,
+        null,
+      );
+    } else {
+      messagesDto = await _apiService.getLostMessages(
+        conversationId,
+        newwestId,
+      );
+    }
+
+    var messages = messagesDto.data
+        .map((x) => ChatMessage.fromDto(x, currentUserId: _authState.user!.id!))
+        .toList();
+
+    _cache.addMessages(conversationId, messages);
+    _getNotifier(conversationId).add(null);
+
+    return messagesDto.metadata.hasMore ?? false;
+  }
+
   void sendMarkAsSeen(int conversationId) async {
+    
     final req = MarkSeenRequest(
       conversationId: conversationId,
       userId: _authState.user!.id!,
