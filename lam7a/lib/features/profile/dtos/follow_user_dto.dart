@@ -14,6 +14,7 @@ abstract class FollowUserDto with _$FollowUserDto {
     String? bio,
     String? profileImageUrl,
     @JsonKey(name: 'is_followed_by_me') bool? isFollowedByMe,
+    @JsonKey(name: 'is_following_me') bool? isFollowingMe,
   }) = _FollowUserDto;
 
   factory FollowUserDto.fromJson(Map<String, dynamic> json) =>

@@ -355,6 +355,16 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       String idToken = user?.authentication.idToken ?? "";
       if (idToken != "") {
         RootData myUserData = await repo.oAuthGoogleLogin(idToken);
+
+        state = state.map(
+          login: (login) => login,
+          signup: (signup) => signup.copyWith(
+            hasCompeletedFollowingSignUp:
+                myUserData.onboardingStatus.hasCompeletedFollowing,
+            hasCompeletedInterestsSignUp:
+                myUserData.onboardingStatus.hasCompeletedInterests,
+          ),
+        );
         authController.authenticateUser(myUserData.user.mapToUserDtoAuth());
       }
     } catch (e) {
@@ -365,6 +375,15 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   Future<void> oAuthGithubLogin(String code) async {
     RootData myUserData = await repo.oAuthGithubLogin(code);
     authController.authenticateUser(myUserData.user.mapToUserDtoAuth());
+    state = state.map(
+      login: (login) => login,
+      signup: (signup) => signup.copyWith(
+        hasCompeletedFollowingSignUp:
+            myUserData.onboardingStatus.hasCompeletedFollowing,
+        hasCompeletedInterestsSignUp:
+            myUserData.onboardingStatus.hasCompeletedInterests,
+      ),
+    );
   }
 
   ///////////////////////////////////////////////

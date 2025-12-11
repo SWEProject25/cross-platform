@@ -7,6 +7,7 @@ import 'package:lam7a/features/authentication/ui/widgets/authentication_text_inp
 import 'package:lam7a/features/authentication/ui/widgets/authentication_password_terms_text.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
+import 'package:lam7a/features/authentication/utils/authentication_validator.dart';
 
 class PasswordScreen extends StatelessWidget {
   const PasswordScreen({super.key});
@@ -58,6 +59,7 @@ class PasswordScreen extends StatelessWidget {
               isPassword: true,
               onChangeEffect: viewModel.updatePassword,
               isValid: state.isValidSignupPassword,
+              errorText: Validator().validationErrors(state.passwordSignup),
             ),
             PasswordTermsText(),
           ],

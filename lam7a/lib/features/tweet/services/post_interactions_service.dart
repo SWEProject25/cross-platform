@@ -84,16 +84,33 @@ class PostInteractionsService {
           'limit': limit,
         },
       );
-
       final data = response['data'];
+      List<UserModel> users = [];
+
       if (data is List) {
-        return data
-            .map((item) => UserModel.fromJson(
-                  (item as Map).cast<String, dynamic>(),
-                ))
+        users = data
+            .whereType<Map>()
+            .map(
+              (item) => _mapInteractionUser(
+                item.cast<String, dynamic>(),
+              ),
+            )
             .toList();
+      } else if (data is Map) {
+        final inner = data['data'] ?? data['users'] ?? data['likers'];
+        if (inner is List) {
+          users = inner
+              .whereType<Map>()
+              .map(
+                (item) => _mapInteractionUser(
+                  item.cast<String, dynamic>(),
+                ),
+              )
+              .toList();
+        }
       }
-      return [];
+
+      return users;
     } on DioException catch (e) {
       // Backend might not expose this endpoint in some environments
       if (e.response?.statusCode == 404) {
@@ -123,16 +140,33 @@ class PostInteractionsService {
           'limit': limit,
         },
       );
-
       final data = response['data'];
+      List<UserModel> users = [];
+
       if (data is List) {
-        return data
-            .map((item) => UserModel.fromJson(
-                  (item as Map).cast<String, dynamic>(),
-                ))
+        users = data
+            .whereType<Map>()
+            .map(
+              (item) => _mapInteractionUser(
+                item.cast<String, dynamic>(),
+              ),
+            )
             .toList();
+      } else if (data is Map) {
+        final inner = data['data'] ?? data['users'] ?? data['reposters'];
+        if (inner is List) {
+          users = inner
+              .whereType<Map>()
+              .map(
+                (item) => _mapInteractionUser(
+                  item.cast<String, dynamic>(),
+                ),
+              )
+              .toList();
+        }
       }
-      return [];
+
+      return users;
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         print('   ℹ️ Reposters endpoint not available (404), returning empty list');
@@ -258,6 +292,35 @@ class PostInteractionsService {
       print('❌ Error fetching post counts: $e');
       return {'likes': 0, 'reposts': 0};
     }
+  }
+
+  UserModel _mapInteractionUser(Map<String, dynamic> raw) {
+    final Map<String, dynamic> base;
+    if (raw['user'] is Map) {
+      base = (raw['user'] as Map).cast<String, dynamic>();
+    } else {
+      base = raw;
+    }
+
+    final dynamic rawId = base['id'];
+    int? id;
+    if (rawId is int) {
+      id = rawId;
+    } else if (rawId is String) {
+      id = int.tryParse(rawId);
+    }
+
+    final avatar = base['profileImageUrl'] ??
+        base['avatar'] ??
+        base['profile_image_url'];
+
+    return UserModel(
+      id: id,
+      username: base['username'] as String?,
+      email: base['email'] as String?,
+      name: base['name'] as String?,
+      profileImageUrl: avatar as String?,
+    );
   }
 }
 

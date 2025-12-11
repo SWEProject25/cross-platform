@@ -38,7 +38,8 @@ class _AuthenticationStepButtonState extends State<AuthenticationStepButton> {
             elevation: 0,
             shadowColor: Pallete.transparentColor,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30,),
+              borderRadius: BorderRadius.circular(30, ),
+              side: BorderSide(color: Pallete.greyColor)
             ),
           ),
           child: Text(widget.label),

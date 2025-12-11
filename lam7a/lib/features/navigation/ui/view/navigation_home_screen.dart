@@ -202,7 +202,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                       padding: EdgeInsets.only(left: 20),
                       child: IconButton(
                         onPressed: () {
-                          showThemeModeBottomSheet( ref);
+                          showThemeModeBottomSheet(ref);
                         },
                         icon: Icon(Icons.light_mode_outlined, size: 35),
                         alignment: Alignment.center,
@@ -258,78 +258,106 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                   border: Border(
                     top: BorderSide(
                       color: const Color.fromARGB(255, 190, 190, 190),
-                      width: 0.5, 
+                      width: 0.5,
                     ),
                   ),
                 ),
                 child: IgnorePointer(
-                    ignoring: !_isVisible,
-                    child: SafeArea(
-                      child: ClipRect(
-                        child: Align(
-                          heightFactor: _isVisible ? 1.0 : 0.0,
-                          child: BottomNavigationBar(
-                            currentIndex: _currentIndex,
-                            type: BottomNavigationBarType.fixed,
-                            selectedItemColor: Theme.of(
-                              context,
-                            ).colorScheme.onSurface,
-                            unselectedItemColor: Pallete.greyColor,
-                            elevation: 0,
-                            showSelectedLabels: false,
-                            showUnselectedLabels: false,
-                            onTap: (index) {
-                              setState(() {
-                                _currentIndex = index;
-                                _isVisible = true;
-                                _isAppBarVisible = true;
-                              });
-                            },
-                            items: [
-                              BottomNavigationBarItem(
-                                icon: SvgPicture.asset(
-                                  AppAssets.homeIcon,
-                                  height: _isVisible ? 22 : 0,
-                                  width: _isVisible ? 22 : 0,
-                                  colorFilter: ColorFilter.mode(
-                                    Pallete.greyColor,
-                                    BlendMode.srcIn,
-                                  ),
+                  ignoring: !_isVisible,
+                  child: SafeArea(
+                    child: ClipRect(
+                      child: Align(
+                        heightFactor: _isVisible ? 1.0 : 0.0,
+                        child: BottomNavigationBar(
+                          currentIndex: _currentIndex,
+                          type: BottomNavigationBarType.fixed,
+                          selectedItemColor: Theme.of(
+                            context,
+                          ).colorScheme.onSurface,
+                          unselectedItemColor: Pallete.greyColor,
+                          elevation: 0,
+                          showSelectedLabels: false,
+                          showUnselectedLabels: false,
+                          onTap: (index) {
+                            setState(() {
+                              _currentIndex = index;
+                              _isVisible = true;
+                              _isAppBarVisible = true;
+                            });
+                          },
+                          items: [
+                            BottomNavigationBarItem(
+                              icon: SvgPicture.asset(
+                                AppAssets.homeIcon,
+                                height: _isVisible ? 22 : 0,
+                                width: _isVisible ? 22 : 0,
+                                colorFilter: ColorFilter.mode(
+                                  Pallete.greyColor,
+                                  BlendMode.srcIn,
                                 ),
-                                activeIcon: SvgPicture.asset(
-                                  AppAssets.homeIcon,
-                                  height: 22,
-                                  width: 22,
-                                  colorFilter: ColorFilter.mode(
-                                    Theme.of(context).colorScheme.onSurface,
-                                    BlendMode.srcIn,
-                                  ),
+                              ),
+                              activeIcon: SvgPicture.asset(
+                                AppAssets.homeIcon,
+                                height: 22,
+                                width: 22,
+                                colorFilter: ColorFilter.mode(
+                                  Theme.of(context).colorScheme.onSurface,
+                                  BlendMode.srcIn,
                                 ),
-                                label: "home",
                               ),
-                              BottomNavigationBarItem(
-                                icon: Icon(
-                                  Icons.search,
-                                  size: _isVisible ? 22 : 0,
+                              label: "home",
+                            ),
+                            BottomNavigationBarItem(
+                              icon: Icon(
+                                Icons.search,
+                                size: _isVisible ? 22 : 0,
+                              ),
+                              label: "search",
+                            ),
+                            BottomNavigationBarItem(
+                              icon: Consumer(
+                                builder: (context, ref, child) => getIcon(
+                                  AppAssets.notificationsIcon,
+                                  true,
+                                  _isVisible,
+                                  ref.watch(unReadNotificationCountProvider),
                                 ),
-                                label: "search",
                               ),
-                              BottomNavigationBarItem(
-                                icon: Consumer(builder: (context, ref, child) => getIcon(AppAssets.notificationsIcon, true, _isVisible, ref.watch(unReadNotificationCountProvider)),),
-                                activeIcon: Consumer(builder: (context, ref, child) => getIcon(AppAssets.notificationsIcon, false, _isVisible, ref.watch(unReadNotificationCountProvider)),),
-                                label: "notifications",
+                              activeIcon: Consumer(
+                                builder: (context, ref, child) => getIcon(
+                                  AppAssets.notificationsIcon,
+                                  false,
+                                  _isVisible,
+                                  ref.watch(unReadNotificationCountProvider),
+                                ),
                               ),
-                              BottomNavigationBarItem(
-                                icon: Consumer(builder: (context, ref, child) => getIcon(AppAssets.messagesIcon, true, _isVisible, ref.watch(unReadConversationsCountProvider)),),
-                                activeIcon: Consumer(builder: (context, ref, child) => getIcon(AppAssets.messagesIcon, false, _isVisible, ref.watch(unReadConversationsCountProvider)),),
-                                label: "messages",
+                              label: "notifications",
+                            ),
+                            BottomNavigationBarItem(
+                              icon: Consumer(
+                                builder: (context, ref, child) => getIcon(
+                                  AppAssets.messagesIcon,
+                                  true,
+                                  _isVisible,
+                                  ref.watch(unReadConversationsCountProvider),
+                                ),
                               ),
-                            ],
-                          ),
+                              activeIcon: Consumer(
+                                builder: (context, ref, child) => getIcon(
+                                  AppAssets.messagesIcon,
+                                  false,
+                                  _isVisible,
+                                  ref.watch(unReadConversationsCountProvider),
+                                ),
+                              ),
+                              label: "messages",
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
+                ),
               ),
             ),
           ),
@@ -348,33 +376,34 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           height: isVisible ? 22 : 0,
           width: isVisible ? 22 : 0,
           colorFilter: ColorFilter.mode(
-            selected? Pallete.greyColor : Theme.of(context).colorScheme.onSurface,
+            selected
+                ? Pallete.greyColor
+                : Theme.of(context).colorScheme.onSurface,
             BlendMode.srcIn,
           ),
         ),
-        if(unreadCount > 0)
-        Positioned(
-          right: -8,
-          top: -5,
-          child: 
-            CircleAvatar(
-            radius: 8 + 2,
-            backgroundColor: theme.scaffoldBackgroundColor,
+        if (unreadCount > 0)
+          Positioned(
+            right: -8,
+            top: -5,
             child: CircleAvatar(
-              radius: 8,
-              backgroundColor: Pallete.borderHover,
-              child: Text(
-                unreadCount > 99 ? '99+' : '$unreadCount',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              radius: 8 + 2,
+              backgroundColor: theme.scaffoldBackgroundColor,
+              child: CircleAvatar(
+                radius: 8,
+                backgroundColor: Pallete.borderHover,
+                child: Text(
+                  unreadCount > 99 ? '99+' : '$unreadCount',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
-          )
-        ),
+          ),
       ],
     );
   }
@@ -393,9 +422,13 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
         );
       // replaces currentCo;
       case 1:
+        final query = widget.initialSearchQuery;
         return Searchbar(
           width: MediaQuery.of(context).size.width,
-          hintText: "Search",
+          hintText: (query != null && query.trim().isNotEmpty)
+              ? query
+              : "Search",
+          initialQuery: query,
         );
       // return SizedBox(width: 2);
       //return SearchBarCustomized();
@@ -416,7 +449,6 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
 
   void showLogoutDialog(WidgetRef ref) {
     bool isDark = ref.watch(themeProviderProvider);
-    final viewmodel = ref.watch(navigationViewModelProvider.notifier);
     Widget dialog = AlertDialog(
       backgroundColor: isDark
           ? const Color.fromARGB(255, 71, 71, 71)
@@ -432,6 +464,11 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           onPressed: () async {
             Navigator.pop(context);
             await ref.read(authenticationProvider.notifier).logout();
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              FirstTimeScreen.routeName,
+              (_) => false,
+            );
           },
           child: Text('Logout', style: TextStyle(color: Pallete.errorColor)),
         ),
@@ -443,7 +480,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
     );
   }
 
-  void showThemeModeBottomSheet(WidgetRef ref ) {
+  void showThemeModeBottomSheet(WidgetRef ref) {
     bool isDark = ref.watch(themeProviderProvider);
     showModalBottomSheet<void>(
       context: context,
@@ -477,18 +514,16 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                       groupValue: themeMode,
                       onChanged: (value) {
                         modalSetState(() => themeMode = value);
-                        final themeController = ref.watch(themeProviderProvider.notifier);
-                        if (themeMode == 'dark')
-                        {
+                        final themeController = ref.watch(
+                          themeProviderProvider.notifier,
+                        );
+                        if (themeMode == 'dark') {
                           themeController.setDarkTheme();
-                        }
-                        else if (themeMode == 'light')
-                        {
+                        } else if (themeMode == 'light') {
                           themeController.setLightTheme();
                         }
                         Navigator.pop(context);
                         setState(() {});
-
                       },
                       child: Column(
                         children: [

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/hive_types.dart';
@@ -7,12 +10,15 @@ import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/core/services/socket_service.dart';
 import 'package:lam7a/core/theme/theme.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/following_screen/following_screen.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/forgot_password_screen.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/reset_password.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/interests_screen/interests_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authentication_login_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/oauth_webview/oauth_webview.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
+import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
@@ -36,21 +42,20 @@ void main() async {
     container.read(notificationsReceiverProvider).handleInitialMessageIfAny();
   });
 
-
   container.read(notificationsReceiverProvider).initialize();
   await Future.wait([container.read(apiServiceProvider).initialize()]);
   await container.read(authenticationProvider.notifier).isAuthenticated();
-
 
   container.listen(socketInitializerProvider, (_, _) => {});
   container.read(messagesSocketServiceProvider).setUpListners();
   container.listen(fcmTokenUpdaterProvider, (_, _) => {});
 
-  runApp(UncontrolledProviderScope(container: container, child: OverlaySupport.global(child:  MyApp())));
-
-
-
-
+  runApp(
+    UncontrolledProviderScope(
+      container: container,
+      child: OverlaySupport.global(child: MyApp()),
+    ),
+  );
 
   // TO TEST ADD TWEET SCREEN ONLY (No auth): Uncomment lines below
   //runApp(ProviderScope(child: TestAddTweetApp()));
@@ -69,6 +74,70 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> {
+  StreamSubscription<Uri>? _linkSubscription;
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+
+    initDeepLinks();
+  }
+
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+
+    super.dispose();
+  }
+
+  Future<void> initDeepLinks() async {
+    _linkSubscription = AppLinks().uriLinkStream.listen((uri) async {
+      debugPrint('onAppLink: $uri');
+      String? code = uri.queryParameters['code'];
+      String? token = uri.queryParameters['token'];
+      final idString = uri.queryParameters['id'];
+      int? id = idString != null ? int.tryParse(idString) : null;
+      if (code != null) {
+        await ref
+            .read(authenticationViewmodelProvider.notifier)
+            .oAuthGithubLogin(code);
+        openAppLink(uri);
+      } else if (token != null) {
+        // Wait for navigator to be ready, then navigate
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.pushNamed(
+            ResetPassword.routeName,
+            arguments: {'token': token, 'id': id},
+          );
+        });
+      }
+    });
+  }
+
+  void openAppLink(Uri uri) {
+    if (uri.queryParameters.containsKey('code')) {
+      final snapshot = ref.watch(authenticationViewmodelProvider);
+
+      // Wait for navigator to be ready before navigating
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!snapshot.hasCompeletedInterestsSignUp) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            InterestsScreen.routeName,
+            (_) => false,
+          );
+        } else if (!snapshot.hasCompeletedFollowingSignUp) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            FollowingScreen.routeName,
+            (_) => false,
+          );
+        } else {
+          navigatorKey.currentState?.pushNamed(NavigationHomeScreen.routeName);
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer(
@@ -96,6 +165,9 @@ class _MyAppState extends ConsumerState<MyApp> {
             InterestsScreen.routeName: (context) => InterestsScreen(),
             FollowingScreen.routeName: (context) => FollowingScreen(),
             OauthWebview.routeName: (context) => OauthWebview(),
+            ResetPassword.routeName: (context) => ResetPassword(),
+
+            ForgotPasswordScreen.routeName: (context) => ForgotPasswordScreen(),
             '/profile': (context) {
               final args = ModalRoute.of(context)!.settings.arguments as Map;
               final username = args['username'] as String;
