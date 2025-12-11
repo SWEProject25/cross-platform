@@ -107,13 +107,20 @@ class DMsApiServiceImpl extends DMsApiService {
   }
   
   @override
-  Future<ApiResponse<ConversationDto>> getConversationById(int id) {
-    return _apiService.get<ApiResponse<ConversationDto>>(
+  Future<ConversationDto> getConversationById(int id) {
+    return _apiService.get<ConversationDto>(
       endpoint: "/conversations/$id",
-      fromJson: (x) => ApiResponse<ConversationDto>.fromJson(
-        x,
-        (json) => ConversationDto.fromJson(json as dynamic),
-      ),
+      fromJson: (x) => ConversationDto.fromJson(x['data']),
+    );
+  }
+  
+  @override
+  Future<MessagesResponseDto> getLostMessages(int conversationId, int? lastMessageId) {
+    
+    return _apiService.get<MessagesResponseDto>(
+      endpoint:"/messages/$conversationId/lost-messages",
+      queryParameters: {"firstMessageId": lastMessageId},
+      fromJson: (x) => MessagesResponseDto.fromJson(x),
     );
   }
 }

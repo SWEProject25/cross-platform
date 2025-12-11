@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
-import 'package:lam7a/features/messaging/providers/conversations_provider.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/conversations_viewmodel.dart';
 import 'package:lam7a/features/messaging/repository/messages_repository.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/conversation_viewmodel.dart';
 

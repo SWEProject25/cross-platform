@@ -10,5 +10,6 @@ abstract class ConversationState with _$ConversationState {
     String? lastMessage,
     DateTime? lastMessageTime,
     int? unseenCount,
+    Conversation? conversation,
   }) = _ConversationState;
 }

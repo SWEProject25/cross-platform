@@ -83,7 +83,7 @@ class ConversationsViewmodel extends PaginationNotifier<Conversation> {
       );
 
 
-      ref.read(conversationViewmodelProvider(conversationId!).notifier);
+      ref.read(conversationViewmodelProvider(conversationId!).notifier).setConversation(conv);
 
       List<Conversation> updatedConv = [...state.items, conv];
 
@@ -98,7 +98,7 @@ class ConversationsViewmodel extends PaginationNotifier<Conversation> {
   Future<(List<Conversation> items, bool hasMore)> fetchPage(int page) async {
     var (data, hasMore) = await _conversationsRepository.fetchConversations();
     for (var conv in data) {
-      ref.read(conversationViewmodelProvider(conv.id).notifier);
+      ref.read(conversationViewmodelProvider(conv.id).notifier).setConversation(conv);
     }
     return (data, hasMore);
   }

@@ -127,6 +127,7 @@ class TweetHomeViewModel extends _$TweetHomeViewModel {
       _cachedTweets['for-you'] = [tweet];
       state = AsyncValue.data({
         'for-you': [tweet],
+        'following': _cachedTweets['following'] ?? [],
       });
       return;
     }
@@ -138,7 +139,8 @@ class TweetHomeViewModel extends _$TweetHomeViewModel {
     ];
 
     _cachedTweets['for-you'] = updated;
-    state = AsyncValue.data({'for-you': updated});
+    _cachedTweets['following'] = _cachedTweets['following'] ?? [];
+    state = AsyncValue.data({'for-you': updated, 'following': _cachedTweets['following']!});
 
     print('✅ Tweet upserted locally');
   }
