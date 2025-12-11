@@ -37,6 +37,8 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
   final TextEditingController _bodyController = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
   final Set<int> _mentionUserIds = {};
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _replyComposerKey = GlobalKey();
 
   @override
   void initState() {
@@ -52,12 +54,24 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
           vm.setQuoteTo(widget.parentPostId!);
         }
       }
+
+      // For replies, auto-scroll so the composer is initially in view.
+      if (widget.isReply && widget.parentPostId != null) {
+        final ctx = _replyComposerKey.currentContext;
+        if (ctx != null) {
+          Scrollable.ensureVisible(
+            ctx,
+            duration: const Duration(milliseconds: 300),
+          );
+        }
+      }
     });
   }
 
   @override
   void dispose() {
     _bodyController.dispose();
+    _scrollController.dispose();
     ref.read(mentionSuggestionsViewModelProvider.notifier).clear();
     super.dispose();
   }
@@ -617,6 +631,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
             // Main content
             Expanded(
               child: SingleChildScrollView(
+                controller: _scrollController,
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                   child: Column(
@@ -625,7 +640,10 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
                       if (widget.isReply && widget.parentPostId != null) ...[
                         _buildParentTweetPreview(),
                         const SizedBox(height: 12),
-                        _buildReplyComposer(viewmodel),
+                        KeyedSubtree(
+                          key: _replyComposerKey,
+                          child: _buildReplyComposer(viewmodel),
+                        ),
                       ] else ...[
                         // Tweet body input for new posts / quotes
                         AddTweetBodyInputWidget(

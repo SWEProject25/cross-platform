@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:lam7a/features/messaging/model/chat_message.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
+import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chat_state.freezed.dart';
@@ -15,5 +16,8 @@ abstract class ChatState with _$ChatState {
     @Default(false) bool loadingMoreMessages,
     @Default(false) bool isTyping,
     @Default("") String draftMessage,
+
+    @Default(AsyncValue.loading()) AsyncValue<Conversation> conversation,
+    // @Default(false) bool isBlocked,
   }) = _ChatState;
 }

@@ -216,8 +216,11 @@ class _TweetHomeScreenState extends ConsumerState<TweetHomeScreen>
                 ),
               );
 
-              // Refresh tweets after posting
-              viewModel.refreshTweets();
+              _scrollController.animateTo(
+                0.0,
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeOut,
+              );
             },
             backgroundColor: Pallete.borderHover,
             child: Icon(

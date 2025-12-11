@@ -28,19 +28,22 @@ class TweetSummaryWidget extends ConsumerWidget {
   }
 
   Widget _buildTweetUI(BuildContext context, WidgetRef ref, TweetModel tweet) {
-    final diff = DateTime.now().difference(tweet.date);
-    final daysPosted = diff.inDays < 0 ? 0 : diff.inDays;
     final isPureRepost =
         tweet.isRepost && !tweet.isQuote && tweet.originalTweet != null;
     final isReply =
         !tweet.isRepost && !tweet.isQuote && tweet.originalTweet != null;
     final parentTweet = tweet.originalTweet;
+    // For pure reposts, treat the parent tweet as the main content tweet
+    final mainTweet = (isPureRepost && parentTweet != null) ? parentTweet! : tweet;
+
+    final diff = DateTime.now().difference(mainTweet.date);
+    final daysPosted = diff.inDays < 0 ? 0 : diff.inDays;
     final replyingToUsername = parentTweet?.username;
     final username = tweet.username ?? 'unknown';
     final displayName =
         (tweet.authorName != null && tweet.authorName!.isNotEmpty)
-            ? tweet.authorName!
-            : username;
+        ? tweet.authorName!
+        : username;
 
     // Local TweetState from pre-fetched tweet data so we don't refetch
     final localTweetState = TweetState(
@@ -49,6 +52,45 @@ class TweetSummaryWidget extends ConsumerWidget {
       isViewed: false,
       tweet: AsyncValue.data(tweet),
     );
+
+    // For pure reposts, interactions (TweetFeed) should target the parent tweet
+    final TweetState feedTweetState =
+        (isPureRepost && parentTweet != null)
+            ? TweetState(
+                isLiked: false,
+                isReposted: false,
+                isViewed: false,
+                tweet: AsyncValue.data(parentTweet!),
+              )
+            : localTweetState;
+
+    const double avatarRadius = 19.0;
+
+    final avatarWidget = AppUserAvatar(
+      radius: avatarRadius,
+      imageUrl: mainTweet.authorProfileImage,
+      displayName: mainTweet.authorName,
+      username: mainTweet.username,
+    );
+
+    void _openDetail() {
+      final targetTweet = (isPureRepost && parentTweet != null)
+          ? parentTweet!
+          : tweet;
+      final targetId = (isPureRepost && parentTweet != null)
+          ? parentTweet!.id
+          : tweetId;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TweetScreen(
+            tweetId: targetId,
+            tweetData: targetTweet,
+          ),
+        ),
+      );
+    }
 
     return SafeArea(
       child: Container(
@@ -61,121 +103,94 @@ class TweetSummaryWidget extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (isReply && parentTweet != null) ...[
-              OriginalTweetCard(tweet: parentTweet),
-              const SizedBox(height: 8),
-              if (replyingToUsername != null &&
-                  replyingToUsername.isNotEmpty)
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).pushNamed(
-                      '/profile',
-                      arguments: {'username': replyingToUsername},
-                    );
-                  },
-                  child: Text(
-                    'Replying to @${replyingToUsername}',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: Colors.blueAccent),
-                  ),
-                ),
+              OriginalTweetCard(tweet: parentTweet, showConnectorLine: true),
               const SizedBox(height: 8),
             ],
-            if (isPureRepost) ...[
-              Row(
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _openDetail,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    Icons.repeat,
-                    size: 16,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '$displayName reposted',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: Colors.grey),
+                  if (isReply &&
+                      replyingToUsername != null &&
+                      replyingToUsername.isNotEmpty) ...[
+                    Text(
+                      'Replying to @${replyingToUsername}',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.blueAccent),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (isPureRepost && parentTweet != null) ...[
+                    Row(
+                      children: [
+                        const Icon(Icons.repeat, size: 16, color: Colors.grey),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$displayName reposted',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      avatarWidget,
+                      const SizedBox(width: 9),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                TweetUserSummaryInfo(
+                                  tweetState: localTweetState,
+                                  daysPosted: daysPosted,
+                                  fallbackTweet: mainTweet,
+                                ),
+                                GestureDetector(
+                                  child: const Icon(
+                                    Icons.rocket,
+                                    size: 17,
+                                    color: Colors.blueAccent,
+                                  ),
+                                  onTap: () {
+                                    ref
+                                        .read(
+                                          tweetViewModelProvider(mainTweet.id)
+                                              .notifier)
+                                        .summarizeBody();
+                                  },
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              width: double.infinity,
+                              child: TweetBodySummaryWidget(post: mainTweet),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 2),
-            ],
+            ),
+            const SizedBox(height: 4),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppUserAvatar(
-                  radius: 19,
-                  imageUrl: tweetData.authorProfileImage,
-                  displayName: tweetData.authorName,
-                  username: tweetData.username,
-                ),
-                const SizedBox(width: 9),
+                SizedBox(width: avatarRadius * 2 + 9),
                 Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                   
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          TweetUserSummaryInfo(
-                            tweetState: localTweetState,
-                            daysPosted: daysPosted,
-                            fallbackTweet: tweet,
-                          ),
-                          GestureDetector(
-                            child: const Icon(
-                              Icons.rocket,
-                              size: 17,
-                              color: Colors.blueAccent,
-                            ),
-                            onTap: () {
-                              ref
-                                  .read(tweetViewModelProvider(tweet.id).notifier)
-                                  .summarizeBody();
-                            },
-                          ),
-                        ],
-                      ),
-                      if (isPureRepost && (tweet.body.isEmpty || tweet.body.trim().isEmpty))
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => TweetScreen(
-                                  tweetId: tweetId,
-                                  tweetData: tweet,
-                                ),
-                              ),
-                            );
-                          },
-                          child: const SizedBox(height: 20),
-                        ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => TweetScreen(
-                                tweetId: tweetId,
-                                tweetData: tweet,
-                              ),
-                            ),
-                          );
-                        },
-                        behavior: HitTestBehavior.opaque,
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: TweetBodySummaryWidget(post: tweet),
-                        ),
-                      ),
-                      TweetFeed(tweetState: localTweetState),
-                    ],
-                  ),
+                  child: TweetFeed(tweetState: feedTweetState),
                 ),
               ],
             ),
@@ -185,4 +200,3 @@ class TweetSummaryWidget extends ConsumerWidget {
     );
   }
 }
-

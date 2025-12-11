@@ -164,10 +164,10 @@ class AddTweetViewmodel extends _$AddTweetViewmodel {
       // Only inject into the main home timeline for top-level posts and quotes.
       // Replies should stay scoped to the detailed tweet view (replies list),
       // so they are not shown as separate tweets on the home screen.
-      if (state.postType == 'POST' || state.postType == 'QUOTE') {
+      // if (state.postType == 'POST' || state.postType == 'QUOTE') {
         final homeVm = ref.read(tweetHomeViewModelProvider.notifier);
         homeVm.upsertTweetLocally(tweetForFeed);
-      }
+      // }
     } catch (e) {
       print('❌ Error posting tweet: $e');
       state = state.copyWith(

@@ -100,9 +100,21 @@ class _TweetsListViewState extends ConsumerState<TweetsListView> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 itemCount: widget.tweets.length,
                 itemBuilder: (context, index) {
-                  return TweetSummaryWidget(
-                    tweetId: widget.tweets[index].id,
-                    tweetData: widget.tweets[index],
+                  return Column(
+                    children: [
+                      TweetSummaryWidget(
+                        tweetId: widget.tweets[index].id,
+                        tweetData: widget.tweets[index],
+                      ),
+                      SizedBox(height: 4),
+                      Divider(
+                        height: 1,
+                        thickness: 0.3,
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? const Color.fromARGB(120, 83, 99, 110)
+                            : const Color(0xFF8B98A5),
+                      ),
+                    ],
                   );
                 },
               ),

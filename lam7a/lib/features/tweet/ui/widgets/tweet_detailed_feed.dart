@@ -434,6 +434,8 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
   }
 
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(height: 10),
         // date
@@ -510,7 +512,7 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                     data: (tweet) => Padding(
                       padding: const EdgeInsets.only(left: 0),
                       child: Text(
-                        repostsNumStr,
+                        tweetState.value?.repostCountUpdated?.toString() ?? repostsNumStr,
                         style:Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -558,7 +560,7 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                     data: (tweet) => Padding(
                       padding: const EdgeInsets.only(left: 0),
                       child: Text(
-                        likesNumStr,
+                        tweetState.value?.likeCountUpdated?.toString() ?? likesNumStr,
                         style: Theme.of(context)
                             .textTheme
                             .bodyMedium

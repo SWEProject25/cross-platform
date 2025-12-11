@@ -45,14 +45,27 @@ class SearchRepository {
     int limit,
     int page, {
     String? tweetsOrder,
-  }) => _api.searchTweets(query, limit, page, tweetsOrder: tweetsOrder);
+    String? time,
+  }) => _api.searchTweets(
+    query,
+    limit,
+    page,
+    tweetsOrder: tweetsOrder,
+    time: time,
+  );
   Future<List<TweetModel>> searchHashtagTweets(
     String hashtag,
     int limit,
     int page, {
     String? tweetsOrder,
-  }) =>
-      _api.searchHashtagTweets(hashtag, limit, page, tweetsOrder: tweetsOrder);
+    String? time,
+  }) => _api.searchHashtagTweets(
+    hashtag,
+    limit,
+    page,
+    tweetsOrder: tweetsOrder,
+    time: time,
+  );
 
   Future<List<String>> getCachedAutocompletes() async {
     // Simulate network delay

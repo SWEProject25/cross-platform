@@ -15,6 +15,7 @@ abstract class Conversation with _$Conversation {
     String? lastMessage,
     DateTime? lastMessageTime,
     @Default(0) int unseenCount,
+    @Default(false) bool isBlocked,
   }) = _Conversation;
 
   factory Conversation.fromJson(Map<String, dynamic> json) =>
@@ -28,8 +29,9 @@ abstract class Conversation with _$Conversation {
         username: x.user.username,
         avatarUrl: x.user.profileImageUrl,
         lastMessage: x.lastMessage?.text,
-        lastMessageTime: x.updatedAt,
+        lastMessageTime: x.lastMessage?.createdAt,
         unseenCount: x.unseenCount,
+        isBlocked: x.isBlocked ?? false
       );
   }
 }
