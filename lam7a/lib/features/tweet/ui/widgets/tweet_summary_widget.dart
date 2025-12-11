@@ -39,8 +39,8 @@ class TweetSummaryWidget extends ConsumerWidget {
     final username = tweet.username ?? 'unknown';
     final displayName =
         (tweet.authorName != null && tweet.authorName!.isNotEmpty)
-            ? tweet.authorName!
-            : username;
+        ? tweet.authorName!
+        : username;
 
     // Local TweetState from pre-fetched tweet data so we don't refetch
     final localTweetState = TweetState(
@@ -61,10 +61,7 @@ class TweetSummaryWidget extends ConsumerWidget {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => TweetScreen(
-            tweetId: tweetId,
-            tweetData: tweet,
-          ),
+          builder: (_) => TweetScreen(tweetId: tweetId, tweetData: tweet),
         ),
       );
     }
@@ -80,10 +77,7 @@ class TweetSummaryWidget extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (isReply && parentTweet != null) ...[
-              OriginalTweetCard(
-                tweet: parentTweet,
-                showConnectorLine: true,
-              ),
+              OriginalTweetCard(tweet: parentTweet, showConnectorLine: true),
               const SizedBox(height: 8),
             ],
             GestureDetector(
@@ -97,28 +91,22 @@ class TweetSummaryWidget extends ConsumerWidget {
                       replyingToUsername.isNotEmpty) ...[
                     Text(
                       'Replying to @${replyingToUsername}',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(color: Colors.blueAccent),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.blueAccent),
                     ),
                     const SizedBox(height: 8),
                   ],
                   if (isPureRepost) ...[
                     Row(
                       children: [
-                        const Icon(
-                          Icons.repeat,
-                          size: 16,
-                          color: Colors.grey,
-                        ),
+                        const Icon(Icons.repeat, size: 16, color: Colors.grey),
                         const SizedBox(width: 4),
                         Text(
                           '$displayName reposted',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: Colors.grey),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(color: Colors.grey),
                         ),
                       ],
                     ),
@@ -151,8 +139,10 @@ class TweetSummaryWidget extends ConsumerWidget {
                                   onTap: () {
                                     ref
                                         .read(
-                                            tweetViewModelProvider(tweet.id)
-                                                .notifier)
+                                          tweetViewModelProvider(
+                                            tweet.id,
+                                          ).notifier,
+                                        )
                                         .summarizeBody();
                                   },
                                 ),
@@ -181,4 +171,3 @@ class TweetSummaryWidget extends ConsumerWidget {
     );
   }
 }
-

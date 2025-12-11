@@ -61,5 +61,8 @@ class TweetRepository {
     return likes;
   }
 
-
+  Future<String> getTweetSummery(String tweetId) async {
+    final summary = await _apiService.getTweetSummery(tweetId);
+    return summary;
+  }
 }

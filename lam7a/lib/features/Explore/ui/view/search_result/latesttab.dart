@@ -22,20 +22,30 @@ class _LatestTabState extends ConsumerState<LatestTab>
   Widget build(BuildContext context) {
     print("Latest Tab rebuilt");
     super.build(context);
+    final theme = Theme.of(context);
 
     final data = widget.data;
 
     if (data.isLatestLoading && data.latestTweets.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.white),
+      return Center(
+        child: CircularProgressIndicator(
+          color: theme.brightness == Brightness.light
+              ? Color(0xFF1D9BF0)
+              : Colors.white,
+        ),
       );
     }
 
     if (data.latestTweets.isEmpty && !data.isLatestLoading) {
-      return const Center(
+      return Center(
         child: Text(
           "No tweets found",
-          style: TextStyle(color: Colors.white54, fontSize: 16),
+          style: TextStyle(
+            color: theme.brightness == Brightness.light
+                ? Colors.black
+                : Colors.white54,
+            fontSize: 16,
+          ),
         ),
       );
     }

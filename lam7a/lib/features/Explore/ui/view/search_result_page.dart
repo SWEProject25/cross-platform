@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/search_appbar.dart';
-import '../../../common/widgets/user_tile.dart';
-import '../../../common/widgets/tweets_list.dart';
+
 import '../viewmodel/search_results_viewmodel.dart';
 import '../state/search_result_state.dart';
 import 'search_result/toptab.dart';

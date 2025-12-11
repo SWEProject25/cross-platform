@@ -25,6 +25,7 @@ abstract class SearchApiService {
     int limit,
     int page, {
     String? tweetsOrder,
+    String? time,
   }); // tweetsType can be top/latest
 
   Future<List<TweetModel>> searchHashtagTweets(
@@ -32,5 +33,6 @@ abstract class SearchApiService {
     int limit,
     int page, {
     String? tweetsOrder,
+    String? time,
   }); // tweetsType can be top/latest
 }
