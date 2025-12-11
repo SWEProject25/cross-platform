@@ -74,7 +74,7 @@ class _ProfileLoaded extends ConsumerWidget {
           headerSliverBuilder: (_, __) => [
             SliverAppBar(
               pinned: true,
-              expandedHeight: 240,
+              expandedHeight: 120,
               backgroundColor: Colors.white,
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
@@ -123,7 +123,7 @@ class _ProfileLoaded extends ConsumerWidget {
             ),
 
             // SPACE BELOW AVATAR
-            SliverToBoxAdapter(child: SizedBox(height: avatarRadius - 10)),
+            SliverToBoxAdapter(child: SizedBox(height: 10)),
 
             // Profile Header (name, handle, bio...)
             SliverToBoxAdapter(
@@ -140,7 +140,7 @@ class _ProfileLoaded extends ConsumerWidget {
             child: Column(
               children: [
                 const TabBar(
-                  isScrollable: true,
+                  isScrollable: false,
                   tabs: [
                     Tab(text: "Posts"),
                     Tab(text: "Replies"),
