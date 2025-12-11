@@ -19,9 +19,9 @@ abstract class MessagesResponseDto with _$MessagesResponseDto {
 @freezed
 abstract class MessagesMetadataDto with _$MessagesMetadataDto {
   const factory MessagesMetadataDto({
-    required int totalItems,
-    required int limit,
-    required bool hasMore,
+    int? totalItems,
+    int? limit,
+    bool? hasMore,
     int? lastMessageId,
   }) = _MessagesMetadataDto;
 

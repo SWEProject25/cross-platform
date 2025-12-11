@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/features/messaging/dtos/message_socket_dtos.dart';
+import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:lam7a/features/messaging/providers/unread_conversations_count.dart';
 import 'package:lam7a/features/messaging/repository/messages_repository.dart';
 import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
@@ -70,6 +71,8 @@ class ConversationViewmodel extends _$ConversationViewmodel {
   }
 
   void _onUserTypingChanged(int convId, bool isTyping) {
+    if(state.conversation?.isBlocked ?? false) return;
+
     state = state.copyWith(isTyping: isTyping);
 
     if (isTyping) {
@@ -87,9 +90,20 @@ class ConversationViewmodel extends _$ConversationViewmodel {
     }
   }
 
+  void setConversation(Conversation newConversation) {
+    state = state.copyWith(conversation: newConversation);
+  }
+
   void markConversationAsSeen() {
     ref.read(messagesRepositoryProvider).sendMarkAsSeen(_conversationId);
     ref.read(unReadConversationsCountProvider.notifier).refresh();
     state = state.copyWith(unseenCount: 0);
+  }
+
+  void setConversationBlocked(bool isBlocked) {
+    var updatedConversation = state.conversation?.copyWith(isBlocked: isBlocked);
+    if (updatedConversation != null) {
+      state = state.copyWith(conversation: updatedConversation);
+    }
   }
 }

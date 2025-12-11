@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lam7a/core/models/user_model.dart';
-import 'package:lam7a/features/messaging/providers/conversations_provider.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/conversations_viewmodel.dart';
 import 'package:mocktail/mocktail.dart';
 
 // Import your app models/providers
