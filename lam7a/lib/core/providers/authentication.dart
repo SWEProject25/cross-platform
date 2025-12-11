@@ -50,8 +50,8 @@ UserModel userDtoToUserModel(UserDtoAuth dto) {
   );
 }
 
-  void authenticateUser(UserDtoAuth? user) {
-    
+  Future<void> authenticateUser(UserDtoAuth? user) async{
+  
     if (user != null) {
       UserModel userModel = userDtoToUserModel(user);
       state = state.copyWith(token: null, isAuthenticated: true, user: userModel);

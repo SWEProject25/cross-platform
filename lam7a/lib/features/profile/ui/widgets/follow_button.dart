@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/models/user_model.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/profile/repository/profile_repository.dart';
 
 class FollowButton extends ConsumerStatefulWidget {
@@ -36,12 +37,25 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
           stateFollow: ProfileStateOfFollow.notfollowing,
           followersCount: (_user.followersCount - 1).clamp(0, 999999),
         );
+        UserModel myUser = ref.watch(authenticationProvider).user!;
+        ref
+            .read(authenticationProvider.notifier)
+            .updateUser(
+              myUser.copyWith(followingCount: myUser.followingCount - 1),
+            );
       } else {
         await repo.followUser(_user.id ?? 0);
         _user = _user.copyWith(
           stateFollow: ProfileStateOfFollow.following,
           followersCount: _user.followersCount + 1,
         );
+
+        UserModel myUser = ref.watch(authenticationProvider).user!;
+        ref
+            .read(authenticationProvider.notifier)
+            .updateUser(
+              myUser.copyWith(followingCount: myUser.followingCount + 1),
+            );
       }
 
       if (mounted) setState(() {});
@@ -52,9 +66,8 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
 
   @override
   Widget build(BuildContext context) {
-    final isFollowing =
-        _user.stateFollow == ProfileStateOfFollow.following;
-    
+    final isFollowing = _user.stateFollow == ProfileStateOfFollow.following;
+
     final isFollowingMe =
         _user.stateFollowingMe == ProfileStateFollowingMe.followingme;
 
@@ -65,7 +78,10 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
         foregroundColor: isFollowing ? Colors.black : Colors.white,
         side: const BorderSide(color: Colors.black),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),// Adjusted padding
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 4,
+        ), // Adjusted padding
       ),
       child: _loading
           ? const SizedBox(
@@ -74,7 +90,11 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : Text(
-              isFollowing ? "Following" : isFollowingMe ? "Follow Back" : "Follow",
+              isFollowing
+                  ? "Following"
+                  : isFollowingMe
+                  ? "Follow Back"
+                  : "Follow",
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
     );
