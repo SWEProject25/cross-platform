@@ -42,8 +42,9 @@ void main() {
   }
 
   group('StyledTweetText', () {
-    testWidgets('renders text with hashtags and mentions',
-        (WidgetTester tester) async {
+    testWidgets('renders text with hashtags and mentions', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -58,7 +59,8 @@ void main() {
       // StyledTweetText uses RichText + TextSpan; inspect spans instead of Text widgets
       final richText = tester.widget<RichText>(find.byType(RichText));
       final TextSpan rootSpan = richText.text as TextSpan;
-      final List<InlineSpan> children = rootSpan.children ?? const <InlineSpan>[];
+      final List<InlineSpan> children =
+          rootSpan.children ?? const <InlineSpan>[];
 
       expect(children.length, 4);
 
@@ -76,8 +78,9 @@ void main() {
   });
 
   group('Tweet user info widgets', () {
-    testWidgets('TweetUserSummaryInfo prefers fallback tweet',
-        (WidgetTester tester) async {
+    testWidgets('TweetUserSummaryInfo prefers fallback tweet', (
+      WidgetTester tester,
+    ) async {
       final tweetState = buildTweetState(
         baseTweet.copyWith(username: 'wrong', authorName: 'Wrong User'),
       );
@@ -110,16 +113,15 @@ void main() {
       expect(find.text('3d'), findsOneWidget);
     });
 
-    testWidgets('TweetUserInfoDetailed shows username and display name',
-        (WidgetTester tester) async {
+    testWidgets('TweetUserInfoDetailed shows username and display name', (
+      WidgetTester tester,
+    ) async {
       final tweetState = buildTweetState(baseTweet);
 
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: TweetUserInfoDetailed(tweetState: tweetState),
-            ),
+            home: Scaffold(body: TweetUserInfoDetailed(tweetState: tweetState)),
           ),
         ),
       );
@@ -131,23 +133,25 @@ void main() {
   });
 
   group('TweetDetailedBodyWidget', () {
-    testWidgets('renders body text when tweet is present',
-        (WidgetTester tester) async {
-      final tweetState = buildTweetState(baseTweet.copyWith(body: 'Detailed body'));
+    testWidgets('renders body text when tweet is present', (
+      WidgetTester tester,
+    ) async {
+      final tweetState = buildTweetState(
+        baseTweet.copyWith(body: 'Detailed body'),
+      );
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: TweetDetailedBodyWidget(tweetState: tweetState),
-          ),
+          home: Scaffold(body: TweetDetailedBodyWidget(tweetState: tweetState)),
         ),
       );
 
       expect(find.text('Detailed body'), findsOneWidget);
     });
 
-    testWidgets('shows not found message when tweet value is null',
-        (WidgetTester tester) async {
+    testWidgets('shows not found message when tweet value is null', (
+      WidgetTester tester,
+    ) async {
       // Use a loading AsyncValue so that tweetState.tweet.value is null
       final state = TweetState(
         isLiked: false,
@@ -158,9 +162,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: TweetDetailedBodyWidget(tweetState: state),
-          ),
+          home: Scaffold(body: TweetDetailedBodyWidget(tweetState: state)),
         ),
       );
 
@@ -169,8 +171,9 @@ void main() {
   });
 
   group('FullScreenMediaViewer', () {
-    testWidgets('closes when close button is tapped',
-        (WidgetTester tester) async {
+    testWidgets('closes when close button is tapped', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Builder(

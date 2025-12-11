@@ -3,7 +3,6 @@ import '../state/change_username_state.dart';
 import 'account_viewmodel.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 
-
 class ChangeUsernameViewModel extends Notifier<ChangeUsernameState> {
   @override
   ChangeUsernameState build() {
@@ -29,11 +28,17 @@ class ChangeUsernameViewModel extends Notifier<ChangeUsernameState> {
       state = state.copyWith(errorMessage: 'New username must be different');
       return false;
     }
-    final regex = RegExp(r'^[a-z0-9_@]+$');
+    if (username.length < 3 || username.length > 50) {
+      state = state.copyWith(
+        errorMessage: 'Username must be between 3 and 50 characters',
+      );
+      return false;
+    }
+    final regex = RegExp(r'^[a-zA-Z](?!.*[_.]{2})[a-zA-Z0-9._]+$');
     if (!regex.hasMatch(username)) {
       state = state.copyWith(
         errorMessage:
-            'Username can only contain lowercase letters, numbers, underscores, and @ symbol',
+            'Username can only contain letters, numbers, dots, and underscores',
       );
       return false;
     }

@@ -8,6 +8,9 @@ import 'package:lam7a/features/tweet/ui/widgets/full_screen_media_viewer.dart';
 import 'package:lam7a/features/tweet/ui/widgets/styled_tweet_text_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/video_player_widget.dart';
 import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
+import 'package:lam7a/features/Explore/ui/view/search_result_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/features/Explore/ui/viewmodel/search_results_viewmodel.dart';
 
 class TweetBodySummaryWidget extends StatelessWidget {
   final TweetModel post;
@@ -52,11 +55,19 @@ class TweetBodySummaryWidget extends StatelessWidget {
                         );
                       },
                       onHashtagTap: (tag) {
-                        Navigator.of(context).push(
+                        Navigator.push(
+                          context,
                           MaterialPageRoute(
-                            builder: (_) => NavigationHomeScreen(
-                              initialIndex: 1,
-                              initialSearchQuery: '#$tag',
+                            builder: (_) => ProviderScope(
+                              overrides: [
+                                searchResultsViewModelProvider.overrideWith(
+                                  () => SearchResultsViewmodel(),
+                                ),
+                              ],
+                              child: SearchResultPage(
+                                hintText: tag,
+                                canPopTwice: false,
+                              ),
                             ),
                           ),
                         );
@@ -71,14 +82,14 @@ class TweetBodySummaryWidget extends StatelessWidget {
             // Display up to 4 images in a 2x2 grid (with skeleton while loading)
             if (post.mediaImages.isNotEmpty)
               Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: responsive.padding(4),
-                ),
+                padding: EdgeInsets.symmetric(vertical: responsive.padding(4)),
                 child: Builder(
                   builder: (context) {
                     final images = post.mediaImages.take(4).toList();
                     final hasTwoRows = images.length > 2;
-                    final totalHeight = hasTwoRows ? imageHeight * 2 : imageHeight;
+                    final totalHeight = hasTwoRows
+                        ? imageHeight * 2
+                        : imageHeight;
 
                     Widget buildImageTile(String imageUrl) {
                       return Expanded(
@@ -102,22 +113,18 @@ class TweetBodySummaryWidget extends StatelessWidget {
                               child: Stack(
                                 fit: StackFit.expand,
                                 children: [
-                                  Container(
-                                    color: Colors.grey.shade800,
-                                  ),
+                                  Container(color: Colors.grey.shade800),
                                   Image.network(
                                     imageUrl,
                                     fit: BoxFit.cover,
-                                    loadingBuilder: (
-                                      context,
-                                      child,
-                                      loadingProgress,
-                                    ) {
-                                      if (loadingProgress == null) return child;
-                                      return Container(
-                                        color: Colors.grey.shade800,
-                                      );
-                                    },
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                          if (loadingProgress == null)
+                                            return child;
+                                          return Container(
+                                            color: Colors.grey.shade800,
+                                          );
+                                        },
                                     errorBuilder: (context, error, stackTrace) {
                                       return const Center(
                                         child: Icon(
@@ -230,19 +237,16 @@ class TweetBodySummaryWidget extends StatelessWidget {
                                 fit: BoxFit.cover,
                                 loadingBuilder:
                                     (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return Container(
-                                    width: double.infinity,
-                                    height: imageHeight,
-                                    color: Colors.grey.shade800,
-                                  );
-                                },
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        width: double.infinity,
+                                        height: imageHeight,
+                                        color: Colors.grey.shade800,
+                                      );
+                                    },
                                 errorBuilder: (context, error, stackTrace) {
                                   return const Center(
-                                    child: Icon(
-                                      Icons.error,
-                                      color: Colors.red,
-                                    ),
+                                    child: Icon(Icons.error, color: Colors.red),
                                   );
                                 },
                               ),
@@ -275,8 +279,9 @@ class TweetBodySummaryWidget extends StatelessWidget {
                             ),
                           );
                         },
-                        child:
-                            VideoPlayerWidget(url: post.mediaVideo.toString()),
+                        child: VideoPlayerWidget(
+                          url: post.mediaVideo.toString(),
+                        ),
                       ),
                     ),
                   ),
@@ -311,8 +316,8 @@ class OriginalTweetCard extends StatelessWidget {
     final responsive = context.responsive;
     final imageHeight = responsive.getTweetImageHeight();
     final username = tweet.username ?? 'unknown';
-    final displayName = (tweet.authorName != null &&
-            tweet.authorName!.isNotEmpty)
+    final displayName =
+        (tweet.authorName != null && tweet.authorName!.isNotEmpty)
         ? tweet.authorName!
         : username;
     final profileImage = tweet.authorProfileImage;
@@ -322,17 +327,12 @@ class OriginalTweetCard extends StatelessWidget {
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => TweetScreen(
-              tweetId: tweet.id,
-              tweetData: tweet,
-            ),
+            builder: (_) => TweetScreen(tweetId: tweet.id, tweetData: tweet),
           ),
         );
       },
       child: Container(
-        margin: EdgeInsets.only(
-          top: responsive.padding(4),
-        ),
+        margin: EdgeInsets.only(top: responsive.padding(4)),
         padding: EdgeInsets.all(responsive.padding(8)),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
@@ -357,10 +357,7 @@ class OriginalTweetCard extends StatelessWidget {
                   if (showConnectorLine) ...[
                     const SizedBox(height: 4),
                     Expanded(
-                      child: Container(
-                        width: 1,
-                        color: theme.dividerColor,
-                      ),
+                      child: Container(width: 1, color: theme.dividerColor),
                     ),
                   ],
                 ],
@@ -373,21 +370,22 @@ class OriginalTweetCard extends StatelessWidget {
                     Text(
                       displayName,
                       style: theme.textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ), 
+                        fontWeight: FontWeight.bold,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       '@$username',
-                      style: theme.textTheme.bodyLarge?.copyWith(color: Colors.grey ),
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: Colors.grey,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     if (tweet.body.trim().isNotEmpty)
                       StyledTweetText(
                         text: tweet.body.trim(),
-                        fontSize:
-                            theme.textTheme.bodyLarge?.fontSize ?? 16,
+                        fontSize: theme.textTheme.bodyLarge?.fontSize ?? 16,
                         maxLines: 6,
                         overflow: TextOverflow.ellipsis,
                         onMentionTap: (handle) {
@@ -397,11 +395,19 @@ class OriginalTweetCard extends StatelessWidget {
                           );
                         },
                         onHashtagTap: (tag) {
-                          Navigator.of(context).push(
+                          Navigator.push(
+                            context,
                             MaterialPageRoute(
-                              builder: (_) => NavigationHomeScreen(
-                                initialIndex: 1,
-                                initialSearchQuery: '#$tag',
+                              builder: (_) => ProviderScope(
+                                overrides: [
+                                  searchResultsViewModelProvider.overrideWith(
+                                    () => SearchResultsViewmodel(),
+                                  ),
+                                ],
+                                child: SearchResultPage(
+                                  hintText: tag,
+                                  canPopTwice: false,
+                                ),
                               ),
                             ),
                           );
@@ -416,8 +422,7 @@ class OriginalTweetCard extends StatelessWidget {
                           width: double.infinity,
                           height: imageHeight,
                           fit: BoxFit.cover,
-                          loadingBuilder:
-                              (context, child, loadingProgress) {
+                          loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
                             return SizedBox(
                               height: imageHeight,
@@ -430,10 +435,7 @@ class OriginalTweetCard extends StatelessWidget {
                             return SizedBox(
                               height: imageHeight,
                               child: const Center(
-                                child: Icon(
-                                  Icons.error,
-                                  color: Colors.red,
-                                ),
+                                child: Icon(Icons.error, color: Colors.red),
                               ),
                             );
                           },
@@ -455,4 +457,3 @@ class OriginalTweetCard extends StatelessWidget {
     );
   }
 }
-

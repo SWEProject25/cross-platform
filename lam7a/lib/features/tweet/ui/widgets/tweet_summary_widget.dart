@@ -9,6 +9,7 @@ import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_summary.dart';
+import 'tweet_ai_summery.dart';
 
 class TweetSummaryWidget extends ConsumerWidget {
   const TweetSummaryWidget({
@@ -34,7 +35,9 @@ class TweetSummaryWidget extends ConsumerWidget {
         !tweet.isRepost && !tweet.isQuote && tweet.originalTweet != null;
     final parentTweet = tweet.originalTweet;
     // For pure reposts, treat the parent tweet as the main content tweet
-    final mainTweet = (isPureRepost && parentTweet != null) ? parentTweet! : tweet;
+    final mainTweet = (isPureRepost && parentTweet != null)
+        ? parentTweet!
+        : tweet;
 
     final diff = DateTime.now().difference(mainTweet.date);
     final daysPosted = diff.inDays < 0 ? 0 : diff.inDays;
@@ -54,15 +57,14 @@ class TweetSummaryWidget extends ConsumerWidget {
     );
 
     // For pure reposts, interactions (TweetFeed) should target the parent tweet
-    final TweetState feedTweetState =
-        (isPureRepost && parentTweet != null)
-            ? TweetState(
-                isLiked: false,
-                isReposted: false,
-                isViewed: false,
-                tweet: AsyncValue.data(parentTweet!),
-              )
-            : localTweetState;
+    final TweetState feedTweetState = (isPureRepost && parentTweet != null)
+        ? TweetState(
+            isLiked: false,
+            isReposted: false,
+            isViewed: false,
+            tweet: AsyncValue.data(parentTweet!),
+          )
+        : localTweetState;
 
     const double avatarRadius = 19.0;
 
@@ -84,10 +86,8 @@ class TweetSummaryWidget extends ConsumerWidget {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => TweetScreen(
-            tweetId: targetId,
-            tweetData: targetTweet,
-          ),
+          builder: (_) =>
+              TweetScreen(tweetId: targetId, tweetData: targetTweet),
         ),
       );
     }
@@ -163,11 +163,13 @@ class TweetSummaryWidget extends ConsumerWidget {
                                     color: Colors.blueAccent,
                                   ),
                                   onTap: () {
-                                    ref
-                                        .read(
-                                          tweetViewModelProvider(mainTweet.id)
-                                              .notifier)
-                                        .summarizeBody();
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            TweetAiSummary(tweet: tweet),
+                                      ),
+                                    );
                                   },
                                 ),
                               ],
@@ -189,9 +191,7 @@ class TweetSummaryWidget extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(width: avatarRadius * 2 + 9),
-                Expanded(
-                  child: TweetFeed(tweetState: feedTweetState),
-                ),
+                Expanded(child: TweetFeed(tweetState: feedTweetState)),
               ],
             ),
           ],

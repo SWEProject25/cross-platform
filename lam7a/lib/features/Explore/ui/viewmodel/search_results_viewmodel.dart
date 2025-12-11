@@ -179,20 +179,26 @@ class SearchResultsViewmodel extends AsyncNotifier<SearchResultState> {
     );
 
     final searchRepo = ref.read(searchRepositoryProvider);
-    final posts = await searchRepo.searchTweets(_query, _limit, _pageTop);
+    late final List<TweetModel> top;
+
+    if (_query[0] == '#') {
+      top = await searchRepo.searchHashtagTweets(_query, _limit, _pageTop);
+    } else {
+      top = await searchRepo.searchTweets(_query, _limit, _pageTop);
+    }
 
     print("LOAD TOP RECEIVED POSTS");
-    print(posts);
+    print(top);
 
     state = AsyncData(
       state.value!.copyWith(
-        topTweets: [...previousTweets, ...posts],
-        hasMoreTop: posts.length == _limit,
+        topTweets: [...previousTweets, ...top],
+        hasMoreTop: top.length == _limit,
         isTopLoading: false,
       ),
     );
 
-    if (posts.length == _limit) _pageTop++;
+    if (top.length == _limit) _pageTop++;
   }
 
   Future<void> loadMoreTop() async {

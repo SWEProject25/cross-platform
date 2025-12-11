@@ -26,11 +26,9 @@ abstract class UserModel with _$UserModel {
     @Default(ProfileStateOfFollow.notfollowing)
     ProfileStateOfFollow stateFollow,
 
-    @Default(ProfileStateOfMute.notmuted)
-    ProfileStateOfMute stateMute,
+    @Default(ProfileStateOfMute.notmuted) ProfileStateOfMute stateMute,
 
-    @Default(ProfileStateBlocked.notblocked)
-    ProfileStateBlocked stateBlocked,
+    @Default(ProfileStateBlocked.notblocked) ProfileStateBlocked stateBlocked,
 
     @Default(ProfileStateFollowingMe.notfollowingme)
     ProfileStateFollowingMe stateFollowingMe,
@@ -54,7 +52,7 @@ abstract class UserModel with _$UserModel {
       // -----------------------------
       // User account section
       // -----------------------------
-      username: userSection['username'],
+      username: userSection['username'] ?? json['username'],
       email: userSection['email'],
       role: userSection['role'],
 
@@ -63,8 +61,8 @@ abstract class UserModel with _$UserModel {
       // -----------------------------
       name: json['name'],
       birthDate: json['birth_date'],
-      profileImageUrl: json['profile_image_url'],
-      bannerImageUrl: json['banner_image_url'],
+      profileImageUrl: json['profile_image_url'] ?? json['profileImageUrl'],
+      bannerImageUrl: json['banner_image_url'] ?? json['bannerImageUrl'],
       bio: json['bio'],
       location: json['location'],
       website: json['website'],
@@ -96,6 +94,9 @@ abstract class UserModel with _$UserModel {
 }
 
 enum ProfileStateOfFollow { following, notfollowing }
+
 enum ProfileStateOfMute { muted, notmuted }
+
 enum ProfileStateBlocked { blocked, notblocked }
+
 enum ProfileStateFollowingMe { followingme, notfollowingme }

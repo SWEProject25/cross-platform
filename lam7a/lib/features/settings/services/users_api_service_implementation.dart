@@ -46,7 +46,7 @@ class UsersApiServiceImpl implements UsersApiService {
               json['name'] = json['displayName'];
               json.remove('displayName');
             }
-            return UserModel.fromJson(json);
+            return UserModel.fromBackend(json);
           }).toList();
 
           return modifiedList;

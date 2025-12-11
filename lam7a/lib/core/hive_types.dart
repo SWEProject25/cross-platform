@@ -9,12 +9,11 @@ class HiveTypes {
   static Future<void> initialize() async {
     await Hive.initFlutter();
     Hive.registerAdapter(ChatMessageAdapter());
-    Hive.registerAdapter(ConversationAdapter());}
+    Hive.registerAdapter(ConversationAdapter());
+  }
 
   Future<Box<T>> openBoxIfNeeded<T>(String name) async {
-    if (Hive.isBoxOpen(name)) {
-      return Hive.box<T>(name);
-    }
+    if (Hive.isBoxOpen(name)) return Hive.box<T>(name);
     return await Hive.openBox<T>(name);
   }
 }

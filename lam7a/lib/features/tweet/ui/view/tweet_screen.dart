@@ -8,16 +8,13 @@ import 'package:lam7a/features/tweet/ui/widgets/tweet_detailed_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_detailed.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
+import '../../ui/widgets/tweet_ai_summery.dart';
 
 class TweetScreen extends ConsumerWidget {
   final String tweetId;
   final TweetModel? tweetData; // Optional: pre-loaded tweet to avoid 404
 
-  const TweetScreen({
-    super.key,
-    required this.tweetId,
-    this.tweetData,
-  });
+  const TweetScreen({super.key, required this.tweetId, this.tweetData});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,12 +28,14 @@ class TweetScreen extends ConsumerWidget {
       );
       final repliesAsync = ref.watch(tweetRepliesViewModelProvider(tweetId));
       final isPureRepost =
-          tweetData!.isRepost && !tweetData!.isQuote && tweetData!.originalTweet != null;
+          tweetData!.isRepost &&
+          !tweetData!.isQuote &&
+          tweetData!.originalTweet != null;
       final username = tweetData!.username ?? 'unknown';
       final displayName =
           (tweetData!.authorName != null && tweetData!.authorName!.isNotEmpty)
-              ? tweetData!.authorName!
-              : username;
+          ? tweetData!.authorName!
+          : username;
 
       return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
@@ -44,10 +43,7 @@ class TweetScreen extends ConsumerWidget {
           backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0,
           iconTheme: const IconThemeData(color: Colors.grey),
-          title: Text(
-            'Post',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          title: Text('Post', style: Theme.of(context).textTheme.titleMedium),
           centerTitle: false,
         ),
         body: SafeArea(
@@ -61,18 +57,13 @@ class TweetScreen extends ConsumerWidget {
                   if (isPureRepost) ...[
                     Row(
                       children: [
-                        const Icon(
-                          Icons.repeat,
-                          size: 18,
-                          color: Colors.grey,
-                        ),
+                        const Icon(Icons.repeat, size: 18, color: Colors.grey),
                         const SizedBox(width: 4),
                         Text(
                           '$displayName reposted',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: Colors.grey),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(color: Colors.grey),
                         ),
                       ],
                     ),
@@ -90,11 +81,7 @@ class TweetScreen extends ConsumerWidget {
                           size: 17,
                           color: Colors.blueAccent,
                         ),
-                        onTap: () {
-                          ref
-                              .read(tweetViewModelProvider(tweetId).notifier)
-                              .summarizeBody();
-                        },
+                        onTap: () {},
                       ),
                     ],
                   ),
@@ -130,9 +117,7 @@ class TweetScreen extends ConsumerWidget {
                     },
                     loading: () => const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8),
-                      child: Center(
-                        child: CircularProgressIndicator(),
-                      ),
+                      child: Center(child: CircularProgressIndicator()),
                     ),
                     error: (e, _) => const SizedBox.shrink(),
                   ),
@@ -154,10 +139,7 @@ class TweetScreen extends ConsumerWidget {
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.grey),
-        title: Text(
-          'Post',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        title: Text('Post', style: Theme.of(context).textTheme.titleMedium),
         centerTitle: false,
       ),
       body: SafeArea(
@@ -175,9 +157,9 @@ class TweetScreen extends ConsumerWidget {
                 final username = tweetModel?.username ?? 'unknown';
                 final displayName =
                     (tweetModel?.authorName != null &&
-                            tweetModel!.authorName!.isNotEmpty)
-                        ? tweetModel!.authorName!
-                        : username;
+                        tweetModel!.authorName!.isNotEmpty)
+                    ? tweetModel!.authorName!
+                    : username;
 
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -194,10 +176,9 @@ class TweetScreen extends ConsumerWidget {
                           const SizedBox(width: 4),
                           Text(
                             '$displayName reposted',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(color: Colors.grey),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(color: Colors.grey),
                           ),
                         ],
                       ),
@@ -216,9 +197,14 @@ class TweetScreen extends ConsumerWidget {
                             color: Colors.blueAccent,
                           ),
                           onTap: () {
-                            ref
-                                .read(tweetViewModelProvider(tweetId).notifier)
-                                .summarizeBody();
+                            if (tweetModel == null) return;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    TweetAiSummary(tweet: tweetModel),
+                              ),
+                            );
                           },
                         ),
                       ],
@@ -255,9 +241,7 @@ class TweetScreen extends ConsumerWidget {
                       },
                       loading: () => const Padding(
                         padding: EdgeInsets.symmetric(vertical: 8),
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        ),
+                        child: Center(child: CircularProgressIndicator()),
                       ),
                       error: (e, _) => const SizedBox.shrink(),
                     ),
