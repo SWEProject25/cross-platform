@@ -28,13 +28,16 @@ class TweetSummaryWidget extends ConsumerWidget {
   }
 
   Widget _buildTweetUI(BuildContext context, WidgetRef ref, TweetModel tweet) {
-    final diff = DateTime.now().difference(tweet.date);
-    final daysPosted = diff.inDays < 0 ? 0 : diff.inDays;
     final isPureRepost =
         tweet.isRepost && !tweet.isQuote && tweet.originalTweet != null;
     final isReply =
         !tweet.isRepost && !tweet.isQuote && tweet.originalTweet != null;
     final parentTweet = tweet.originalTweet;
+    // For pure reposts, treat the parent tweet as the main content tweet
+    final mainTweet = (isPureRepost && parentTweet != null) ? parentTweet! : tweet;
+
+    final diff = DateTime.now().difference(mainTweet.date);
+    final daysPosted = diff.inDays < 0 ? 0 : diff.inDays;
     final replyingToUsername = parentTweet?.username;
     final username = tweet.username ?? 'unknown';
     final displayName =
@@ -50,18 +53,41 @@ class TweetSummaryWidget extends ConsumerWidget {
       tweet: AsyncValue.data(tweet),
     );
 
+    // For pure reposts, interactions (TweetFeed) should target the parent tweet
+    final TweetState feedTweetState =
+        (isPureRepost && parentTweet != null)
+            ? TweetState(
+                isLiked: false,
+                isReposted: false,
+                isViewed: false,
+                tweet: AsyncValue.data(parentTweet!),
+              )
+            : localTweetState;
+
+    const double avatarRadius = 19.0;
+
     final avatarWidget = AppUserAvatar(
-      radius: 19,
-      imageUrl: tweetData.authorProfileImage,
-      displayName: tweetData.authorName,
-      username: tweetData.username,
+      radius: avatarRadius,
+      imageUrl: mainTweet.authorProfileImage,
+      displayName: mainTweet.authorName,
+      username: mainTweet.username,
     );
 
     void _openDetail() {
+      final targetTweet = (isPureRepost && parentTweet != null)
+          ? parentTweet!
+          : tweet;
+      final targetId = (isPureRepost && parentTweet != null)
+          ? parentTweet!.id
+          : tweetId;
+
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => TweetScreen(tweetId: tweetId, tweetData: tweet),
+          builder: (_) => TweetScreen(
+            tweetId: targetId,
+            tweetData: targetTweet,
+          ),
         ),
       );
     }
@@ -97,7 +123,7 @@ class TweetSummaryWidget extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                   ],
-                  if (isPureRepost) ...[
+                  if (isPureRepost && parentTweet != null) ...[
                     Row(
                       children: [
                         const Icon(Icons.repeat, size: 16, color: Colors.grey),
@@ -110,7 +136,7 @@ class TweetSummaryWidget extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                   ],
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +154,7 @@ class TweetSummaryWidget extends ConsumerWidget {
                                 TweetUserSummaryInfo(
                                   tweetState: localTweetState,
                                   daysPosted: daysPosted,
-                                  fallbackTweet: tweet,
+                                  fallbackTweet: mainTweet,
                                 ),
                                 GestureDetector(
                                   child: const Icon(
@@ -139,22 +165,16 @@ class TweetSummaryWidget extends ConsumerWidget {
                                   onTap: () {
                                     ref
                                         .read(
-                                          tweetViewModelProvider(
-                                            tweet.id,
-                                          ).notifier,
-                                        )
+                                          tweetViewModelProvider(mainTweet.id)
+                                              .notifier)
                                         .summarizeBody();
                                   },
                                 ),
                               ],
                             ),
-                            if (isPureRepost &&
-                                (tweet.body.isEmpty ||
-                                    tweet.body.trim().isEmpty))
-                              const SizedBox(height: 20),
                             SizedBox(
                               width: double.infinity,
-                              child: TweetBodySummaryWidget(post: tweet),
+                              child: TweetBodySummaryWidget(post: mainTweet),
                             ),
                           ],
                         ),
@@ -164,7 +184,16 @@ class TweetSummaryWidget extends ConsumerWidget {
                 ],
               ),
             ),
-            TweetFeed(tweetState: localTweetState),
+            const SizedBox(height: 4),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(width: avatarRadius * 2 + 9),
+                Expanded(
+                  child: TweetFeed(tweetState: feedTweetState),
+                ),
+              ],
+            ),
           ],
         ),
       ),
