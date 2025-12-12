@@ -5,12 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/profile/repository/profile_repository.dart';
-<<<<<<< HEAD
-import 'package:lam7a/features/profile/ui/viewmodel/profile_viewmodel.dart';
-import 'package:lam7a/core/providers/authentication.dart';
-=======
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_home_viewmodel.dart';
->>>>>>> origin/dev
+
 
 class FollowButton extends ConsumerStatefulWidget {
   final UserModel user;
