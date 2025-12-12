@@ -67,7 +67,7 @@ class TweetBodySummaryWidget extends StatelessWidget {
                                 ),
                               ],
                               child: SearchResultPage(
-                                hintText: tag,
+                                hintText: "#$tag",
                                 canPopTwice: false,
                               ),
                             ),
@@ -379,11 +379,7 @@ class OriginalTweetCard extends ConsumerWidget {
                       username: username,
                     ),
                     if (showConnectorLine)
-                      Container(
-                        width: 2,
-                        height: 60,
-                        color: Colors.grey,
-                      ),
+                      Container(width: 2, height: 60, color: Colors.grey),
                   ],
                 ),
                 const SizedBox(width: 9),
@@ -447,7 +443,7 @@ class OriginalTweetCard extends ConsumerWidget {
                                     ),
                                   ],
                                   child: SearchResultPage(
-                                    hintText: tag,
+                                    hintText: "#$tag",
                                     canPopTwice: false,
                                   ),
                                 ),
@@ -520,4 +516,3 @@ class OriginalTweetCard extends ConsumerWidget {
     );
   }
 }
-

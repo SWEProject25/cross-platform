@@ -4,6 +4,7 @@ import '../../state/search_state.dart';
 import '../../viewmodel/search_viewmodel.dart';
 import '../../../../../core/models/user_model.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
+import 'package:lam7a/core/widgets/app_user_avatar.dart';
 
 class SearchAutocompleteView extends ConsumerWidget {
   const SearchAutocompleteView({super.key});
@@ -36,6 +37,7 @@ class SearchAutocompleteView extends ConsumerWidget {
           (user) => _AutoCompleteUserTile(
             user: user,
             onTap: () => {
+              vm.pushUser(user),
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -77,26 +79,13 @@ class _AutoCompleteUserTile extends StatelessWidget {
         color: theme.scaffoldBackgroundColor, // full rectangle
         child: Row(
           children: [
-            // Profile Picture
-            CircleAvatar(
-              radius: 22,
-              backgroundImage: (user.profileImageUrl?.isNotEmpty ?? false)
-                  ? NetworkImage(user.profileImageUrl!)
-                  : null,
-              backgroundColor: theme.brightness == Brightness.light
-                  ? Color(0xFFd8d8d8)
-                  : Color(0xFF4a4a4a),
-              child:
-                  (user.profileImageUrl == null ||
-                      user.profileImageUrl!.isEmpty)
-                  ? Icon(
-                      Icons.person,
-                      color: theme.brightness == Brightness.light
-                          ? Color(0xFF57646e)
-                          : Color(0xFF7b7f85),
-                    )
-                  : null,
+            AppUserAvatar(
+              radius: 20,
+              imageUrl: user.profileImageUrl,
+              displayName: user.name,
+              username: user.username,
             ),
+            // Profile Picture
             const SizedBox(width: 12),
 
             // Name + Handle

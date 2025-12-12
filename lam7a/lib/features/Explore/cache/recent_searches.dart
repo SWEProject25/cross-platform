@@ -1,58 +1,70 @@
-// import 'package:hive/hive.dart';
-// import 'package:lam7a/core/hive_types.dart';
+import 'package:hive/hive.dart';
+import 'package:lam7a/core/models/user_model.dart';
 
-// class RecentSearchesService {
-//   static const String _key = 'items';
+class UserModelAdapter extends TypeAdapter<UserModel> {
+  @override
+  final int typeId = 3;
 
-//   Future<Box> _box() async {
-//     return HiveTypes().openBoxIfNeeded(HiveTypes.recentSearchesBox);
-//   }
+  @override
+  UserModel read(BinaryReader reader) {
+    // id (int?)
+    final isIdNull = reader.readBool();
+    final int? id = isIdNull ? null : reader.readInt();
 
-//   Future<List<String>> getSearches() async {
-//     final box = await _box();
-//     return List<String>.from(box.get(_key, defaultValue: []));
-//   }
+    // name (String?)
+    final isNameNull = reader.readBool();
+    final String? name = isNameNull ? null : reader.readString();
 
-//   Future<void> addSearch(String query) async {
-//     final box = await _box();
-//     final list = List<String>.from(box.get(_key, defaultValue: []));
+    // username (String?)
+    final isUsernameNull = reader.readBool();
+    final String? username = isUsernameNull ? null : reader.readString();
 
-//     if (list.contains(query)) list.remove(query);
-//     list.insert(0, query);
+    // profileImageUrl (String?)
+    final isProfileUrlNull = reader.readBool();
+    final String? profileImageUrl = isProfileUrlNull
+        ? null
+        : reader.readString();
 
-//     await box.put(_key, list.take(20).toList()); // keep 20 max
-//   }
+    return UserModel(
+      id: id,
+      name: name,
+      username: username,
+      profileImageUrl: profileImageUrl,
+    );
+  }
 
-//   Future<void> clear() async {
-//     final box = await _box();
-//     await box.delete(_key);
-//   }
-// }
+  @override
+  void write(BinaryWriter writer, UserModel obj) {
+    // id
+    if (obj.id == null) {
+      writer.writeBool(true);
+    } else {
+      writer.writeBool(false);
+      writer.writeInt(obj.id!);
+    }
 
-// class RecentProfilesService {
-//   static const String _key = 'profiles';
+    // name
+    if (obj.name == null) {
+      writer.writeBool(true);
+    } else {
+      writer.writeBool(false);
+      writer.writeString(obj.name!);
+    }
 
-//   Future<Box> _box() async {
-//     return HiveTypes().openBoxIfNeeded(HiveTypes.recentProfilesBox);
-//   }
+    // username
+    if (obj.username == null) {
+      writer.writeBool(true);
+    } else {
+      writer.writeBool(false);
+      writer.writeString(obj.username!);
+    }
 
-//   Future<List<String>> getProfiles() async {
-//     final box = await _box();
-//     return List<String>.from(box.get(_key, defaultValue: []));
-//   }
-
-//   Future<void> addProfile(String userId) async {
-//     final box = await _box();
-//     final list = List<String>.from(box.get(_key, defaultValue: []));
-
-//     if (list.contains(userId)) list.remove(userId);
-//     list.insert(0, userId);
-
-//     await box.put(_key, list.take(20).toList());
-//   }
-
-//   Future<void> clear() async {
-//     final box = await _box();
-//     await box.delete(_key);
-//   }
-// }
+    // profileImageUrl
+    if (obj.profileImageUrl == null) {
+      writer.writeBool(true);
+    } else {
+      writer.writeBool(false);
+      writer.writeString(obj.profileImageUrl!);
+    }
+  }
+}

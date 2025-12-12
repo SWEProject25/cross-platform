@@ -44,14 +44,14 @@ class ForYouView extends StatelessWidget {
 
         // Divider after trending hashtags
         Divider(
-          height: 1,
-          thickness: 0.3,
+          height: 2,
+          thickness: 0.2,
           color: theme.brightness == Brightness.light
               ? const Color.fromARGB(120, 83, 99, 110)
               : const Color(0xFF8B98A5),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
 
         // ----- Who to follow Section -----
         Padding(
@@ -62,13 +62,13 @@ class ForYouView extends StatelessWidget {
               color: theme.brightness == Brightness.light
                   ? const Color(0xFF0D0D0D)
                   : const Color(0xFFFFFFFF),
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontSize: 19,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 10),
 
         // ----- Suggested Users List -----
         ListView.builder(
@@ -78,7 +78,7 @@ class ForYouView extends StatelessWidget {
           itemBuilder: (context, index) {
             final user = suggestedUsers[index];
             return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.only(bottom: 8, left: 8, right: 4),
               child: UserTile(user: user),
             );
           },
@@ -119,14 +119,12 @@ class ForYouView extends StatelessWidget {
 
         // Divider after who to follow section
         Divider(
-          height: 1,
-          thickness: 0.3,
+          height: 2,
+          thickness: 0.2,
           color: theme.brightness == Brightness.light
               ? const Color.fromARGB(120, 83, 99, 110)
               : const Color(0xFF8B98A5),
         ),
-
-        const SizedBox(height: 16),
 
         // ----- For You Tweets Sections -----
         // Map through each interest and its tweets
@@ -139,8 +137,11 @@ class ForYouView extends StatelessWidget {
 
           return Column(
             children: [
-              StaticTweetsListView(interest: interest, tweets: tweets),
-              const SizedBox(height: 16),
+              StaticTweetsListView(
+                interest: interest,
+                tweets: tweets,
+                selfScrolling: false,
+              ),
             ],
           );
         }),

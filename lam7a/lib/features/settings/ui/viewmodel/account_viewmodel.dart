@@ -11,28 +11,14 @@ class AccountViewModel extends Notifier<UserModel> {
     _repo = ref.read(accountSettingsRepoProvider);
 
     // initial empty state before data is loaded
-    _loadAccountInfo();
 
-    return UserModel(
-      username: '',
-      email: '',
-      role: '',
-      name: '',
-      birthDate: '',
-      profileImageUrl: '',
-      bannerImageUrl: '',
-      bio: '',
-      location: '',
-      website: '',
-      createdAt: '',
-    );
+    final authState = ref.read(authenticationProvider);
+    state = authState.user!;
+
+    return state;
   }
 
   /// 🔹 Fetch account info from the mock DB
-  Future<void> _loadAccountInfo() async {
-    final authState = ref.read(authenticationProvider);
-    state = authState.user!;
-  }
 
   // =========================================================
   // 🟩 LOCAL STATE UPDATERS
@@ -81,10 +67,6 @@ class AccountViewModel extends Notifier<UserModel> {
       print("error in account view model change username");
       rethrow;
     }
-  }
-
-  Future<void> refresh() async {
-    await _loadAccountInfo();
   }
 }
 
