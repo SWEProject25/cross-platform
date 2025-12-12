@@ -6,6 +6,7 @@ import '../../../../../core/models/user_model.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 import '../search_result_page.dart';
 import '../../viewmodel/search_results_viewmodel.dart';
+import 'package:lam7a/core/widgets/app_user_avatar.dart';
 
 class RecentView extends ConsumerWidget {
   const RecentView({super.key});
@@ -55,7 +56,7 @@ class RecentView extends ConsumerWidget {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: state.recentSearchedUsers!.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 0),
+              separatorBuilder: (_, _) => const SizedBox(width: 0),
               itemBuilder: (context, index) {
                 final user = state.recentSearchedUsers![index];
                 return _HorizontalUserCard(
@@ -100,8 +101,8 @@ class _HorizontalUserCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        width: 90,
-        padding: const EdgeInsets.all(0),
+        width: 110,
+        padding: const EdgeInsets.symmetric(horizontal: 0),
         decoration: BoxDecoration(
           color: theme.scaffoldBackgroundColor,
           borderRadius: BorderRadius.circular(12),
@@ -109,37 +110,32 @@ class _HorizontalUserCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundImage: (p.profileImageUrl?.isNotEmpty ?? false)
-                  ? NetworkImage(p.profileImageUrl!)
-                  : null,
-              backgroundColor: theme.brightness == Brightness.light
-                  ? Color(0xFFd8d8d8)
-                  : Color(0xFF4a4a4a),
-              child: (p.profileImageUrl == null || p.profileImageUrl!.isEmpty)
-                  ? Icon(
-                      Icons.person,
-                      color: theme.brightness == Brightness.light
-                          ? Color(0xFF57646e)
-                          : Color(0xFF7b7f85),
-                    )
-                  : null,
+            AppUserAvatar(
+              radius: 22,
+              imageUrl: p.profileImageUrl,
+              displayName: p.name,
+              username: p.username,
             ),
+
             const SizedBox(height: 8),
 
             // Username
-            Text(
-              p.name ?? p.username ?? "",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: theme.brightness == Brightness.light
-                    ? Color(0xFF0f1317)
-                    : Color(0xFFd8d8d8),
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-                overflow: TextOverflow.ellipsis,
+            SizedBox(
+              width: 120,
+              child: Center(
+                child: Text(
+                  p.name ?? p.username ?? "",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: theme.brightness == Brightness.light
+                        ? Color(0xFF0f1317)
+                        : Color(0xFFd8d8d8),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
               ),
             ),
 

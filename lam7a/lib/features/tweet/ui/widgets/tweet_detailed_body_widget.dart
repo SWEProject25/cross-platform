@@ -70,7 +70,7 @@ class TweetDetailedBodyWidget extends StatelessWidget {
                             ),
                           ],
                           child: SearchResultPage(
-                            hintText: tag,
+                            hintText: "#$tag",
                             canPopTwice: false,
                           ),
                         ),

@@ -65,7 +65,7 @@ class TweetBodySummaryWidget extends StatelessWidget {
                                 ),
                               ],
                               child: SearchResultPage(
-                                hintText: tag,
+                                hintText: "#$tag",
                                 canPopTwice: false,
                               ),
                             ),
@@ -405,7 +405,7 @@ class OriginalTweetCard extends StatelessWidget {
                                   ),
                                 ],
                                 child: SearchResultPage(
-                                  hintText: tag,
+                                  hintText: "#$tag",
                                   canPopTwice: false,
                                 ),
                               ),

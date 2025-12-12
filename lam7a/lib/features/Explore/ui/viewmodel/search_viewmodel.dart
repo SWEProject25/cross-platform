@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/search_state.dart';
 import '../../repository/search_repository.dart';
+import '../../../../../core/models/user_model.dart';
 
 final searchViewModelProvider =
     AsyncNotifierProvider<SearchViewModel, SearchState>(() {
@@ -113,5 +114,27 @@ class SearchViewModel extends AsyncNotifier<SearchState> {
     );
 
     onChanged(term);
+  }
+
+  Future<void> pushUser(UserModel user) async {
+    await _searchRepository.pushUser(user);
+
+    final current = state.value;
+    if (current == null) return;
+
+    final updatedUsers = await _searchRepository.getCachedUsers();
+
+    state = AsyncData(current.copyWith(recentSearchedUsers: updatedUsers));
+  }
+
+  Future<void> pushAutocomplete(String term) async {
+    await _searchRepository.pushAutocomplete(term);
+
+    final current = state.value;
+    if (current == null) return;
+
+    final updatedTerms = await _searchRepository.getCachedAutocompletes();
+
+    state = AsyncData(current.copyWith(recentSearchedTerms: updatedTerms));
   }
 }

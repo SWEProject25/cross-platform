@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'profile_action_button.dart';
+import 'package:lam7a/core/widgets/app_user_avatar.dart';
 
 class UserTile extends StatelessWidget {
   final UserModel user;
@@ -30,12 +31,11 @@ class UserTile extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.only(top: 4, right: 3),
-              child: CircleAvatar(
-                backgroundImage: (user.profileImageUrl?.isNotEmpty ?? false)
-                    ? NetworkImage(user.profileImageUrl!)
-                    : null,
-
+              child: AppUserAvatar(
+                imageUrl: user.profileImageUrl,
                 radius: 20,
+                displayName: user.name,
+                username: user.username,
               ),
             ),
             const SizedBox(width: 12),
