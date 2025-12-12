@@ -5,7 +5,6 @@ import 'package:lam7a/core/widgets/app_user_avatar.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
 import 'package:lam7a/features/tweet/ui/view/tweet_screen.dart';
-import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_summary.dart';
@@ -50,11 +49,8 @@ class TweetSummaryWidget extends ConsumerWidget {
     final parentTweet = tweet.originalTweet;
     // For pure reposts, treat the parent tweet as the main content tweet
     final mainTweet = (isPureRepost && parentTweet != null)
-        ? parentTweet!
+        ? parentTweet
         : tweet;
-
-    final diff = DateTime.now().difference(mainTweet.date);
-    final daysPosted = diff.inDays < 0 ? 0 : diff.inDays;
     final timeAgo = _formatTimeAgo(mainTweet.date);
     final username = tweet.username ?? 'unknown';
     final displayName =
@@ -76,7 +72,7 @@ class TweetSummaryWidget extends ConsumerWidget {
             isLiked: false,
             isReposted: false,
             isViewed: false,
-            tweet: AsyncValue.data(parentTweet!),
+            tweet: AsyncValue.data(parentTweet),
           )
         : localTweetState;
 
@@ -89,12 +85,12 @@ class TweetSummaryWidget extends ConsumerWidget {
       username: mainTweet.username,
     );
 
-    void _openDetail() {
+    void openDetail() {
       final targetTweet = (isPureRepost && parentTweet != null)
-          ? parentTweet!
+          ? parentTweet
           : tweet;
       final targetId = (isPureRepost && parentTweet != null)
-          ? parentTweet!.id
+          ? parentTweet.id
           : tweetId;
 
       Navigator.push(
@@ -122,7 +118,7 @@ class TweetSummaryWidget extends ConsumerWidget {
               // Reply tweet section
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: _openDetail,
+                onTap: openDetail,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -186,7 +182,7 @@ class TweetSummaryWidget extends ConsumerWidget {
               // Non-reply layout (regular tweets and reposts)
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: _openDetail,
+                onTap: openDetail,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
