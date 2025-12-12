@@ -86,7 +86,6 @@ class AuthenticationApiService {
     );
     return res['data'];
   }
-  
   Future<List<dynamic>> getUsersToFollow([int limit = 10]) async {
     Map<String, dynamic> res = await apiService.get(
       endpoint: ServerConstant.toFollowUsers,
@@ -149,6 +148,6 @@ class AuthenticationApiService {
         "email": email,
       },
     );
-    return response;
+      return response;
   }
 }
