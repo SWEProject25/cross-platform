@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/profile/repository/profile_repository.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_home_viewmodel.dart';
 
 class FollowButton extends ConsumerStatefulWidget {
   final UserModel user;
@@ -37,6 +38,10 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
           stateFollow: ProfileStateOfFollow.notfollowing,
           followersCount: (_user.followersCount - 1).clamp(0, 999999),
         );
+
+        await ref
+            .read(tweetHomeViewModelProvider.notifier)
+            .refreshFollowingTweets();
         UserModel myUser = ref.watch(authenticationProvider).user!;
         ref
             .read(authenticationProvider.notifier)
@@ -49,6 +54,9 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
           stateFollow: ProfileStateOfFollow.following,
           followersCount: _user.followersCount + 1,
         );
+        await ref
+            .read(tweetHomeViewModelProvider.notifier)
+            .refreshFollowingTweets();
 
         UserModel myUser = ref.watch(authenticationProvider).user!;
         ref

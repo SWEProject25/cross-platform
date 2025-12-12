@@ -199,7 +199,7 @@ class TweetScreen extends ConsumerWidget {
                                 .bodySmall
                                 ?.copyWith(color: Colors.grey),
                           ),
-                        ],
+                        ],  
                       ),
                       const SizedBox(height: 4),
                     ],
