@@ -10,8 +10,6 @@ import 'package:lam7a/features/tweet/ui/widgets/tweet_detailed_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_detailed.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
-import 'package:lam7a/features/tweet/ui/widgets/tweet_feed.dart';
-import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
 import '../../ui/widgets/tweet_ai_summery.dart';
 
 class TweetScreen extends ConsumerWidget {
@@ -199,7 +197,7 @@ class TweetScreen extends ConsumerWidget {
                               context,
                             ).textTheme.bodySmall?.copyWith(color: Colors.grey),
                           ),
-                        ],  
+                        ],
                       ),
                       const SizedBox(height: 4),
                     ],
@@ -306,14 +304,14 @@ class TweetScreen extends ConsumerWidget {
     final parentUsername = parentTweet.username ?? 'unknown';
     final parentDisplayName =
         (parentTweet.authorName != null && parentTweet.authorName!.isNotEmpty)
-            ? parentTweet.authorName!
-            : parentUsername;
+        ? parentTweet.authorName!
+        : parentUsername;
 
     final replyUsername = replyTweet.username ?? 'unknown';
     final replyDisplayName =
         (replyTweet.authorName != null && replyTweet.authorName!.isNotEmpty)
-            ? replyTweet.authorName!
-            : replyUsername;
+        ? replyTweet.authorName!
+        : replyUsername;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,11 +329,7 @@ class TweetScreen extends ConsumerWidget {
                   displayName: parentDisplayName,
                   username: parentUsername,
                 ),
-                Container(
-                  width: 2,
-                  height: 80,
-                  color: Colors.grey,
-                ),
+                Container(width: 2, height: 80, color: Colors.grey),
               ],
             ),
             const SizedBox(width: 10),
@@ -421,21 +415,16 @@ class TweetScreen extends ConsumerWidget {
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
-            Navigator.of(context).pushNamed(
-              '/profile',
-              arguments: {'username': replyUsername},
-            );
+            Navigator.of(
+              context,
+            ).pushNamed('/profile', arguments: {'username': replyUsername});
           },
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Column(
                 children: [
-                  Container(
-                    width: 2,
-                    height: 16,
-                    color: Colors.grey,
-                  ),
+                  Container(width: 2, height: 16, color: Colors.grey),
                   AppUserAvatar(
                     radius: avatarRadius,
                     imageUrl: replyTweet.authorProfileImage,

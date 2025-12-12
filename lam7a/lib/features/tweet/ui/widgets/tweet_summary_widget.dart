@@ -128,11 +128,7 @@ class TweetSummaryWidget extends ConsumerWidget {
                   children: [
                     Column(
                       children: [
-                        Container(
-                          width: 2,
-                          height: 16,
-                          color: Colors.grey,
-                        ),
+                        Container(width: 2, height: 16, color: Colors.grey),
                         avatarWidget,
                       ],
                     ),
@@ -197,7 +193,11 @@ class TweetSummaryWidget extends ConsumerWidget {
                     if (isPureRepost && parentTweet != null) ...[
                       Row(
                         children: [
-                          const Icon(Icons.repeat, size: 16, color: Colors.grey),
+                          const Icon(
+                            Icons.repeat,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             '$displayName reposted',

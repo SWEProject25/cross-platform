@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../viewmodel/explore_viewmodel.dart';
-import '../../../../common/widgets/tweets_list.dart';
 import '../../../../common/widgets/static_tweets_list.dart';
 
 class InterestView extends ConsumerStatefulWidget {
@@ -31,7 +30,6 @@ class _InterestViewState extends ConsumerState<InterestView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final state = ref.watch(exploreViewModelProvider);
-    final vm = ref.read(exploreViewModelProvider.notifier);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -76,15 +74,10 @@ class _InterestViewState extends ConsumerState<InterestView> {
             );
           }
 
-          // if there is pagination loading
-          // return TweetsListView(
-          //   tweets: data.intrestTweets,
-          //   hasMore: data.hasMoreIntrestTweets,
-          //   onRefresh: () async => vm.loadIntresesTweets(interest),
-          //   onLoadMore: () async => vm.loadMoreInterestedTweets(interest),
-          // );
-
-          return StaticTweetsListView(tweets: data.intrestTweets);
+          return StaticTweetsListView(
+            tweets: data.intrestTweets,
+            selfScrolling: true,
+          );
         },
       ),
     );
