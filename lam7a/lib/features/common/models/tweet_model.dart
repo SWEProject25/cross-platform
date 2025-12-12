@@ -65,7 +65,7 @@ abstract class TweetModel with _$TweetModel {
     TweetModel? originalTweet;
 
     if ((isRepost || isQuote) && originalJson is Map<String, dynamic>) {
-      originalTweet = TweetModel.fromJson(originalJson);
+      originalTweet = TweetModel.fromJsonPosts(originalJson);
     }
 
     return TweetModel(

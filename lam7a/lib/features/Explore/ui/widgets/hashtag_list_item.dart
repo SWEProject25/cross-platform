@@ -69,7 +69,10 @@ class HashtagItem extends StatelessWidget {
                   () => SearchResultsViewmodel(),
                 ),
               ],
-              child: SearchResultPage(hintText: hashtag.hashtag),
+              child: SearchResultPage(
+                hintText: hashtag.hashtag,
+                canPopTwice: false,
+              ),
             ),
           ),
         );

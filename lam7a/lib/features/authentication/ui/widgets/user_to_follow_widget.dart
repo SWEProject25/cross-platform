@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/core/models/user_model.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/model/user_to_follow_dto.dart';
@@ -14,7 +16,7 @@ class UserToFollowWidget extends ConsumerStatefulWidget {
 
 class _UserToFollowWidgetState extends ConsumerState<UserToFollowWidget> {
   bool isLoading = false;
-  
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -74,33 +76,55 @@ class _UserToFollowWidgetState extends ConsumerState<UserToFollowWidget> {
               ),
               Spacer(),
               ElevatedButton(
-                onPressed: isLoading ? null : () async {
-                  setState(() {
-                    isLoading = true;
-                  });
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        setState(() {
+                          isLoading = true;
+                        });
 
-                  try {
-                    if (!widget.myUserToFollow.isFollowing) {
-                      await ref
-                          .read(usersToFollowViewmodelProvider.notifier)
-                          .followUser(widget.myUserToFollow.id!);
-                      widget.myUserToFollow.isFollowing = true;
-                    } else {
-                      await ref
-                          .read(usersToFollowViewmodelProvider.notifier)
-                          .unfollowUser(widget.myUserToFollow.id!);
-                      widget.myUserToFollow.isFollowing = false;
-                    }
-                  } catch (e) {
-                    print('Error: $e');
-                  } finally {
-                    if (mounted) {
-                      setState(() {
-                        isLoading = false;
-                      });
-                    }
-                  }
-                },
+                        try {
+                          if (!widget.myUserToFollow.isFollowing) {
+                            await ref
+                                .read(usersToFollowViewmodelProvider.notifier)
+                                .followUser(widget.myUserToFollow.id!);
+                            widget.myUserToFollow.isFollowing = true;
+                            UserModel myUser = ref
+                                .watch(authenticationProvider)
+                                .user!;
+                            ref
+                                .read(authenticationProvider.notifier)
+                                .updateUser(
+                                  myUser.copyWith(
+                                    followingCount: myUser.followingCount + 1,
+                                  ),
+                                );
+                          } else {
+                            await ref
+                                .read(usersToFollowViewmodelProvider.notifier)
+                                .unfollowUser(widget.myUserToFollow.id!);
+                            widget.myUserToFollow.isFollowing = false;
+                            UserModel myUser = ref
+                                .watch(authenticationProvider)
+                                .user!;
+                            ref
+                                .read(authenticationProvider.notifier)
+                                .updateUser(
+                                  myUser.copyWith(
+                                    followingCount: myUser.followingCount + 1,
+                                  ),
+                                );
+                          }
+                        } catch (e) {
+                          print('Error: $e');
+                        } finally {
+                          if (mounted) {
+                            setState(() {
+                              isLoading = false;
+                            });
+                          }
+                        }
+                      },
 
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.onSurface,
@@ -110,18 +134,27 @@ class _UserToFollowWidgetState extends ConsumerState<UserToFollowWidget> {
                   minimumSize: Size(100, 36),
                   padding: EdgeInsets.symmetric(horizontal: 30, vertical: 2),
                 ),
-                child:isLoading ? SizedBox(width: 20,height: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: Theme.of(context).colorScheme.surface,)) : Text(
-                     widget.myUserToFollow.isFollowing
-                      ? "Following"
-                      : "Follow",
-                  style: TextStyle(
-                    color: widget.myUserToFollow.isFollowing
-                        ? Theme.of(context).colorScheme.surface
-                        : Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: isLoading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Theme.of(context).colorScheme.surface,
+                        ),
+                      )
+                    : Text(
+                        widget.myUserToFollow.isFollowing
+                            ? "Following"
+                            : "Follow",
+                        style: TextStyle(
+                          color: widget.myUserToFollow.isFollowing
+                              ? Theme.of(context).colorScheme.surface
+                              : Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
             ],
           ),

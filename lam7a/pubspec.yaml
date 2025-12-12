@@ -68,7 +68,6 @@ dependencies:
   clipboard: ^2.0.2
   hive: ^2.2.3
   hive_flutter: ^1.1.0
-  internet_connection_checker_plus: ^2.9.1+1
   
 dev_dependencies:
   freezed: ^3.1.0
@@ -80,6 +79,7 @@ dev_dependencies:
     sdk: flutter
   mocktail: ^1.0.3
   network_image_mock: ^2.0.0
+  build_runner: ^2.4.6
 
 
 

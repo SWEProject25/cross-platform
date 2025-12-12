@@ -7,6 +7,7 @@ import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/navigation/utils/models/user_main_data.dart';
+import 'package:lam7a/features/profile/ui/view/followers_following_page.dart';
 import 'package:lam7a/features/profile/ui/widgets/profile_card.dart';
 
 class ProfileBlock extends StatelessWidget {
@@ -27,12 +28,12 @@ class ProfileBlock extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   InkWell(
-                    onTap: (){
-                        Navigator.pushNamed(
-                context,
-                '/profile',
-                arguments: {"username": userData?.username ?? ""},
-              );
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/profile',
+                        arguments: {"username": userData?.username ?? ""},
+                      );
                     },
                     child: CircleAvatar(
                       radius: 30,
@@ -43,12 +44,21 @@ class ProfileBlock extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 5),
-                  Text(
-                    userData?.name ?? "User Name",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
+                  InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/profile',
+                        arguments: {"username": userData?.username ?? ""},
+                      );
+                    },
+                    child: Text(
+                      userData?.name ?? "User Name",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
                   ),
                   Text(
@@ -59,27 +69,59 @@ class ProfileBlock extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                       '${userData?.followingCount ?? 0}',
+                        '${userData?.followingCount ?? 0}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                      Text(
-                        " Following",
-                        style: TextStyle(color: Pallete.greyColor),
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => FollowersFollowingPage(
+                                userId: ref
+                                    .read(authenticationProvider)
+                                    .user!
+                                    .id!,
+                                initialTab: 1,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          " Following",
+                          style: TextStyle(color: Pallete.greyColor),
+                        ),
                       ),
                       SizedBox(width: 20),
                       Text(
-                         '${userData?.followersCount ?? 0}',
+                        '${userData?.followersCount ?? 0}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                      Text(
-                        " Followers",
-                        style: TextStyle(color: Pallete.greyColor),
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => FollowersFollowingPage(
+                                userId: ref
+                                    .read(authenticationProvider)
+                                    .user!
+                                    .id!,
+                                initialTab: 0,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          " Followers",
+                          style: TextStyle(color: Pallete.greyColor),
+                        ),
                       ),
                     ],
                   ),

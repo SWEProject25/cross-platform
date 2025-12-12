@@ -1,3 +1,5 @@
+import 'package:lam7a/core/models/user_model.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/authentication/model/interest_dto.dart';
 import 'package:lam7a/features/authentication/model/user_to_follow_dto.dart';
 import 'package:lam7a/features/authentication/repository/authentication_impl_repository.dart';
@@ -18,11 +20,13 @@ class UsersToFollowViewmodel extends _$UsersToFollowViewmodel {
     state = AsyncData(
       state.value!.map((user) {
         if (user.id == userId) {
-          return user.copyWith(isFollowing: true); // You need a copyWith method
+          return user.copyWith(isFollowing: true);
         }
         return user;
       }).toList(),
     );
+
+
   }
 
   Future<void> unfollowUser(int userId) async {
@@ -37,5 +41,9 @@ class UsersToFollowViewmodel extends _$UsersToFollowViewmodel {
         return user;
       }).toList(),
     );
+        UserModel myUser = ref.watch(authenticationProvider).user!;
+    ref
+        .read(authenticationProvider.notifier)
+        .updateUser(myUser.copyWith(followingCount: myUser.followingCount + 1));
   }
 }

@@ -219,8 +219,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           ),
         );
         if (user != null) {
-          // showToastMessage("user signed up successfully");
-          authController.authenticateUser(user.mapToUserDtoAuth());
+          await authController.isAuthenticated();
         }
         state = state.map(
           login: (login) => login,
@@ -281,7 +280,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       );
       if (myData.user.username != null &&
           myData.user.email == state.identifier) {
-        authController.authenticateUser(myData.user.mapToUserDtoAuth());
+       await authController.isAuthenticated();
         print("user status");
         print(myData.onboardingStatus.hasCompeletedInterests.toString());
         print(myData.onboardingStatus.hasCompeletedFollowing.toString());
@@ -365,7 +364,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
                 myUserData.onboardingStatus.hasCompeletedInterests,
           ),
         );
-        authController.authenticateUser(myUserData.user.mapToUserDtoAuth());
+        await authController.isAuthenticated();
       }
     } catch (e) {
       print("Google Sign-In Error: $e");
@@ -374,7 +373,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
 
   Future<void> oAuthGithubLogin(String code) async {
     RootData myUserData = await repo.oAuthGithubLogin(code);
-    authController.authenticateUser(myUserData.user.mapToUserDtoAuth());
+    authController.isAuthenticated();
     state = state.map(
       login: (login) => login,
       signup: (signup) => signup.copyWith(

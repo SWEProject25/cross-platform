@@ -120,6 +120,34 @@ class TweetHomeViewModel extends _$TweetHomeViewModel {
     });
   }
 
+  Future<void> refreshFollowingTweets() async {
+    print('🔄 Refreshing following tweets...');
+
+    _hasMoreFollowing = true;
+    _isLoadingMore = false;
+
+    // Preserve current state
+    final currentTweets = state.value ?? {'for-you': [], 'following': []};
+
+    // Fetch new following tweets
+    final repository = ref.read(tweetRepositoryProvider);
+    
+    state = await AsyncValue.guard(() async {
+      final followingTweets = await repository.fetchTweets(
+        _pageSize,
+        1,
+        'following',
+      );
+      
+      _cachedTweets['following'] = followingTweets;
+      
+      return {
+        'for-you': currentTweets['for-you'] ?? [],
+        'following': followingTweets,
+      };
+    });
+
+  }
   void upsertTweetLocally(TweetModel tweet) {
     final current = state.value!['for-you'];
 
@@ -140,7 +168,10 @@ class TweetHomeViewModel extends _$TweetHomeViewModel {
 
     _cachedTweets['for-you'] = updated;
     _cachedTweets['following'] = _cachedTweets['following'] ?? [];
-    state = AsyncValue.data({'for-you': updated, 'following': _cachedTweets['following']!});
+    state = AsyncValue.data({
+      'for-you': updated,
+      'following': _cachedTweets['following']!,
+    });
 
     print('✅ Tweet upserted locally');
   }

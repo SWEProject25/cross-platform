@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/animation.dart';
 import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
@@ -5,6 +7,8 @@ import 'package:lam7a/features/tweet/repository/tweet_updates_repository.dart';
 import 'package:lam7a/features/tweet/services/post_interactions_service.dart';
 import 'package:lam7a/features/tweet/services/tweet_api_service.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_posts_viewmodel.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -30,6 +34,10 @@ class TweetViewModel extends _$TweetViewModel {
     final bool isReposted = interactionFlags?['isRepostedByMe'] ?? false;
     final bool isViewed = interactionFlags?['isViewedByMe'] ?? false;
 
+    StreamSubscription<int>? likeSubscription;
+    StreamSubscription<int>? repostSubscription;
+    StreamSubscription<int>? commentSubscription;
+
     print(
       '   ✅ isLiked: $isLiked, isReposted: $isReposted, isViewed: $isViewed (from flags), localViewsOverride=$localViewsOverride',
     );
@@ -40,15 +48,25 @@ class TweetViewModel extends _$TweetViewModel {
         ? tweet.copyWith(views: localViewsOverride)
         : tweet;
 
-    final tweetsUpdateRepo = ref.read(tweetUpdatesRepositoryProvider);
-    tweetsUpdateRepo.joinPost(int.parse(tweetId));
-    tweetsUpdateRepo.onPostLikeUpdates(int.parse(tweetId)).listen(_onLikeUpdate);
-    tweetsUpdateRepo.onPostRepostUpdates(int.parse(tweetId)).listen(_onRepostUpdate);
-    tweetsUpdateRepo.onPostCommentUpdates(int.parse(tweetId)).listen(_onCommentUpdate);
+
+    Future.microtask(() {
+      logger.i("Setting up real-time updates for tweetId: $tweetId");
+
+      final tweetsUpdateRepo = ref.read(tweetUpdatesRepositoryProvider);
+      tweetsUpdateRepo.joinPost(int.parse(tweetId));
+      likeSubscription = tweetsUpdateRepo.onPostLikeUpdates(int.parse(tweetId)).listen(_onLikeUpdate);
+      repostSubscription = tweetsUpdateRepo.onPostRepostUpdates(int.parse(tweetId)).listen(_onRepostUpdate);
+      commentSubscription = tweetsUpdateRepo.onPostCommentUpdates(int.parse(tweetId)).listen(_onCommentUpdate);
+    });
+
 
     ref.onDispose(() {
       logger.i("Disposing TweetViewModel for tweetId: $tweetId");
-      tweetsUpdateRepo.leavePost(int.parse(tweetId));
+      ref.read(tweetUpdatesRepositoryProvider).leavePost(int.parse(tweetId));
+
+      likeSubscription?.cancel();
+      repostSubscription?.cancel();
+      commentSubscription?.cancel();
     });
 
     return TweetState(
@@ -132,6 +150,9 @@ class TweetViewModel extends _$TweetViewModel {
       currentState.copyWith(
         isLiked: newIsLiked,
         tweet: AsyncData(currentTweet.copyWith(likes: newCount)),
+        likeCountUpdated: state.value!.likeCountUpdated,
+        repostCountUpdated: state.value!.repostCountUpdated,
+        commentCountUpdated: state.value!.commentCountUpdated,
       ),
     );
 
@@ -164,8 +185,21 @@ class TweetViewModel extends _$TweetViewModel {
         currentState.copyWith(
           isLiked: backendIsLiked,
           tweet: AsyncData(currentTweet.copyWith(likes: actualCount)),
+          likeCountUpdated: state.value!.likeCountUpdated,
+          repostCountUpdated: state.value!.repostCountUpdated,
+          commentCountUpdated: state.value!.commentCountUpdated,
         ),
       );
+
+      // If user unliked this tweet, invalidate their profile Likes list
+      if (!backendIsLiked) {
+        final authState = ref.read(authenticationProvider);
+        final user = authState.user;
+        final profileId = user?.profileId;
+        if (profileId != null) {
+          ref.invalidate(profileLikesProvider(profileId.toString()));
+        }
+      }
 
       print(
         '✅ Backend like synced: isLiked=$backendIsLiked, count=$actualCount',
@@ -177,6 +211,9 @@ class TweetViewModel extends _$TweetViewModel {
         currentState.copyWith(
           isLiked: currentIsLiked,
           tweet: AsyncData(currentTweet),
+          likeCountUpdated: state.value!.likeCountUpdated,
+          repostCountUpdated: state.value!.repostCountUpdated,
+          commentCountUpdated: state.value!.commentCountUpdated,
         ),
       );
     }
@@ -215,6 +252,9 @@ class TweetViewModel extends _$TweetViewModel {
       currentState.copyWith(
         isReposted: newIsReposted,
         tweet: AsyncData(currentTweet.copyWith(repost: newCount)),
+        likeCountUpdated: state.value!.likeCountUpdated,
+        repostCountUpdated: state.value!.repostCountUpdated,
+        commentCountUpdated: state.value!.commentCountUpdated,
       ),
     );
 
@@ -249,6 +289,9 @@ class TweetViewModel extends _$TweetViewModel {
         currentState.copyWith(
           isReposted: backendIsReposted,
           tweet: AsyncData(currentTweet.copyWith(repost: actualCount)),
+          likeCountUpdated: state.value!.likeCountUpdated,
+          repostCountUpdated: state.value!.repostCountUpdated,
+          commentCountUpdated: state.value!.commentCountUpdated,
         ),
       );
 
@@ -262,6 +305,9 @@ class TweetViewModel extends _$TweetViewModel {
         currentState.copyWith(
           isReposted: currentIsReposted,
           tweet: AsyncData(currentTweet),
+          likeCountUpdated: state.value!.likeCountUpdated,
+          repostCountUpdated: state.value!.repostCountUpdated,
+          commentCountUpdated: state.value!.commentCountUpdated,
         ),
       );
     }
@@ -317,7 +363,7 @@ class TweetViewModel extends _$TweetViewModel {
 
     // Optimistically update local state
     state = AsyncData(
-      currentState.copyWith(isViewed: true, tweet: AsyncData(updatedTweet)),
+      currentState.copyWith(isViewed: true, tweet: AsyncData(updatedTweet), likeCountUpdated: state.value!.likeCountUpdated, repostCountUpdated: state.value!.repostCountUpdated, commentCountUpdated: state.value!.commentCountUpdated),
     );
 
     try {

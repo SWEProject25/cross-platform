@@ -42,6 +42,19 @@ class _TweetHomeScreenState extends ConsumerState<TweetHomeScreen>
     _tabController.dispose();
     super.dispose();
   }
+  @override
+void didChangeDependencies() {
+  super.didChangeDependencies();
+  
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!_isTabBarVisible) {
+      setState(() {
+        _isTabBarVisible = true;
+        _lastOffset = 0;
+      });
+    }
+  });
+}
 
   /// Handle scroll events for pagination
   void _onScroll() {
@@ -71,7 +84,9 @@ class _TweetHomeScreenState extends ConsumerState<TweetHomeScreen>
 
     setState(() => _isLoadingMore = true);
     try {
-      await viewModel.loadMoreTweets(tab);
+      await viewModel.loadMoreTweets(tab).timeout(
+        const Duration(seconds: 3)
+      );
     } finally {
       if (mounted) {
         setState(() => _isLoadingMore = false);

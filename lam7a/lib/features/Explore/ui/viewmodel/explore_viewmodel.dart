@@ -42,21 +42,18 @@ class ExploreViewModel extends AsyncNotifier<ExploreState> {
       users.length >= 7 ? users.take(7) : users,
     )..shuffle()).take(5).toList();
 
-    // final forYouTweets = await _repo.getForYouTweets(_limit, _pageForYou);
-
-    //if (forYouTweets.length == _limit) _pageForYou++;
+    final forYouTweetsMap = await _repo.getForYouTweets(_limit);
+    print("For You Tweets Map loaded: ${forYouTweetsMap.length} interests");
 
     print("Explore ViewModel initialized");
 
     return ExploreState.initial().copyWith(
       forYouHashtags: randomHashtags,
       suggestedUsers: randomUsers,
-
-      // hasMoreForYouTweets: forYouTweets.length == _limit,
-      //forYouTweets: forYouTweets,
+      interestBasedTweets: forYouTweetsMap,
       isForYouHashtagsLoading: false,
-
       isSuggestedUsersLoading: false,
+      isInterestMapLoading: false,
     );
   }
 
@@ -69,9 +66,9 @@ class ExploreViewModel extends AsyncNotifier<ExploreState> {
 
     switch (page) {
       case ExplorePageView.forYou:
-        if (prev.forYouHashtags.isEmpty || prev.suggestedUsers.isEmpty
-        //||prev.forYouTweets.isEmpty
-        ) {
+        if (prev.forYouHashtags.isEmpty ||
+            prev.suggestedUsers.isEmpty ||
+            prev.interestBasedTweets.isEmpty) {
           await loadForYou(reset: true);
         }
         break;
@@ -81,22 +78,19 @@ class ExploreViewModel extends AsyncNotifier<ExploreState> {
         break;
 
       case ExplorePageView.exploreNews:
-        if ( //prev.newsTweets.isEmpty) {
-        prev.newsHashtags.isEmpty) {
+        if (prev.newsHashtags.isEmpty) {
           await loadNews(reset: true);
         }
         break;
 
       case ExplorePageView.exploreSports:
-        if ( //prev.sportsTweets.isEmpty ||
-        prev.sportsHashtags.isEmpty) {
+        if (prev.sportsHashtags.isEmpty) {
           await loadSports(reset: true);
         }
         break;
 
       case ExplorePageView.exploreEntertainment:
-        if ( //prev.entertainmentTweets.isEmpty ||
-        prev.entertainmentHashtags.isEmpty) {
+        if (prev.entertainmentHashtags.isEmpty) {
           await loadEntertainment(reset: true);
         }
         break;

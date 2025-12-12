@@ -24,7 +24,6 @@ import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 import 'package:lam7a/features/Explore/ui/view/explore_page.dart';
 import 'package:lam7a/features/Explore/ui/widgets/search_bar.dart';
-
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
 
@@ -49,11 +48,22 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
   double _lastOffset = 0;
   String? themeMode;
 
+ 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
   }
+
+
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+
+
 
   // Define custom AppBar height
   final double _appBarHeight = 80.0; // Change this value to adjust height
