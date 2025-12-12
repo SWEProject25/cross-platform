@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/models/user_model.dart';
 import '../../repository/account_settings_repository.dart';
+import '../../../../core/providers/authentication.dart';
 
 class AccountViewModel extends Notifier<UserModel> {
   late final AccountSettingsRepository _repo;
@@ -29,12 +30,8 @@ class AccountViewModel extends Notifier<UserModel> {
 
   /// 🔹 Fetch account info from the mock DB
   Future<void> _loadAccountInfo() async {
-    try {
-      final info = await _repo.fetchMyInfo();
-      state = info;
-    } catch (e) {
-      rethrow;
-    }
+    final authState = ref.read(authenticationProvider);
+    state = authState.user!;
   }
 
   // =========================================================
@@ -45,14 +42,12 @@ class AccountViewModel extends Notifier<UserModel> {
 
   void updateUsernameLocalState(String newUsername) {
     state = state.copyWith(username: newUsername);
+    ref.read(authenticationProvider.notifier).updateUser(state);
   }
 
   void updateEmailLocalState(String newEmail) {
     state = state.copyWith(email: newEmail);
-  }
-
-  void updateLocationLocalState(String newLocation) {
-    state = state.copyWith(location: newLocation);
+    ref.read(authenticationProvider.notifier).updateUser(state);
   }
 
   /// Update email both in backend and state
@@ -86,27 +81,6 @@ class AccountViewModel extends Notifier<UserModel> {
       print("error in account view model change username");
       rethrow;
     }
-  }
-
-  /// Deactivate account
-  Future<void> deactivateAccount() async {
-    try {
-      await _repo.deactivateAccount();
-
-      state = UserModel(
-        username: '',
-        email: '',
-        role: '',
-        name: '',
-        birthDate: '',
-        profileImageUrl: '',
-        bannerImageUrl: '',
-        bio: '',
-        location: '',
-        website: '',
-        createdAt: '',
-      );
-    } catch (e) {}
   }
 
   Future<void> refresh() async {

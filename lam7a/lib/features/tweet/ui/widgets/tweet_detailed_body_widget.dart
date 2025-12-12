@@ -5,18 +5,20 @@ import 'package:lam7a/core/utils/responsive_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:lam7a/features/tweet/ui/widgets/full_screen_media_viewer.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
-import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
+import 'package:lam7a/features/Explore/ui/view/search_result_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/features/Explore/ui/viewmodel/search_results_viewmodel.dart';
 
 class TweetDetailedBodyWidget extends StatelessWidget {
   final TweetState tweetState;
-  
+
   const TweetDetailedBodyWidget({super.key, required this.tweetState});
-  
+
   @override
   Widget build(BuildContext context) {
     // Handle null tweet (e.g., 404 error)
     if (tweetState.tweet.value == null) {
-      return  Center(
+      return Center(
         child: Padding(
           padding: EdgeInsets.all(20),
           child: Text(
@@ -26,17 +28,17 @@ class TweetDetailedBodyWidget extends StatelessWidget {
         ),
       );
     }
-    
+
     final post = tweetState.tweet.value!;
     final responsive = context.responsive;
 
-    final imageHeight = responsive.isTablet 
-        ? 500.0 
-        : responsive.isLandscape 
-            ? responsive.heightPercent(60) 
-            : 400.0;
+    final imageHeight = responsive.isTablet
+        ? 500.0
+        : responsive.isLandscape
+        ? responsive.heightPercent(60)
+        : 400.0;
     final bodyText = post.body.trim();
-    
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Column(
@@ -53,17 +55,24 @@ class TweetDetailedBodyWidget extends StatelessWidget {
                   overflow: TextOverflow.visible,
                   style: Theme.of(context).textTheme.bodyLarge,
                   onMentionTap: (handle) {
-                    Navigator.of(context).pushNamed(
-                      '/profile',
-                      arguments: {'username': handle},
-                    );
+                    Navigator.of(
+                      context,
+                    ).pushNamed('/profile', arguments: {'username': handle});
                   },
                   onHashtagTap: (tag) {
-                    Navigator.of(context).push(
+                    Navigator.push(
+                      context,
                       MaterialPageRoute(
-                        builder: (_) => NavigationHomeScreen(
-                          initialIndex: 1,
-                          initialSearchQuery: '#$tag',
+                        builder: (_) => ProviderScope(
+                          overrides: [
+                            searchResultsViewModelProvider.overrideWith(
+                              () => SearchResultsViewmodel(),
+                            ),
+                          ],
+                          child: SearchResultPage(
+                            hintText: tag,
+                            canPopTwice: false,
+                          ),
                         ),
                       ),
                     );
@@ -113,10 +122,7 @@ class TweetDetailedBodyWidget extends StatelessWidget {
                             return SizedBox(
                               height: imageHeight,
                               child: const Center(
-                                child: Icon(
-                                  Icons.error,
-                                  color: Colors.red,
-                                ),
+                                child: Icon(Icons.error, color: Colors.red),
                               ),
                             );
                           },
@@ -146,9 +152,7 @@ class TweetDetailedBodyWidget extends StatelessWidget {
                           ),
                         );
                       },
-                      child: VideoPlayerWidget(
-                        url: videoUrl,
-                      ),
+                      child: VideoPlayerWidget(url: videoUrl),
                     ),
                   );
                 }).toList(),

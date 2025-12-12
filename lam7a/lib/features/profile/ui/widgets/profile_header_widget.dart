@@ -28,6 +28,23 @@ class ProfileHeaderWidget extends ConsumerWidget {
         child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
           isOwnProfile
               ? OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 6), 
+                  minimumSize: const Size(0, 28), 
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap, 
+
+                  // Border color depends on theme
+                  side: BorderSide(
+                    color: Theme.of(context).brightness == Brightness.light
+                        ? Colors.black
+                        : Colors.white,
+                  ),
+
+                  // Background color optional
+                  backgroundColor: Theme.of(context).brightness == Brightness.light
+                      ? Colors.white
+                      : Colors.black,
+                ),
                   onPressed: () async {
                     final updated = await Navigator.push(
                       context,
@@ -35,24 +52,36 @@ class ProfileHeaderWidget extends ConsumerWidget {
                     );
                     if (updated != null) onEdited?.call();
                   },
-                  child: const Text('Edit profile'),
+                  child: Text(
+                    'Edit profile',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? Colors.black
+                          : Colors.white,
+                    ),
+                  )
                 )
               : FollowButton(user: user),
         ]),
       ),
 
-      const SizedBox(height: 12),
+      const SizedBox(height: 6),
 
       // Name and handle
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(user.name ?? '', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          Text(user.name ?? '', style: TextStyle(
+            color: Theme.of(context).brightness == Brightness.light
+                ? Colors.black
+                : Colors.white,
+            fontSize: 22, fontWeight: FontWeight.bold)),
           Text('@${user.username ?? ''}', style: const TextStyle(color: Colors.grey)),
         ]),
       ),
 
-      const SizedBox(height: 10),
+      const SizedBox(height: 6),
 
       // Bio
       if ((user.bio ?? '').isNotEmpty)
@@ -100,7 +129,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
             },
             child: RichText(
               text: TextSpan(children: [
-                TextSpan(text: '${user.followingCount} ', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                TextSpan(text: '${user.followingCount} ', style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white, fontWeight: FontWeight.bold)),
                 const TextSpan(text: 'Following', style: TextStyle(color: Colors.grey)),
               ]),
             ),
@@ -114,7 +143,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
             },
             child: RichText(
               text: TextSpan(children: [
-                TextSpan(text: '${user.followersCount} ', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                TextSpan(text: '${user.followersCount} ', style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white, fontWeight: FontWeight.bold)),
                 const TextSpan(text: 'Followers', style: TextStyle(color: Colors.grey)),
               ]),
             ),

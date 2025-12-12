@@ -59,7 +59,7 @@ class MainSettingsPage extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          SettingsSearchBar(),
+          //  SettingsSearchBar(),
           const SizedBox(height: 8),
           Expanded(
             child: ListView.builder(

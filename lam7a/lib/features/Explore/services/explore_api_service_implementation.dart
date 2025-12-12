@@ -123,7 +123,8 @@ class ExploreApiServiceImpl implements ExploreApiService {
 
       print("Explore Tweets fetched: ${result.length} categories");
       return result;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print("Error fetching For You tweets: $stackTrace");
       rethrow;
     }
   }

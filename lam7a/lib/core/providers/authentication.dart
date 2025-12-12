@@ -3,7 +3,6 @@ import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/models/user_dto.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/services/api_service.dart';
-import 'package:lam7a/features/messaging/dtos/conversation_dto.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -21,10 +20,12 @@ class Authentication extends _$Authentication {
 
   Future<void> isAuthenticated() async {
     try {
-      final response = await _apiService.get(endpoint: ServerConstant.profileMe);
+      final response = await _apiService.get(
+        endpoint: ServerConstant.profileMe,
+      );
       print(response['data']);
       if (response['data'] != null) {
-        UserDtoAuth user =  UserDtoAuth.fromJson(response['data']);
+        UserDtoAuth user = UserDtoAuth.fromJson(response['data']);
         print("this is my user ${user}");
         authenticateUser(user);
       }
@@ -32,29 +33,33 @@ class Authentication extends _$Authentication {
       print(e);
     }
   }
-UserModel userDtoToUserModel(UserDtoAuth dto) {
-  return UserModel(
-    id: dto.id,
-    username: dto.user?.username ?? null,
-    email: dto.user?.email ?? null,
-    role: dto.user?.role ?? null,
-    name: dto.name,
-    profileImageUrl: dto.profileImageUrl?.toString(),
-    bannerImageUrl: dto.bannerImageUrl?.toString(),
-    bio: dto.bio?.toString(),
-    location: dto.location?.toString(),
-    website: dto.website?.toString(),
-    createdAt: dto.createdAt?.toIso8601String(),
-    followersCount: dto.followersCount,
-    followingCount: dto.followingCount
-  );
-}
 
-  Future<void> authenticateUser(UserDtoAuth? user) async{
-  
+  UserModel userDtoToUserModel(UserDtoAuth dto) {
+    return UserModel(
+      id: dto.id,
+      username: dto.user?.username ?? null,
+      email: dto.user?.email ?? null,
+      role: dto.user?.role ?? null,
+      name: dto.name,
+      profileImageUrl: dto.profileImageUrl?.toString(),
+      bannerImageUrl: dto.bannerImageUrl?.toString(),
+      bio: dto.bio?.toString(),
+      location: dto.location?.toString(),
+      website: dto.website?.toString(),
+      createdAt: dto.createdAt?.toIso8601String(),
+      followersCount: dto.followersCount,
+      followingCount: dto.followingCount,
+    );
+  }
+
+  void authenticateUser(UserDtoAuth? user) {
     if (user != null) {
       UserModel userModel = userDtoToUserModel(user);
-      state = state.copyWith(token: null, isAuthenticated: true, user: userModel);
+      state = state.copyWith(
+        token: null,
+        isAuthenticated: true,
+        user: userModel,
+      );
     }
   }
 
@@ -72,6 +77,7 @@ UserModel userDtoToUserModel(UserDtoAuth dto) {
       print(e);
     }
   }
+
   void updateUser(UserModel updatedUser) {
     state = state.copyWith(user: updatedUser);
   }
@@ -79,7 +85,9 @@ UserModel userDtoToUserModel(UserDtoAuth dto) {
   // Refresh user data from the server
   Future<void> refreshUser() async {
     try {
-      final response = await _apiService.get(endpoint: ServerConstant.profileMe);
+      final response = await _apiService.get(
+        endpoint: ServerConstant.profileMe,
+      );
 
       if (response['data'] != null) {
         final dto = UserDtoAuth.fromJson(response['data']);
@@ -90,5 +98,4 @@ UserModel userDtoToUserModel(UserDtoAuth dto) {
       print("Failed to refresh user: $e");
     }
   }
-
 }

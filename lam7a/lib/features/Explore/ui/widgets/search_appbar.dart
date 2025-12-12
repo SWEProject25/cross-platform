@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import '../view/search_and_auto_complete/search_page.dart';
 
 class SearchAppbar extends StatelessWidget implements PreferredSizeWidget {
-  const SearchAppbar({super.key, required this.width, required this.hintText});
+  const SearchAppbar({
+    super.key,
+    required this.width,
+    required this.hintText,
+    this.canPopTwice = true,
+  });
 
   final double width;
   final String hintText;
+  final bool canPopTwice;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -29,6 +35,10 @@ class SearchAppbar extends StatelessWidget implements PreferredSizeWidget {
               size: 26,
             ),
             onPressed: () {
+              if (!canPopTwice || !Navigator.of(context).canPop()) {
+                Navigator.pop(context);
+                return;
+              }
               int count = 0;
               Navigator.popUntil(context, (route) => count++ >= 2);
             },

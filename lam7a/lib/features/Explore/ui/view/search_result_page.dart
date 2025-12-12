@@ -9,8 +9,13 @@ import 'search_result/latesttab.dart';
 import 'search_result/peopletab.dart';
 
 class SearchResultPage extends ConsumerStatefulWidget {
-  const SearchResultPage({super.key, required this.hintText});
+  const SearchResultPage({
+    super.key,
+    required this.hintText,
+    this.canPopTwice = true,
+  });
   final String hintText;
+  final bool canPopTwice;
 
   @override
   ConsumerState<SearchResultPage> createState() => _SearchResultPageState();
@@ -58,7 +63,11 @@ class _SearchResultPageState extends ConsumerState<SearchResultPage>
     final width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      appBar: SearchAppbar(width: width, hintText: widget.hintText),
+      appBar: SearchAppbar(
+        width: width,
+        hintText: widget.hintText,
+        canPopTwice: widget.canPopTwice,
+      ),
       body: state.when(
         loading: () => Center(
           child: CircularProgressIndicator(
