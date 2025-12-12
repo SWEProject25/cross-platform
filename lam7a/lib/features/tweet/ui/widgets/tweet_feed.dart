@@ -8,6 +8,9 @@ import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_posts_viewmodel.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_viewmodel.dart';
+
 
 class TweetFeed extends ConsumerStatefulWidget {
   const TweetFeed({super.key, required this.tweetState});
@@ -337,6 +340,15 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                 ),
             onPressed: () {
               _showRepostQuoteOptions(context);
+
+              final tweet = widget.tweetState.tweet.value;
+              if (tweet != null && tweet.userId != null){
+                final userId = tweet.userId.toString();
+
+                ref.invalidate(profilePostsProvider(userId));
+                ref.invalidate(profileRepliesProvider(userId));
+                ref.invalidate(profileLikesProvider(userId));
+              }
             },
           ),
         ),
@@ -406,6 +418,15 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
               ref
                   .read(tweetViewModelProvider(tweetId).notifier)
                   .handleLike(controller: _controller);
+
+              final tweet = widget.tweetState.tweet.value;
+              if (tweet != null && tweet.userId != null){
+                final userId = tweet.userId.toString();
+
+                ref.invalidate(profilePostsProvider(userId));
+                ref.invalidate(profileRepliesProvider(userId));
+                ref.invalidate(profileLikesProvider(userId));
+              }
             },
           ),
         ),

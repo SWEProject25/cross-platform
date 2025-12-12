@@ -12,6 +12,8 @@ import 'package:lam7a/features/add_tweet/ui/widgets/add_tweet_header_widget.dart
 import 'package:lam7a/features/add_tweet/ui/widgets/add_tweet_toolbar_widget.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_posts_viewmodel.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_viewmodel.dart';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -579,6 +581,20 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
       final state = ref.read(addTweetViewmodelProvider);
       
       if (state.isTweetPosted) {
+
+          try {
+                final authState = ref.read(authenticationProvider);
+                final myUser = authState.user;
+
+                if (myUser != null && myUser.id != null) {
+                  final userId = myUser.id.toString();
+
+                  // Refresh profile lists
+                  ref.invalidate(profilePostsProvider(userId));
+                  ref.invalidate(profileRepliesProvider(userId));
+                  ref.invalidate(profileLikesProvider(userId));
+                }
+              } catch (_) {}
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

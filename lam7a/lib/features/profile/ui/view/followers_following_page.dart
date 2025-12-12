@@ -67,45 +67,6 @@ class _FollowersFollowingPageState extends ConsumerState<FollowersFollowingPage>
     }
   }
 
-  // Widget _buildTile(UserModel u) {
-  //   final hasImage = u.profileImageUrl != null && u.profileImageUrl!.isNotEmpty;
-  //   return ListTile(
-  //     contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-  //     leading: CircleAvatar(
-  //       radius: 24,
-  //       backgroundColor: Colors.grey.shade200,
-  //       backgroundImage: hasImage ? NetworkImage(u.profileImageUrl!) : null,
-  //       child: !hasImage ? const Icon(Icons.person, color: Colors.white) : null,
-  //     ),
-      
-  //     title: Row(
-  //       children: [
-  //         Expanded(
-  //           child: Text(u.name ?? "Unknown",
-  //               style: const TextStyle(fontWeight: FontWeight.bold)),
-  //         ),
-  //         // Follow button
-  //         FollowButton(user: u),
-  //       ],
-  //     ),
-  //     subtitle: Text(
-  //       "@${u.username ?? ''}${(u.bio != null && u.bio!.isNotEmpty) ? '\n${u.bio}' : ''}",
-  //       maxLines: 2,
-  //       overflow: TextOverflow.ellipsis,
-  //     ),
-  //     isThreeLine: true,
-  //     onTap: () {
-  //       // navigate to profile and pass username as argument
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (_) => const ProfileScreen(),
-  //           settings: RouteSettings(arguments: {"username": u.username}),
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
 
 Widget _buildTile(UserModel u) {
   final hasImage = u.profileImageUrl != null && u.profileImageUrl!.isNotEmpty;
@@ -151,7 +112,10 @@ Widget _buildTile(UserModel u) {
                         ),
                       ),
                     ),
-                    FollowButton(user: u),
+                    FollowButton(
+                      user: u,
+                      onFollowStateChanged: () => _loadData(),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 1),
