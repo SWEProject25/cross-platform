@@ -78,7 +78,6 @@ class MyApp extends ConsumerStatefulWidget {
 
 class _MyAppState extends ConsumerState<MyApp> {
   StreamSubscription<Uri>? _linkSubscription;
-  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
@@ -178,6 +177,7 @@ class _MyAppState extends ConsumerState<MyApp> {
               return const ProfileScreen();
             },
             '/tweet': (context) {
+              print("Navigating to TweetScreen via deep link");
               final args = ModalRoute.of(context)!.settings.arguments as Map;
               final tweetId = args['tweetId'] as String;
               final tweetData = args['tweetData'] as TweetModel?;

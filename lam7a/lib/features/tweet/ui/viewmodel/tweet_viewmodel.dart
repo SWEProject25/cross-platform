@@ -19,6 +19,8 @@ part 'tweet_viewmodel.g.dart';
 class TweetViewModel extends _$TweetViewModel {
   final Logger logger = getLogger(TweetViewModel);
 
+  late TweetUpdatesRepository _tweetUpdatesRepository;
+
   @override
   FutureOr<TweetState> build(String tweetId) async {
     final repo = ref.read(tweetRepositoryProvider);
@@ -48,21 +50,18 @@ class TweetViewModel extends _$TweetViewModel {
         ? tweet.copyWith(views: localViewsOverride)
         : tweet;
 
-
-    Future.microtask(() {
-      logger.i("Setting up real-time updates for tweetId: $tweetId");
-
-      final tweetsUpdateRepo = ref.read(tweetUpdatesRepositoryProvider);
-      tweetsUpdateRepo.joinPost(int.parse(tweetId));
-      likeSubscription = tweetsUpdateRepo.onPostLikeUpdates(int.parse(tweetId)).listen(_onLikeUpdate);
-      repostSubscription = tweetsUpdateRepo.onPostRepostUpdates(int.parse(tweetId)).listen(_onRepostUpdate);
-      commentSubscription = tweetsUpdateRepo.onPostCommentUpdates(int.parse(tweetId)).listen(_onCommentUpdate);
-    });
+    logger.i("Setting up real-time updates for tweetId: $tweetId");
 
 
+    _tweetUpdatesRepository = ref.read(tweetUpdatesRepositoryProvider);
+    _tweetUpdatesRepository.joinPost(int.parse(tweetId));
+    likeSubscription = _tweetUpdatesRepository.onPostLikeUpdates(int.parse(tweetId)).listen(_onLikeUpdate);
+    repostSubscription = _tweetUpdatesRepository.onPostRepostUpdates(int.parse(tweetId)).listen(_onRepostUpdate);
+    commentSubscription = _tweetUpdatesRepository.onPostCommentUpdates(int.parse(tweetId)).listen(_onCommentUpdate);
+    
     ref.onDispose(() {
       logger.i("Disposing TweetViewModel for tweetId: $tweetId");
-      ref.read(tweetUpdatesRepositoryProvider).leavePost(int.parse(tweetId));
+      _tweetUpdatesRepository.leavePost(int.parse(tweetId));
 
       likeSubscription?.cancel();
       repostSubscription?.cancel();

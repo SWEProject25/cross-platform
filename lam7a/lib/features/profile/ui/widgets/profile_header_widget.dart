@@ -129,7 +129,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
             },
             child: RichText(
               text: TextSpan(children: [
-                TextSpan(text: '${user.followingCount} ', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                TextSpan(text: '${user.followingCount} ', style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white, fontWeight: FontWeight.bold)),
                 const TextSpan(text: 'Following', style: TextStyle(color: Colors.grey)),
               ]),
             ),
@@ -143,7 +143,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
             },
             child: RichText(
               text: TextSpan(children: [
-                TextSpan(text: '${user.followersCount} ', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                TextSpan(text: '${user.followersCount} ', style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white, fontWeight: FontWeight.bold)),
                 const TextSpan(text: 'Followers', style: TextStyle(color: Colors.grey)),
               ]),
             ),

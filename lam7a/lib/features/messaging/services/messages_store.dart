@@ -11,54 +11,73 @@ MessagesStore messagesStore(Ref ref){
 }
 
 class MessagesStore {
-  final Map<int, List<ChatMessage>> _messages = {};
+  final Map<int, List<ChatMessage>> _cache = {};
 
+  /// Box name per chat
+  String _boxName(int chatId) => 'chat_messages_$chatId';
 
+  /// Add multiple messages
   Future<void> addMessages(int chatId, List<ChatMessage> newMessages) async {
-    final box = await HiveTypes().openBoxIfNeeded<ChatMessage>('chat_messages_$chatId');
+    for (var msg in newMessages) {
+      print('Adding message to chat $chatId: ${msg.id} - ${msg.text}');
+    }
 
-    final existing = _messages[chatId] ?? [];
+    final box = await HiveTypes().openBoxIfNeeded<ChatMessage>(_boxName(chatId));
+
+    // In-memory cache
+    final existing = _cache[chatId] ?? [];
     final existingMap = {for (var m in existing) m.id: m};
 
     for (var msg in newMessages) {
       existingMap[msg.id] = msg;
+      // Store in Hive with string keys
+      await box.put(msg.id.toString(), msg);
     }
 
     final updatedList = existingMap.values.toList()
       ..sort((a, b) => a.time.compareTo(b.time));
 
-    _messages[chatId] = updatedList;
-    
-    box.putAll({for (var msg in newMessages) msg.id: msg});
+    _cache[chatId] = updatedList;
   }
 
+  /// Add a single message
   Future<void> addMessage(int chatId, ChatMessage message) async {
     await addMessages(chatId, [message]);
   }
-  
+
+  /// Remove a message
   Future<void> removeMessage(int chatId, int messageId) async {
-    final existing = _messages[chatId];
-    if (existing != null) {
-      existing.removeWhere((m) => m.id == messageId);
-    }
+    final box = await HiveTypes().openBoxIfNeeded<ChatMessage>(_boxName(chatId));
 
-    final box = await HiveTypes().openBoxIfNeeded<ChatMessage>('chat_messages_$chatId');
-    await box.delete(messageId);
+    // Remove from cache
+    _cache[chatId]?.removeWhere((m) => m.id == messageId);
+
+    // Remove from Hive using string key
+    await box.delete(messageId.toString());
   }
 
-  Future<List<ChatMessage>> getMessages(int chatId) async{ 
-    final box = await HiveTypes().openBoxIfNeeded<ChatMessage>('chat_messages_$chatId');
+  /// Get all messages (merged from cache or Hive)
+  Future<List<ChatMessage>> getMessages(int chatId) async {
+    final box = await HiveTypes().openBoxIfNeeded<ChatMessage>(_boxName(chatId));
 
-    return box.values.toList()
+    final all = box.values.toList()
       ..sort((a, b) => a.time.compareTo(b.time));
-    // return _messages.putIfAbsent(chatId, ()=>[]);
-  }
-  
-  int getLastMessageId(int chatId) {
-    final messages = _messages[chatId];
-    if (messages == null || messages.isEmpty) {
-      return 0;
+
+    // Update cache
+    _cache[chatId] = all;
+
+    for (var msg in all) {
+      print('Adding message to chat $chatId: ${msg.id} - ${msg.text}');
     }
-    return messages.map((m) => m.id).reduce((a, b) => a < b ? a : b);
+
+    return all;
+  }
+
+  /// Last message ID (max) from cache
+  int getLastMessageId(int chatId) {
+    final list = _cache[chatId];
+    if (list == null || list.isEmpty) return 0;
+
+    return list.map((m) => m.id).reduce((a, b) => a > b ? a : b);
   }
 }

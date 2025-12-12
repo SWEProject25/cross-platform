@@ -28,6 +28,20 @@ class TweetSummaryWidget extends ConsumerWidget {
     return _buildTweetUI(context, ref, tweetData);
   }
 
+  String _formatTimeAgo(DateTime date) {
+    final diff = DateTime.now().difference(date);
+    if (diff.inSeconds < 60) {
+      final secs = diff.inSeconds <= 0 ? 1 : diff.inSeconds;
+      return '${secs}s';
+    } else if (diff.inMinutes < 60) {
+      return '${diff.inMinutes}m';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours}h';
+    } else {
+      return '${diff.inDays}d';
+    }
+  }
+
   Widget _buildTweetUI(BuildContext context, WidgetRef ref, TweetModel tweet) {
     final isPureRepost =
         tweet.isRepost && !tweet.isQuote && tweet.originalTweet != null;
@@ -41,7 +55,7 @@ class TweetSummaryWidget extends ConsumerWidget {
 
     final diff = DateTime.now().difference(mainTweet.date);
     final daysPosted = diff.inDays < 0 ? 0 : diff.inDays;
-    final replyingToUsername = parentTweet?.username;
+    final timeAgo = _formatTimeAgo(mainTweet.date);
     final username = tweet.username ?? 'unknown';
     final displayName =
         (tweet.authorName != null && tweet.authorName!.isNotEmpty)
@@ -103,97 +117,155 @@ class TweetSummaryWidget extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (isReply && parentTweet != null) ...[
+              // Use OriginalTweetCard for parent tweet display
               OriginalTweetCard(tweet: parentTweet, showConnectorLine: true),
-              const SizedBox(height: 8),
-            ],
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _openDetail,
-              child: Column(
+              // Reply tweet section
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _openDetail,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(
+                      children: [
+                        Container(width: 2, height: 16, color: Colors.grey),
+                        avatarWidget,
+                      ],
+                    ),
+                    const SizedBox(width: 9),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              TweetUserSummaryInfo(
+                                tweetState: localTweetState,
+                                timeAgo: timeAgo,
+                                fallbackTweet: mainTweet,
+                              ),
+                              GestureDetector(
+                                child: const Icon(
+                                  Icons.rocket,
+                                  size: 17,
+                                  color: Colors.blueAccent,
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          TweetAiSummary(tweet: tweet),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                            width: double.infinity,
+                            child: TweetBodySummaryWidget(post: mainTweet),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 4),
+              // Reply action bar
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (isReply &&
-                      replyingToUsername != null &&
-                      replyingToUsername.isNotEmpty) ...[
-                    Text(
-                      'Replying to @${replyingToUsername}',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.blueAccent),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                  if (isPureRepost && parentTweet != null) ...[
+                  SizedBox(width: avatarRadius * 2 + 9),
+                  Expanded(child: TweetFeed(tweetState: feedTweetState)),
+                ],
+              ),
+            ] else ...[
+              // Non-reply layout (regular tweets and reposts)
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _openDetail,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (isPureRepost && parentTweet != null) ...[
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.repeat,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$displayName reposted',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                    ],
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.repeat, size: 16, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text(
-                          '$displayName reposted',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                        avatarWidget,
+                        const SizedBox(width: 9),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  TweetUserSummaryInfo(
+                                    tweetState: localTweetState,
+                                    timeAgo: timeAgo,
+                                    fallbackTweet: mainTweet,
+                                  ),
+                                  GestureDetector(
+                                    child: const Icon(
+                                      Icons.rocket,
+                                      size: 17,
+                                      color: Colors.blueAccent,
+                                    ),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              TweetAiSummary(tweet: tweet),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                width: double.infinity,
+                                child: TweetBodySummaryWidget(post: mainTweet),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
                   ],
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      avatarWidget,
-                      const SizedBox(width: 9),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                TweetUserSummaryInfo(
-                                  tweetState: localTweetState,
-                                  daysPosted: daysPosted,
-                                  fallbackTweet: mainTweet,
-                                ),
-                                GestureDetector(
-                                  child: const Icon(
-                                    Icons.rocket,
-                                    size: 17,
-                                    color: Colors.blueAccent,
-                                  ),
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            TweetAiSummary(tweet: tweet),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              width: double.infinity,
-                              child: TweetBodySummaryWidget(post: mainTweet),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(width: avatarRadius * 2 + 9),
+                  Expanded(child: TweetFeed(tweetState: feedTweetState)),
                 ],
               ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(width: avatarRadius * 2 + 9),
-                Expanded(child: TweetFeed(tweetState: feedTweetState)),
-              ],
-            ),
+            ],
           ],
         ),
       ),

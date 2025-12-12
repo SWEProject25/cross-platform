@@ -64,8 +64,16 @@ abstract class TweetModel with _$TweetModel {
     final originalJson = json['originalPostData'];
     TweetModel? originalTweet;
 
-    if ((isRepost || isQuote) && originalJson is Map<String, dynamic>) {
-      originalTweet = TweetModel.fromJsonPosts(originalJson);
+    // Backend now returns originalPostData for reposts, quotes and replies.
+    // Whenever a non-deleted originalPostData object is present, recursively
+    // map it into originalTweet so we can render hierarchical trees
+    // (repost of repost, replies to replies, quotes of quotes, etc.).
+    if (originalJson is Map<String, dynamic>) {
+      // Some responses may send a lightweight "deleted" marker instead of
+      // a full post object. In that case we skip creating an originalTweet.
+      if (originalJson['isDeleted'] != true) {
+        originalTweet = TweetModel.fromJsonPosts(originalJson);
+      }
     }
 
     return TweetModel(
