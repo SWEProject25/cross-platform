@@ -11,8 +11,13 @@ import 'package:lam7a/features/Explore/ui/viewmodel/search_results_viewmodel.dar
 
 class TweetDetailedBodyWidget extends StatelessWidget {
   final TweetState tweetState;
+  final bool hideOriginalTweet;
 
-  const TweetDetailedBodyWidget({super.key, required this.tweetState});
+  const TweetDetailedBodyWidget({
+    super.key,
+    required this.tweetState,
+    this.hideOriginalTweet = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -207,7 +212,7 @@ class TweetDetailedBodyWidget extends StatelessWidget {
                   child: VideoPlayerWidget(url: post.mediaVideo.toString()),
                 ),
               ),
-            if (post.originalTweet != null)
+            if (post.originalTweet != null && !hideOriginalTweet)
               OriginalTweetCard(tweet: post.originalTweet!),
           ],
         );
