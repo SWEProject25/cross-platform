@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/features/profile/repository/profile_repository.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_viewmodel.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 
 class FollowButton extends ConsumerStatefulWidget {
   final UserModel user;
+  final VoidCallback? onFollowStateChanged;
 
-  const FollowButton({super.key, required this.user});
+  const FollowButton({super.key, required this.user, this.onFollowStateChanged});
 
   @override
   ConsumerState<FollowButton> createState() => _FollowButtonState();
@@ -17,6 +20,8 @@ class FollowButton extends ConsumerStatefulWidget {
 class _FollowButtonState extends ConsumerState<FollowButton> {
   late UserModel _user;
   bool _loading = false;
+
+
 
   @override
   void initState() {
@@ -43,6 +48,7 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
           followersCount: _user.followersCount + 1,
         );
       }
+      widget.onFollowStateChanged?.call();
 
       if (mounted) setState(() {});
     } finally {
@@ -60,10 +66,17 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
 
     return OutlinedButton(
       onPressed: _loading ? null : _toggle,
-      style: OutlinedButton.styleFrom(
+      style: OutlinedButton.styleFrom
+      (
+        side: BorderSide(
+          color: Theme.of(context).brightness == Brightness.light
+                        ? Colors.black
+                        : Colors.white,
+        ),
+
+
         backgroundColor: isFollowing ? Colors.white : Colors.black,
         foregroundColor: isFollowing ? Colors.black : Colors.white,
-        side: const BorderSide(color: Colors.black),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),// Adjusted padding
       ),
