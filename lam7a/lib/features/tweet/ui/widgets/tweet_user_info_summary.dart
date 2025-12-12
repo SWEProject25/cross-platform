@@ -7,12 +7,12 @@ class TweetUserSummaryInfo extends ConsumerStatefulWidget {
   const TweetUserSummaryInfo({
     super.key,
     required this.tweetState,
-    required this.daysPosted,
+    required this.timeAgo,
     this.fallbackTweet,
   });
   
   final TweetState tweetState;
-  final int daysPosted;
+  final String timeAgo;
   // Optional richer tweet model from the feed (with avatar and authorName)
   final TweetModel? fallbackTweet;
   
@@ -31,8 +31,6 @@ class _TweetUserSummaryInfoState extends ConsumerState<TweetUserSummaryInfo> {
     if (tweet == null) {
       return const SizedBox.shrink();
     }
-    
-    final daysPosted = widget.daysPosted;
     
     // Use user data directly from tweet model (from backend)
     final username = tweet.username ?? 'unknown';
@@ -69,7 +67,7 @@ class _TweetUserSummaryInfoState extends ConsumerState<TweetUserSummaryInfo> {
            ),
           
           Text(
-            '${daysPosted}d',
+            widget.timeAgo,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey )
           ),
         ],

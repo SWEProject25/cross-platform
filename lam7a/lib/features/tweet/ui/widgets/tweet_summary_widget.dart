@@ -30,14 +30,15 @@ class TweetSummaryWidget extends ConsumerWidget {
 
   String _formatTimeAgo(DateTime date) {
     final diff = DateTime.now().difference(date);
-    if (diff.inDays > 0) {
-      return '${diff.inDays}d';
-    } else if (diff.inHours > 0) {
-      return '${diff.inHours}h';
-    } else if (diff.inMinutes > 0) {
+    if (diff.inSeconds < 60) {
+      final secs = diff.inSeconds <= 0 ? 1 : diff.inSeconds;
+      return '${secs}s';
+    } else if (diff.inMinutes < 60) {
       return '${diff.inMinutes}m';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours}h';
     } else {
-      return 'now';
+      return '${diff.inDays}d';
     }
   }
 
@@ -54,6 +55,7 @@ class TweetSummaryWidget extends ConsumerWidget {
 
     final diff = DateTime.now().difference(mainTweet.date);
     final daysPosted = diff.inDays < 0 ? 0 : diff.inDays;
+    final timeAgo = _formatTimeAgo(mainTweet.date);
     final username = tweet.username ?? 'unknown';
     final displayName =
         (tweet.authorName != null && tweet.authorName!.isNotEmpty)
@@ -124,7 +126,16 @@ class TweetSummaryWidget extends ConsumerWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    avatarWidget,
+                    Column(
+                      children: [
+                        Container(
+                          width: 2,
+                          height: 16,
+                          color: Colors.grey,
+                        ),
+                        avatarWidget,
+                      ],
+                    ),
                     const SizedBox(width: 9),
                     Expanded(
                       child: Column(
@@ -135,7 +146,7 @@ class TweetSummaryWidget extends ConsumerWidget {
                             children: [
                               TweetUserSummaryInfo(
                                 tweetState: localTweetState,
-                                daysPosted: daysPosted,
+                                timeAgo: timeAgo,
                                 fallbackTweet: mainTweet,
                               ),
                               GestureDetector(
@@ -213,7 +224,7 @@ class TweetSummaryWidget extends ConsumerWidget {
                                 children: [
                                   TweetUserSummaryInfo(
                                     tweetState: localTweetState,
-                                    daysPosted: daysPosted,
+                                    timeAgo: timeAgo,
                                     fallbackTweet: mainTweet,
                                   ),
                                   GestureDetector(

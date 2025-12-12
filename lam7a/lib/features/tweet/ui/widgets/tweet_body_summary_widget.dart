@@ -293,9 +293,15 @@ class TweetBodySummaryWidget extends StatelessWidget {
             if ((post.isRepost || post.isQuote) && post.originalTweet != null)
               disableOriginalTap
                   ? IgnorePointer(
-                      child: OriginalTweetCard(tweet: post.originalTweet!),
+                      child: OriginalTweetCard(
+                        tweet: post.originalTweet!,
+                        showActions: !post.isQuote,
+                      ),
                     )
-                  : OriginalTweetCard(tweet: post.originalTweet!),
+                  : OriginalTweetCard(
+                      tweet: post.originalTweet!,
+                      showActions: !post.isQuote,
+                    ),
           ],
         );
       },
@@ -306,23 +312,26 @@ class TweetBodySummaryWidget extends StatelessWidget {
 class OriginalTweetCard extends ConsumerWidget {
   final TweetModel tweet;
   final bool showConnectorLine;
+  final bool showActions;
 
   const OriginalTweetCard({
     super.key,
     required this.tweet,
     this.showConnectorLine = false,
+    this.showActions = true,
   });
 
   String _formatTimeAgo(DateTime date) {
     final diff = DateTime.now().difference(date);
-    if (diff.inDays > 0) {
-      return '${diff.inDays}d';
-    } else if (diff.inHours > 0) {
-      return '${diff.inHours}h';
-    } else if (diff.inMinutes > 0) {
+    if (diff.inSeconds < 60) {
+      final secs = diff.inSeconds <= 0 ? 1 : diff.inSeconds;
+      return '${secs}s';
+    } else if (diff.inMinutes < 60) {
       return '${diff.inMinutes}m';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours}h';
     } else {
-      return 'now';
+      return '${diff.inDays}d';
     }
   }
 
@@ -340,6 +349,7 @@ class OriginalTweetCard extends ConsumerWidget {
     final timeAgo = _formatTimeAgo(tweet.date);
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -372,7 +382,7 @@ class OriginalTweetCard extends ConsumerWidget {
                       Container(
                         width: 2,
                         height: 60,
-                        color: theme.dividerColor,
+                        color: Colors.grey,
                       ),
                   ],
                 ),
@@ -486,24 +496,24 @@ class OriginalTweetCard extends ConsumerWidget {
                 ),
               ],
             ),
-            // Action bar row aligned under the content
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                // Spacer to align with content (avatar width + gap)
-                const SizedBox(width: 47), // 19*2 + 9
-                Expanded(
-                  child: TweetFeed(
-                    tweetState: TweetState(
-                      isLiked: false,
-                      isReposted: false,
-                      isViewed: false,
-                      tweet: AsyncValue.data(tweet),
+            if (showActions) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const SizedBox(width: 47),
+                  Expanded(
+                    child: TweetFeed(
+                      tweetState: TweetState(
+                        isLiked: false,
+                        isReposted: false,
+                        isViewed: false,
+                        tweet: AsyncValue.data(tweet),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ],
         ),
       ),

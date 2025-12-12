@@ -675,8 +675,21 @@ class TweetsApiServiceImpl implements TweetsApiService {
 
       for (final raw in data) {
         if (raw is! Map) continue;
-        final json = raw as Map;
+        final json = raw as Map<String, dynamic>;
 
+        // New hierarchical shape from backend (TransformedPost with
+        // originalPostData for replies/quotes/reposts). When present, use the
+        // dedicated mapper to preserve parent tweet information.
+        try {
+          if (json.containsKey('postId') && json.containsKey('date')) {
+            replies.add(TweetModel.fromJsonPosts(json));
+            continue;
+          }
+        } catch (e) {
+          print('⚠️ Failed to parse reply via fromJsonPosts, falling back: $e');
+        }
+
+        // Legacy/fallback mapping for older backend reply shapes.
         final replyId =
             (json['postId'] ??
                     json['id'] ??

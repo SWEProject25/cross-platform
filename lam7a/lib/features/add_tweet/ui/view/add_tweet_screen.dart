@@ -126,7 +126,11 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
         if (tweet == null) {
           return const SizedBox.shrink();
         }
-        return OriginalTweetCard(tweet: tweet);
+        return OriginalTweetCard(
+          tweet: tweet,
+          showConnectorLine: true,
+          showActions: false,
+        );
       },
       loading: () => const Padding(
         padding: EdgeInsets.all(8.0),
@@ -166,17 +170,16 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
           children: [
             Column(
               children: [
+                Container(
+                  width: 2,
+                  height: 16,
+                  color: Colors.grey,
+                ),
                 AppUserAvatar(
                   radius: 20,
                   imageUrl: myProfileImage,
                   displayName: myDisplayName,
                   username: myUsername,
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  width: 1,
-                  height: 24,
-                  color: theme.dividerColor,
                 ),
               ],
             ),
