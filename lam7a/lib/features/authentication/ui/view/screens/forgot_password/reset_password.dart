@@ -9,8 +9,6 @@ import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authe
 import 'package:lam7a/features/authentication/ui/viewmodel/forgot_password_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_text_input_field.dart';
-import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
-import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 import 'package:lam7a/features/authentication/utils/authentication_validator.dart';
 
 class ResetPassword extends ConsumerWidget {

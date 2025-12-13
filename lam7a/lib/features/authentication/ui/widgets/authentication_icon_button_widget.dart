@@ -24,18 +24,19 @@ class IconedButtonCentered extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(bottom: 4, top: 4),
+      margin: EdgeInsets.only(bottom: 1, top: 1),
       child: Row(
         children: [
           Spacer(flex: 1),
           Expanded(
-            flex: 8,
+            flex: 5,
             child: ElevatedButton(
               key: key,
               onPressed: () {
                 pressEffect!();
               },
               style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 8,),
                 alignment: Alignment.center,
                 backgroundColor: backGroundColor,
                 enableFeedback: false,
@@ -43,10 +44,10 @@ class IconedButtonCentered extends StatelessWidget {
                 shadowColor: Pallete.transparentColor,
                 overlayColor: Theme.of(context).colorScheme.secondary,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadiusGeometry.all(Radius.circular(50)),
+                  borderRadius: BorderRadiusGeometry.all(Radius.circular(70)),
                   side: BorderSide(
-                    color: !isBorder ? backGroundColor : Pallete.blackColor,
-                    width: 1,
+                    color: !isBorder ? backGroundColor : const Color.fromARGB(255, 109, 137, 146),
+                    width: 1.2,
                   ),
                 ),
               ),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lam7a/core/providers/authentication.dart';
-import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/forgot_password_screen.dart';
@@ -90,102 +89,90 @@ class _loginFlowtate extends State<LogInScreen> {
                     key: ValueKey("mainLoginView"),
                     children: [
                       loginFlow[currentIndex],
-                      Spacer(flex: 5),
 
                       Expanded(
-                        flex: 2,
                         child: Container(
-                          margin: EdgeInsets.symmetric(horizontal: 10),
+                          margin: EdgeInsets.only(bottom: 10, left: 10),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Expanded(
-                                flex: 2,
-                                child: Align(
-                                  alignment: Alignment.bottomCenter,
-                                  child: Container(
-                                    margin: EdgeInsets.only(bottom: 10),
-                                    width: double.infinity,
-                                    child: Row(
-                                      children: [
-                                        AuthenticationStepButton(
-                                          label: "forgot password",
-                                          onPressedEffect: () {
-                                            Navigator.pushNamed(context, ForgotPasswordScreen.routeName);
-                                          },
-                                          bgColor: Theme.of(
+                              Align(
+                                alignment: Alignment.bottomLeft,
+                                child: AuthenticationStepButton(
+                                  
+                                  label: "forgot password",
+                                  onPressedEffect: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      ForgotPasswordScreen.routeName,
+                                    );
+
+                                  },
+                                 isBorder : true,
+                                  bgColor: Theme.of(context).colorScheme.surface,
+                                  textColor: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                  enable: true,
+                                ),
+                              ),
+                              SizedBox(width: 150),
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: AuthenticationStepButton(
+                                  key: ValueKey("loginNextButton"),
+                                  enable: viewmodel.shouldEnableNextLogin(),
+                                  label: AuthenticationConstants
+                                      .loginButtonLabels[currentIndex],
+                                  bgColor: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                  textColor: Theme.of(
+                                    context,
+                                  ).colorScheme.surface,
+                                  onPressedEffect: () async {
+                                    if (currentIndex ==
+                                        AuthenticationConstants.finishLogin) {
+                                      await viewmodel.login();
+                                      String? message = ref
+                                          .watch(authenticationViewmodelProvider)
+                                          .toastMessageLogin;
+                                      final updateState = ref.read(
+                                        authenticationViewmodelProvider,
+                                      );
+                                
+                                      if (message != null) {
+                                        AuthenticationConstants.flushMessage(
+                                          message,
+                                          context,
+                                          "loginMessage",
+                                        );
+                                      }
+                                      final authenticationState = ref.read(
+                                        authenticationProvider,
+                                      );
+                                      if (authenticationState.isAuthenticated) {
+                                        if (updateState.hasCompeletedFollowing &&
+                                            updateState.hasCompeletedInterests) {
+                                          Navigator.pushNamedAndRemoveUntil(
                                             context,
-                                          ).colorScheme.surface,
-                                          textColor: Theme.of(
+                                            NavigationHomeScreen.routeName,
+                                            (route) => false,
+                                          );
+                                        } else {
+                                          Navigator.pushNamedAndRemoveUntil(
                                             context,
-                                          ).colorScheme.onSurface,
-                                          enable: true,
-                                        ),
-                                        SizedBox(width: 120,),
-                                        AuthenticationStepButton(
-                                          key: ValueKey("loginNextButton"),
-                                          enable: viewmodel.shouldEnableNextLogin(),
-                                          label: AuthenticationConstants
-                                              .loginButtonLabels[currentIndex],
-                                          bgColor: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurface,
-                                          textColor: Theme.of(
-                                            context,
-                                          ).colorScheme.surface,
-                                          onPressedEffect: () async {
-                                            if (currentIndex ==
-                                                AuthenticationConstants
-                                                    .finishLogin) {
-                                              await viewmodel.login();
-                                              String? message = ref
-                                                  .watch(
-                                                    authenticationViewmodelProvider,
-                                                  )
-                                                  .toastMessageLogin;
-                                              final updateState = ref.read(
-                                                authenticationViewmodelProvider,
-                                              );
-                                    
-                                              if (message != null) {
-                                                AuthenticationConstants.flushMessage(
-                                                  message,
-                                                  context,
-                                                  "loginMessage",
-                                                );
-                                              }
-                                              final authenticationState = ref.read(
-                                                authenticationProvider,
-                                              );
-                                              if (authenticationState
-                                                  .isAuthenticated) {
-                                                if (updateState
-                                                        .hasCompeletedFollowing &&
-                                                    updateState
-                                                        .hasCompeletedInterests) {
-                                                  Navigator.pushNamedAndRemoveUntil(
-                                                    context,
-                                                    NavigationHomeScreen.routeName,
-                                                    (route) => false,
-                                                  );
-                                                } else {
-                                                  Navigator.pushNamedAndRemoveUntil(
-                                                    context,
-                                                    AuthenticationTransmissionScreen
-                                                        .routeName,
-                                                    (route) => false,
-                                                  );
-                                                }
-                                              }
-                                            } else if (viewmodel
-                                                .shouldEnableNextLogin()) {
-                                              viewmodel.gotoNextLoginStep();
-                                            }
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                            AuthenticationTransmissionScreen
+                                                .routeName,
+                                            (route) => false,
+                                          );
+                                        }
+                                      }
+                                    } else if (viewmodel
+                                        .shouldEnableNextLogin()) {
+                                      viewmodel.gotoNextLoginStep();
+                                    }
+                                  },
                                 ),
                               ),
                             ],

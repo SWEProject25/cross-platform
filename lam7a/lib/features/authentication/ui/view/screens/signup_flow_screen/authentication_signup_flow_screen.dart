@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lam7a/core/providers/authentication.dart';
-import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/authentication_signup_password_step.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/profile_picture/profile_picture.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/authentication_signup_user_data_step.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/user_name_screen/user_name_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/steps/authentication_otp_code_Step.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
@@ -104,65 +101,60 @@ class _SignUpFlowState extends State<SignUpFlow> {
             // the main screen that has the sign up steps
             body: !state.isLoadingSignup
                 ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     key: ValueKey("mainData"),
                     children: [
                       signupFlowSteps[currentIndex],
-                      Spacer(flex: 5),
                       Expanded(
-                        flex: 2,
-                        child: Container(
-                          margin: EdgeInsets.symmetric(horizontal: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Expanded(flex: 8, child: Container()),
-                              Spacer(flex: 8),
-                              Expanded(
-                                flex: 6,
-                                child: AuthenticationStepButton(
-                                  bgColor: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface,
-                                  key: ValueKey("nextSignupStepButton"),
-                                  enable: viewmodel.shouldEnableNext(),
-                                  label: AuthenticationConstants
-                                      .nextLabels[currentIndex],
-                                  textColor: Theme.of(
-                                    context,
-                                  ).colorScheme.surface,
-                                  onPressedEffect: () async {
-                                    if (viewmodel.shouldEnableNext()) {
-                                      await viewmodel.registrationProgress();
-                                      String? message = ref
-                                          .read(authenticationViewmodelProvider)
-                                          .toastMessage;
-                                      if (message != null) {
-                                        AuthenticationConstants.flushMessage(
-                                          message,
-                                          context,
-                                          "signupMessage",
-                                        );
-                                        ref
-                                            .read(
-                                              authenticationViewmodelProvider
-                                                  .notifier,
-                                            )
-                                            .clearMessage();
-                                      }
-                                      if (authenticationState.isAuthenticated) {
-                                        Navigator.pop(context);
-                                        Navigator.pushNamedAndRemoveUntil(
-                                          context,
-                                          AuthenticationTransmissionScreen
-                                              .routeName,
-                                          (route) => false,
-                                        );
-                                      }
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
+                        // margin: EdgeInsets.symmetric(horizontal: 10),
+                        child: Align(
+                          alignment: Alignment.bottomRight,
+                          child: Container(
+                            margin: EdgeInsets.only(right: 20),
+                            child: AuthenticationStepButton(
+                              bgColor: Theme.of(context).colorScheme.onSurface,
+                              key: ValueKey("nextSignupStepButton"),
+                              enable: viewmodel.shouldEnableNext(),
+                              label: AuthenticationConstants
+                                  .nextLabels[currentIndex],
+                              textColor: Theme.of(context).colorScheme.surface,
+                              onPressedEffect: () async {
+                                if (viewmodel.shouldEnableNext()) {
+                                  viewmodel.setLoadingSignUp();
+                                  await viewmodel.registrationProgress();
+                                  String? message = ref
+                                      .read(authenticationViewmodelProvider)
+                                      .toastMessage;
+                                  if (message != null) {
+                                    AuthenticationConstants.flushMessage(
+                                      message,
+                                      context,
+                                      "signupMessage",
+                                    );
+                                    ref
+                                        .read(
+                                          authenticationViewmodelProvider
+                                              .notifier,
+                                        )
+                                        .clearMessage();
+                                  }
+                                  if (authenticationState.isAuthenticated) {
+                                    Navigator.pushNamedAndRemoveUntil(
+                                      context,
+                                      AuthenticationTransmissionScreen
+                                          .routeName,
+                                      (route) => false,
+                                    );
+                                  }
+                                }
+                                viewmodel.setLoadedSignUp();
+                                ref
+                                    .read(
+                                      authenticationViewmodelProvider.notifier,
+                                    )
+                                    .clearMessage();
+                              },
+                            ),
                           ),
                         ),
                       ),
