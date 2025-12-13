@@ -362,155 +362,160 @@ class OriginalTweetCard extends ConsumerWidget {
           horizontal: responsive.padding(0),
           vertical: responsive.padding(8),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Main tweet row with avatar and content
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Avatar column with optional connector line
-                Column(
-                  children: [
-                    AppUserAvatar(
-                      radius: 19,
-                      imageUrl: profileImage,
-                      displayName: displayName,
-                      username: username,
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Avatar column with optional connector line
+              Column(
+                children: [
+                  AppUserAvatar(
+                    radius: 19,
+                    imageUrl: profileImage,
+                    displayName: displayName,
+                    username: username,
+                  ),
+                  if (showConnectorLine)
+                    Expanded(
+                      child: Container(width: 2, color: Colors.grey),
                     ),
-                    if (showConnectorLine)
-                      Container(width: 2, height: 60, color: Colors.grey),
-                  ],
-                ),
-                const SizedBox(width: 9),
-                // Content column
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // User info row: DisplayName @username · time
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              displayName,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                ],
+              ),
+              const SizedBox(width: 9),
+              // Content + actions column
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // User info row: DisplayName @username · time
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            displayName,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              '@$username',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Text(
-                            ' · $timeAgo',
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            '@$username',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: Colors.grey,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ],
+                        ),
+                        Text(
+                          ' · $timeAgo',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    // Body text
+                    if (tweet.body.trim().isNotEmpty)
+                      StyledTweetText(
+                        text: tweet.body.trim(),
+                        fontSize: theme.textTheme.bodyLarge?.fontSize ?? 16,
+                        maxLines: 6,
+                        overflow: TextOverflow.ellipsis,
+                        onMentionTap: (handle) {
+                          Navigator.of(context).pushNamed(
+                            '/profile',
+                            arguments: {'username': handle},
+                          );
+                        },
+                        onHashtagTap: (tag) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ProviderScope(
+                                overrides: [
+                                  searchResultsViewModelProvider.overrideWith(
+                                    () => SearchResultsViewmodel(),
+                                  ),
+                                ],
+                                child: SearchResultPage(
+                                  hintText: "#$tag",
+                                  canPopTwice: false,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      const SizedBox(height: 4),
-                      // Body text
-                      if (tweet.body.trim().isNotEmpty)
-                        StyledTweetText(
-                          text: tweet.body.trim(),
-                          fontSize: theme.textTheme.bodyLarge?.fontSize ?? 16,
-                          maxLines: 6,
-                          overflow: TextOverflow.ellipsis,
-                          onMentionTap: (handle) {
-                            Navigator.of(context).pushNamed(
-                              '/profile',
-                              arguments: {'username': handle},
+                    // Media images
+                    if (tweet.mediaImages.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          tweet.mediaImages.first,
+                          width: double.infinity,
+                          height: imageHeight,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return SizedBox(
+                              height: imageHeight,
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
                             );
                           },
-                          onHashtagTap: (tag) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ProviderScope(
-                                  overrides: [
-                                    searchResultsViewModelProvider.overrideWith(
-                                      () => SearchResultsViewmodel(),
-                                    ),
-                                  ],
-                                  child: SearchResultPage(
-                                    hintText: "#$tag",
-                                    canPopTwice: false,
-                                  ),
-                                ),
+                          errorBuilder: (context, error, stackTrace) {
+                            return SizedBox(
+                              height: imageHeight,
+                              child: const Center(
+                                child: Icon(Icons.error, color: Colors.red),
                               ),
                             );
                           },
                         ),
-                      // Media images
-                      if (tweet.mediaImages.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            tweet.mediaImages.first,
-                            width: double.infinity,
-                            height: imageHeight,
-                            fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return SizedBox(
-                                height: imageHeight,
-                                child: const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return SizedBox(
-                                height: imageHeight,
-                                child: const Center(
-                                  child: Icon(Icons.error, color: Colors.red),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                      // Media videos
-                      if (tweet.mediaImages.isEmpty &&
-                          tweet.mediaVideos.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        VideoPlayerWidget(url: tweet.mediaVideos.first),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (showActions) ...[
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const SizedBox(width: 47),
-                  Expanded(
-                    child: TweetFeed(
-                      tweetState: TweetState(
-                        isLiked: false,
-                        isReposted: false,
-                        isViewed: false,
-                        tweet: AsyncValue.data(tweet),
                       ),
-                    ),
-                  ),
-                ],
+                    ],
+                    // Media videos
+                    if (tweet.mediaImages.isEmpty &&
+                        tweet.mediaVideos.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      VideoPlayerWidget(url: tweet.mediaVideos.first),
+                    ],
+
+                    // If this tweet is itself a repost/quote with a parent,
+                    // render the parent tweet nested below (without actions
+                    // or connector line). This lets reposts of quotes show
+                    // the quoted tweet's parent as well.
+                    if (tweet.originalTweet != null) ...[
+                      const SizedBox(height: 8),
+                      OriginalTweetCard(
+                        tweet: tweet.originalTweet!,
+                        showConnectorLine: false,
+                        showActions: false,
+                      ),
+                    ],
+
+                    if (showActions) ...[
+                      const SizedBox(height: 4),
+                      TweetFeed(
+                        tweetState: TweetState(
+                          isLiked: false,
+                          isReposted: false,
+                          isViewed: false,
+                          tweet: AsyncValue.data(tweet),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ],
-          ],
+          ),
         ),
       ),
     );
