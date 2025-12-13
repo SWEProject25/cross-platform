@@ -69,63 +69,83 @@ class GeneralNotificationTile extends StatelessWidget {
     final actor = notification.actor;
 
     return Material(
-      color: notification.isRead ? Colors.white : Colors.blue.shade50,
+      color: notification.isRead ? theme.scaffoldBackgroundColor : Colors.blue.shade50,
       child: InkWell(
         onTap: onTap,
         child: Padding(
           padding: EdgeInsets.only(left: 32, top: 8, bottom: 8, right: 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _notificationTypeToIcon(),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  spacing: 4,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 14,
-                      backgroundImage: actor.profileImageUrl != null
-                          ? NetworkImage(actor.profileImageUrl!)
-                          : null,
-                    ),
-                    Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: actor.displayName,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          TextSpan(
-                            text: " ${_notificationTypeToString()}",
-                            style: theme.textTheme.bodyLarge,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      notification.postPreviewText ?? '',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: Colors.grey,
-                      ),
-                      textAlign: TextAlign.start,
-                    ),
-                  ],
+          child: Container(
+            // color: Colors.green,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              
+              children: [
+                Flexible(
+                  flex: 1,
+                  child: Center(child: _notificationTypeToIcon(),),
                 ),
-              ),
-              //Time ago
-              TimeAgoText(
-                time: notification.createdAt,
-                style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
-              ),
-              // IconButton(
-              //   icon: const Icon(Icons.more_vert, size: 18),
-              //   onPressed: () {},
-              // ),
-            ],
+                
+                // const SizedBox(width: 8),
+                Expanded(
+                  flex: 12,
+                  child: Container(
+                    // color: Colors.yellow,
+                    child: Column(
+                      spacing: 4,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(
+                          radius: 14,
+                          backgroundImage: actor.profileImageUrl != null
+                              ? NetworkImage(actor.profileImageUrl!)
+                              : null,
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: actor.displayName,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              TextSpan(
+                                text: " ${_notificationTypeToString()}",
+                                style: theme.textTheme.bodyLarge,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          notification.postPreviewText ?? '',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: Colors.grey,
+                          ),
+                          textAlign: TextAlign.start,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                //Time ago
+                Flexible(
+                  flex: 1,
+                  child: Container(
+                    // color: Colors.blue,
+                    child: TimeAgoText(
+                      time: notification.createdAt,
+                      style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                    ),
+                  ),
+                ),
+                // IconButton(
+                //   icon: const Icon(Icons.more_vert, size: 18),
+                //   onPressed: () {},
+                // ),
+              ],
+            ),
           ),
         ),
       ),

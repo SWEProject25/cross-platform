@@ -154,8 +154,8 @@ class NotificationsReceiver {
         }
         break;
       case NotificationType.like:
-        if (notifiacation.post != null) {
-          handleLikeNotificationAction(notifiacation.post!.id);
+        if (notifiacation.postId != null) {
+          handleLikeNotificationAction(notifiacation.postId?.toString() ?? "");
         }
         break;
       case NotificationType.follow:
@@ -163,7 +163,7 @@ class NotificationsReceiver {
         break;
 
       case NotificationType.repost:
-        handleRetweetedNotificationAction(notifiacation.post?.id ?? '');
+        handleRetweetedNotificationAction(notifiacation.postId?.toString() ?? "");
         break;
       case NotificationType.mention:
       case NotificationType.reply:

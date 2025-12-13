@@ -6,4 +6,4 @@ openapitools.json
 /Lam7aApi
 
 *.g.dart
-*.freezed.dart
+*.freezed.dart 

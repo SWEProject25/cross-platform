@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/widgets/app_user_avatar.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
@@ -6,11 +7,11 @@ import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_replies_viewmodel.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_detailed_body_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_detailed_feed.dart';
+import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
+import 'package:lam7a/features/tweet/ui/widgets/tweet_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_detailed.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
-import 'package:lam7a/features/tweet/ui/widgets/tweet_feed.dart';
-import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
 import '../../ui/widgets/tweet_ai_summery.dart';
 
 class TweetScreen extends ConsumerWidget {
@@ -31,9 +32,7 @@ class TweetScreen extends ConsumerWidget {
       );
       final repliesAsync = ref.watch(tweetRepliesViewModelProvider(tweetId));
       final isPureRepost =
-          tweetData!.isRepost &&
-          !tweetData!.isQuote &&
-          tweetData!.originalTweet != null;
+          tweetData!.isRepost && tweetData!.originalTweet != null;
       final username = tweetData!.username ?? 'unknown';
       final displayName =
           (tweetData!.authorName != null && tweetData!.authorName!.isNotEmpty)
@@ -170,7 +169,6 @@ class TweetScreen extends ConsumerWidget {
                 final isPureRepost =
                     tweetModel != null &&
                     tweetModel.isRepost &&
-                    !tweetModel.isQuote &&
                     tweetModel.originalTweet != null;
                 final username = tweetModel?.username ?? 'unknown';
                 final displayName =
@@ -198,7 +196,7 @@ class TweetScreen extends ConsumerWidget {
                               context,
                             ).textTheme.bodySmall?.copyWith(color: Colors.grey),
                           ),
-                        ],  
+                        ],
                       ),
                       const SizedBox(height: 4),
                     ],
@@ -305,127 +303,161 @@ class TweetScreen extends ConsumerWidget {
     final parentUsername = parentTweet.username ?? 'unknown';
     final parentDisplayName =
         (parentTweet.authorName != null && parentTweet.authorName!.isNotEmpty)
-            ? parentTweet.authorName!
-            : parentUsername;
+        ? parentTweet.authorName!
+        : parentUsername;
 
     final replyUsername = replyTweet.username ?? 'unknown';
     final replyDisplayName =
         (replyTweet.authorName != null && replyTweet.authorName!.isNotEmpty)
-            ? replyTweet.authorName!
-            : replyUsername;
+        ? replyTweet.authorName!
+        : replyUsername;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Parent tweet with avatar and connector
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Left column: parent avatar + connector line
-            Column(
-              children: [
-                AppUserAvatar(
-                  radius: avatarRadius,
-                  imageUrl: parentTweet.authorProfileImage,
-                  displayName: parentDisplayName,
-                  username: parentUsername,
-                ),
-                Container(
-                  width: 2,
-                  height: 80,
-                  color: theme.dividerColor,
-                ),
-              ],
-            ),
-            const SizedBox(width: 10),
-            // Parent tweet content
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left column: parent avatar + connector line
+              Column(
                 children: [
-                  // Parent user info with time
-                  Row(
+                  AppUserAvatar(
+                    radius: avatarRadius,
+                    imageUrl: parentTweet.authorProfileImage,
+                    displayName: parentDisplayName,
+                    username: parentUsername,
+                  ),
+                  Expanded(
+                    child: Container(width: 2, color: Colors.grey),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 10),
+              // Parent tweet content - whole area tappable to open parent tweet
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => TweetScreen(
+                          tweetId: parentTweet.id,
+                          tweetData: parentTweet,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Flexible(
-                        child: Text(
-                          parentDisplayName,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                      // Parent user info with time
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              parentDisplayName,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          '@$parentUsername',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey,
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).pushNamed(
+                                  '/profile',
+                                  arguments: {'username': parentUsername},
+                                );
+                              },
+                              child: Text(
+                                '@$parentUsername',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: Colors.grey,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          Text(
+                            ' · ${_formatTimeAgo(parentTweet.date)}',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        ' · ${_formatTimeAgo(parentTweet.date)}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey,
+                      const SizedBox(height: 8),
+                      // Parent body and media
+                      TweetBodySummaryWidget(
+                        post: parentTweet,
+                        disableOriginalTap: true,
+                      ),
+                      const SizedBox(height: 8),
+                      // Parent action bar
+                      TweetFeed(
+                        tweetState: TweetState(
+                          isLiked: false,
+                          isReposted: false,
+                          isViewed: false,
+                          tweet: AsyncValue.data(parentTweet),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  // Parent body and media
-                  TweetBodySummaryWidget(
-                    post: parentTweet,
-                    disableOriginalTap: true,
-                  ),
-                  const SizedBox(height: 8),
-                  // Parent action bar
-                  TweetFeed(
-                    tweetState: TweetState(
-                      isLiked: false,
-                      isReposted: false,
-                      isViewed: false,
-                      tweet: AsyncValue.data(parentTweet),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 8),
-        // Reply tweet user info
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppUserAvatar(
-              radius: avatarRadius,
-              imageUrl: replyTweet.authorProfileImage,
-              displayName: replyDisplayName,
-              username: replyUsername,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        // Reply tweet user info (entire row tappable to open reply author's profile)
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            Navigator.of(
+              context,
+            ).pushNamed('/profile', arguments: {'username': replyUsername});
+          },
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
                 children: [
-                  Text(
-                    replyDisplayName,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    '@$replyUsername',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey,
-                    ),
+                  Container(width: 2, height: 16, color: Colors.grey),
+                  AppUserAvatar(
+                    radius: avatarRadius,
+                    imageUrl: replyTweet.authorProfileImage,
+                    displayName: replyDisplayName,
+                    username: replyUsername,
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      replyDisplayName,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '@$replyUsername',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 8),
         // "Replying to" text
@@ -439,6 +471,13 @@ class TweetScreen extends ConsumerWidget {
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: Colors.blueAccent,
                 ),
+                recognizer: TapGestureRecognizer()
+                  ..onTap = () {
+                    Navigator.of(context).pushNamed(
+                      '/profile',
+                      arguments: {'username': parentUsername},
+                    );
+                  },
               ),
             ],
           ),
@@ -458,14 +497,15 @@ class TweetScreen extends ConsumerWidget {
 
   String _formatTimeAgo(DateTime date) {
     final diff = DateTime.now().difference(date);
-    if (diff.inDays > 0) {
-      return '${diff.inDays}d';
-    } else if (diff.inHours > 0) {
-      return '${diff.inHours}h';
-    } else if (diff.inMinutes > 0) {
+    if (diff.inSeconds < 60) {
+      final secs = diff.inSeconds <= 0 ? 1 : diff.inSeconds;
+      return '${secs}s';
+    } else if (diff.inMinutes < 60) {
       return '${diff.inMinutes}m';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours}h';
     } else {
-      return 'now';
+      return '${diff.inDays}d';
     }
   }
 }

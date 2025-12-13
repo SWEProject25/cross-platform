@@ -75,7 +75,7 @@ class TweetDetailedBodyWidget extends StatelessWidget {
                             ),
                           ],
                           child: SearchResultPage(
-                            hintText: tag,
+                            hintText: "#$tag",
                             canPopTwice: false,
                           ),
                         ),
@@ -213,7 +213,10 @@ class TweetDetailedBodyWidget extends StatelessWidget {
                 ),
               ),
             if (post.originalTweet != null && !hideOriginalTweet)
-              OriginalTweetCard(tweet: post.originalTweet!),
+              OriginalTweetCard(
+                tweet: post.originalTweet!,
+                showActions: !post.isQuote,
+              ),
           ],
         );
       },

@@ -171,8 +171,9 @@ class ChatViewModel extends _$ChatViewModel {
   Future<void> sendMessage() async {
     try {
       _messagesRepository.updateTypingStatus(_conversationId, false);
-      state = state.copyWith(draftMessage: "");
       await _messagesRepository.sendMessage(_authState.user!.id!, _conversationId, state.draftMessage.trim());
+      state = state.copyWith(draftMessage: "");
+
     } on BlockedUserError catch (e) {
       _logger.w("Cannot send message, user is blocked: $e");
       ref.read(conversationViewmodelProvider(_conversationId).notifier).setConversationBlocked(true);

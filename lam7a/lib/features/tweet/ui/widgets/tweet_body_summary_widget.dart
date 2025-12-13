@@ -67,7 +67,7 @@ class TweetBodySummaryWidget extends StatelessWidget {
                                 ),
                               ],
                               child: SearchResultPage(
-                                hintText: tag,
+                                hintText: "#$tag",
                                 canPopTwice: false,
                               ),
                             ),
@@ -293,9 +293,15 @@ class TweetBodySummaryWidget extends StatelessWidget {
             if ((post.isRepost || post.isQuote) && post.originalTweet != null)
               disableOriginalTap
                   ? IgnorePointer(
-                      child: OriginalTweetCard(tweet: post.originalTweet!),
+                      child: OriginalTweetCard(
+                        tweet: post.originalTweet!,
+                        showActions: !post.isQuote,
+                      ),
                     )
-                  : OriginalTweetCard(tweet: post.originalTweet!),
+                  : OriginalTweetCard(
+                      tweet: post.originalTweet!,
+                      showActions: !post.isQuote,
+                    ),
           ],
         );
       },
@@ -306,23 +312,26 @@ class TweetBodySummaryWidget extends StatelessWidget {
 class OriginalTweetCard extends ConsumerWidget {
   final TweetModel tweet;
   final bool showConnectorLine;
+  final bool showActions;
 
   const OriginalTweetCard({
     super.key,
     required this.tweet,
     this.showConnectorLine = false,
+    this.showActions = true,
   });
 
   String _formatTimeAgo(DateTime date) {
     final diff = DateTime.now().difference(date);
-    if (diff.inDays > 0) {
-      return '${diff.inDays}d';
-    } else if (diff.inHours > 0) {
-      return '${diff.inHours}h';
-    } else if (diff.inMinutes > 0) {
+    if (diff.inSeconds < 60) {
+      final secs = diff.inSeconds <= 0 ? 1 : diff.inSeconds;
+      return '${secs}s';
+    } else if (diff.inMinutes < 60) {
       return '${diff.inMinutes}m';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours}h';
     } else {
-      return 'now';
+      return '${diff.inDays}d';
     }
   }
 
@@ -340,6 +349,7 @@ class OriginalTweetCard extends ConsumerWidget {
     final timeAgo = _formatTimeAgo(tweet.date);
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -352,162 +362,162 @@ class OriginalTweetCard extends ConsumerWidget {
           horizontal: responsive.padding(0),
           vertical: responsive.padding(8),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Main tweet row with avatar and content
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Avatar column with optional connector line
-                Column(
-                  children: [
-                    AppUserAvatar(
-                      radius: 19,
-                      imageUrl: profileImage,
-                      displayName: displayName,
-                      username: username,
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Avatar column with optional connector line
+              Column(
+                children: [
+                  AppUserAvatar(
+                    radius: 19,
+                    imageUrl: profileImage,
+                    displayName: displayName,
+                    username: username,
+                  ),
+                  if (showConnectorLine)
+                    Expanded(
+                      child: Container(width: 2, color: Colors.grey),
                     ),
-                    if (showConnectorLine)
-                      Container(
-                        width: 2,
-                        height: 60,
-                        color: theme.dividerColor,
-                      ),
-                  ],
-                ),
-                const SizedBox(width: 9),
-                // Content column
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // User info row: DisplayName @username · time
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              displayName,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                ],
+              ),
+              const SizedBox(width: 9),
+              // Content + actions column
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // User info row: DisplayName @username · time
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            displayName,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              '@$username',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Text(
-                            ' · $timeAgo',
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            '@$username',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: Colors.grey,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ],
+                        ),
+                        Text(
+                          ' · $timeAgo',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    // Body text
+                    if (tweet.body.trim().isNotEmpty)
+                      StyledTweetText(
+                        text: tweet.body.trim(),
+                        fontSize: theme.textTheme.bodyLarge?.fontSize ?? 16,
+                        maxLines: 6,
+                        overflow: TextOverflow.ellipsis,
+                        onMentionTap: (handle) {
+                          Navigator.of(context).pushNamed(
+                            '/profile',
+                            arguments: {'username': handle},
+                          );
+                        },
+                        onHashtagTap: (tag) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ProviderScope(
+                                overrides: [
+                                  searchResultsViewModelProvider.overrideWith(
+                                    () => SearchResultsViewmodel(),
+                                  ),
+                                ],
+                                child: SearchResultPage(
+                                  hintText: "#$tag",
+                                  canPopTwice: false,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      const SizedBox(height: 4),
-                      // Body text
-                      if (tweet.body.trim().isNotEmpty)
-                        StyledTweetText(
-                          text: tweet.body.trim(),
-                          fontSize: theme.textTheme.bodyLarge?.fontSize ?? 16,
-                          maxLines: 6,
-                          overflow: TextOverflow.ellipsis,
-                          onMentionTap: (handle) {
-                            Navigator.of(context).pushNamed(
-                              '/profile',
-                              arguments: {'username': handle},
+                    // Media images
+                    if (tweet.mediaImages.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          tweet.mediaImages.first,
+                          width: double.infinity,
+                          height: imageHeight,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return SizedBox(
+                              height: imageHeight,
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
                             );
                           },
-                          onHashtagTap: (tag) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ProviderScope(
-                                  overrides: [
-                                    searchResultsViewModelProvider.overrideWith(
-                                      () => SearchResultsViewmodel(),
-                                    ),
-                                  ],
-                                  child: SearchResultPage(
-                                    hintText: tag,
-                                    canPopTwice: false,
-                                  ),
-                                ),
+                          errorBuilder: (context, error, stackTrace) {
+                            return SizedBox(
+                              height: imageHeight,
+                              child: const Center(
+                                child: Icon(Icons.error, color: Colors.red),
                               ),
                             );
                           },
                         ),
-                      // Media images
-                      if (tweet.mediaImages.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            tweet.mediaImages.first,
-                            width: double.infinity,
-                            height: imageHeight,
-                            fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return SizedBox(
-                                height: imageHeight,
-                                child: const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return SizedBox(
-                                height: imageHeight,
-                                child: const Center(
-                                  child: Icon(Icons.error, color: Colors.red),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                      // Media videos
-                      if (tweet.mediaImages.isEmpty &&
-                          tweet.mediaVideos.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        VideoPlayerWidget(url: tweet.mediaVideos.first),
-                      ],
+                      ),
                     ],
-                  ),
+                    // Media videos
+                    if (tweet.mediaImages.isEmpty &&
+                        tweet.mediaVideos.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      VideoPlayerWidget(url: tweet.mediaVideos.first),
+                    ],
+
+                    // If this tweet is itself a repost/quote with a parent,
+                    // render the parent tweet nested below (without actions
+                    // or connector line). This lets reposts of quotes show
+                    // the quoted tweet's parent as well.
+                    if (tweet.originalTweet != null) ...[
+                      const SizedBox(height: 8),
+                      OriginalTweetCard(
+                        tweet: tweet.originalTweet!,
+                        showConnectorLine: false,
+                        showActions: false,
+                      ),
+                    ],
+
+                    if (showActions) ...[
+                      const SizedBox(height: 4),
+                      TweetFeed(
+                        tweetState: TweetState(
+                          isLiked: false,
+                          isReposted: false,
+                          isViewed: false,
+                          tweet: AsyncValue.data(tweet),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-              ],
-            ),
-            // Action bar row aligned under the content
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                // Spacer to align with content (avatar width + gap)
-                const SizedBox(width: 47), // 19*2 + 9
-                Expanded(
-                  child: TweetFeed(
-                    tweetState: TweetState(
-                      isLiked: false,
-                      isReposted: false,
-                      isViewed: false,
-                      tweet: AsyncValue.data(tweet),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
-

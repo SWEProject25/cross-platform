@@ -295,6 +295,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                               _isAppBarVisible = true;
                             });
                           },
+                          backgroundColor: Theme.of(context).colorScheme.surface,
                           items: [
                             BottomNavigationBarItem(
                               icon: SvgPicture.asset(

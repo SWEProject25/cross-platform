@@ -25,13 +25,30 @@ class PostInteractionsService {
       final response = await _apiService.post<Map<String, dynamic>>(
         endpoint: '${ApiConfig.postsEndpoint}/$postId/like',
       );
-      
+
+      // Prefer the explicit boolean flag from backend: data.liked
+      bool? likedFlag;
+      final data = response['data'];
+      if (data is Map && data['liked'] != null) {
+        likedFlag = data['liked'] == true;
+      } else if (response['liked'] != null) {
+        // Fallback in case the backend returns liked at the top level
+        likedFlag = response['liked'] == true;
+      }
+
+      if (likedFlag != null) {
+        print('   Backend liked flag: $likedFlag');
+        return likedFlag;
+      }
+
+      // Fallback: infer from human-readable message for older backends
       final message = response['message'] as String?;
       final messageLower = message?.toLowerCase() ?? '';
-      
+
       // Check for 'unliked' first since 'unliked' contains 'liked'
-      final isLiked = !messageLower.contains('unliked') && messageLower.contains('liked');
-      
+      final isLiked =
+          !messageLower.contains('unliked') && messageLower.contains('liked');
+
       print('   Message: "$message"');
       print('   ${isLiked ? "✅ Liked" : "❌ Unliked"}');
       return isLiked;

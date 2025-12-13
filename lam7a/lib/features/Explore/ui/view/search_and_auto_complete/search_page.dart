@@ -150,6 +150,9 @@ class _SearchMainPageState extends ConsumerState<SearchMainPage> {
     final trimmed = query.trim();
     if (trimmed.isEmpty) return;
 
+    final vm = ref.read(searchViewModelProvider.notifier);
+    vm.pushAutocomplete(trimmed);
+
     // Push a new page with its own provider instance so each SearchResultPage
     // has its own SearchResultsViewmodel instance and state.
     Navigator.push(

@@ -5,7 +5,6 @@ import 'package:lam7a/core/widgets/app_user_avatar.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
 import 'package:lam7a/features/tweet/ui/view/tweet_screen.dart';
-import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_summary.dart';
@@ -30,30 +29,29 @@ class TweetSummaryWidget extends ConsumerWidget {
 
   String _formatTimeAgo(DateTime date) {
     final diff = DateTime.now().difference(date);
-    if (diff.inDays > 0) {
-      return '${diff.inDays}d';
-    } else if (diff.inHours > 0) {
-      return '${diff.inHours}h';
-    } else if (diff.inMinutes > 0) {
+    if (diff.inSeconds < 60) {
+      final secs = diff.inSeconds <= 0 ? 1 : diff.inSeconds;
+      return '${secs}s';
+    } else if (diff.inMinutes < 60) {
       return '${diff.inMinutes}m';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours}h';
     } else {
-      return 'now';
+      return '${diff.inDays}d';
     }
   }
 
   Widget _buildTweetUI(BuildContext context, WidgetRef ref, TweetModel tweet) {
     final isPureRepost =
-        tweet.isRepost && !tweet.isQuote && tweet.originalTweet != null;
+        tweet.isRepost && tweet.originalTweet != null;
     final isReply =
         !tweet.isRepost && !tweet.isQuote && tweet.originalTweet != null;
     final parentTweet = tweet.originalTweet;
     // For pure reposts, treat the parent tweet as the main content tweet
     final mainTweet = (isPureRepost && parentTweet != null)
-        ? parentTweet!
+        ? parentTweet
         : tweet;
-
-    final diff = DateTime.now().difference(mainTweet.date);
-    final daysPosted = diff.inDays < 0 ? 0 : diff.inDays;
+    final timeAgo = _formatTimeAgo(mainTweet.date);
     final username = tweet.username ?? 'unknown';
     final displayName =
         (tweet.authorName != null && tweet.authorName!.isNotEmpty)
@@ -74,7 +72,7 @@ class TweetSummaryWidget extends ConsumerWidget {
             isLiked: false,
             isReposted: false,
             isViewed: false,
-            tweet: AsyncValue.data(parentTweet!),
+            tweet: AsyncValue.data(parentTweet),
           )
         : localTweetState;
 
@@ -87,12 +85,12 @@ class TweetSummaryWidget extends ConsumerWidget {
       username: mainTweet.username,
     );
 
-    void _openDetail() {
+    void openDetail() {
       final targetTweet = (isPureRepost && parentTweet != null)
-          ? parentTweet!
+          ? parentTweet
           : tweet;
       final targetId = (isPureRepost && parentTweet != null)
-          ? parentTweet!.id
+          ? parentTweet.id
           : tweetId;
 
       Navigator.push(
@@ -120,11 +118,16 @@ class TweetSummaryWidget extends ConsumerWidget {
               // Reply tweet section
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: _openDetail,
+                onTap: openDetail,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    avatarWidget,
+                    Column(
+                      children: [
+                        Container(width: 2, height: 16, color: Colors.grey),
+                        avatarWidget,
+                      ],
+                    ),
                     const SizedBox(width: 9),
                     Expanded(
                       child: Column(
@@ -135,7 +138,7 @@ class TweetSummaryWidget extends ConsumerWidget {
                             children: [
                               TweetUserSummaryInfo(
                                 tweetState: localTweetState,
-                                daysPosted: daysPosted,
+                                timeAgo: timeAgo,
                                 fallbackTweet: mainTweet,
                               ),
                               GestureDetector(
@@ -179,14 +182,18 @@ class TweetSummaryWidget extends ConsumerWidget {
               // Non-reply layout (regular tweets and reposts)
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: _openDetail,
+                onTap: openDetail,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (isPureRepost && parentTweet != null) ...[
                       Row(
                         children: [
-                          const Icon(Icons.repeat, size: 16, color: Colors.grey),
+                          const Icon(
+                            Icons.repeat,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             '$displayName reposted',
@@ -213,7 +220,7 @@ class TweetSummaryWidget extends ConsumerWidget {
                                 children: [
                                   TweetUserSummaryInfo(
                                     tweetState: localTweetState,
-                                    daysPosted: daysPosted,
+                                    timeAgo: timeAgo,
                                     fallbackTweet: mainTweet,
                                   ),
                                   GestureDetector(
