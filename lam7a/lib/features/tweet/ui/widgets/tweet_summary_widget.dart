@@ -43,7 +43,7 @@ class TweetSummaryWidget extends ConsumerWidget {
 
   Widget _buildTweetUI(BuildContext context, WidgetRef ref, TweetModel tweet) {
     final isPureRepost =
-        tweet.isRepost && !tweet.isQuote && tweet.originalTweet != null;
+        tweet.isRepost && tweet.originalTweet != null;
     final isReply =
         !tweet.isRepost && !tweet.isQuote && tweet.originalTweet != null;
     final parentTweet = tweet.originalTweet;
