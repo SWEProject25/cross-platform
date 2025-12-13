@@ -49,6 +49,27 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
     _scaleAnimationRepost = Tween<double>(begin: 1.0, end: 1.3).animate(
       CurvedAnimation(parent: _controllerRepost, curve: Curves.easeOut),
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+    final tweetId = widget.tweetState.tweet.value?.id;
+    if (tweetId == null) return;
+
+    ref.listen(tweetViewModelProvider(tweetId), (prev, next) {
+      if (prev == null || next == null) return;
+
+      final prevLiked = prev.value?.isLiked;
+      final nextLiked = next.value?.isLiked;
+
+      // Trigger ONLY when like state actually changes
+      if (prevLiked != nextLiked) {
+        final me = ref.read(authenticationProvider).user;
+        if (me != null && me.id != null) {
+          ref.invalidate(profileLikesProvider(me.id.toString()));
+        }
+      }
+    });
+  });
+
   }
 
   void _handlerepost() {
@@ -58,6 +79,10 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
     ref
         .read(tweetViewModelProvider(tweetId).notifier)
         .handleRepost(controllerRepost: _controllerRepost);
+    final me = ref.read(authenticationProvider).user;
+    if (me != null && me.id != null) {
+      ref.invalidate(profileLikesProvider(me.id.toString()));
+    }
     if (ref.read(tweetViewModelProvider(tweetId).notifier).getisReposted()) {
       Future.delayed(const Duration(milliseconds: 250), () {
         final overlay = Overlay.of(context);
@@ -119,6 +144,14 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                     ),
                     onTap: () {
                       _handlerepost();
+                      final tweet = widget.tweetState.tweet.value;
+                      if (tweet != null && tweet.userId != null){
+                        final userId = tweet.userId.toString();
+
+                        ref.invalidate(profilePostsProvider(userId));
+                        ref.invalidate(profileRepliesProvider(userId));
+                        ref.invalidate(profileLikesProvider(userId));
+                      }
                       Navigator.pop(context);
                     },
                   ),
@@ -339,9 +372,10 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                   ),
                 ),
             onPressed: () {
+              final tweet = widget.tweetState.tweet.value;
               _showRepostQuoteOptions(context);
 
-              final tweet = widget.tweetState.tweet.value;
+              
               if (tweet != null && tweet.userId != null){
                 final userId = tweet.userId.toString();
 
@@ -415,18 +449,16 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                   ),
                 ),
             onPressed: () {
+              final tweet = widget.tweetState.tweet.value;
               ref
                   .read(tweetViewModelProvider(tweetId).notifier)
                   .handleLike(controller: _controller);
 
-              final tweet = widget.tweetState.tweet.value;
-              if (tweet != null && tweet.userId != null){
-                final userId = tweet.userId.toString();
-
-                ref.invalidate(profilePostsProvider(userId));
-                ref.invalidate(profileRepliesProvider(userId));
-                ref.invalidate(profileLikesProvider(userId));
+              final me = ref.read(authenticationProvider).user;
+              if (me != null && me.id != null) {
+                ref.invalidate(profileLikesProvider(me.id.toString()));
               }
+
             },
           ),
         ),
