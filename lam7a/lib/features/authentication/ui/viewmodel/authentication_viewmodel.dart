@@ -271,12 +271,8 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       );
       if (myData.user.username != null &&
           myData.user.email == state.identifier) {
+        isSuccessed = true;
         await authController.isAuthenticated();
-        print("user status");
-        print(myData.onboardingStatus.hasCompeletedInterests.toString());
-        print(myData.onboardingStatus.hasCompeletedFollowing.toString());
-        print("user status");
-
         state = state.map(
           login: (login) => login.copyWith(
             identifier: "",
@@ -289,7 +285,6 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           ),
           signup: (signup) => signup.copyWith(email: "", passwordSignup: ""),
         );
-        isSuccessed = true;
       } else {
         state = state.map(
           login: (login) => login.copyWith(
@@ -350,6 +345,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       signup: (signup) => signup.copyWith(isLoadingSignup: false),
     );
   }
+
   Future<void> oAuthLoginGoogle() async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn.instance;

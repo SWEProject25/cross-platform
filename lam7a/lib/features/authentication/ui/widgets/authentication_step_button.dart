@@ -12,18 +12,20 @@ class AuthenticationStepButton extends StatefulWidget {
   Color textColor;
   bool enable;
   bool isBorder;
-  AuthenticationStepButton({super.key, 
+  AuthenticationStepButton({
+    super.key,
     required this.label,
     this.isValid = false,
     required this.onPressedEffect,
     this.bgColor = Pallete.blackColor,
     this.textColor = Pallete.whiteColor,
     this.enable = false,
-    this.isBorder = false
+    this.isBorder = false,
   });
 
   @override
-  State<AuthenticationStepButton> createState() => _AuthenticationStepButtonState();
+  State<AuthenticationStepButton> createState() =>
+      _AuthenticationStepButtonState();
 }
 
 class _AuthenticationStepButtonState extends State<AuthenticationStepButton> {
@@ -32,23 +34,32 @@ class _AuthenticationStepButtonState extends State<AuthenticationStepButton> {
     return Consumer(
       builder: (context, ref, child) {
         return ElevatedButton(
-          
-          
           onPressed: () {
-            widget.onPressedEffect();
+            if (widget.enable) {
+              widget.onPressedEffect();
+            }
           },
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.symmetric(horizontal: 20),
-            backgroundColor:widget.enable ?  widget.bgColor : const Color.fromARGB(141, 100, 98, 98),
+            backgroundColor: widget.enable
+                ? widget.bgColor
+                : const Color.fromARGB(141, 100, 98, 98),
             foregroundColor: widget.textColor,
             elevation: 0,
             shadowColor: Pallete.transparentColor,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30, ),
-              side: BorderSide(color:  !widget.isBorder ? Pallete.transparentColor : Pallete.blackColor)
+              borderRadius: BorderRadius.circular(30),
+              side: BorderSide(
+                color: !widget.isBorder
+                    ? Pallete.transparentColor
+                    : Pallete.blackColor,
+              ),
             ),
           ),
-          child: Text(widget.label, style: GoogleFonts.cabin(fontWeight: FontWeight.w700, fontSize: 15)),
+          child: Text(
+            widget.label,
+            style: GoogleFonts.cabin(fontWeight: FontWeight.w700, fontSize: 15),
+          ),
         );
       },
     );

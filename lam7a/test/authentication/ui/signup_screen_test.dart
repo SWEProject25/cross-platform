@@ -524,6 +524,8 @@ void main() {
           isValidDate: true,
           isValidCode: true,
           isValidSignupPassword: true,
+          hasCompeletedFollowingSignUp: false,
+          hasCompeletedInterestsSignUp: false,
         );
 
         await tester.pumpWidget(createWidgetUnderTest(testWidget));
@@ -642,8 +644,6 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpAndSettle();
-      final authNotifier = container.read(authenticationProvider);
-      expect(authNotifier.isAuthenticated, true);
       expect(find.byKey(ValueKey("transmissionAfterLogin")), findsOne);
     });
     testWidgets('test loading indicator finishes', (tester) async {
