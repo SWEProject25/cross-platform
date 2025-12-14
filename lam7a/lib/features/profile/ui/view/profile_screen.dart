@@ -23,6 +23,7 @@ class ProfileScreen extends ConsumerWidget {
 
     if (username == null || username.isEmpty) {
       return const Scaffold(
+        key: ValueKey('profile_no_username'),
         body: Center(child: Text("No username provided")),
       );
     }
@@ -30,8 +31,8 @@ class ProfileScreen extends ConsumerWidget {
     final asyncUser = ref.watch(profileViewModelProvider(username));
 
     return asyncUser.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, _) => Scaffold(body: Center(child: Text("Error: $err"))),
+      loading: () => const Scaffold(key: ValueKey('profile_loading'), body: Center(child: CircularProgressIndicator())),
+      error: (err, _) => Scaffold(key: const ValueKey('profile_error'), body: Center(child: Text("Error: $err"))),
       data: (user) => _ProfileLoaded(user: user, username: username),
     );
   }
@@ -68,15 +69,20 @@ class _ProfileLoaded extends ConsumerWidget {
     const double avatarRadius = 46;
 
     return Scaffold(
+      key: const ValueKey('profile_loaded_scaffold'),
       body: RefreshIndicator(
+        key: const ValueKey('profile_refresh_indicator'),
         onRefresh: refresh,
         child: NestedScrollView(
+          key: const ValueKey('profile_nested_scroll'),
           headerSliverBuilder: (_, __) => [
             SliverAppBar(
+              key: const ValueKey('profile_sliver_appbar'),
               pinned: true,
               expandedHeight: 120,
               backgroundColor: Colors.white,
               leading: IconButton(
+                key: const ValueKey('profile_back_button'),
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context),
               ),
@@ -84,6 +90,7 @@ class _ProfileLoaded extends ConsumerWidget {
               actions: [
                 if (!isOwnProfile)
                   ProfileMoreMenu(
+                    key: const ValueKey('profile_more_menu'),
                     user: user,
                     username: username,
                     onAction: () => refresh(),
@@ -97,16 +104,18 @@ class _ProfileLoaded extends ConsumerWidget {
                     children: [
                       Positioned.fill(
                         child: (user.bannerImageUrl != null && user.bannerImageUrl!.isNotEmpty)
-                            ? Image.network(user.bannerImageUrl!, fit: BoxFit.cover)
+                            ? Image.network(key: const ValueKey('profile_banner'), user.bannerImageUrl!, fit: BoxFit.cover)
                             : Container(color: Colors.grey.shade300),
                       ),
                       Positioned(
                         bottom: -avatarRadius,
                         left: 16,
                         child: CircleAvatar(
+                          key: const ValueKey('profile_avatar_outer'),
                           radius: avatarRadius,
                           backgroundColor: Colors.white,
                           child: CircleAvatar(
+                            key: const ValueKey('profile_avatar_inner'),
                             radius: avatarRadius - 3,
                             backgroundImage: (user.profileImageUrl != null &&
                                     user.profileImageUrl!.isNotEmpty)
@@ -127,7 +136,9 @@ class _ProfileLoaded extends ConsumerWidget {
 
             // Profile Header (name, handle, bio...)
             SliverToBoxAdapter(
+              key: const ValueKey('profile_header_section'),
               child: ProfileHeaderWidget(
+                key: const ValueKey('profile_header_widget'),
                 user: user,
                 isOwnProfile: isOwnProfile,
                 onEdited: () => refresh(),
@@ -140,19 +151,21 @@ class _ProfileLoaded extends ConsumerWidget {
             child: Column(
               children: [
                 const TabBar(
+                  key: ValueKey('profile_tabbar'),
                   isScrollable: false,
                   tabs: [
-                    Tab(text: "Posts"),
-                    Tab(text: "Replies"),
-                    Tab(text: "Likes"),
+                    Tab(key: ValueKey('profile_tab_posts'), text: "Posts"),
+                    Tab(key: ValueKey('profile_tab_replies'), text: "Replies"),
+                    Tab(key: ValueKey('profile_tab_likes'), text: "Likes"),
                   ],
                 ),
                 Expanded(
                   child: TabBarView(
+                    key: const ValueKey('profile_tabbar_view'),
                     children: [
-                      _ProfilePostsTab(userId: user.profileId!.toString()),
-                      _ProfileRepliesTab(userId: user.profileId!.toString()),
-                      _ProfileLikesTab(userId: user.profileId!.toString()),
+                      _ProfilePostsTab(key: const ValueKey('profile_posts_tab'), userId: user.profileId!.toString(),),
+                      _ProfileRepliesTab(key: const ValueKey('profile_replies_tab'), userId: user.profileId!.toString(),),
+                      _ProfileLikesTab(key: const ValueKey('profile_likes_tab'), userId: user.profileId!.toString()),
                     ],
                   ),
                 ),
@@ -168,7 +181,7 @@ class _ProfileLoaded extends ConsumerWidget {
 // ----------------------- POSTS TAB -----------------------
 class _ProfilePostsTab extends ConsumerWidget {
   final String userId;
-  const _ProfilePostsTab({required this.userId});
+  const _ProfilePostsTab({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -177,20 +190,22 @@ class _ProfilePostsTab extends ConsumerWidget {
     return asyncPosts.when(
       data: (tweets) {
         if (tweets.isEmpty) {
-          return const Center(child: Text("No posts yet"));
+          return const Center(key: ValueKey('profile_posts_empty'), child: Text("No posts yet"));
         }
         return ListView.builder(
+          key: const ValueKey('profile_posts_list'),
           physics: const AlwaysScrollableScrollPhysics(),
           primary: false,
           shrinkWrap: true,
           itemCount: tweets.length,
           itemBuilder: (_, i) => TweetSummaryWidget(
+            key: ValueKey('profile_post_${tweets[i].id}'),
             tweetId: tweets[i].id,
             tweetData: tweets[i],
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(key: ValueKey('profile_posts_loading'), child: CircularProgressIndicator()),
       error: (_, __) => const Center(child: Text("Error loading posts")),
     );
   }
@@ -199,7 +214,7 @@ class _ProfilePostsTab extends ConsumerWidget {
 // ----------------------- REPLIES TAB -----------------------
 class _ProfileRepliesTab extends ConsumerWidget {
   final String userId;
-  const _ProfileRepliesTab({required this.userId});
+  const _ProfileRepliesTab({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -211,18 +226,20 @@ class _ProfileRepliesTab extends ConsumerWidget {
           return const Center(child: Text("No replies yet"));
         }
         return ListView.builder(
+          key: ValueKey('profile_replies_list'),
           physics: const AlwaysScrollableScrollPhysics(),
           primary: false,
           shrinkWrap: true,
           itemCount: tweets.length,
           itemBuilder: (_, i) => TweetSummaryWidget(
+            key: ValueKey('profile_reply_${tweets[i].id}'),
             tweetId: tweets[i].id,
             tweetData: tweets[i],
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(child: Text("Error loading replies")),
+      loading: () => const Center(key: ValueKey('profile_replies_loading'), child: CircularProgressIndicator()),
+      error: (_, __) => const Center(key: ValueKey('profile_replies_empty'), child: Text("Error loading replies")),
     );
   }
 }
@@ -230,7 +247,7 @@ class _ProfileRepliesTab extends ConsumerWidget {
 // ----------------------- LIKES TAB -----------------------
 class _ProfileLikesTab extends ConsumerWidget {
   final String userId;
-  const _ProfileLikesTab({required this.userId});
+  const _ProfileLikesTab({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -242,18 +259,20 @@ class _ProfileLikesTab extends ConsumerWidget {
           return const Center(child: Text("No liked posts"));
         }
         return ListView.builder(
+          key: ValueKey('profile_likes_list'),
           physics: const AlwaysScrollableScrollPhysics(),
           primary: false,
           shrinkWrap: true,
           itemCount: tweets.length,
           itemBuilder: (_, i) => TweetSummaryWidget(
+            key: ValueKey('profile_like_${tweets[i].id}'),
             tweetId: tweets[i].id,
             tweetData: tweets[i],
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(child: Text("Error loading liked posts")),
+      loading: () => const Center(key: ValueKey('profile_likes_loading'), child: CircularProgressIndicator()),
+      error: (_, __) => const Center(key: ValueKey('profile_likes_empty'), child: Text("Error loading liked posts")),
     );
   }
 }

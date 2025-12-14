@@ -93,7 +93,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   //   );
   // }
 
-  Widget buildField(String label, TextEditingController c, {int maxLines = 1, int? maxLength}) {
+  Widget buildField(String label, TextEditingController c, {int maxLines = 1, int? maxLength, Key? fieldKey,}) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     child: Column(
@@ -102,6 +102,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         Text(label, style: const TextStyle(color: Colors.grey)),
         const SizedBox(height: 6),
         TextField(
+          key: fieldKey,
           controller: c,
           maxLines: maxLines,
           maxLength: maxLength,  // <-- ADD THIS
@@ -124,30 +125,31 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(key: const ValueKey('edit_profile_close_button'), icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
         title: const Text('Edit profile'),
         actions: [
-          TextButton(onPressed: _saving ? null : save, child: Text('Save', style: TextStyle(color: _saving ? Colors.grey : Colors.blue, fontWeight: FontWeight.bold))),
+          TextButton(key: const ValueKey('edit_profile_save_button'), onPressed: _saving ? null : save, child: Text('Save', style: TextStyle(color: _saving ? Colors.grey : Colors.blue, fontWeight: FontWeight.bold))),
         ],
       ),
       body: SingleChildScrollView(
         child: Column(children: [
           GestureDetector(
+            key: const ValueKey('edit_profile_banner_picker'),
             onTap: pickBanner,
             child: Image(image: bannerProvider, width: double.infinity, height: 160, fit: BoxFit.cover),
           ),
           const SizedBox(height: 12),
           Container(
             alignment: Alignment.centerLeft,
-            child: GestureDetector(onTap: pickAvatar, child: CircleAvatar(radius: 46, backgroundImage: avatarProvider))
+            child: GestureDetector(key: const ValueKey('edit_profile_avatar_picker'), onTap: pickAvatar, child: CircleAvatar(radius: 46, backgroundImage: avatarProvider))
             ),
           
           const SizedBox(height: 12),
-          buildField('Name', nameCtrl),
-          buildField('Bio', bioCtrl, maxLines: 3, maxLength: 160),
-          buildField('Location', locationCtrl),
-          buildField('Website', websiteCtrl),
-          buildField('Birthday (YYYY-MM-DD)', birthDateCtrl),
+          buildField('Name', nameCtrl, fieldKey: const ValueKey('edit_profile_name_field'),),
+          buildField('Bio', bioCtrl, maxLines: 3, maxLength: 160, fieldKey: const ValueKey('edit_profile_bio_field'),),
+          buildField('Location', locationCtrl, fieldKey: const ValueKey('edit_profile_location_field'),),
+          buildField('Website', websiteCtrl, fieldKey: const ValueKey('edit_profile_website_field'),),
+          buildField('Birthday (YYYY-MM-DD)', birthDateCtrl, fieldKey: const ValueKey('edit_profile_birthdate_field'),),
           const SizedBox(height: 20),
         ]),
       ),
