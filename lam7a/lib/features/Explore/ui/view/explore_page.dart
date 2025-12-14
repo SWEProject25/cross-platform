@@ -71,8 +71,8 @@ class _ExplorePageState extends ConsumerState<ExplorePage>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _forYouTab(data, vm),
-                    _trendingTab(data, vm),
+                    _forYouTab(data, vm, context),
+                    _trendingTab(data, vm, context),
                     _newsTab(data, vm, context),
                     _sportsTab(data, vm, context),
                     _entertainmentTab(data, vm, context),
@@ -129,12 +129,23 @@ class _ExplorePageState extends ConsumerState<ExplorePage>
   }
 }
 
-Widget _forYouTab(ExploreState data, ExploreViewModel vm) {
+Widget _forYouTab(
+  ExploreState data,
+  ExploreViewModel vm,
+  BuildContext context,
+) {
+  final theme = Theme.of(context);
   print("For You Tab rebuilt");
   if (data.isForYouHashtagsLoading ||
       data.isSuggestedUsersLoading ||
       data.isInterestMapLoading) {
-    return const Center(child: CircularProgressIndicator(color: Colors.white));
+    return Center(
+      child: CircularProgressIndicator(
+        color: theme.brightness == Brightness.light
+            ? const Color(0xFF1D9BF0)
+            : Colors.white,
+      ),
+    );
   }
 
   return ForYouView(
@@ -144,16 +155,31 @@ Widget _forYouTab(ExploreState data, ExploreViewModel vm) {
   );
 }
 
-Widget _trendingTab(ExploreState data, ExploreViewModel vm) {
+Widget _trendingTab(
+  ExploreState data,
+  ExploreViewModel vm,
+  BuildContext context,
+) {
   print("Trending Tab rebuilt");
+  final theme = Theme.of(context);
   if (data.isHashtagsLoading) {
-    return const Center(child: CircularProgressIndicator(color: Colors.white));
+    return Center(
+      child: CircularProgressIndicator(
+        color: theme.brightness == Brightness.light
+            ? const Color(0xFF1D9BF0)
+            : Colors.white,
+      ),
+    );
   }
   if (data.trendingHashtags.isEmpty) {
-    return const Center(
+    return Center(
       child: Text(
         "No trending hashtags found",
-        style: TextStyle(color: Colors.white54),
+        style: TextStyle(
+          color: theme.brightness == Brightness.light
+              ? const Color(0xFF52636d)
+              : const Color(0xFF7c838c),
+        ),
       ),
     );
   }

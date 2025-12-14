@@ -97,9 +97,8 @@ class _HorizontalUserCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
       child: Container(
         width: 110,
         padding: const EdgeInsets.symmetric(horizontal: 0),

@@ -10,6 +10,8 @@ import 'package:lam7a/features/tweet/ui/widgets/tweet_detailed_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_detailed.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
+import 'package:lam7a/features/tweet/ui/widgets/tweet_feed.dart';
+import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
 import '../../ui/widgets/tweet_ai_summery.dart';
 
 class TweetScreen extends ConsumerWidget {
@@ -97,7 +99,16 @@ class TweetScreen extends ConsumerWidget {
                             size: 17,
                             color: Colors.blueAccent,
                           ),
-                          onTap: () {},
+                          onTap: () {
+                            if (tweetData == null) return;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    TweetAiSummary(tweet: tweetData!),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
