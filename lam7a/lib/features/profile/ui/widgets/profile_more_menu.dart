@@ -20,6 +20,7 @@ class ProfileMoreMenu extends ConsumerWidget {
     final repo = ref.watch(profileRepositoryProvider);
 
     return PopupMenuButton<String>(
+      key: const ValueKey('profile_more_menu_button'),
       icon: const Icon(Icons.more_vert, color: Colors.white),
       onSelected: (value) async {
         if (value == "mute") {
@@ -42,12 +43,14 @@ class ProfileMoreMenu extends ConsumerWidget {
       },
       itemBuilder: (_) => [
         PopupMenuItem(
+          key: const ValueKey('profile_more_menu_mute'),
           value: "mute",
           child: Text(
             user.stateMute == ProfileStateOfMute.muted ? "Unmute" : "Mute",
           ),
         ),
         PopupMenuItem(
+          key: const ValueKey('profile_more_menu_block'),
           value: "block",
           child: Text(
             user.stateBlocked == ProfileStateBlocked.blocked ? "Unblock" : "Block",

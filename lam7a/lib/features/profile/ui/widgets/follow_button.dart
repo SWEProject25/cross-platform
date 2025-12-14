@@ -85,6 +85,7 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
         _user.stateFollowingMe == ProfileStateFollowingMe.followingme;
 
     return OutlinedButton(
+      key: const ValueKey('follow_button'),
       onPressed: _loading ? null : _toggle,
       style: OutlinedButton.styleFrom
       (
@@ -107,7 +108,7 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
           ? const SizedBox(
               width: 16,
               height: 8,
-              child: CircularProgressIndicator(strokeWidth: 2),
+              child: CircularProgressIndicator(key: ValueKey('follow_button_loading'), strokeWidth: 2),
             )
           : Text(
               isFollowing
@@ -115,6 +116,7 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
                   : isFollowingMe
                   ? "Follow Back"
                   : "Follow",
+              key: const ValueKey('follow_button_label'),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
     );
