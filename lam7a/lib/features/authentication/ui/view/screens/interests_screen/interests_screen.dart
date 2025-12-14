@@ -4,7 +4,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
-import 'package:lam7a/features/authentication/model/interest_dto.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/following_screen/following_screen.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/interests_viewmodel.dart';
@@ -88,7 +87,7 @@ class _InterestsScreenState extends ConsumerState<InterestsScreen> {
                                       } else {
                                         selectedIndices.add(index);
                                         selectedInterests.add(
-                                          interests[index].id!,
+                                          interests[index].id,
                                         );
                                       }
                                     });

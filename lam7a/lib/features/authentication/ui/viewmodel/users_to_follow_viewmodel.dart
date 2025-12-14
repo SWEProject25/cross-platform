@@ -1,6 +1,5 @@
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
-import 'package:lam7a/features/authentication/model/interest_dto.dart';
 import 'package:lam7a/features/authentication/model/user_to_follow_dto.dart';
 import 'package:lam7a/features/authentication/repository/authentication_impl_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

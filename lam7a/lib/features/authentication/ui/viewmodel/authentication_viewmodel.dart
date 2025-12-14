@@ -1,9 +1,8 @@
+import 'dart:ui';
+
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:lam7a/core/models/user_dto.dart';
-import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
-import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
@@ -21,7 +20,7 @@ void showToastMessage(String message) {
     msg: message,
     gravity: ToastGravity.CENTER,
     timeInSecForIosWeb: 1,
-    backgroundColor: Pallete.toastBgColor,
+    backgroundColor: const Color.fromARGB(255, 136, 136, 136),
     textColor: Pallete.toastColor,
   );
 }
@@ -206,10 +205,6 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   Future<void> newUser() async {
     try {
       if (state.isValidCode && state.isValidEmail) {
-        state = state.map(
-          login: (login) => login,
-          signup: (signup) => signup.copyWith(isLoadingSignup: true),
-        );
         User? user = await repo.register(
           AuthenticationUserDataModel(
             name: state.name,
@@ -221,10 +216,6 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         if (user != null) {
           await authController.isAuthenticated();
         }
-        state = state.map(
-          login: (login) => login,
-          signup: (signup) => signup.copyWith(isLoadingSignup: false),
-        );
       }
     } catch (e) {
       print(e);
@@ -280,12 +271,8 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       );
       if (myData.user.username != null &&
           myData.user.email == state.identifier) {
-       await authController.isAuthenticated();
-        print("user status");
-        print(myData.onboardingStatus.hasCompeletedInterests.toString());
-        print(myData.onboardingStatus.hasCompeletedFollowing.toString());
-        print("user status");
-
+        isSuccessed = true;
+        await authController.isAuthenticated();
         state = state.map(
           login: (login) => login.copyWith(
             identifier: "",
@@ -298,7 +285,6 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           ),
           signup: (signup) => signup.copyWith(email: "", passwordSignup: ""),
         );
-        isSuccessed = true;
       } else {
         state = state.map(
           login: (login) => login.copyWith(
@@ -346,12 +332,27 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
     );
   }
 
+  void setLoadingSignUp() {
+    state = state.map(
+      login: (login) => login,
+      signup: (signup) => signup.copyWith(isLoadingSignup: true),
+    );
+  }
+
+  void setLoadedSignUp() {
+    state = state.map(
+      login: (login) => login,
+      signup: (signup) => signup.copyWith(isLoadingSignup: false),
+    );
+  }
+
   Future<void> oAuthLoginGoogle() async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn.instance;
       googleSignIn.initialize(serverClientId: serverClientIdGoogle);
       final GoogleSignInAccount? user = await googleSignIn.authenticate();
       String idToken = user?.authentication.idToken ?? "";
+      setLoadingSignUp();
       if (idToken != "") {
         RootData myUserData = await repo.oAuthGoogleLogin(idToken);
 
@@ -365,6 +366,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           ),
         );
         await authController.isAuthenticated();
+        setLoadedSignUp();
       }
     } catch (e) {
       print("Google Sign-In Error: $e");

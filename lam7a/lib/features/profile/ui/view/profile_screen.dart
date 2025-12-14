@@ -18,12 +18,12 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final args =
-        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
     final username = args?['username'] as String?;
 
     if (username == null || username.isEmpty) {
       return const Scaffold(
+        key: ValueKey('profile_no_username'),
         body: Center(child: Text("No username provided")),
       );
     }
@@ -31,163 +31,141 @@ class ProfileScreen extends ConsumerWidget {
     final asyncUser = ref.watch(profileViewModelProvider(username));
 
     return asyncUser.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (err, _) => Scaffold(
-        body: Center(child: Text("Error: $err")),
-      ),
+      loading: () => const Scaffold(key: ValueKey('profile_loading'), body: Center(child: CircularProgressIndicator())),
+      error: (err, _) => Scaffold(key: const ValueKey('profile_error'), body: Center(child: Text("Error: $err"))),
       data: (user) => _ProfileLoaded(user: user, username: username),
     );
   }
 }
 
-class _ProfileLoaded extends ConsumerStatefulWidget {
+class _ProfileLoaded extends ConsumerWidget {
   final UserModel user;
   final String username;
 
-  const _ProfileLoaded({
-    required this.user,
-    required this.username,
-  });
+  const _ProfileLoaded({required this.user, required this.username});
 
   @override
-  ConsumerState<_ProfileLoaded> createState() => _ProfileLoadedState();
-}
-
-class _ProfileLoadedState extends ConsumerState<_ProfileLoaded> {
-  final ScrollController _scrollController = ScrollController();
-  bool _hideAvatar = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  void _onScroll() {
-    final shouldHide = _scrollController.offset > 60;
-    if (shouldHide != _hideAvatar) {
-      setState(() => _hideAvatar = shouldHide);
-    }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final myUser = ref.watch(authenticationProvider).user;
-    final isOwnProfile = myUser?.id == widget.user.profileId;
+    final isOwnProfile = myUser?.id == user.profileId;
 
+    /// Refresh function for pull-to-refresh
     Future<void> refresh() async {
-      ref.invalidate(profileViewModelProvider(widget.username));
-      ref.invalidate(profilePostsProvider(widget.user.profileId!.toString()));
-      ref.invalidate(profileRepliesProvider(widget.user.profileId!.toString()));
-      ref.invalidate(profileLikesProvider(widget.user.profileId!.toString()));
+      ref.invalidate(profileViewModelProvider(username));
+      ref.invalidate(profilePostsProvider(user.profileId!.toString()));
+      ref.invalidate(profileRepliesProvider(user.profileId!.toString()));
+      ref.invalidate(profileLikesProvider(user.profileId!.toString()));
     }
 
-    if (widget.user.stateBlocked == ProfileStateBlocked.blocked) {
+    // Handle blocked profile state
+    if (user.stateBlocked == ProfileStateBlocked.blocked) {
       return BlockedProfileView(
-        username: widget.username,
-        userId: widget.user.profileId!,
-        onUnblock: refresh,
+        username: username,
+        userId: user.profileId!,
+        onUnblock: () => refresh(),
       );
     }
 
     const double avatarRadius = 46;
 
     return Scaffold(
+      key: const ValueKey('profile_loaded_scaffold'),
       body: RefreshIndicator(
+        key: const ValueKey('profile_refresh_indicator'),
         onRefresh: refresh,
         child: NestedScrollView(
-          controller: _scrollController, // ✅ IMPORTANT
+          key: const ValueKey('profile_nested_scroll'),
           headerSliverBuilder: (_, __) => [
             SliverAppBar(
+              key: const ValueKey('profile_sliver_appbar'),
               pinned: true,
               expandedHeight: 120,
               backgroundColor: Colors.white,
               leading: IconButton(
+                key: const ValueKey('profile_back_button'),
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context),
               ),
+
               actions: [
                 if (!isOwnProfile)
                   ProfileMoreMenu(
-                    user: widget.user,
-                    username: widget.username,
-                    onAction: refresh,
+                    key: const ValueKey('profile_more_menu'),
+                    user: user,
+                    username: username,
+                    onAction: () => refresh(),
                   ),
               ],
-              flexibleSpace: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(
-                    child: (widget.user.bannerImageUrl != null &&
-                            widget.user.bannerImageUrl!.isNotEmpty)
-                        ? Image.network(
-                            widget.user.bannerImageUrl!,
-                            fit: BoxFit.cover,
-                          )
-                        : Container(color: Colors.grey.shade300),
-                  ),
-                  Positioned(
-                    bottom: -avatarRadius,
-                    left: 16,
-                    child: Offstage(
-                      offstage: _hideAvatar, // ✅ avatar disappears
-                      child: CircleAvatar(
-                        radius: avatarRadius,
-                        backgroundColor: Colors.white,
+
+              flexibleSpace: LayoutBuilder(
+                builder: (_, __) {
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned.fill(
+                        child: (user.bannerImageUrl != null && user.bannerImageUrl!.isNotEmpty)
+                            ? Image.network(key: const ValueKey('profile_banner'), user.bannerImageUrl!, fit: BoxFit.cover)
+                            : Container(color: Colors.grey.shade300),
+                      ),
+                      Positioned(
+                        bottom: -avatarRadius,
+                        left: 16,
                         child: CircleAvatar(
-                          radius: avatarRadius - 3,
-                          backgroundImage:
-                              (widget.user.profileImageUrl != null &&
-                                      widget.user.profileImageUrl!.isNotEmpty)
-                                  ? NetworkImage(
-                                      widget.user.profileImageUrl!)
-                                  : const AssetImage(
-                                          "assets/images/user_profile.png")
-                                      as ImageProvider,
+                          key: const ValueKey('profile_avatar_outer'),
+                          radius: avatarRadius,
+                          backgroundColor: Colors.white,
+                          child: CircleAvatar(
+                            key: const ValueKey('profile_avatar_inner'),
+                            radius: avatarRadius - 3,
+                            backgroundImage: (user.profileImageUrl != null &&
+                                    user.profileImageUrl!.isNotEmpty)
+                                ? NetworkImage(user.profileImageUrl!)
+                                : const AssetImage("assets/images/user_profile.png")
+                                    as ImageProvider,
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                ],
+                    ],
+                  );
+                },
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 10)),
+
+            // SPACE BELOW AVATAR
+            SliverToBoxAdapter(child: SizedBox(height: 10)),
+
+            // Profile Header (name, handle, bio...)
             SliverToBoxAdapter(
+              key: const ValueKey('profile_header_section'),
               child: ProfileHeaderWidget(
-                user: widget.user,
+                key: const ValueKey('profile_header_widget'),
+                user: user,
                 isOwnProfile: isOwnProfile,
-                onEdited: refresh,
+                onEdited: () => refresh(),
               ),
             ),
           ],
+
           body: DefaultTabController(
             length: 3,
             child: Column(
               children: [
                 const TabBar(
+                  key: ValueKey('profile_tabbar'),
+                  isScrollable: false,
                   tabs: [
-                    Tab(text: "Posts"),
-                    Tab(text: "Replies"),
-                    Tab(text: "Likes"),
+                    Tab(key: ValueKey('profile_tab_posts'), text: "Posts"),
+                    Tab(key: ValueKey('profile_tab_replies'), text: "Replies"),
+                    Tab(key: ValueKey('profile_tab_likes'), text: "Likes"),
                   ],
                 ),
                 Expanded(
                   child: TabBarView(
+                    key: const ValueKey('profile_tabbar_view'),
                     children: [
-                      _ProfilePostsTab(
-                          userId: widget.user.profileId!.toString()),
-                      _ProfileRepliesTab(
-                          userId: widget.user.profileId!.toString()),
-                      _ProfileLikesTab(
-                          userId: widget.user.profileId!.toString()),
+                      _ProfilePostsTab(key: const ValueKey('profile_posts_tab'), userId: user.profileId!.toString(),),
+                      _ProfileRepliesTab(key: const ValueKey('profile_replies_tab'), userId: user.profileId!.toString(),),
+                      _ProfileLikesTab(key: const ValueKey('profile_likes_tab'), userId: user.profileId!.toString()),
                     ],
                   ),
                 ),
@@ -200,71 +178,102 @@ class _ProfileLoadedState extends ConsumerState<_ProfileLoaded> {
   }
 }
 
-// ---------------- POSTS TAB ----------------
+// ----------------------- POSTS TAB -----------------------
 class _ProfilePostsTab extends ConsumerWidget {
   final String userId;
-  const _ProfilePostsTab({required this.userId});
+  const _ProfilePostsTab({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncPosts = ref.watch(profilePostsProvider(userId));
 
     return asyncPosts.when(
-      data: (tweets) => tweets.isEmpty
-          ? const Center(child: Text("No posts yet"))
-          : ListView.builder(
-              itemCount: tweets.length,
-              itemBuilder: (_, i) =>
-                  TweetSummaryWidget(tweetData: tweets[i], tweetId: tweets[i].id),
-            ),
-      loading: () => const Center(child: CircularProgressIndicator()),
+      data: (tweets) {
+        if (tweets.isEmpty) {
+          return const Center(key: ValueKey('profile_posts_empty'), child: Text("No posts yet"));
+        }
+        return ListView.builder(
+          key: const ValueKey('profile_posts_list'),
+          physics: const AlwaysScrollableScrollPhysics(),
+          primary: false,
+          shrinkWrap: true,
+          itemCount: tweets.length,
+          itemBuilder: (_, i) => TweetSummaryWidget(
+            key: ValueKey('profile_post_${tweets[i].id}'),
+            tweetId: tweets[i].id,
+            tweetData: tweets[i],
+          ),
+        );
+      },
+      loading: () => const Center(key: ValueKey('profile_posts_loading'), child: CircularProgressIndicator()),
       error: (_, __) => const Center(child: Text("Error loading posts")),
     );
   }
 }
 
-// ---------------- REPLIES TAB ----------------
+// ----------------------- REPLIES TAB -----------------------
 class _ProfileRepliesTab extends ConsumerWidget {
   final String userId;
-  const _ProfileRepliesTab({required this.userId});
+  const _ProfileRepliesTab({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncReplies = ref.watch(profileRepliesProvider(userId));
 
     return asyncReplies.when(
-      data: (tweets) => tweets.isEmpty
-          ? const Center(child: Text("No replies yet"))
-          : ListView.builder(
-              itemCount: tweets.length,
-              itemBuilder: (_, i) =>
-                  TweetSummaryWidget(tweetData: tweets[i], tweetId: tweets[i].id),
-            ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(child: Text("Error loading replies")),
+      data: (tweets) {
+        if (tweets.isEmpty) {
+          return const Center(child: Text("No replies yet"));
+        }
+        return ListView.builder(
+          key: ValueKey('profile_replies_list'),
+          physics: const AlwaysScrollableScrollPhysics(),
+          primary: false,
+          shrinkWrap: true,
+          itemCount: tweets.length,
+          itemBuilder: (_, i) => TweetSummaryWidget(
+            key: ValueKey('profile_reply_${tweets[i].id}'),
+            tweetId: tweets[i].id,
+            tweetData: tweets[i],
+          ),
+        );
+      },
+      loading: () => const Center(key: ValueKey('profile_replies_loading'), child: CircularProgressIndicator()),
+      error: (_, __) => const Center(key: ValueKey('profile_replies_empty'), child: Text("Error loading replies")),
     );
   }
 }
 
-// ---------------- LIKES TAB ----------------
+// ----------------------- LIKES TAB -----------------------
 class _ProfileLikesTab extends ConsumerWidget {
   final String userId;
-  const _ProfileLikesTab({required this.userId});
+  const _ProfileLikesTab({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncLikes = ref.watch(profileLikesProvider(userId));
 
     return asyncLikes.when(
-      data: (tweets) => tweets.isEmpty
-          ? const Center(child: Text("No liked posts"))
-          : ListView.builder(
-              itemCount: tweets.length,
-              itemBuilder: (_, i) =>
-                  TweetSummaryWidget(tweetData: tweets[i], tweetId: tweets[i].id),
-            ),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(child: Text("Error loading liked posts")),
+      data: (tweets) {
+        if (tweets.isEmpty) {
+          return const Center(child: Text("No liked posts"));
+        }
+        return ListView.builder(
+          key: ValueKey('profile_likes_list'),
+          physics: const AlwaysScrollableScrollPhysics(),
+          primary: false,
+          shrinkWrap: true,
+          itemCount: tweets.length,
+          itemBuilder: (_, i) => TweetSummaryWidget(
+            key: ValueKey('profile_like_${tweets[i].id}'),
+            tweetId: tweets[i].id,
+            tweetData: tweets[i],
+          ),
+        );
+      },
+      loading: () => const Center(key: ValueKey('profile_likes_loading'), child: CircularProgressIndicator()),
+      error: (_, __) => const Center(key: ValueKey('profile_likes_empty'), child: Text("Error loading liked posts")),
     );
   }
 }
+

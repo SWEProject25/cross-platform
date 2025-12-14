@@ -1,24 +1,13 @@
 import 'dart:async';
-import 'dart:convert';
-// import 'dart:nativewrappers/_internal/vm/bin/vmservice_io.dart';
-
-import 'package:app_links/app_links.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
-import 'package:github_oauth/github_oauth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
 import 'package:lam7a/core/constants/server_constant.dart';
 import 'package:lam7a/core/providers/authentication.dart';
-import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/following_screen/following_screen.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/forgot_password_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/interests_screen/interests_screen.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_icon_button_widget.dart';
@@ -28,7 +17,6 @@ import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen
 import 'package:lam7a/features/authentication/ui/widgets/loading_circle.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
-import 'package:lam7a/features/profile/ui/view/followers_following_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const String githubRedirectUrl = "hankers://tech.hankers.app";
@@ -44,59 +32,9 @@ class FirstTimeScreen extends ConsumerStatefulWidget {
 }
 
 class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
-  // StreamSubscription<Uri>? _linkSubscription;
-  // String? code;
-  // final _navigatorKey = GlobalKey<NavigatorState>();
-
-  // @override
-  // void initState() {
-  //   super.initState();
-
-  //   initDeepLinks();
-  // }
-
-  // @override
-  // void dispose() {
-  //   _linkSubscription?.cancel();
-
-  //   super.dispose();
-  // }
-
-  // Future<void> initDeepLinks() async {
-  //   _linkSubscription = AppLinks().uriLinkStream.listen((uri) async {
-  //     debugPrint('onAppLink: $uri');
-  //     code = uri.queryParameters['code'];
-  //     if (code != null) {
-  //       await ref
-  //           .read(authenticationViewmodelProvider.notifier)
-  //           .oAuthGithubLogin(code!);
-  //     }
-  //     openAppLink(uri);
-  //   });
-  // }
-
-  void openAppLink() {
-      final snapshot = ref.watch(authenticationViewmodelProvider);
-      if (!snapshot.hasCompeletedInterestsSignUp) {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          InterestsScreen.routeName,
-          (_) => false,
-        );
-      } else if (!snapshot.hasCompeletedFollowingSignUp) {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          FollowingScreen.routeName,
-          (_) => false,
-        );
-      } else {
-        Navigator.pushNamed(context, NavigationHomeScreen.routeName);
-      }
-
-  }
-
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(authenticationViewmodelProvider);
     bool isLoading = false;
     return Scaffold(
       key: ValueKey("firstScreen"),
@@ -114,8 +52,8 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
       ),
       body: Consumer(
         builder: (context, ref, child) {
-          final viewmodel = ref.watch(authenticationViewmodelProvider.notifier);
-          return !isLoading
+          final viewmodel = ref.read(authenticationViewmodelProvider.notifier);
+          return !isLoading && !state.isLoadingSignup
               ? Column(
                   children: [
                     Spacer(flex: 2),
@@ -207,7 +145,9 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
                                   "${ServerConstant.apiPrefix}${ServerConstant.oAuthGithubedirect}",
                               queryParameters: {'platform': 'mobile'},
                             );
+                            isLoading = true;
                             await _launchUrl(authUrl.toString());
+                            isLoading = false;
                           },
                         ),
                         const Row(

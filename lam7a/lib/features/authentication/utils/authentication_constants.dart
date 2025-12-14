@@ -22,8 +22,8 @@ class AuthenticationConstants {
   static const List<String> loginButtonLabels = ["Next", "Login"];
   static const String firstTimeScreenText =
       "See What's happening in the world right now";
-  static const String oAuthWithGoogleText = "Continue with google account";
-  static const String oAuthWithGithubText = "Continue with github account";
+  static const String oAuthWithGoogleText = "Continue with google";
+  static const String oAuthWithGithubText = "Continue with github";
   static const String userDataHeaderText = "Create Your Account";
   static const String passwordSignupHeaderText = "You'll need a password";
   static const String passwordSignupInstructionsText =
