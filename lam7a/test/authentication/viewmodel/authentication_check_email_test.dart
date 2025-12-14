@@ -33,41 +33,66 @@ class FakeAuthentication extends Authentication {
   void authenticateUser(UserDtoAuth? user) {
     lastAuthenticatedUser = userDtoToUserModel(user!);
     authenticateUserCallCount++;
-    state = state.copyWith(token: null, isAuthenticated: true, user: lastAuthenticatedUser);
+    state = state.copyWith(
+      token: null,
+      isAuthenticated: true,
+      user: lastAuthenticatedUser,
+    );
   }
-  UserModel userDtoToUserModel(UserDtoAuth dto) {
-  return UserModel(
-    id: dto.id,
-    username: dto.user.username,
-    email: dto.user.email,
-    role: dto.user.role,
-    name: dto.name,
-    birthDate: dto.birthDate.toIso8601String(),
-    profileImageUrl: dto.profileImageUrl?.toString(),
-    bannerImageUrl: dto.bannerImageUrl?.toString(),
-    bio: dto.bio?.toString(),
-    location: dto.location?.toString(),
-    website: dto.website?.toString(),
-    createdAt: dto.createdAt.toIso8601String(),
-    followersCount: dto.followersCount,
-    followingCount: dto.followingCount
-  );
-}
 
+  Future<void> isAuthenticated() async {
+    // try {
+    //   final response = await _apiService.get(
+    //     endpoint: ServerConstant.profileMe,
+    //   );
+    //   print(response['data']);
+    //   if (response['data'] != null) {
+    //     UserDtoAuth user = UserDtoAuth.fromJson(response['data']);
+    //     print("this is my user ${user}");
+    //     authenticateUser(user);
+    //   }
+    // } catch (e) {
+    //   print(e);
+    // }
+    authenticateUserCallCount++;
+    state = state.copyWith(
+      token: null,
+      isAuthenticated: true,
+      user: lastAuthenticatedUser,
+    );
+  }
+
+  UserModel userDtoToUserModel(UserDtoAuth dto) {
+    return UserModel(
+      id: dto.id,
+      username: dto.user?.username ?? null,
+      email: dto.user?.email ?? null,
+      role: dto.user?.role ?? null,
+      name: dto.name,
+      profileImageUrl: dto.profileImageUrl?.toString(),
+      bannerImageUrl: dto.bannerImageUrl?.toString(),
+      bio: dto.bio?.toString(),
+      location: dto.location?.toString(),
+      website: dto.website?.toString(),
+      createdAt: dto.createdAt?.toIso8601String(),
+      followersCount: dto.followersCount,
+      followingCount: dto.followingCount,
+    );
+  }
 }
 
 void main() {
   late AuthenticationRepositoryImpl authRepoMock;
   late FakeAuthentication fakeAuth;
   late ProviderContainer container;
-  
+
   setUp(() {
     authRepoMock = MockAuthenticationRepositoryImpl();
     fakeAuth = FakeAuthentication();
-    
+
     registerFallbackValue(FakeAuthenticationUserDataModel());
     registerFallbackValue(UserModel());
-    
+
     container = ProviderContainer(
       overrides: [
         authenticationImplRepositoryProvider.overrideWithValue(authRepoMock),
@@ -89,7 +114,6 @@ void main() {
 
   group("checkValidEmail Tests", () {
     test("check a new email ant the otpcode is sent", () async {
-      
       final notifier = getNotifier();
 
       notifier.state = const AuthenticationState.signup(
@@ -107,12 +131,13 @@ void main() {
         imgPath: "/path",
       );
       int lastIdx = 0;
-      when(() => authRepoMock.checkEmail(any()))
-          .thenAnswer((_) async => true);
-      when(() => authRepoMock.verificationOTP(any())).thenAnswer((_) async => true);
+      when(() => authRepoMock.checkEmail(any())).thenAnswer((_) async => true);
+      when(
+        () => authRepoMock.verificationOTP(any()),
+      ).thenAnswer((_) async => true);
       // Act
       await notifier.checkValidEmail();
-      
+
       // Assert
       verify(() => authRepoMock.checkEmail(any())).called(1);
       verify(() => authRepoMock.verificationOTP(any())).called(1);
@@ -122,10 +147,8 @@ void main() {
     });
 
     test("check for exist email", () async {
-
-      
       final notifier = getNotifier();
-      
+
       notifier.state = const AuthenticationState.signup(
         name: "farouk",
         email: "far222@example.com",
@@ -134,19 +157,21 @@ void main() {
         isValidCode: true,
         isValidEmail: true,
       );
-      
-      when(() => authRepoMock.checkEmail(any()))
-          .thenAnswer((_) async => false);
-      
+
+      when(() => authRepoMock.checkEmail(any())).thenAnswer((_) async => false);
+
       await notifier.checkValidEmail();
       final finalState = container.read(authenticationViewmodelProvider);
       expect(finalState.isValidEmail, false);
       expect(finalState.currentSignupStep, 0);
-      expect(finalState.toastMessage, AuthenticationConstants.errorEmailMessage);
+      expect(
+        finalState.toastMessage,
+        AuthenticationConstants.errorEmailMessage,
+      );
     });
 
     test("check for new email but otpCode never has been sent", () async {
-           final notifier = getNotifier();
+      final notifier = getNotifier();
 
       notifier.state = const AuthenticationState.signup(
         code: "",
@@ -163,12 +188,13 @@ void main() {
         imgPath: "/path",
       );
       int lastIdx = 0;
-      when(() => authRepoMock.checkEmail(any()))
-          .thenAnswer((_) async => true);
-      when(() => authRepoMock.verificationOTP(any())).thenAnswer((_) async => false);
+      when(() => authRepoMock.checkEmail(any())).thenAnswer((_) async => true);
+      when(
+        () => authRepoMock.verificationOTP(any()),
+      ).thenAnswer((_) async => false);
       // Act
       await notifier.checkValidEmail();
-      
+
       // Assert
       verify(() => authRepoMock.checkEmail(any())).called(1);
       verify(() => authRepoMock.verificationOTP(any())).called(1);
@@ -177,22 +203,25 @@ void main() {
       expect(finalState.currentSignupStep, 0);
     });
 
-    test("should set loading to false when registration throws exception", () async {
-      final notifier = getNotifier();
-      
-      notifier.state = const AuthenticationState.signup(
-        isValidEmail: true,
-      );
-      
-      when(() => authRepoMock.checkEmail(any()))
-          .thenThrow(Exception('Registration failed'));
-      
-      await notifier.checkValidEmail();
-      
-      final finalState = container.read(authenticationViewmodelProvider);
-      expect(finalState.toastMessage, AuthenticationConstants.errorEmailMessage);
-    });
+    test(
+      "should set loading to false when registration throws exception",
+      () async {
+        final notifier = getNotifier();
 
+        notifier.state = const AuthenticationState.signup(isValidEmail: true);
+
+        when(
+          () => authRepoMock.checkEmail(any()),
+        ).thenThrow(Exception('Registration failed'));
+
+        await notifier.checkValidEmail();
+
+        final finalState = container.read(authenticationViewmodelProvider);
+        expect(
+          finalState.toastMessage,
+          AuthenticationConstants.errorEmailMessage,
+        );
+      },
+    );
   });
-
 }

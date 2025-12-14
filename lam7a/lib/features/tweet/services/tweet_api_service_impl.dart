@@ -164,15 +164,60 @@ class TweetsApiServiceImpl implements TweetsApiService {
 
       for (final raw in postsJson) {
         if (raw is! Map) continue;
-        final json = raw as Map;
+        final json = raw as Map<String, dynamic>;
 
+        // If this is a repost whose originalPostData itself has an
+        // originalPostData, we're dealing with a repost of a quote. Mark the
+        // inner original as a quote so that TweetModel.fromJsonPosts will set
+        // isQuote=true on the quoted tweet and the UI can render its parent
+        // tweet nested inside.
+        final bool topIsRepost = json['isRepost'] == true;
+        final dynamic topOriginal = json['originalPostData'];
+        if (topIsRepost && topOriginal is Map<String, dynamic>) {
+          final dynamic nestedOriginal = topOriginal['originalPostData'];
+          if (nestedOriginal is Map<String, dynamic> &&
+              topOriginal['isQuote'] == null) {
+            topOriginal['isQuote'] = true;
+          }
+        }
+
+        // Prefer the new transformed post shape from backend (with
+        // originalPostData for replies / reposts / quotes). This ensures
+        // replies and quotes carry their parent tweet tree via
+        // TweetModel.originalTweet.
+        try {
+          if (json.containsKey('postId') && json.containsKey('date')) {
+            final tweet = TweetModel.fromJsonPosts(json);
+
+            final tweetId = tweet.id;
+            final isLikedByMe = json['isLikedByMe'] ?? false;
+            final isRepostedByMe = json['isRepostedByMe'] ?? false;
+            final isRepost = json['isRepost'] ?? false;
+            final isQuote = json['isQuote'] ?? false;
+
+            final existingFlags = _interactionFlags[tweetId] ?? <String, bool>{};
+            _interactionFlags[tweetId] = {
+              ...existingFlags,
+              'isLikedByMe': isLikedByMe,
+              'isRepostedByMe': isRepostedByMe,
+              'isRepost': isRepost,
+              'isQuote': isQuote,
+            };
+
+            tweets.add(tweet);
+            continue;
+          }
+        } catch (e) {
+          print('⚠️ Failed to parse transformed feed post via fromJsonPosts, falling back: $e');
+        }
+
+        // Fallback: legacy mapping for older backend shapes.
         final tweetId =
             (json['postId'] ??
                     json['id'] ??
                     DateTime.now().millisecondsSinceEpoch)
                 .toString();
 
-        // Basic user info
         final username = json['username']?.toString();
         final authorName = json['name']?.toString();
         final authorProfileImage = json['avatar']?.toString();
@@ -180,82 +225,15 @@ class TweetsApiServiceImpl implements TweetsApiService {
         int parseInt(dynamic v) =>
             v == null ? 0 : (v is int ? v : int.tryParse(v.toString()) ?? 0);
 
-        // Counts from feed
         final likes = parseInt(json['likesCount']);
         final reposts = parseInt(json['retweetsCount']);
         final comments = parseInt(json['commentsCount']);
 
-        // Interaction and repost metadata flags
         final isLikedByMe = json['isLikedByMe'] ?? false;
         final isRepostedByMe = json['isRepostedByMe'] ?? false;
         final isRepost = json['isRepost'] ?? false;
         final isQuote = json['isQuote'] ?? false;
 
-        // Original post data for reposts/quotes (to show nested parent tweet)
-        Map<String, dynamic>? originalTweetJson;
-        final original = json['originalPostData'];
-        if (original is Map) {
-          final o = original;
-
-          final originalId =
-              (o['postId'] ?? o['id'] ?? DateTime.now().millisecondsSinceEpoch)
-                  .toString();
-
-          final originalUserId = (o['userId'] ?? o['user_id'] ?? '0')
-              .toString();
-
-          final rawDate = o['date'] ?? o['createdAt'] ?? o['created_at'];
-          String originalDateString;
-          if (rawDate is String) {
-            originalDateString = rawDate;
-          } else if (rawDate is DateTime) {
-            originalDateString = rawDate.toIso8601String();
-          } else {
-            originalDateString = DateTime.now().toIso8601String();
-          }
-
-          final originalLikes = parseInt(o['likesCount']);
-          final originalReposts = parseInt(o['retweetsCount']);
-          final originalComments = parseInt(o['commentsCount']);
-
-          final originalImageUrls = <String>[];
-          final originalVideoUrls = <String>[];
-          if (o['media'] is List) {
-            for (final m in (o['media'] as List)) {
-              if (m is! Map) continue;
-              final url = m['url']?.toString();
-              final type = m['type']?.toString();
-              if (url == null || url.isEmpty) continue;
-              if (type == 'VIDEO') {
-                originalVideoUrls.add(url);
-              } else {
-                originalImageUrls.add(url);
-              }
-            }
-          }
-
-          originalTweetJson = <String, dynamic>{
-            'id': originalId,
-            'userId': originalUserId,
-            'body': (o['text'] ?? o['content'] ?? '').toString(),
-            'date': originalDateString,
-            'username': o['username']?.toString(),
-            'authorName': o['name']?.toString(),
-            'authorProfileImage': o['avatar']?.toString(),
-            'likes': originalLikes,
-            'repost': originalReposts,
-            'comments': originalComments,
-            'views': 0,
-            'qoutes': 0,
-            'bookmarks': 0,
-            'mediaImages': originalImageUrls,
-            'mediaVideos': originalVideoUrls,
-            'isRepost': false,
-            'isQuote': false,
-          };
-        }
-
-        // Media
         final imageUrls = <String>[];
         final videoUrls = <String>[];
         if (json['media'] is List) {
@@ -296,13 +274,8 @@ class TweetsApiServiceImpl implements TweetsApiService {
           'isQuote': isQuote,
         };
 
-        if (originalTweetJson != null) {
-          mappedJson['originalTweet'] = originalTweetJson;
-        }
-
         final tweet = TweetModel.fromJson(mappedJson);
 
-        // Store interaction flags and repost metadata for this tweet
         final existingFlags = _interactionFlags[tweetId] ?? <String, bool>{};
         _interactionFlags[tweetId] = {
           ...existingFlags,
@@ -406,7 +379,40 @@ class TweetsApiServiceImpl implements TweetsApiService {
       final dynamic json = (data is List && data.isNotEmpty)
           ? data.first
           : data;
-      // Map backend fields to frontend model (supports both transformed and legacy shapes)
+      // If backend returns the new transformed post shape (with top-level
+      // postId/date/username/name/avatar and optional originalPostData), use
+      // the dedicated mapper so quotes and replies include their parent tree.
+      if (json is Map<String, dynamic> &&
+          json.containsKey('postId') &&
+          json.containsKey('date') &&
+          (json.containsKey('username') ||
+              json.containsKey('name') ||
+              json.containsKey('avatar'))) {
+        try {
+          final tweet = TweetModel.fromJsonPosts(json);
+          final tweetId = tweet.id;
+
+          final isLikedByMe = json['isLikedByMe'] ?? false;
+          final isRepostedByMe = json['isRepostedByMe'] ?? false;
+          final isRepost = json['isRepost'] ?? false;
+          final isQuote = json['isQuote'] ?? false;
+
+          final existingFlags = _interactionFlags[tweetId] ?? <String, bool>{};
+          _interactionFlags[tweetId] = {
+            ...existingFlags,
+            'isLikedByMe': isLikedByMe,
+            'isRepostedByMe': isRepostedByMe,
+            'isRepost': isRepost,
+            'isQuote': isQuote,
+          };
+
+          return tweet;
+        } catch (e) {
+          print('⚠️ Failed to parse getTweetById via fromJsonPosts, falling back: $e');
+        }
+      }
+
+      // Map backend fields to frontend model (supports legacy and mixed shapes)
       final tweetId =
           (json['postId'] ??
                   json['id'] ??
@@ -804,72 +810,211 @@ class TweetsApiServiceImpl implements TweetsApiService {
     int page,
     String tweetsType,
   ) async {
-    String endpoint = ServerConstant.tweetsForYou;
-    Map<String, dynamic> response = await _apiService.get(
-      endpoint: "/posts/timeline/" + tweetsType,
-      queryParameters: {"limit": limit, "page": page},
-    );
+    // Ensure flags are loaded before fetching tweets
+    if (!_isInitialized) {
+      await _loadStoredFlags();
+    }
 
-    List<dynamic> postsJson = response['data']['posts'];
+    try {
+      final response = await _apiService.get<Map<String, dynamic>>(
+        endpoint: "/posts/timeline/$tweetsType",
+        queryParameters: {"limit": limit, "page": page},
+      );
 
-    List<TweetModel> tweets = postsJson.map((post) {
-      bool isRepost = post['isRepost'] ?? false;
-      bool isQuote = post['isQuote'] ?? false;
+      // Backend returns: { status, message, data: { posts: [...] } }
+      final dataWrapper = response['data'];
+      final postsJson = (dataWrapper is Map && dataWrapper['posts'] is List)
+          ? (dataWrapper['posts'] as List)
+          : <dynamic>[];
 
-      Map<String, dynamic>? originalJson;
-      final rawOriginal = post['originalPostData'];
-      if ((isRepost || isQuote) && rawOriginal is Map<String, dynamic>) {
-        originalJson = rawOriginal;
+      final tweets = <TweetModel>[];
+
+      for (final raw in postsJson) {
+        if (raw is! Map) continue;
+        final json = raw as Map<String, dynamic>;
+
+        // If this is a repost whose originalPostData itself has an
+        // originalPostData, we're dealing with a repost of a quote. Mark the
+        // inner original as a quote so that TweetModel.fromJsonPosts will set
+        // isQuote=true on the quoted tweet and the UI can render its parent
+        // tweet nested inside.
+        final bool topIsRepost = json['isRepost'] == true;
+        final dynamic topOriginal = json['originalPostData'];
+        if (topIsRepost && topOriginal is Map<String, dynamic>) {
+          final dynamic nestedOriginal = topOriginal['originalPostData'];
+          if (nestedOriginal is Map<String, dynamic> &&
+              topOriginal['isQuote'] == null) {
+            topOriginal['isQuote'] = true;
+          }
+        }
+
+        // Prefer the new transformed post shape from backend (with
+        // originalPostData for replies / reposts / quotes). This ensures
+        // replies and quotes carry their parent tweet tree via
+        // TweetModel.originalTweet.
+        try {
+          if (json.containsKey('postId') && json.containsKey('date')) {
+            final tweet = TweetModel.fromJsonPosts(json);
+
+            final tweetId = tweet.id;
+            final isLikedByMe = json['isLikedByMe'] ?? false;
+            final isRepostedByMe = json['isRepostedByMe'] ?? false;
+            final isRepost = json['isRepost'] ?? false;
+            final isQuote = json['isQuote'] ?? false;
+
+            final existingFlags = _interactionFlags[tweetId] ?? <String, bool>{};
+            _interactionFlags[tweetId] = {
+              ...existingFlags,
+              'isLikedByMe': isLikedByMe,
+              'isRepostedByMe': isRepostedByMe,
+              'isRepost': isRepost,
+              'isQuote': isQuote,
+            };
+
+            tweets.add(tweet);
+            continue;
+          }
+        } catch (e) {
+          print(
+            '⚠️ Failed to parse timeline post via fromJsonPosts, falling back: $e',
+          );
+        }
+
+        // Some timeline entries for reposts are lightweight wrapper objects
+        // that don't have a top-level postId/date; instead, the full
+        // original post (possibly a quote/reply tree) lives under
+        // originalPostData. Normalise those into the transformed post shape
+        // so TweetModel.fromJsonPosts can build the hierarchical chain.
+        final bool isRepostWrapper =
+            (json['isRepost'] == true) && !json.containsKey('postId');
+        final originalWrapper = json['originalPostData'];
+        if (isRepostWrapper && originalWrapper is Map<String, dynamic>) {
+          final original = Map<String, dynamic>.from(originalWrapper);
+
+          final merged = <String, dynamic>{
+            ...original,
+          };
+
+          // Override author fields with the reposting user's identity and
+          // use the repost timestamp instead of the original.
+          if (json['userId'] != null) merged['userId'] = json['userId'];
+          if (json['username'] != null) merged['username'] = json['username'];
+          if (json['name'] != null) merged['name'] = json['name'];
+          if (json['avatar'] != null) merged['avatar'] = json['avatar'];
+          if (json['date'] != null) merged['date'] = json['date'];
+
+          merged['isRepost'] = true;
+          merged['originalPostData'] = original;
+
+          try {
+            final tweet = TweetModel.fromJsonPosts(merged);
+            final tweetId = tweet.id;
+
+            final isLikedByMe = json['isLikedByMe'] ?? false;
+            final isRepostedByMe = json['isRepostedByMe'] ?? false;
+            final isQuote = merged['isQuote'] ?? false;
+
+            final existingFlags =
+                _interactionFlags[tweetId] ?? <String, bool>{};
+            _interactionFlags[tweetId] = {
+              ...existingFlags,
+              'isLikedByMe': isLikedByMe,
+              'isRepostedByMe': isRepostedByMe,
+              'isRepost': true,
+              'isQuote': isQuote is bool ? isQuote : (isQuote == true),
+            };
+
+            tweets.add(tweet);
+            continue;
+          } catch (e) {
+            print(
+              '⚠️ Failed to parse timeline repost wrapper via fromJsonPosts, falling back: $e',
+            );
+          }
+        }
+
+        // Fallback: legacy mapping for older backend shapes.
+        final tweetId =
+            (json['postId'] ??
+                    json['id'] ??
+                    DateTime.now().millisecondsSinceEpoch)
+                .toString();
+
+        final username = json['username']?.toString();
+        final authorName = json['name']?.toString();
+        final authorProfileImage = json['avatar']?.toString();
+
+        int parseInt(dynamic v) =>
+            v == null ? 0 : (v is int ? v : int.tryParse(v.toString()) ?? 0);
+
+        final likes = parseInt(json['likesCount']);
+        final reposts = parseInt(json['retweetsCount']);
+        final comments = parseInt(json['commentsCount']);
+
+        final isLikedByMe = json['isLikedByMe'] ?? false;
+        final isRepostedByMe = json['isRepostedByMe'] ?? false;
+        final isRepost = json['isRepost'] ?? false;
+        final isQuote = json['isQuote'] ?? false;
+
+        final imageUrls = <String>[];
+        final videoUrls = <String>[];
+        if (json['media'] is List) {
+          for (final m in (json['media'] as List)) {
+            if (m is! Map) continue;
+            final url = m['url']?.toString();
+            final type = m['type']?.toString();
+            if (url == null || url.isEmpty) continue;
+            if (type == 'VIDEO') {
+              videoUrls.add(url);
+            } else {
+              imageUrls.add(url);
+            }
+          }
+        }
+
+        final mappedJson = <String, dynamic>{
+          'id': tweetId,
+          'userId': (json['userId'] ?? json['user_id'] ?? '0').toString(),
+          'body': (json['text'] ?? json['content'] ?? '').toString(),
+          'date':
+              (json['date'] ??
+                      json['createdAt'] ??
+                      DateTime.now().toIso8601String())
+                  .toString(),
+          'username': username,
+          'authorName': authorName,
+          'authorProfileImage': authorProfileImage,
+          'likes': likes,
+          'repost': reposts,
+          'comments': comments,
+          'views': 0,
+          'qoutes': 0,
+          'bookmarks': 0,
+          'mediaImages': imageUrls,
+          'mediaVideos': videoUrls,
+          'isRepost': isRepost,
+          'isQuote': isQuote,
+        };
+
+        final tweet = TweetModel.fromJson(mappedJson);
+
+        final existingFlags = _interactionFlags[tweetId] ?? <String, bool>{};
+        _interactionFlags[tweetId] = {
+          ...existingFlags,
+          'isLikedByMe': isLikedByMe,
+          'isRepostedByMe': isRepostedByMe,
+          'isRepost': isRepost,
+          'isQuote': isQuote,
+        };
+
+        tweets.add(tweet);
       }
 
-      return TweetModel(
-        id: post['postId'].toString(),
-        body: post['text'] ?? '',
-
-        mediaImages: parseMedia(post['media']),
-        mediaVideos: const [],
-
-        date: DateTime.parse(post['date']),
-        likes: post['likesCount'] ?? 0,
-        qoutes: post['commentsCount'] ?? 0,
-        repost: post['retweetsCount'] ?? 0,
-        comments: post['commentsCount'] ?? 0,
-        userId: post['userId'].toString(),
-
-        username: post['username'],
-        authorName: post['name'],
-        authorProfileImage: post['avatar'],
-
-        isRepost: isRepost,
-        isQuote: isQuote,
-
-        originalTweet: originalJson != null
-            ? TweetModel(
-                id: originalJson['postId'].toString(),
-                body: originalJson['text'] ?? '',
-
-                mediaImages: parseMedia(originalJson['media']),
-                mediaVideos: const [],
-
-                date: DateTime.parse(originalJson['date']),
-                likes: originalJson['likesCount'] ?? 0,
-                qoutes: originalJson['commentsCount'] ?? 0,
-                repost: originalJson['retweetsCount'] ?? 0,
-                comments: originalJson['commentsCount'] ?? 0,
-                userId: originalJson['userId'].toString(),
-
-                username: originalJson['username'],
-                authorName: originalJson['name'],
-                authorProfileImage: originalJson['avatar'],
-
-                isRepost: false,
-                isQuote: false,
-              )
-            : null,
-      );
-    }).toList();
-
-    return tweets;
+      return tweets;
+    } catch (e) {
+      print('❌ Error fetching timeline tweets ($tweetsType): $e');
+      rethrow;
+    }
   }
 
   @override
@@ -898,6 +1043,18 @@ class TweetsApiServiceImpl implements TweetsApiService {
     if (data is! List) return [];
 
     return data.map<TweetModel>((json) {
+      // Prefer the transformed hierarchical post shape when available so
+      // reposts/quotes keep their full parent chain via originalTweet.
+      if (json is Map<String, dynamic>) {
+        try {
+          if (json.containsKey('postId') && json.containsKey('date')) {
+            return TweetModel.fromJsonPosts(json);
+          }
+        } catch (e) {
+          print('⚠️ Failed to parse profile post via fromJsonPosts, falling back: $e');
+        }
+      }
+
       final isRepost = json['isRepost'] == true;
       final isQuote = json['isQuote'] == true;
       final original = json['originalPostData'];
@@ -906,6 +1063,34 @@ class TweetsApiServiceImpl implements TweetsApiService {
       // CASE 1: REPOST  → RETURN ONLY ORIGINAL TWEET
       // ---------------------------------------------------------
       if (isRepost && original is Map<String, dynamic>) {
+        // New profile shape returns a lightweight repost wrapper where the
+        // full post (possibly a quote/reply tree) lives under
+        // originalPostData. Merge that with the repost metadata and let
+        // TweetModel.fromJsonPosts build the hierarchical chain.
+        final merged = <String, dynamic>{
+          ...Map<String, dynamic>.from(original),
+        };
+
+        if (json is Map<String, dynamic>) {
+          if (json['userId'] != null) merged['userId'] = json['userId'];
+          if (json['username'] != null) merged['username'] = json['username'];
+          if (json['name'] != null) merged['name'] = json['name'];
+          if (json['avatar'] != null) merged['avatar'] = json['avatar'];
+          if (json['date'] != null) merged['date'] = json['date'];
+        }
+
+        merged['isRepost'] = true;
+        merged['originalPostData'] = Map<String, dynamic>.from(original);
+
+        try {
+          return TweetModel.fromJsonPosts(merged);
+        } catch (e) {
+          print(
+            '⚠️ Failed to parse profile repost via fromJsonPosts, falling back: $e',
+          );
+        }
+
+        // Fallback: flat mapping using only the original post data.
         return TweetModel(
           id: original['postId'].toString(),
           userId: original['userId'].toString(),
@@ -995,6 +1180,22 @@ class TweetsApiServiceImpl implements TweetsApiService {
     if (data is! List) return [];
 
     return data.map<TweetModel>((json) {
+      // Prefer the transformed hierarchical post shape (TransformedPost)
+      // when available so replies carry their full parent chain via
+      // TweetModel.originalTweet, just like in the main timeline.
+      if (json is Map<String, dynamic>) {
+        try {
+          if (json.containsKey('postId') && json.containsKey('date')) {
+            return TweetModel.fromJsonPosts(json);
+          }
+        } catch (e) {
+          print(
+            '⚠️ Failed to parse profile reply via fromJsonPosts, falling back: $e',
+          );
+        }
+      }
+
+      // Legacy fallback: manual mapping using the flat shape.
       final original = json['originalPostData'];
 
       // Parent tweet (what reply is replying to)

@@ -15,7 +15,6 @@ import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/re
 import 'package:lam7a/features/authentication/ui/view/screens/interests_screen/interests_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authentication_login_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/oauth_webview/oauth_webview.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
@@ -39,10 +38,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final container = ProviderContainer();
 
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    print("Post Frame Callback: Handling initial message if any.");
-    container.read(notificationsReceiverProvider).handleInitialMessageIfAny();
-  });
+
 
   container.read(notificationsReceiverProvider).initialize();
   await Future.wait([container.read(apiServiceProvider).initialize()]);
@@ -60,12 +56,18 @@ void main() async {
     ),
   );
 
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    print("Post Frame Callback: Handling initial message if any.");
+    container.read(notificationsReceiverProvider).handleInitialMessageIfAny();
+  });
+
   // TO TEST ADD TWEET SCREEN ONLY (No auth): Uncomment lines below
   //runApp(ProviderScope(child: TestAddTweetApp()));
 
   // TO TEST HOME WITH FAB (No auth): Uncomment lines below
   // runApp(ProviderScope(child: TestTweetHomeApp()));
 }
+
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -166,7 +168,7 @@ class _MyAppState extends ConsumerState<MyApp> {
             ChatScreen.routeName: (context) => ChatScreen(),
             InterestsScreen.routeName: (context) => InterestsScreen(),
             FollowingScreen.routeName: (context) => FollowingScreen(),
-            OauthWebview.routeName: (context) => OauthWebview(),
+            // OauthWebview.routeName: (context) => OauthWebview(),
             ResetPassword.routeName: (context) => ResetPassword(),
 
             ForgotPasswordScreen.routeName: (context) => ForgotPasswordScreen(),

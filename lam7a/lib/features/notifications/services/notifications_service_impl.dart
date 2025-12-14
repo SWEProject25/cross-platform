@@ -37,4 +37,9 @@ class NotificationsAPIServiceImpl implements NotificationsAPIService {
   void markAllAsRead() async {
     var response = await _apiService.patch(endpoint: "/notifications/read-all");
   }
+  
+  @override
+  void markAsRead(String notificationId) {
+    _apiService.patch(endpoint: "/notifications/$notificationId/read");
+  }
 }

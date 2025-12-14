@@ -20,8 +20,10 @@ class BlockedProfileView extends ConsumerWidget {
     final repo = ref.watch(profileRepositoryProvider);
 
     return Scaffold(
+      key: const ValueKey('blocked_profile_screen'),
       appBar: AppBar(
         leading: IconButton(
+          key: const ValueKey('blocked_profile_back_button'),
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
@@ -36,11 +38,12 @@ class BlockedProfileView extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.block, size: 80, color: Colors.red),
+              const Icon(Icons.block, size: 80, color: Colors.red, key: ValueKey('blocked_profile_icon')),
               const SizedBox(height: 20),
 
               Text(
                 "You blocked @$username",
+                key: const ValueKey('blocked_profile_title'),
                 style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
@@ -48,6 +51,7 @@ class BlockedProfileView extends ConsumerWidget {
               const SizedBox(height: 12),
               const Text(
                 "You can't follow or see their posts.",
+                key: ValueKey('blocked_profile_subtitle'),
                 style: TextStyle(color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
@@ -55,6 +59,7 @@ class BlockedProfileView extends ConsumerWidget {
               const SizedBox(height: 25),
 
               ElevatedButton(
+                key: const ValueKey('blocked_profile_unblock_button'),
                 onPressed: () async {
                   await repo.unblockUser(userId);
                   onUnblock();
