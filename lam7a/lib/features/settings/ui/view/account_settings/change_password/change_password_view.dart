@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/forgot_password_screen.dart';
 import '../../../viewmodel/change_password_viewmodel.dart';
 import '../../../widgets/settings_textfield.dart';
 import '../../../viewmodel/account_viewmodel.dart';
@@ -113,10 +114,7 @@ class ChangePasswordView extends ConsumerWidget {
               child: TextButton(
                 key: const Key("change_password_forgot_button"),
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (ctx) => const SendOtpView()),
-                  );
+                  Navigator.pushNamed(context, ForgotPasswordScreen.routeName);
                 },
                 child: Text(
                   'Forgot your password?',
