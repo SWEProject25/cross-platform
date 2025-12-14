@@ -121,7 +121,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   Widget build(BuildContext context) {
     final avatarProvider = (newAvatarPath != null) ? FileImage(File(newAvatarPath!)) : (widget.user.profileImageUrl != null && widget.user.profileImageUrl!.isNotEmpty ? NetworkImage(widget.user.profileImageUrl!) : const AssetImage('assets/images/user_profile.png')) as ImageProvider;
 
-    final bannerProvider = (newBannerPath != null) ? FileImage(File(newBannerPath!)) : (widget.user.bannerImageUrl != null && widget.user.bannerImageUrl!.isNotEmpty ? NetworkImage(widget.user.bannerImageUrl!) : const AssetImage('assets/images/github_icon.png')) as ImageProvider;
+    final bannerProvider = (newBannerPath != null) ? FileImage(File(newBannerPath!)) : (widget.user.bannerImageUrl != null && widget.user.bannerImageUrl!.isNotEmpty ? NetworkImage(widget.user.bannerImageUrl!) : const AssetImage('assets/images/Blue-Background-Download-PNG-Image.png')) as ImageProvider;
 
     return Scaffold(
       appBar: AppBar(
