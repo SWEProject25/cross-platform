@@ -50,14 +50,16 @@ void handleFCMTokenUpdate(
 
 @riverpod
 NotificationsReceiver notificationsReceiver(Ref ref){
-  return NotificationsReceiver(ref.read(unReadNotificationCountProvider.notifier));
+  ref.keepAlive();
+  return NotificationsReceiver(ref, ref.read(unReadNotificationCountProvider.notifier));
 }
 
 class NotificationsReceiver {
   Logger logger = getLogger(NotificationsReceiver);
   NewNotificationCount _newNotificationCount;
-
-  NotificationsReceiver(this._newNotificationCount);
+  
+  Ref ref;
+  NotificationsReceiver(this.ref, this._newNotificationCount);
 
   RemoteMessage? _initialMessage;
 
@@ -79,7 +81,9 @@ class NotificationsReceiver {
   }
 
   void handleInitialMessageIfAny() {
+    logger.i("Handling initial message if any.");
     if (_initialMessage != null) {
+      logger.i("Handling initial message: $_initialMessage");
       _onNotificationTapped(_initialMessage!);
       _initialMessage = null;
     }
@@ -134,19 +138,20 @@ class NotificationsReceiver {
   Future<void> _onNotificationTapped(
     RemoteMessage message,
   ) async {
+    logger.i("Initializing Firebase in background message handler");
     await Firebase.initializeApp();
 
     logger.i("Handling a background message: ${message.messageId}");
     logger.i('Message data: ${message.data.toString()} ${message.data.runtimeType.toString()}');
     NotificationModel notifiacation = NotificationModel.fromJson(message.data);
 
-
     handleNotificationAction(notifiacation);
+
+    ref.read(notificationsRepositoryProvider).markAsRead(notifiacation.notificationId);
     _newNotificationCount.updateNotificationsCount();
   }
 
   void handleNotificationAction(NotificationModel notifiacation) {
-
     switch (notifiacation.type) {
       case NotificationType.dm:
         if (notifiacation.conversationId != null) {

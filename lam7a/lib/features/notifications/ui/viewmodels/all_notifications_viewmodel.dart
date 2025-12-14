@@ -26,7 +26,7 @@ class AllNotificationsViewModel extends PaginationNotifier<NotificationModel> {
     _notificationsRepository = ref.read(notificationsRepositoryProvider);
     _notificationsReceiver = ref.read(notificationsReceiverProvider);
 
-    _notificationsRepository.markAllAsRead();
+    // _notificationsRepository.markAllAsRead();
 
     Future.microtask(() async {
       try {
@@ -80,6 +80,18 @@ class AllNotificationsViewModel extends PaginationNotifier<NotificationModel> {
     });
   }
 
+  void markNotAsRead(String id) {
+      var newState = state.copyWith(
+        items: state.items.map((n) {
+          if (n.notificationId == id) {
+            return n.copyWith(isRead: true);
+          }
+          return n;
+        }).toList(),
+      );
+      state = newState;
+      _notificationsRepository.markAsRead(id);
+  }
   void handleNotificationAction(NotificationModel notification) {
     _notificationsReceiver.handleNotificationAction(notification);
   }

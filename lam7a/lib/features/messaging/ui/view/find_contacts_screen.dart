@@ -57,7 +57,7 @@ class FindContactsScreen extends ConsumerWidget {
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
-                      c.handle,
+                      '@'+c.handle,
                       style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
                     onTap: () async {

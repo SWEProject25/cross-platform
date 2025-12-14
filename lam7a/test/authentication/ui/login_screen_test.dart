@@ -242,8 +242,13 @@ void main() {
         when(() => mockRepo.login(any())).thenAnswer(
           (_) async => RootData(
             onboardingStatus: OnboardingStatus(
+<<<<<<< HEAD
               hasCompeletedFollowing: true,
               hasCompeletedInterests: true,
+=======
+              hasCompeletedFollowing: false,
+              hasCompeletedInterests: false,
+>>>>>>> origin/dev
               hasCompletedBirthDate: true,
             ),
             user: User(

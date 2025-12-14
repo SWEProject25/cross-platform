@@ -16,11 +16,13 @@ class TweetSummaryWidget extends ConsumerWidget {
     required this.tweetId,
     required this.tweetData,
     this.backGroundColor,
+    this.onTap,
   });
 
   final String tweetId;
   final TweetModel tweetData;
   final Color? backGroundColor;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -100,6 +102,8 @@ class TweetSummaryWidget extends ConsumerWidget {
               TweetScreen(tweetId: targetId, tweetData: targetTweet),
         ),
       );
+
+      onTap?.call();
     }
 
     return SafeArea(

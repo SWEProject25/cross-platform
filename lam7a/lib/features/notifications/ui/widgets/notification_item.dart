@@ -18,7 +18,7 @@ class NotificationItem extends StatelessWidget {
 
     return isPostViewedNotification(notification.type)
         ? post != null
-              ? TweetSummaryWidget(tweetId: post.id, tweetData: post, backGroundColor: notification.isRead ? null : Colors.blue.shade50,)
+              ? TweetSummaryWidget(tweetId: post.id, tweetData: post, backGroundColor: notification.isRead ? null : Colors.blue.shade50, onTap: onTap,)
               : Center(
                   child: Text(
                     'No post available ${post?.id ?? -1}',
@@ -131,7 +131,7 @@ class GeneralNotificationTile extends StatelessWidget {
                 ),
                 //Time ago
                 Flexible(
-                  flex: 1,
+                  flex: 2,
                   child: Container(
                     // color: Colors.blue,
                     child: TimeAgoText(

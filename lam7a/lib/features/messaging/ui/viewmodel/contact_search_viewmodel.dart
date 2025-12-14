@@ -26,7 +26,7 @@ class ContactSearchViewModel extends _$ContactSearchViewModel {
   Future<void> loadSearchSuggestion() async {
     state = state.copyWith(contacts: AsyncLoading());
     
-    var contacts = await _conversationsRepository.searchForContactsExtended("", 1);
+    var contacts = await _conversationsRepository.searchForContacts("", 1);
     state = state.copyWith(contacts: AsyncData(contacts));
   }
 
@@ -47,7 +47,7 @@ class ContactSearchViewModel extends _$ContactSearchViewModel {
     // }
 
     try {
-      var data = await _conversationsRepository.searchForContactsExtended(query, 1);
+      var data = await _conversationsRepository.searchForContacts(query, 1);
       state = state.copyWith(contacts: AsyncData(data));
     } catch (e, st) {
       state = state.copyWith(contacts: AsyncError(e, st));
