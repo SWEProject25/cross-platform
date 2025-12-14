@@ -1,13 +1,7 @@
 import 'dart:async';
 
-import 'package:lam7a/core/models/auth_state.dart';
-import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/utils/logger.dart';
-import 'package:lam7a/features/messaging/dtos/message_socket_dtos.dart';
-import 'package:lam7a/features/messaging/model/chat_message.dart';
-import 'package:lam7a/features/messaging/services/dms_api_service.dart';
-import 'package:lam7a/features/messaging/services/messages_store.dart';
-import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
+
 import 'package:lam7a/features/tweet/dtos/tweets_socket_events_dto.dart';
 import 'package:lam7a/features/tweet/services/tweet_socket_service.dart';
 import 'package:logger/logger.dart';
@@ -19,7 +13,6 @@ part 'tweet_updates_repository.g.dart';
 TweetUpdatesRepository tweetUpdatesRepository(Ref ref) {
   var repo = TweetUpdatesRepository(
     ref.read(tweetsSocketServiceProvider),
-    ref.watch(authenticationProvider),
   );
   ref.onDispose(() => repo.dispose());
   return repo;
@@ -29,7 +22,6 @@ class TweetUpdatesRepository {
   final Logger _logger = getLogger(TweetUpdatesRepository);
 
   final TweetsSocketService _socket;
-  final AuthState _authState;
 
   final Map<int, StreamController<void>> _notifier = {};
   StreamSubscription<PostUpdateDto>? _likeUpdateSub;
@@ -43,7 +35,7 @@ class TweetUpdatesRepository {
   final Map<int, StreamController<int>> _postLikeCounts = {};
   final Map<int, StreamController<int>> _postRepostCounts = {};
 
-  TweetUpdatesRepository(this._socket, this._authState) {
+  TweetUpdatesRepository(this._socket) {
 
     _logger.w("Create MessagesRepository");
     _likeUpdateSub = _socket.likeUpdates.listen(_onLikeUpdate);
@@ -81,10 +73,6 @@ class TweetUpdatesRepository {
     for (var postId in _joinedPosts) {
       _socket.joinPost(postId);
     }
-
-    // for (var conversationId in _joinedConversations) {
-    //   _reSyncMessageHistory(conversationId);
-    // }
   }
 
   void _onLikeUpdate(PostUpdateDto data) {
@@ -119,11 +107,6 @@ class TweetUpdatesRepository {
 
     controller.add(data.count);
   }
-
-  Stream<void> onMessageRecieved(int conversationId) =>
-      _getNotifier(conversationId).stream;
-  StreamController<void> _getNotifier(int conversationId) => _notifier
-      .putIfAbsent(conversationId, () => StreamController<void>.broadcast());
 
   Stream<int> onPostLikeUpdates(int postId) {
     return _postLikeCounts
