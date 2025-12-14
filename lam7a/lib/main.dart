@@ -15,7 +15,6 @@ import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/re
 import 'package:lam7a/features/authentication/ui/view/screens/interests_screen/interests_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/login_screen/authentication_login_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/oauth_webview/oauth_webview.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/signup_flow_screen/authentication_signup_flow_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
@@ -167,7 +166,7 @@ class _MyAppState extends ConsumerState<MyApp> {
             ChatScreen.routeName: (context) => ChatScreen(),
             InterestsScreen.routeName: (context) => InterestsScreen(),
             FollowingScreen.routeName: (context) => FollowingScreen(),
-            OauthWebview.routeName: (context) => OauthWebview(),
+            // OauthWebview.routeName: (context) => OauthWebview(),
             ResetPassword.routeName: (context) => ResetPassword(),
 
             ForgotPasswordScreen.routeName: (context) => ForgotPasswordScreen(),

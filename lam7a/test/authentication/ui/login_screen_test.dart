@@ -226,21 +226,32 @@ void main() {
         Widget createWidgetUnderTest(Widget child) {
           return UncontrolledProviderScope(
             container: container,
-            child: MaterialApp(home: child, routes: {
-              AuthenticationTransmissionScreen.routeName : (_) => AuthenticationTransmissionScreen()
-            },),
+            child: MaterialApp(
+              home: child,
+              routes: {
+                AuthenticationTransmissionScreen.routeName: (_) =>
+                    AuthenticationTransmissionScreen(),
+              },
+            ),
           );
         }
 
         final testWidget = LogInScreen();
 
         when(() => mockRepo.login(any())).thenAnswer(
-          (_) async =>  User(
-            id: 123,
-            username: "name",
-            email: "far123@exmple.com",
-            role: "User",
-            profile: Profile(name: "faroukk", profileImageUrl: "/img"),
+          (_) async => RootData(
+            onboardingStatus: OnboardingStatus(
+              hasCompeletedFollowing: false,
+              hasCompeletedInterests: false,
+              hasCompletedBirthDate: true,
+            ),
+            user: User(
+              id: 123,
+              username: "name",
+              email: "far123@exmple.com",
+              role: "User",
+              profile: Profile(name: "faroukk", profileImageUrl: "/img"),
+            ),
           ),
         );
 
@@ -271,7 +282,9 @@ void main() {
         container.dispose();
       },
     );
-      testWidgets('should show error message when wrong credentials', (tester) async {
+    testWidgets('should show error message when wrong credentials', (
+      tester,
+    ) async {
       final container = createContainer();
       final notifier = container.read(authenticationViewmodelProvider.notifier);
       Widget createWidgetUnderTest(Widget child) {
@@ -288,9 +301,9 @@ void main() {
       ).thenAnswer((_) async => false);
 
       notifier.state = const AuthenticationState.login(
-          currentLoginStep: 1,
-          identifier: "far123@example.com",
-          passwordLogin: "Test1234!"
+        currentLoginStep: 1,
+        identifier: "far123@example.com",
+        passwordLogin: "Test1234!",
       );
 
       await tester.pumpWidget(createWidgetUnderTest(testWidget));
@@ -304,6 +317,5 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.byKey(ValueKey("loginMessage")), findsOne);
     });
-   
   });
 }

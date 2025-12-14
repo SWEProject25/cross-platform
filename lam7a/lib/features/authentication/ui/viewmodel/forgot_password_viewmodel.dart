@@ -1,4 +1,3 @@
-import 'package:lam7a/features/authentication/model/interest_dto.dart';
 import 'package:lam7a/features/authentication/repository/authentication_impl_repository.dart';
 import 'package:lam7a/features/authentication/ui/state/forgot_password_state.dart';
 import 'package:lam7a/features/authentication/utils/authentication_validator.dart';

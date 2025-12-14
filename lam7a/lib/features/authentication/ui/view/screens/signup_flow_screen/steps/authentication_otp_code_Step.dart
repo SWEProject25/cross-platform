@@ -114,7 +114,7 @@ class _VerificationCodeState extends ConsumerState<VerificationCode> {
                   _startCountdown();
                 } else {
                   showToastMessage(
-                    "there's still  " + _secondsRemaining.toString(),
+                    "there's still  " + _secondsRemaining.toString() + " sec",
                   );
                 }
               },

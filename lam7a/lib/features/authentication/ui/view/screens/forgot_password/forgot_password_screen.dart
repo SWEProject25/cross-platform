@@ -1,26 +1,17 @@
-import 'dart:async';
-
-import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lam7a/core/providers/authentication.dart';
-import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/reset_password.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/steps/email_sent.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/steps/enter_email_to_send_code.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/steps/verify_email.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps/password_login_step.dart';
-import 'package:lam7a/features/authentication/ui/view/screens/login_screen/steps/unique_identifier_step.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/transmissionScreen/authentication_transmission_screen.dart';
-import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/forgot_password_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
 import 'package:lam7a/features/authentication/ui/widgets/loading_circle.dart';
-import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
-import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 
 const List<Widget> forgotPasswordFlow = [
   EnterEmailToSendCode(),
