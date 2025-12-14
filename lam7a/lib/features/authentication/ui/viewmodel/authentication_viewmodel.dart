@@ -20,7 +20,7 @@ void showToastMessage(String message) {
     msg: message,
     gravity: ToastGravity.CENTER,
     timeInSecForIosWeb: 1,
-    backgroundColor: const Color.fromARGB(255, 136, 136, 136),
+    backgroundColor: const Color.fromARGB(255, 163, 163, 163),
     textColor: Pallete.toastColor,
   );
 }
@@ -74,50 +74,63 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   // check for email if it exists in data base and call the generate otp method from backend
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
-  Future<void> checkValidEmail() async {
-    try {
-      if (state.isValidEmail) {
-        state = state.map(
-          login: (login) => login,
-          signup: (signup) => signup.copyWith(isLoadingSignup: true),
-        );
-        bool checkValid = await repo.checkEmail(state.email);
-        state = state.map(
-          login: (login) => login,
-          signup: (signup) => signup.copyWith(isValidEmail: checkValid),
-        );
-        if (checkValid) {
-          //generate otp and send it to user email
-          final genrateStatus = await repo.verificationOTP(state.email);
-          if (genrateStatus) {
-            state = state.map(
-              login: (login) => login,
-              signup: (signup) => signup.copyWith(
-                isLoadingSignup: false,
-                toastMessage: AuthenticationConstants.otpSentMessage,
-              ),
-            );
-            gotoNextSignupStep();
-          }
-        } else {
+    Future<void> checkValidEmail() async {
+      bool checkValid = false;
+      try {
+        if (state.isValidEmail) {
           state = state.map(
             login: (login) => login,
-            signup: (signup) => AuthenticationState.signup(
-              toastMessage: AuthenticationConstants.errorEmailMessage,
-            ),
+            signup: (signup) => signup.copyWith(isLoadingSignup: true),
+          );
+          checkValid = await repo.checkEmail(state.email);
+          state = state.map(
+            login: (login) => login,
+            signup: (signup) => signup.copyWith(isValidEmail: checkValid),
+          );
+          if (checkValid) {
+            //generate otp and send it to user email
+            final genrateStatus = await repo.verificationOTP(state.email);
+            if (genrateStatus) {
+              state = state.map(
+                login: (login) => login,
+                signup: (signup) => signup.copyWith(
+                  isLoadingSignup: false,
+                  toastMessage: AuthenticationConstants.otpSentMessage,
+                ),
+              );
+            } else {
+              showToastMessage(
+                "Please wait 60 seconds",
+              );
+            }
+            gotoNextSignupStep();
+          } else {
+            state = state.map(
+              login: (login) => login,
+              signup: (signup) => AuthenticationState.signup(
+                toastMessage: AuthenticationConstants.errorEmailMessage,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        print("verification code error" + e.toString());
+        // showToastMessage("this email is already taken");
+        if (checkValid) {
+          gotoNextSignupStep();
+        
+          showToastMessage(
+            "Please wait 60 seconds",
           );
         }
-      }
-    } catch (e) {
-      print(e);
-      // showToastMessage("this email is already taken");
+        else{
       state = state.map(
         login: (login) => login,
         signup: (signup) => signup.copyWith(
           isLoadingSignup: false,
-          toastMessage: AuthenticationConstants.errorEmailMessage,
+          toastMessage: "Internal server error",
         ),
-      );
+      );}
     }
   }
 
@@ -208,7 +221,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         User? user = await repo.register(
           AuthenticationUserDataModel(
             name: state.name,
-            email: state.email,
+            email: normalizeEmail(state.email),
             password: state.passwordSignup,
             birthDate: state.date,
           ),
@@ -256,6 +269,10 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   //      this is the code of login authentication
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
+  String normalizeEmail(String email) {
+    return email.trim().toLowerCase();
+  }
+
   Future<bool> login() async {
     try {
       bool isSuccessed = false;
@@ -265,7 +282,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       );
       RootData? myData = await repo.login(
         AuthenticationUserCredentialsModel(
-          email: state.identifier,
+          email: normalizeEmail(state.identifier),
           password: state.passwordLogin,
         ),
       );
