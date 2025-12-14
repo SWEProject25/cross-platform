@@ -76,14 +76,6 @@ class ConversationsRepository {
     int page, [
     int limit = 20,
   ]) async {
-    return await _apiService.searchForContacts(query, page, limit);
-  }
-
-  Future<List<Contact>> searchForContactsExtended(
-    String query,
-    int page, [
-    int limit = 20,
-  ]) async {
     if(query.length <= 1){
 
       if (!(_authState.isAuthenticated)) {

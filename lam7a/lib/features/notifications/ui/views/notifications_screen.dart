@@ -6,7 +6,7 @@ import 'package:lam7a/features/notifications/ui/viewmodels/mention_notifications
 import 'package:lam7a/features/notifications/ui/widgets/notification_item.dart';
 import 'package:lam7a/features/notifications/ui/widgets/paginated_list.dart';
 
-class NotificationsScreen extends ConsumerStatefulWidget {
+class NotificationsScreen extends ConsumerStatefulWidget  {
   const NotificationsScreen({super.key});
 
   @override
@@ -14,7 +14,7 @@ class NotificationsScreen extends ConsumerStatefulWidget {
       _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with WidgetsBindingObserver {
   final ScrollController _allScrollController = ScrollController();
   final ScrollController _mentionsScrollController = ScrollController();
 
@@ -34,13 +34,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         ref.read(mentionNotificationsViewModelProvider.notifier).loadMore();
       }
     });
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
 
   @override
   void deactivate() {
     // TODO: implement deactivate
-    
+
     ref.read(allNotificationsViewModelProvider.notifier).markAllAsRead();
     ref.read(mentionNotificationsViewModelProvider.notifier).markAllAsRead();
 
@@ -48,8 +49,33 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.paused) {
+      ref.read(allNotificationsViewModelProvider.notifier).markAllAsRead();
+      ref.read(mentionNotificationsViewModelProvider.notifier).markAllAsRead();
+    }
+  }
+
+  void handleNotificationTap(NotificationModel notification) {
+
+    if (notification.type != NotificationType.mention || notification.type != NotificationType.reply || notification.type != NotificationType.quote) {
+      ref
+          .read(allNotificationsViewModelProvider.notifier)
+          .handleNotificationAction(notification);
+    }
+
+    ref
+        .read(mentionNotificationsViewModelProvider.notifier)
+        .markNotAsRead(notification.notificationId);
+    ref
+        .read(allNotificationsViewModelProvider.notifier)
+        .markNotAsRead(notification.notificationId);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    var viewmodel = allNotificationsViewModelProvider;
     return DefaultTabController(
       length: 2,
       initialIndex: 0,
@@ -66,11 +92,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       viewModelProvider: allNotificationsViewModelProvider,
                       builder: (item) => NotificationItem(
                         notification: item,
-                        onTap: () {
-                          ref
-                              .read(allNotificationsViewModelProvider.notifier)
-                              .handleNotificationAction(item);
-                        },
+                        onTap: () => handleNotificationTap(item),
                       ),
                       noDataWidget: _buildNoData(),
                       endOfListWidget: _buildEndOfList(),
@@ -79,13 +101,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       viewModelProvider: mentionNotificationsViewModelProvider,
                       builder: (item) => NotificationItem(
                         notification: item,
-                        onTap: () {
-                          ref
-                              .read(
-                                mentionNotificationsViewModelProvider.notifier,
-                              )
-                              .handleNotificationAction(item);
-                        },
+                        onTap: () => handleNotificationTap(item),
                       ),
                       noDataWidget: _buildNoData(),
                       endOfListWidget: _buildEndOfList(),

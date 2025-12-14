@@ -38,10 +38,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final container = ProviderContainer();
 
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    print("Post Frame Callback: Handling initial message if any.");
-    container.read(notificationsReceiverProvider).handleInitialMessageIfAny();
-  });
+
 
   container.read(notificationsReceiverProvider).initialize();
   await Future.wait([container.read(apiServiceProvider).initialize()]);
@@ -58,6 +55,11 @@ void main() async {
       child: OverlaySupport.global(child: MyApp()),
     ),
   );
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    print("Post Frame Callback: Handling initial message if any.");
+    container.read(notificationsReceiverProvider).handleInitialMessageIfAny();
+  });
 
   // TO TEST ADD TWEET SCREEN ONLY (No auth): Uncomment lines below
   //runApp(ProviderScope(child: TestAddTweetApp()));
