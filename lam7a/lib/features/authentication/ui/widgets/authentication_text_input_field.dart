@@ -199,7 +199,7 @@ class _TextInputFieldState extends State<TextInputField> {
     final pickedDate = await showDatePicker(
       context: context,
       firstDate: DateTime(1930, 1, 1),
-      lastDate: DateTime.now(),
+      lastDate: DateTime(2015, 1, 1),
       initialDate: DateTime(2000, 1, 1),
       builder: (context, child) {
         return Theme(
