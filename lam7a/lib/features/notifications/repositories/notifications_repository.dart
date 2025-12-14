@@ -75,4 +75,9 @@ class NotificationsRepository {
   void markAllAsRead(){
     _apiService.markAllAsRead();
   }
+
+  void markAsRead(String notificationId){
+    logger.i("Marking notification $notificationId as read");
+    _apiService.markAsRead(notificationId);
+  }
 }

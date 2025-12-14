@@ -206,17 +206,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ),
 
       actions: [
-        if (kDebugMode)
+        if ((!connectionState.hasValue || !connectionState.value!))
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: CircleAvatar(
-              key: Key(MessagingUIKeys.chatScreenConnectionStatus),
-              radius: 8,
-              backgroundColor:
-                  !connectionState.hasValue || !connectionState.value!
-                  ? Colors.red
-                  : Colors.green,
-            ),
+            child:  Icon(Icons.signal_wifi_statusbar_connected_no_internet_4, size: 24, color: Colors.redAccent,),
           ),
       ],
     );

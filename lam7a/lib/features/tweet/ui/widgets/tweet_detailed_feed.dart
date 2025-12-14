@@ -536,6 +536,7 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                     data: (tweet) => Padding(
                       padding: const EdgeInsets.only(left: 0),
                       child: Text(
+                        tweetState.value?.repostCountUpdated?.toString() ??
                         qoutesNumStr,
                         style:  Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),

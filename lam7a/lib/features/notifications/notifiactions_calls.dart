@@ -92,5 +92,6 @@ void handlePostViewNotificationAction(String postId) {
   getLogger(
     NotificationsReceiver,
   ).i("Handling Post View notification action for postId: $postId");
-  navigatorKey.currentState?.pushNamed("/post", arguments: {'postId': postId});
+  navigatorKey.currentState?.pushNamed("/tweet", arguments: {'tweetId': postId});
+
 }
