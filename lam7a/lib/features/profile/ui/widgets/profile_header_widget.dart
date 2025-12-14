@@ -1,6 +1,7 @@
 // lib/features/profile/ui/widgets/profile_header_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/features/profile/ui/view/edit_profile_page.dart';
@@ -114,6 +115,34 @@ class ProfileHeaderWidget extends ConsumerWidget {
                     (user.birthDate ?? '').split("T").first, // <-- FIX
                   ),
                 ],
+              ),
+
+              if ((user.website ?? '').isNotEmpty)
+              GestureDetector(
+                key: const ValueKey('profile_website'),
+                onTap: () async {
+                  final url = Uri.parse(user.website!);
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(
+                      url,
+                      mode: LaunchMode.externalApplication,
+                    );
+                  }
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.link, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      user.website!,
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
 
