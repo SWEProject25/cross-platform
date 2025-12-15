@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 import 'package:lam7a/core/models/user_model.dart';
-import 'profile_action_button.dart';
 import 'package:lam7a/core/widgets/app_user_avatar.dart';
+import 'package:lam7a/features/profile/ui/widgets/follow_button.dart';
 
 class UserTile extends StatelessWidget {
   final UserModel user;
@@ -83,7 +83,7 @@ class UserTile extends StatelessWidget {
             ),
 
             const SizedBox(width: 12),
-            FollowButton(initialProfile: user),
+            FollowButton(user: user),
           ],
         ),
       ),

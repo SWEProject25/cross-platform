@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/change_username_state.dart';
 import 'account_viewmodel.dart';
 import 'package:lam7a/core/providers/authentication.dart';
+import 'package:flutter/material.dart';
 
 class ChangeUsernameViewModel extends Notifier<ChangeUsernameState> {
   @override
@@ -47,7 +48,7 @@ class ChangeUsernameViewModel extends Notifier<ChangeUsernameState> {
     return true;
   }
 
-  Future<void> saveUsername() async {
+  Future<void> saveUsername(BuildContext context) async {
     state = state.copyWith(isLoading: true);
 
     try {
@@ -64,9 +65,16 @@ class ChangeUsernameViewModel extends Notifier<ChangeUsernameState> {
         isValid: false,
         isLoading: false,
       );
+      if (!ref.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Username updated')));
     } catch (e) {
       print('Error changing username: $e');
       state = state.copyWith(isLoading: false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Username already taken')));
     }
   }
 }
