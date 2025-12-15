@@ -1,6 +1,7 @@
 // lib/features/profile/ui/widgets/profile_header_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/features/profile/ui/view/edit_profile_page.dart';
@@ -116,6 +117,34 @@ class ProfileHeaderWidget extends ConsumerWidget {
                 ],
               ),
 
+              if ((user.website ?? '').isNotEmpty)
+              GestureDetector(
+                key: const ValueKey('profile_website'),
+                onTap: () async {
+                  final url = Uri.parse(user.website!);
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(
+                      url,
+                      mode: LaunchMode.externalApplication,
+                    );
+                  }
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.link, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      user.website!,
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
 
           if ((user.createdAt ?? '').isNotEmpty)
             Row(key: const ValueKey('profile_joined_date'), mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.calendar_today_outlined, size: 16), const SizedBox(width: 4), Text('Joined ${user.createdAt!.split("T").first}')]),
@@ -130,8 +159,21 @@ class ProfileHeaderWidget extends ConsumerWidget {
         child: Row(children: [
           GestureDetector(
             key: const ValueKey('profile_following_button'),
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 1)));
+            onTap: () async {
+              //Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 1)));
+              final changed = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => FollowersFollowingPage(
+                                  userId: user.id ?? 0,
+                                  initialTab: 1,
+                                ),
+                              ),
+                            );
+
+                            if (changed == true) {
+                              onEdited?.call(); // refresh profile
+                            }
             },
             child: RichText(
               text: TextSpan(children: [
@@ -145,8 +187,21 @@ class ProfileHeaderWidget extends ConsumerWidget {
 
           GestureDetector(
             key: const ValueKey('profile_followers_button'),
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 0)));
+            onTap: () async {
+              //Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 0)));
+              final changed = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => FollowersFollowingPage(
+                                          userId: user.id ?? 0,
+                                          initialTab: 1,
+                                        ),
+                                      ),
+                                    );
+
+                                    if (changed == true) {
+                                      onEdited?.call(); // refresh profile
+                                    }
             },
             child: RichText(
               text: TextSpan(children: [
