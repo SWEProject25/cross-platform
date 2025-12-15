@@ -37,7 +37,7 @@ class NewNotificationCount extends Notifier<int> {
     ref.read(mentionNotificationsViewModelProvider.notifier).refresh();
   }
   
-  void updateNotificationsCount({bool reset = false, bool increament = false}) async {
+  Future<void> updateNotificationsCount({bool reset = false, bool increament = false}) async {
     if (reset ) state = 0;
     else if (increament)  state = state+1;
   
