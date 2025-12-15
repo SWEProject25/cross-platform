@@ -51,14 +51,7 @@ class ChatViewModel extends _$ChatViewModel {
     _messagesRepository.sendMarkAsSeen(_conversationId);
 
     Future.microtask(() async {
-
-      ref.read(conversationViewmodelProvider(_conversationId).notifier).markConversationAsSeen();
-      _loadContact();
-      _prepareConversation();
-      _loadMessages();
-
-      await requestInitMessages();
-
+      init();
     });
   
 
@@ -81,6 +74,15 @@ class ChatViewModel extends _$ChatViewModel {
       _messagesRepository.leaveConversation(_conversationId);
     });
 
+  }
+
+  Future<void> init() async {
+    ref.read(conversationViewmodelProvider(_conversationId).notifier).markConversationAsSeen();
+    _loadContact();
+    _prepareConversation();
+    _loadMessages();
+
+    await requestInitMessages();
   }
 
   Future<void> _prepareConversation() async {
@@ -169,10 +171,11 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   Future<void> sendMessage() async {
+    String message = state.draftMessage.trim();
+    state = state.copyWith(draftMessage: "");
     try {
       _messagesRepository.updateTypingStatus(_conversationId, false);
-      await _messagesRepository.sendMessage(_authState.user!.id!, _conversationId, state.draftMessage.trim());
-      state = state.copyWith(draftMessage: "");
+      await _messagesRepository.sendMessage(_authState.user!.id!, _conversationId, message);
 
     } on BlockedUserError catch (e) {
       _logger.w("Cannot send message, user is blocked: $e");

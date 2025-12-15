@@ -1,6 +1,7 @@
 // lib/features/profile/ui/widgets/profile_header_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/features/profile/ui/view/edit_profile_page.dart';
@@ -28,6 +29,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
         child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
           isOwnProfile
               ? OutlinedButton(
+                  key: const ValueKey('profile_edit_button'),
                   style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 6), 
                   minimumSize: const Size(0, 28), 
@@ -62,7 +64,10 @@ class ProfileHeaderWidget extends ConsumerWidget {
                     ),
                   )
                 )
-              : FollowButton(user: user),
+              : Container(
+                key: const ValueKey('profile_follow_button'),
+                child: FollowButton(user: user),
+              ) 
         ]),
       ),
 
@@ -72,12 +77,12 @@ class ProfileHeaderWidget extends ConsumerWidget {
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(user.name ?? '', style: TextStyle(
+          Text(user.name ?? '', key: const ValueKey('profile_display_name'), style: TextStyle(
             color: Theme.of(context).brightness == Brightness.light
                 ? Colors.black
                 : Colors.white,
             fontSize: 22, fontWeight: FontWeight.bold)),
-          Text('@${user.username ?? ''}', style: const TextStyle(color: Colors.grey)),
+          Text('@${user.username ?? ''}', key: const ValueKey('profile_username'), style: const TextStyle(color: Colors.grey)),
         ]),
       ),
 
@@ -85,7 +90,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
 
       // Bio
       if ((user.bio ?? '').isNotEmpty)
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Text(user.bio!)),
+        Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Text(user.bio!), key: const ValueKey('profile_bio'),),
 
       const SizedBox(height: 10),
 
@@ -94,11 +99,12 @@ class ProfileHeaderWidget extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Wrap(spacing: 12, runSpacing: 6, children: [
           if ((user.location ?? '').isNotEmpty)
-            Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.location_on_outlined, size: 16), const SizedBox(width: 4), Text(user.location ?? '')]),
+            Row(key: const ValueKey('profile_location'), mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.location_on_outlined, size: 16), const SizedBox(width: 4), Text(user.location ?? '')]),
 
 
           if ((user.birthDate ?? '').isNotEmpty)
               Row(
+                key: const ValueKey('profile_birthdate'),
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.cake_outlined, size: 16),
@@ -111,9 +117,37 @@ class ProfileHeaderWidget extends ConsumerWidget {
                 ],
               ),
 
+              if ((user.website ?? '').isNotEmpty)
+              GestureDetector(
+                key: const ValueKey('profile_website'),
+                onTap: () async {
+                  final url = Uri.parse(user.website!);
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(
+                      url,
+                      mode: LaunchMode.externalApplication,
+                    );
+                  }
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.link, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      user.website!,
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
 
           if ((user.createdAt ?? '').isNotEmpty)
-            Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.calendar_today_outlined, size: 16), const SizedBox(width: 4), Text('Joined ${user.createdAt!.split("T").first}')]),
+            Row(key: const ValueKey('profile_joined_date'), mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.calendar_today_outlined, size: 16), const SizedBox(width: 4), Text('Joined ${user.createdAt!.split("T").first}')]),
         ]),
       ),
 
@@ -124,8 +158,22 @@ class ProfileHeaderWidget extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(children: [
           GestureDetector(
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 1)));
+            key: const ValueKey('profile_following_button'),
+            onTap: () async {
+              //Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 1)));
+              final changed = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => FollowersFollowingPage(
+                                  userId: user.id ?? 0,
+                                  initialTab: 1,
+                                ),
+                              ),
+                            );
+
+                            if (changed == true) {
+                              onEdited?.call(); // refresh profile
+                            }
             },
             child: RichText(
               text: TextSpan(children: [
@@ -138,8 +186,22 @@ class ProfileHeaderWidget extends ConsumerWidget {
           const SizedBox(width: 16),
 
           GestureDetector(
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 0)));
+            key: const ValueKey('profile_followers_button'),
+            onTap: () async {
+              //Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 0)));
+              final changed = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => FollowersFollowingPage(
+                                          userId: user.id ?? 0,
+                                          initialTab: 1,
+                                        ),
+                                      ),
+                                    );
+
+                                    if (changed == true) {
+                                      onEdited?.call(); // refresh profile
+                                    }
             },
             child: RichText(
               text: TextSpan(children: [

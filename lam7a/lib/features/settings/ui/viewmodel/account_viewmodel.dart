@@ -71,6 +71,7 @@ class AccountViewModel extends Notifier<UserModel> {
 }
 
 // 🔹 Global provider
-final accountProvider = NotifierProvider<AccountViewModel, UserModel>(
-  AccountViewModel.new,
-);
+final accountProvider =
+    NotifierProvider.autoDispose<AccountViewModel, UserModel>(
+      AccountViewModel.new,
+    );

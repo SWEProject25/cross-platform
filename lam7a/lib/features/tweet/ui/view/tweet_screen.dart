@@ -97,7 +97,16 @@ class TweetScreen extends ConsumerWidget {
                             size: 17,
                             color: Colors.blueAccent,
                           ),
-                          onTap: () {},
+                          onTap: () {
+                            if (tweetData == null) return;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    TweetAiSummary(tweet: tweetData!),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),

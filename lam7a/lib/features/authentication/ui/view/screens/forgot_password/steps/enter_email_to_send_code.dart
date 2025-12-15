@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
-import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/forgot_password_viewmodel.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_text_input_field.dart';
-import 'package:lam7a/features/authentication/utils/authentication_validator.dart';
 
 class EnterEmailToSendCode extends StatelessWidget {
   const EnterEmailToSendCode({super.key});

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lam7a/core/models/auth_state.dart';
+import 'package:lam7a/core/models/user_dto.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
@@ -22,21 +23,89 @@ class MockAuthenticationRepositoryImpl extends Mock
 class FakeAuthenticationUserDataModel extends Fake
     implements AuthenticationUserDataModel {}
 
-// class FakeAuthentication extends Authentication {
-//   @override
-//   AuthState build() => AuthState();
+// Add FakeAuthentication to mock the authentication provider
+class FakeAuthentication extends Authentication {
+  UserModel? lastAuthenticatedUser;
+  int authenticateUserCallCount = 0;
+  int isAuthenticatedCallCount = 0;
 
-//   @override
-//   void authenticateUser(UserModel? user) {
-//     state = state.copyWith(token: null, isAuthenticated: true, user: user);
-//   }
-// }
+  @override
+  AuthState build() => AuthState();
+
+  @override
+  void authenticateUser(UserDtoAuth? user) {
+    if (user == null) return;
+    
+    authenticateUserCallCount++;
+    lastAuthenticatedUser = userDtoToUserModel(user);
+    state = state.copyWith(
+      token: null,
+      isAuthenticated: true,
+      user: lastAuthenticatedUser,
+    );
+  }
+
+  @override
+  Future<void> isAuthenticated() async {
+    isAuthenticatedCallCount++;
+    
+    // Create test user data
+    final testUser = UserDtoAuth(
+      id: 1,
+      userId: 1,
+      name: "john",
+      birthDate: DateTime(2000, 1, 1),
+      bannerImageUrl: "/path",
+      bio: "hello",
+      location: "place",
+      website: "web",
+      isDeactivated: false,
+      createdAt: DateTime(2000),
+      updatedAt: DateTime(2000),
+      user: UserDash(
+        id: 1,
+        email: "john@example.com",
+        role: "USER",
+        createdAt: DateTime(2000),
+        username: "john",
+      ),
+      followersCount: 0,
+      followingCount: 0,
+      isFollowedByMe: false,
+    );
+    
+    authenticateUser(testUser);
+  }
+
+  @override
+  UserModel userDtoToUserModel(UserDtoAuth dto) {
+    return UserModel(
+      id: dto.id,
+      username: dto.user?.username,
+      email: dto.user?.email,
+      role: dto.user?.role,
+      name: dto.name,
+      profileImageUrl: dto.profileImageUrl,
+      bannerImageUrl: dto.bannerImageUrl,
+      bio: dto.bio,
+      location: dto.location,
+      website: dto.website,
+      createdAt: dto.createdAt?.toIso8601String(),
+      followersCount: dto.followersCount,
+      followingCount: dto.followingCount,
+    );
+  }
+}
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  
   late MockAuthenticationRepositoryImpl mockRepo;
+  late FakeAuthentication fakeAuth;
 
   setUp(() {
     mockRepo = MockAuthenticationRepositoryImpl();
+    fakeAuth = FakeAuthentication();
     registerFallbackValue(FakeAuthenticationUserDataModel());
     registerFallbackValue(UserModel());
   });
@@ -45,7 +114,7 @@ void main() {
     return ProviderContainer(
       overrides: [
         authenticationImplRepositoryProvider.overrideWithValue(mockRepo),
-        // authenticationProvider.overrideWith(() => FakeAuthentication()),
+        authenticationProvider.overrideWith(() => fakeAuth),
       ],
     );
   }
@@ -82,6 +151,7 @@ void main() {
         container.dispose();
       },
     );
+
     testWidgets('should display otpCode field, ajd the dresend otp text', (
       tester,
     ) async {
@@ -111,6 +181,7 @@ void main() {
 
       container.dispose();
     });
+
     testWidgets('should display PasswordField field', (tester) async {
       final container = createContainer();
       final notifier = getNotifier(container);
@@ -137,6 +208,7 @@ void main() {
 
       container.dispose();
     });
+
     testWidgets('test init state for otpCode', (tester) async {
       final container = createContainer();
       final notifier = getNotifier(container);
@@ -168,8 +240,8 @@ void main() {
       await tester.pumpWidget(Container());
       await tester.pumpAndSettle();
       container.dispose();
-      container.dispose();
     });
+
     testWidgets('test show toast when resend OTP tapped before timer expires', (
       tester,
     ) async {
@@ -242,6 +314,7 @@ void main() {
 
       container.dispose();
     });
+
     testWidgets('should go back to the firet screen when tap back', (
       tester,
     ) async {
@@ -270,6 +343,7 @@ void main() {
 
       container.dispose();
     });
+
     testWidgets(
       'should go back to the last sign up step when tap back and there are some steps',
       (tester) async {
@@ -304,6 +378,7 @@ void main() {
         container.dispose();
       },
     );
+
     testWidgets('test loading indicator appears', (tester) async {
       final container = createContainer();
       Widget createWidgetUnderTest(Widget child) {
@@ -323,6 +398,7 @@ void main() {
 
       container.dispose();
     });
+
     testWidgets(
       'should call checkValidEmail when next button pressed on userData step with valid data and if true go to next step',
       (tester) async {
@@ -373,6 +449,7 @@ void main() {
         container.dispose();
       },
     );
+
     testWidgets(
       'should call verifyOtp when next button pressed on VerificationOtp step with valid data and if true go to next step',
       (tester) async {
@@ -426,6 +503,7 @@ void main() {
         container.dispose();
       },
     );
+
     testWidgets(
       'should call verifyOtp when next button pressed on VerificationOtp step with Not Valid data and if true go to next step',
       (tester) async {
@@ -479,6 +557,7 @@ void main() {
         container.dispose();
       },
     );
+
     testWidgets(
       'should call newUser when reaches the last signup step and has valid password',
       (tester) async {
@@ -486,7 +565,7 @@ void main() {
         final notifier = container.read(
           authenticationViewmodelProvider.notifier,
         );
-        final mockUser = UserModel(name: "john", email: "john@example.com");
+        
         Widget createWidgetUnderTest(Widget child) {
           return UncontrolledProviderScope(
             container: container,
@@ -505,10 +584,10 @@ void main() {
         when(() => mockRepo.register(any())).thenAnswer(
           (_) async => User(
             id: 123,
-            username: "name",
-            email: "far123@exmple.com",
+            username: "john",
+            email: "john@example.com",
             role: "User",
-            profile: Profile(name: "faroukk", profileImageUrl: "/img"),
+            profile: Profile(name: "john", profileImageUrl: "/img"),
           ),
         );
 
@@ -524,6 +603,8 @@ void main() {
           isValidDate: true,
           isValidCode: true,
           isValidSignupPassword: true,
+          hasCompeletedFollowingSignUp: false,
+          hasCompeletedInterestsSignUp: false,
         );
 
         await tester.pumpWidget(createWidgetUnderTest(testWidget));
@@ -535,6 +616,7 @@ void main() {
         await tester.tap(nextButton);
         await tester.pumpAndSettle();
 
+        // Verify register was called
         verify(
           () => mockRepo.register(
             AuthenticationUserDataModel(
@@ -545,11 +627,25 @@ void main() {
             ),
           ),
         ).called(1);
-        expect(find.byKey(ValueKey("transmissionAfterLogin")), findsOne);
+
+        // Verify isAuthenticated was called on fakeAuth
+        expect(fakeAuth.isAuthenticatedCallCount, 1);
+        expect(fakeAuth.authenticateUserCallCount, 1);
+
+        // Wait for navigation to complete
+        await tester.pumpAndSettle();
+        
+        // Now check for the transmission screen
+        expect(
+          find.byKey(const ValueKey("transmissionAfterLogin")),
+          findsOneWidget,
+          reason: "Should navigate to transmission screen after successful signup",
+        );
 
         container.dispose();
       },
     );
+
     testWidgets('should show error message when wrong otp', (tester) async {
       final container = createContainer();
       final notifier = container.read(authenticationViewmodelProvider.notifier);
@@ -588,8 +684,11 @@ void main() {
       await tester.tap(nextButton);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
-      expect(find.byKey(ValueKey("signupMessage")), findsOne);
+      expect(find.byKey(const ValueKey("signupMessage")), findsOneWidget);
+      
+      container.dispose();
     });
+
     testWidgets('login after signup', (tester) async {
       final container = createContainer();
       final notifier = container.read(authenticationViewmodelProvider.notifier);
@@ -607,7 +706,6 @@ void main() {
         isValidSignupPassword: true,
         toastMessage: AuthenticationConstants.errorEmailMessage,
       );
-      final mockUser = UserModel(name: "john", email: "john@example.com");
 
       Widget createWidgetUnderTest(Widget child) {
         return UncontrolledProviderScope(
@@ -624,13 +722,15 @@ void main() {
 
       final testWidget = SignUpFlow();
 
-      when(() => mockRepo.register(any())).thenAnswer((_) async =>  User(
-            id: 123,
-            username: "name",
-            email: "far123@exmple.com",
-            role: "User",
-            profile: Profile(name: "faroukk", profileImageUrl: "/img"),
-          ),);
+      when(() => mockRepo.register(any())).thenAnswer(
+        (_) async => User(
+          id: 123,
+          username: "john",
+          email: "john@example.com",
+          role: "User",
+          profile: Profile(name: "john", profileImageUrl: "/img"),
+        ),
+      );
 
       await tester.pumpWidget(createWidgetUnderTest(testWidget));
       await tester.pumpAndSettle();
@@ -639,13 +739,20 @@ void main() {
       expect(nextButton, findsOneWidget);
 
       await tester.tap(nextButton);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpAndSettle();
-      final authNotifier = container.read(authenticationProvider);
-      expect(authNotifier.isAuthenticated, true);
-      expect(find.byKey(ValueKey("transmissionAfterLogin")), findsOne);
+      
+      // Verify authentication happened
+      expect(fakeAuth.isAuthenticatedCallCount, 1);
+      
+      // Check for navigation
+      expect(
+        find.byKey(const ValueKey("transmissionAfterLogin")),
+        findsOneWidget,
+      );
+      
+      container.dispose();
     });
+
     testWidgets('test loading indicator finishes', (tester) async {
       final container = createContainer();
       Widget createWidgetUnderTest(Widget child) {

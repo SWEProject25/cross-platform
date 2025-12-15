@@ -1,9 +1,8 @@
+import 'dart:ui';
+
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:lam7a/core/models/user_dto.dart';
-import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/providers/authentication.dart';
-import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_data_model.dart';
@@ -21,7 +20,7 @@ void showToastMessage(String message) {
     msg: message,
     gravity: ToastGravity.CENTER,
     timeInSecForIosWeb: 1,
-    backgroundColor: Pallete.toastBgColor,
+    backgroundColor: const Color.fromARGB(255, 163, 163, 163),
     textColor: Pallete.toastColor,
   );
 }
@@ -76,13 +75,14 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
   Future<void> checkValidEmail() async {
+    bool checkValid = false;
     try {
       if (state.isValidEmail) {
         state = state.map(
           login: (login) => login,
           signup: (signup) => signup.copyWith(isLoadingSignup: true),
         );
-        bool checkValid = await repo.checkEmail(state.email);
+        checkValid = await repo.checkEmail(state.email);
         state = state.map(
           login: (login) => login,
           signup: (signup) => signup.copyWith(isValidEmail: checkValid),
@@ -98,8 +98,10 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
                 toastMessage: AuthenticationConstants.otpSentMessage,
               ),
             );
-            gotoNextSignupStep();
+          } else {
+            showToastMessage("Please wait 60 seconds");
           }
+          gotoNextSignupStep();
         } else {
           state = state.map(
             login: (login) => login,
@@ -110,15 +112,21 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         }
       }
     } catch (e) {
-      print(e);
+      print("verification code error" + e.toString());
       // showToastMessage("this email is already taken");
-      state = state.map(
-        login: (login) => login,
-        signup: (signup) => signup.copyWith(
-          isLoadingSignup: false,
-          toastMessage: AuthenticationConstants.errorEmailMessage,
-        ),
-      );
+      if (checkValid) {
+        gotoNextSignupStep();
+
+        showToastMessage("Please wait 60 seconds");
+      } else {
+        state = state.map(
+          login: (login) => login,
+          signup: (signup) => signup.copyWith(
+            isLoadingSignup: false,
+            toastMessage: "Internal server error",
+          ),
+        );
+      }
     }
   }
 
@@ -206,14 +214,10 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   Future<void> newUser() async {
     try {
       if (state.isValidCode && state.isValidEmail) {
-        state = state.map(
-          login: (login) => login,
-          signup: (signup) => signup.copyWith(isLoadingSignup: true),
-        );
         User? user = await repo.register(
           AuthenticationUserDataModel(
             name: state.name,
-            email: state.email,
+            email: normalizeEmail(state.email),
             password: state.passwordSignup,
             birthDate: state.date,
           ),
@@ -221,10 +225,6 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         if (user != null) {
           await authController.isAuthenticated();
         }
-        state = state.map(
-          login: (login) => login,
-          signup: (signup) => signup.copyWith(isLoadingSignup: false),
-        );
       }
     } catch (e) {
       print(e);
@@ -260,11 +260,29 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
     );
   }
 
+  void setLoadingLogin() {
+    state = state.map(
+      login: (login) => login.copyWith(isLoadingLogin: true),
+      signup: (signup) => signup,
+    );
+  }
+
+  void setLoadedLogin() {
+    state = state.map(
+      login: (login) => login.copyWith(isLoadingLogin: false),
+      signup: (signup) => signup,
+    );
+  }
+
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
   //      this is the code of login authentication
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
+  String normalizeEmail(String email) {
+    return email.trim().toLowerCase();
+  }
+
   Future<bool> login() async {
     try {
       bool isSuccessed = false;
@@ -274,23 +292,18 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       );
       RootData? myData = await repo.login(
         AuthenticationUserCredentialsModel(
-          email: state.identifier,
+          email: normalizeEmail(state.identifier),
           password: state.passwordLogin,
         ),
       );
       if (myData.user.username != null &&
           myData.user.email == state.identifier) {
-       await authController.isAuthenticated();
-        print("user status");
-        print(myData.onboardingStatus.hasCompeletedInterests.toString());
-        print(myData.onboardingStatus.hasCompeletedFollowing.toString());
-        print("user status");
-
+        isSuccessed = true;
+        await authController.isAuthenticated();
         state = state.map(
           login: (login) => login.copyWith(
             identifier: "",
             passwordLogin: "",
-            isLoadingLogin: false,
             hasCompeletedFollowing:
                 myData.onboardingStatus.hasCompeletedFollowing,
             hasCompeletedInterests:
@@ -298,7 +311,6 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           ),
           signup: (signup) => signup.copyWith(email: "", passwordSignup: ""),
         );
-        isSuccessed = true;
       } else {
         state = state.map(
           login: (login) => login.copyWith(
@@ -346,12 +358,27 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
     );
   }
 
+  void setLoadingSignUp() {
+    state = state.map(
+      login: (login) => login,
+      signup: (signup) => signup.copyWith(isLoadingSignup: true),
+    );
+  }
+
+  void setLoadedSignUp() {
+    state = state.map(
+      login: (login) => login,
+      signup: (signup) => signup.copyWith(isLoadingSignup: false),
+    );
+  }
+
   Future<void> oAuthLoginGoogle() async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn.instance;
       googleSignIn.initialize(serverClientId: serverClientIdGoogle);
       final GoogleSignInAccount? user = await googleSignIn.authenticate();
       String idToken = user?.authentication.idToken ?? "";
+      setLoadingSignUp();
       if (idToken != "") {
         RootData myUserData = await repo.oAuthGoogleLogin(idToken);
 
@@ -365,6 +392,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           ),
         );
         await authController.isAuthenticated();
+        setLoadedSignUp();
       }
     } catch (e) {
       print("Google Sign-In Error: $e");

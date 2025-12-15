@@ -111,9 +111,6 @@ class MessagesRepository {
     _logger.i("Socket reconnected, rejoining conversations");
     for (var conversationId in _joinedConversations) {
       _socket.joinConversation(conversationId);
-    }
-
-    for (var conversationId in _joinedConversations) {
       _reSyncMessageHistory(conversationId);
     }
   }
@@ -174,66 +171,7 @@ class MessagesRepository {
     }
   }
 
-  Future<void> sendMessage(int senderId, int conversationId, String message) async {
-    _logger.i("Sending message to conversation $conversationId: $message");
-
-    final request = CreateMessageRequest(
-      conversationId: conversationId,
-      senderId: senderId,
-      text: message,
-    );
-
-    // 1. Create a temporary local message (with negative ID to avoid conflicts)
-    final tempId = -DateTime.now().millisecondsSinceEpoch;
-
-    final optimisticMessage = ChatMessage(
-      id: tempId,
-      text: message,
-      time: DateTime.now(),
-      isMine: true,
-      isDelivered: false,
-      isSeen: false,
-      senderId: senderId,
-      conversationId: conversationId,
-    );
-
-    // Add optimistic message
-    _cache.addMessage(conversationId, optimisticMessage);
-    _getNotifier(conversationId).add(null);
-
-    MessageDto? messageDto;
-
-    try {
-      messageDto = await _socket.sendMessage(request);
-    } on BlockedUserError {
-      // Remove the optimistic message
-      _cache.removeMessage(conversationId, tempId);
-      _getNotifier(conversationId).add(null);
-      rethrow;
-    }
-
-    // If server sent nothing, just remove local optimistic message
-    if (messageDto == null) {
-      _logger.e("Failed to send message, server returned null");
-      _cache.removeMessage(conversationId, tempId);
-      _getNotifier(conversationId).add(null);
-      return;
-    }
-
-    // Remove the optimistic message
-    _cache.removeMessage(conversationId, tempId);
-
-    // Add the real server message
-    _cache.addMessage(
-      conversationId,
-      ChatMessage.fromDto(
-        messageDto,
-        currentUserId: _authState.user!.id!,
-      ),
-    );
-
-    _getNotifier(conversationId).add(null);
-  }
+  
 
 
   Future<bool> _reSyncMessageHistory(int conversationId) async {
@@ -313,6 +251,67 @@ class MessagesRepository {
     _getNotifier(conversationId).add(null);
 
     return messagesDto.metadata.hasMore ?? false;
+  }
+
+  Future<void> sendMessage(int senderId, int conversationId, String message) async {
+    _logger.i("Sending message to conversation $conversationId: $message");
+
+    final request = CreateMessageRequest(
+      conversationId: conversationId,
+      senderId: senderId,
+      text: message,
+    );
+
+    // 1. Create a temporary local message (with negative ID to avoid conflicts)
+    final tempId = -DateTime.now().millisecondsSinceEpoch;
+
+    final optimisticMessage = ChatMessage(
+      id: tempId,
+      text: message,
+      time: DateTime.now(),
+      isMine: true,
+      isDelivered: false,
+      isSeen: false,
+      senderId: senderId,
+      conversationId: conversationId,
+    );
+
+    // Add optimistic message
+    _cache.addMessage(conversationId, optimisticMessage);
+    _getNotifier(conversationId).add(null);
+
+    MessageDto? messageDto;
+
+    try {
+      messageDto = await _socket.sendMessage(request);
+    } on BlockedUserError {
+      // Remove the optimistic message
+      _cache.removeMessage(conversationId, tempId);
+      _getNotifier(conversationId).add(null);
+      rethrow;
+    }
+
+    // If server sent nothing, just remove local optimistic message
+    if (messageDto == null) {
+      _logger.e("Failed to send message, server returned null");
+      _cache.removeMessage(conversationId, tempId);
+      _getNotifier(conversationId).add(null);
+      return;
+    }
+
+    // Remove the optimistic message
+    _cache.removeMessage(conversationId, tempId);
+
+    // Add the real server message
+    _cache.addMessage(
+      conversationId,
+      ChatMessage.fromDto(
+        messageDto,
+        currentUserId: _authState.user!.id!,
+      ),
+    );
+
+    _getNotifier(conversationId).add(null);
   }
 
   void sendMarkAsSeen(int conversationId) async {

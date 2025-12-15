@@ -76,7 +76,7 @@ class _PaginatedListViewState<T extends PaginationNotifier<K>, K>
               itemCount: state.items.length + 1,
               itemBuilder: (_, i) {
                 if (i == state.items.length) {
-                  if (state.isLoadingMore) {
+                  if (state.isLoadingMore || state.hasMore) {
                     return Center(
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -84,9 +84,7 @@ class _PaginatedListViewState<T extends PaginationNotifier<K>, K>
                       ),
                     );
                   }
-                  if (!state.hasMore) {
-                    return widget.endOfListWidget;
-                  }
+                  return widget.endOfListWidget;
                 }
                 return widget.builder(state.items[i]);
               },

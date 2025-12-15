@@ -30,6 +30,7 @@ class _FollowersFollowingPageState extends ConsumerState<FollowersFollowingPage>
 
   bool _loadingFollowers = true;
   bool _loadingFollowing = true;
+  bool _hasChanges = false;
 
   @override
   void initState() {
@@ -72,14 +73,24 @@ Widget _buildTile(UserModel u) {
   final hasImage = u.profileImageUrl != null && u.profileImageUrl!.isNotEmpty;
 
   return InkWell(
-    onTap: () {
-      Navigator.push(
+    key: ValueKey('user_tile_${u.id}'),
+    onTap: () async {
+      final changed = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => const ProfileScreen(),
           settings: RouteSettings(arguments: {"username": u.username}),
         ),
       );
+
+      if (changed == true) {
+        setState(() {
+          _followers?.removeWhere((e) => e.id == u.id);
+          _following?.removeWhere((e) => e.id == u.id);
+        });
+        _hasChanges = true;
+      }
+      _hasChanges = true;
     },
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -88,6 +99,7 @@ Widget _buildTile(UserModel u) {
         children: [
           // Avatar
           CircleAvatar(
+            key: ValueKey('user_avatar_${u.id}'),
             radius: 24,
             backgroundColor: Colors.grey.shade200,
             backgroundImage: hasImage ? NetworkImage(u.profileImageUrl!) : null,
@@ -106,21 +118,36 @@ Widget _buildTile(UserModel u) {
                     Expanded(
                       child: Text(
                         u.name ?? "Unknown",
+                        key: ValueKey('user_name_${u.id}'),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
                     ),
+                    // FollowButton(
+                    //   key: ValueKey('follow_button_${u.id}'),
+                    //   user: u,
+                    //   onFollowStateChanged: () => _loadData(),
+                    //   ),
                     FollowButton(
+                      key: ValueKey('follow_button_${u.id}'),
                       user: u,
-                      onFollowStateChanged: () => _loadData(),
-                      ),
+                      onFollowStateChanged: () {
+                            setState(() {
+                            _following?.removeWhere((e) => e.id == u.id);
+                            _followers?.removeWhere((e) => e.id == u.id);
+                          });
+                        _hasChanges = true;
+                        _loadData();
+                      },
+                    ),
                   ],
                 ),
                 const SizedBox(height: 1),
                 Text(
                   "@${u.username ?? ''}${(u.bio != null && u.bio!.isNotEmpty) ? '\n${u.bio}' : ''}",
+                  key: ValueKey('user_username_${u.id}'),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: Colors.grey),
@@ -143,40 +170,52 @@ Widget _buildTile(UserModel u) {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+      Navigator.pop(context, _hasChanges);
+      return false; // prevent default pop
+    },
+    child: Scaffold(
+      key: const ValueKey('followers_following_scaffold'),
       appBar: AppBar(
+        key: const ValueKey('followers_following_appbar'),
         title: const Text('Connections'),
         bottom: TabBar(
+          key: const ValueKey('followers_following_tabbar'),
           controller: _tabController,
           tabs: const [
-            Tab(text: 'Followers'),
-            Tab(text: 'Following'),
+            Tab(key: ValueKey('followers_tab'), text: 'Followers'),
+            Tab(key: ValueKey('following_tab'), text: 'Following'),
           ],
         ),
       ),
       body: TabBarView(
+        key: const ValueKey('followers_following_tabview'),
         controller: _tabController,
         children: [
           _loadingFollowers
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(key: ValueKey('followers_loading'), child: CircularProgressIndicator())
               : (_followers == null || _followers!.isEmpty)
-                  ? const Center(child: Text('No followers yet'))
+                  ? const Center(key: ValueKey('followers_empty'), child: Text('No followers yet'))
                   : ListView.separated(
+                      key: const ValueKey('followers_list'),
                       itemCount: _followers!.length,
                       separatorBuilder: (_, __) => const Divider(height: 0.5),
                       itemBuilder: (_, i) => _buildTile(_followers![i]),
                     ),
           _loadingFollowing
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(key: ValueKey('following_loading'), child: CircularProgressIndicator())
               : (_following == null || _following!.isEmpty)
-                  ? const Center(child: Text('Not following anyone'))
+                  ? const Center(key: ValueKey('following_empty'), child: Text('Not following anyone'))
                   : ListView.separated(
+                      key: const ValueKey('following_list'),
                       itemCount: _following!.length,
                       separatorBuilder: (_, __) => const Divider(height: 0.5),
                       itemBuilder: (_, i) => _buildTile(_following![i]),
                     ),
         ],
       ),
+    )
     );
   }
 }

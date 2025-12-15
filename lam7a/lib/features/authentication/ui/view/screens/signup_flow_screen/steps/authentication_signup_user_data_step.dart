@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lam7a/core/theme/app_pallete.dart';
-import 'package:lam7a/features/authentication/ui/widgets/authentication_step_button.dart';
 import 'package:lam7a/features/authentication/ui/widgets/authentication_text_input_field.dart';
 import 'package:lam7a/features/authentication/ui/viewmodel/authentication_viewmodel.dart';
 import 'package:lam7a/features/authentication/utils/authentication_constants.dart';
 
 class UserDataSignUp extends ConsumerWidget {
   const UserDataSignUp({super.key});
-
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(authenticationViewmodelProvider);
     final viewModel = ref.watch(authenticationViewmodelProvider.notifier);
@@ -36,7 +33,9 @@ class UserDataSignUp extends ConsumerWidget {
               textType: TextInputType.name,
               onChangeEffect: viewModel.updateName,
               isValid: state.isValidName,
+              errorText: state.name.length < 3 ? "name must be greater than 3 letters" : "",
             ),
+            SizedBox(height: 20),
             TextInputField(
               key: ValueKey("emailSignupTextField"),
               content: state.email,
@@ -45,6 +44,8 @@ class UserDataSignUp extends ConsumerWidget {
               textType: TextInputType.emailAddress,
               onChangeEffect: viewModel.updateEmail,
               isValid: state.isValidEmail,
+              errorText: !state.isValidEmail ? "the email must match tech@example.com" : "",
+
             ),
             TextInputField(
               key: ValueKey("datePickerTextField"),

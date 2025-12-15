@@ -101,12 +101,7 @@ class _ChangeUsernameViewState extends ConsumerState<ChangeUsernameView> {
         isActive: state.isValid,
         isLoading: state.isLoading,
         onPressed: () async {
-          await vm.saveUsername();
-          if (context.mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Username updated')));
-          }
+          await vm.saveUsername(context);
         },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,

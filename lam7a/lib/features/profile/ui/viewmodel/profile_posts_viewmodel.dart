@@ -2,6 +2,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 
 T? read<T>(Map json, List<String> keys) {
   for (final k in keys) {
@@ -141,8 +142,15 @@ final profileRepliesProvider =
   return repo.fetchUserReplies(userId);
 });
 
+
 final profileLikesProvider =
     FutureProvider.family<List<TweetModel>, String>((ref, userId) async {
   final repo = ref.read(tweetRepositoryProvider);
-  return repo.fetchUserLikes(userId);
+  final tweets = await repo.fetchUserLikes(userId);
+
+  // FILTER
+  return tweets.where((tweet) {
+    final state = ref.read(tweetViewModelProvider(tweet.id)).value;
+    return state?.isLiked != false;
+  }).toList();
 });

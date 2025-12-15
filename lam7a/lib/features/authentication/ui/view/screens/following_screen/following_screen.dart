@@ -22,6 +22,7 @@ class _FollowingScreenState extends ConsumerState<FollowingScreen> {
   Widget build(BuildContext context) {
     final usersToFollowAsync = ref.watch(usersToFollowViewmodelProvider);
     return Scaffold(
+      key: ValueKey("followingScreen"),
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
@@ -42,10 +43,12 @@ class _FollowingScreenState extends ConsumerState<FollowingScreen> {
             data: (usersToFollow) {
               return Expanded(
                 child: ListView.separated(
+
                   itemCount: usersToFollow.length,
                   separatorBuilder: (context, index) => Divider(),
                   itemBuilder: (context, index) {
                     return UserToFollowWidget(
+                      key: ValueKey("user${index}"),
                       myUserToFollow: usersToFollow[index],
                     );
                   },

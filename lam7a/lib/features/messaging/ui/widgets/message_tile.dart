@@ -93,6 +93,13 @@ class MessageTile extends StatelessWidget {
                 style: const TextStyle(fontSize: 11, color: Colors.grey),
               ),
             ),
+          if (!showFooter && !isDelivered)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text("Sending",
+                style: const TextStyle(fontSize: 11, color: Colors.grey),
+              ),
+            ),
         ],
       ),
     ),);
