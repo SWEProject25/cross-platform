@@ -125,10 +125,7 @@ class _ProfileLoadedState extends ConsumerState<_ProfileLoaded> {
                     key: const ValueKey('profile_more_menu'),
                     user: widget.user,
                     username: widget.username,
-                    onAction: () async {
-                      await refresh();
-                      Navigator.pop(context, true); 
-                    },
+                    onAction: refresh,
                   ),
               ],
               flexibleSpace: Stack(
