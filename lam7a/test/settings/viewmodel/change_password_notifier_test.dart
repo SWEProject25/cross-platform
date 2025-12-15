@@ -133,6 +133,75 @@ void main() {
     });
   });
 
+  group('ChangePasswordNotifier - Missing requirements message', () {
+    test('shows message when missing uppercase', () {
+      final notifier = _getNotifier();
+
+      notifier.state.newController.text = "validpass123!";
+      notifier.updateNew("validpass123!"); // triggers _validateNewPassword
+
+      expect(
+        notifier.state.newPasswordError,
+        "Password must include: uppercase letter",
+      );
+    });
+
+    test('shows message when missing lowercase', () {
+      final notifier = _getNotifier();
+
+      notifier.state.newController.text = "VALIDPASS123!";
+      notifier.updateNew("VALIDPASS123!");
+
+      expect(
+        notifier.state.newPasswordError,
+        "Password must include: lowercase letter",
+      );
+    });
+
+    test('shows message when missing number', () {
+      final notifier = _getNotifier();
+
+      notifier.state.newController.text = "ValidPass!!!";
+      notifier.updateNew("ValidPass!!!");
+
+      expect(notifier.state.newPasswordError, "Password must include: number");
+    });
+
+    test('shows message when missing special character', () {
+      final notifier = _getNotifier();
+
+      notifier.state.newController.text = "ValidPass123";
+      notifier.updateNew("ValidPass123");
+
+      expect(
+        notifier.state.newPasswordError,
+        "Password must include: special character",
+      );
+    });
+
+    test('shows combined message when multiple requirements are missing', () {
+      final notifier = _getNotifier();
+
+      // Missing uppercase and special
+      notifier.state.newController.text = "validpass123";
+      notifier.updateNew("validpass123");
+
+      expect(
+        notifier.state.newPasswordError,
+        "Password must include: uppercase letter, special character",
+      );
+    });
+
+    test('no message when all requirements are met', () {
+      final notifier = _getNotifier();
+
+      notifier.state.newController.text = "ValidPass123!";
+      notifier.updateNew("ValidPass123!");
+
+      expect(notifier.state.newPasswordError, "");
+    });
+  });
+
   group('ChangePasswordNotifier - Integration', () {
     testWidgets(
       'should call repository and show success snackbar on successful password change',

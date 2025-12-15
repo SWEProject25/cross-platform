@@ -20,7 +20,6 @@ abstract class AccountApiService {
   Future<UserModel> getMyInfo();
   Future<void> changeEmail(String newEmail);
   Future<void> changePassword(String oldPassword, String newPassword);
-  Future<void> deactivateAccount();
   Future<void> changeUsername(String newUsername);
   Future<bool> validatePassword(String password);
   Future<bool> checkEmailExists(String email);

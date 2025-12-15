@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/change_username_state.dart';
 import 'account_viewmodel.dart';
-import 'package:lam7a/core/providers/authentication.dart';
 import 'package:flutter/material.dart';
 
 class ChangeUsernameViewModel extends Notifier<ChangeUsernameState> {
@@ -57,7 +56,6 @@ class ChangeUsernameViewModel extends Notifier<ChangeUsernameState> {
           .changeUsername(state.newUsername);
 
       // Force authenticationProvider to reload user info
-      await ref.read(authenticationProvider.notifier).refreshUser();
 
       state = state.copyWith(
         currentUsername: state.newUsername,

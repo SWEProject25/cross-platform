@@ -65,7 +65,7 @@ class _PaginatedListViewState<T extends PaginationNotifier<K>, K>
         return ref.read(widget.viewModelProvider.notifier).refresh();
       },
       child: state.isLoading
-          ? Center(child: RefreshProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : state.items.isEmpty
           ? CustomScrollView(
               slivers: [SliverFillRemaining(child: widget.noDataWidget)],
