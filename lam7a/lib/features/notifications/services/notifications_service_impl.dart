@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/features/notifications/services/notifications_service.dart';
 

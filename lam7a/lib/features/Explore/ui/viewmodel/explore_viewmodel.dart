@@ -38,6 +38,10 @@ class ExploreViewModel extends AsyncNotifier<ExploreState> {
           ? <TrendingHashtag>[]
           : (List.of(_hashtags)..shuffle()).take(5).toList();
 
+      if (randomHashtags.isEmpty) {
+        await Future.delayed(const Duration(seconds: 1));
+      }
+
       final users = await _repo.getSuggestedUsers(limit: 7);
       print("Suggested Users loaded: ${users.length}");
 

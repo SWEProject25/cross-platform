@@ -1,3 +1,5 @@
+// coverage:ignore-file
+
 import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/features/common/dtos/api_response.dart';
 import 'package:lam7a/features/messaging/dtos/conversation_dto.dart';

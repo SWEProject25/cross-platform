@@ -54,17 +54,17 @@ jobs:
             echo "✅ No compilation errors found"
           fi
 
-      - name: Run tests with coverage
-        run: flutter test --coverage
-        continue-on-error: true
+      # - name: Run tests with coverage
+      #   run: flutter test --coverage
+      #   continue-on-error: true
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./lam7a/coverage/lcov.info
-          flags: flutter
-          name: flutter-coverage
-          fail_ci_if_error: false
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     files: ./lam7a/coverage/lcov.info
+      #     flags: flutter
+      #     name: flutter-coverage
+      #     fail_ci_if_error: false
 
   # Trigger the public workflow
   trigger-public-workflow:

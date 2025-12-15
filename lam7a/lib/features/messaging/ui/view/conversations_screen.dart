@@ -60,21 +60,6 @@ class ConversationsScreen extends ConsumerWidget {
     return PaginatedListView(viewModelProvider: conversationsViewmodel, builder: (chat){
         return ConversationTile(id: chat.id, conversation: chat);
     });
-    return ListView.builder(
-      key: Key(MessagingUIKeys.conversationsListView),
-      itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index >= state.items.length) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        final chat = state.items[index];
-        return ConversationTile(id: chat.id, conversation: chat);
-      },
-    );
   }
 
   Padding buildNoConversations(ThemeData theme, BuildContext context) {
