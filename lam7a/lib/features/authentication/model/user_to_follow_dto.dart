@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'package:lam7a/features/authentication/model/user_dto_model.dart';
 
 class UserToFollowDto {

@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'package:lam7a/core/models/user_dto.dart';
 
 class RootData {

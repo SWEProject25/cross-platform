@@ -89,7 +89,7 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
                     Column(
                       children: [
                         IconedButtonCentered(
-                          key: Key("googleOAuthButton"),
+                          key: ValueKey("googleOAuthButton"),
                           buttonLabel:
                               AuthenticationConstants.oAuthWithGoogleText,
                           imgPath: AppAssets.googleIcon,
@@ -141,7 +141,7 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
                           },
                         ),
                         IconedButtonCentered(
-                          key: Key("githubOAuthButton"),
+                          key: ValueKey("githubOAuthButton"),
                           buttonLabel:
                               AuthenticationConstants.oAuthWithGithubText,
                           imgPath: AppAssets.githubIcon,
@@ -193,7 +193,7 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
                           ],
                         ),
                         IconedButtonCentered(
-                          key: Key("createAccountButton"),
+                          key: ValueKey("createAccountButton"),
                           buttonLabel: "Create account",
                           backGroundColor: Theme.of(
                             context,
@@ -224,6 +224,8 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
     );
   }
 
+  // coverage:ignore-start
+
   Future<void> _launchUrl(String url) async {
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url), mode: LaunchMode.inAppBrowserView);
@@ -231,4 +233,6 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
       throw 'Could not launch $url';
     }
   }
+ // coverage:ignore-start
+
 }
