@@ -116,6 +116,12 @@ class AuthenticationApiService {
     );
     return response;
   }
+  Future<Map<String, dynamic>> oAuthGoogleLoginIos(String idToken) async {
+    final response = await apiService.post(
+      endpoint: ServerConstant.oAuthIosRedirect,
+    );
+    return response;
+  }
 
   Future<Map<String, dynamic>> oAuthGithubLogin(String code) async {
     final response = await apiService.post(
