@@ -7,6 +7,7 @@ import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/providers/theme_provider.dart';
 import 'package:lam7a/core/theme/app_pallete.dart';
 import 'package:lam7a/core/utils/app_assets.dart';
+import 'package:lam7a/core/widgets/app_user_avatar.dart';
 import 'package:lam7a/features/authentication/ui/view/screens/first_time_screen/authentication_first_time_screen.dart';
 import 'package:lam7a/features/messaging/providers/unread_conversations_count.dart';
 import 'package:lam7a/features/messaging/ui/view/conversations_screen.dart';
@@ -24,6 +25,8 @@ import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 import 'package:lam7a/features/profile/ui/view/profile_screen.dart';
 import 'package:lam7a/features/Explore/ui/view/explore_page.dart';
 import 'package:lam7a/features/Explore/ui/widgets/search_bar.dart';
+import 'dart:collection';
+
 class NavigationHomeScreen extends StatefulWidget {
   static const String routeName = "navigation";
 
@@ -47,23 +50,17 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
   bool _isAppBarVisible = true;
   double _lastOffset = 0;
   String? themeMode;
-
- 
+  final int _pastTabs = 0;
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
   }
 
-
-
   @override
   void dispose() {
     super.dispose();
   }
-
-
-
 
   // Define custom AppBar height
   final double _appBarHeight = 80.0; // Change this value to adjust height
@@ -74,6 +71,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
     return Consumer(
       builder: (context, ref, child) {
         UserModel? user = ref.watch(authenticationProvider).user;
+        String imgUrl = user!.profileImageUrl ?? "";
         List<Widget> pages = [
           Center(child: TweetHomeScreen()),
           Center(child: ExplorePage()),
@@ -87,16 +85,10 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
               Navigator.pushNamed(
                 context,
                 '/profile',
-                arguments: {"username": user?.username ?? ""},
+                arguments: {"username": user.username ?? ""},
               );
             },
             iconPath: AppAssets.ProfileIcon,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-          ListMember(
-            "Chat",
-            () {},
-            iconPath: AppAssets.chatIcon,
             color: Theme.of(context).colorScheme.onSurface,
           ),
           ListMember(
@@ -109,261 +101,291 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           ),
         ];
 
-        return Scaffold(
-          key: ValueKey("homeScreen"),
-          appBar: PreferredSize(
-            preferredSize: Size.fromHeight(_appBarHeight),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              height: _isAppBarVisible ? _appBarHeight : 0,
-              child: AnimatedOpacity(
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (_currentIndex != 0) {
+              setState(() {
+                _currentIndex = 0;
+                _isVisible = true;
+                _isAppBarVisible = true;
+              });
+            } else {
+              SystemNavigator.pop();
+            }
+          },
+          child: Scaffold(
+            key: ValueKey("homeScreen"),
+            appBar: PreferredSize(
+              preferredSize: Size.fromHeight(_appBarHeight),
+              child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                opacity: _isAppBarVisible ? 1.0 : 0.0,
-                child: AppBar(
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  surfaceTintColor: Colors.transparent,
-                  elevation: 0,
-                  toolbarHeight: _appBarHeight, // Set custom toolbar height
-                  title: getCurrentAppbar(),
-                  leading: Builder(
-                    builder: (context) {
-                      return IconButton(
-                        onPressed: () {
-                          Scaffold.of(context).openDrawer();
-                        },
-                        icon: Icon(Icons.account_circle_outlined),
-                      );
-                    },
-                  ),
-                  actions: [
-                    IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (c) => MainSettingsPage()),
-                        );
-                      },
-                      icon: Icon(Icons.settings_outlined),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          drawer: Drawer(
-            width: 300,
-            backgroundColor: isDark
-                ? Pallete.darkItemBackground
-                : Theme.of(context).colorScheme.surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                topRight: Radius.circular(0),
-                bottomRight: Radius.circular(0),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 20),
-                ProfileBlock(),
-                Expanded(
-                  child: ListView.builder(
-                    itemBuilder: (context, index) {
-                      return drawerItems[index];
-                    },
-                    itemCount: drawerItems.length,
-                  ),
-                ),
-                ExpansionTile(
-                  collapsedBackgroundColor: Pallete.transparentColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(0),
-                    side: BorderSide.none,
-                  ),
-                  title: Text("Settings&Care"),
-                  children: [
-                    ListMember(
-                      "Settings and privacy",
-                      () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (ctx) => MainSettingsPage(),
+                curve: Curves.easeInOut,
+                height: _isAppBarVisible ? _appBarHeight : 0,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: _isAppBarVisible ? 1.0 : 0.0,
+                  child: AppBar(
+                    backgroundColor: Theme.of(context).colorScheme.surface,
+                    surfaceTintColor: Colors.transparent,
+                    elevation: 0,
+                    toolbarHeight: _appBarHeight, // Set custom toolbar height
+                    title: getCurrentAppbar(),
+                    leading: Builder(
+                      builder: (context) {
+                        return InkWell(
+                          onTap: () => Scaffold.of(context).openDrawer(),
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            margin: EdgeInsets.all(13),
+                            child: ClipOval(
+                              child: Image.network(
+                                imgUrl,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Pallete.greyColor,
+                                    child: Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
                           ),
                         );
                       },
-                      icon: Icons.settings,
-                      color: Theme.of(context).colorScheme.onSurface,
                     ),
-                    ListMember(
-                      "Help Center",
-                      () {},
-                      icon: Icons.help_center,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-                StatefulBuilder(
-                  builder: (context, modelSetState) {
-                    return Container(
-                      width: 80,
-                      padding: EdgeInsets.only(left: 20),
-                      child: IconButton(
+                    actions: [
+                      IconButton(
                         onPressed: () {
-                          showThemeModeBottomSheet(ref);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (c) => MainSettingsPage(),
+                            ),
+                          );
                         },
-                        icon: Icon(Icons.light_mode_outlined, size: 35),
-                        alignment: Alignment.center,
+                        icon: Icon(Icons.settings_outlined),
                       ),
-                    );
-                  },
-                ),
-                SizedBox(height: 20),
-              ],
-            ),
-          ),
-          body: SafeArea(
-            child: NotificationListener<ScrollNotification>(
-              onNotification: (scroll) {
-                if (scroll.metrics.axis != Axis.vertical) {
-                  return false;
-                }
-                if (scroll is ScrollUpdateNotification) {
-                  final currentOffset = scroll.metrics.pixels;
-
-                  // Scroll down - hide both bars
-                  if (currentOffset > _lastOffset + 10 && _isVisible) {
-                    setState(() {
-                      _isVisible = false;
-                      _isAppBarVisible = false;
-                    });
-                  }
-                  // Scroll up - show both bars
-                  else if (currentOffset < _lastOffset - 5 && !_isVisible) {
-                    setState(() {
-                      _isVisible = true;
-                      _isAppBarVisible = true;
-                    });
-                  }
-
-                  _lastOffset = currentOffset;
-                }
-                return false;
-              },
-              child: pages[_currentIndex],
-            ),
-          ),
-          bottomNavigationBar: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            height: _isVisible ? null : 0.00,
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 100),
-              curve: Curves.easeInOut,
-              opacity: _isVisible ? 1.0 : 0.0,
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(
-                      color: const Color.fromARGB(255, 190, 190, 190),
-                      width: 0.5,
-                    ),
+                    ],
                   ),
                 ),
-                child: IgnorePointer(
-                  ignoring: !_isVisible,
-                  child: SafeArea(
-                    child: ClipRect(
-                      child: Align(
-                        heightFactor: _isVisible ? 1.0 : 0.0,
-                        child: BottomNavigationBar(
-                          currentIndex: _currentIndex,
-                          type: BottomNavigationBarType.fixed,
-                          selectedItemColor: Theme.of(
+              ),
+            ),
+            drawer: Drawer(
+              width: 300,
+              backgroundColor: isDark
+                  ? Pallete.darkItemBackground
+                  : Theme.of(context).colorScheme.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(0),
+                  bottomRight: Radius.circular(0),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 20),
+                  ProfileBlock(),
+                  Expanded(
+                    child: ListView.builder(
+                      itemBuilder: (context, index) {
+                        return drawerItems[index];
+                      },
+                      itemCount: drawerItems.length,
+                    ),
+                  ),
+                  ExpansionTile(
+                    collapsedBackgroundColor: Pallete.transparentColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                      side: BorderSide.none,
+                    ),
+                    title: Text("Settings&Care"),
+                    children: [
+                      ListMember(
+                        "Settings and privacy",
+                        () {
+                          Navigator.push(
                             context,
-                          ).colorScheme.onSurface,
-                          unselectedItemColor: Pallete.greyColor,
-                          elevation: 0,
-                          showSelectedLabels: false,
-                          showUnselectedLabels: false,
-                          onTap: (index) {
-                            setState(() {
-                              _currentIndex = index;
-                              _isVisible = true;
-                              _isAppBarVisible = true;
-                            });
+                            MaterialPageRoute(
+                              builder: (ctx) => MainSettingsPage(),
+                            ),
+                          );
+                        },
+                        icon: Icons.settings,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                  StatefulBuilder(
+                    builder: (context, modelSetState) {
+                      return Container(
+                        width: 80,
+                        padding: EdgeInsets.only(left: 20),
+                        child: IconButton(
+                          onPressed: () {
+                            showThemeModeBottomSheet(ref);
                           },
-                          backgroundColor: Theme.of(context).colorScheme.surface,
-                          items: [
-                            BottomNavigationBarItem(
-                              icon: SvgPicture.asset(
-                                AppAssets.homeIcon,
-                                height: _isVisible ? 22 : 0,
-                                width: _isVisible ? 22 : 0,
-                                colorFilter: ColorFilter.mode(
-                                  Pallete.greyColor,
-                                  BlendMode.srcIn,
+                          icon: Icon(Icons.light_mode_outlined, size: 35),
+                          alignment: Alignment.center,
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: 20),
+                ],
+              ),
+            ),
+            body: SafeArea(
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (scroll) {
+                  if (scroll.metrics.axis != Axis.vertical) {
+                    return false;
+                  }
+                  if (scroll is ScrollUpdateNotification) {
+                    final currentOffset = scroll.metrics.pixels;
+
+                    // Scroll down - hide both bars
+                    if (currentOffset > _lastOffset + 10 && _isVisible) {
+                      setState(() {
+                        _isVisible = false;
+                        _isAppBarVisible = false;
+                      });
+                    }
+                    // Scroll up - show both bars
+                    else if (currentOffset < _lastOffset - 3 && !_isVisible) {
+                      setState(() {
+                        _isVisible = true;
+                        _isAppBarVisible = true;
+                      });
+                    }
+
+                    _lastOffset = currentOffset;
+                  }
+                  return false;
+                },
+                child: pages[_currentIndex],
+              ),
+            ),
+            bottomNavigationBar: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              height: _isVisible ? null : 0.00,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 100),
+                curve: Curves.easeInOut,
+                opacity: _isVisible ? 1.0 : 0.0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(
+                        color: const Color.fromARGB(255, 190, 190, 190),
+                        width: 0.5,
+                      ),
+                    ),
+                  ),
+                  child: IgnorePointer(
+                    ignoring: !_isVisible,
+                    child: SafeArea(
+                      child: ClipRect(
+                        child: Align(
+                          heightFactor: _isVisible ? 1.0 : 0.0,
+                          child: BottomNavigationBar(
+                            currentIndex: _currentIndex,
+
+                            type: BottomNavigationBarType.fixed,
+                            selectedItemColor: Theme.of(
+                              context,
+                            ).colorScheme.onSurface,
+                            unselectedItemColor: Pallete.greyColor,
+                            elevation: 0,
+                            showSelectedLabels: false,
+                            showUnselectedLabels: false,
+                            onTap: (index) {
+                              setState(() {
+                                _isVisible = true;
+                                _isAppBarVisible = true;
+                                _currentIndex = index;
+                              });
+                            },
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.surface,
+                            items: [
+                              BottomNavigationBarItem(
+                                icon: SvgPicture.asset(
+                                  AppAssets.homeIcon,
+                                  height: _isVisible ? 22 : 0,
+                                  width: _isVisible ? 22 : 0,
+                                  colorFilter: ColorFilter.mode(
+                                    Pallete.greyColor,
+                                    BlendMode.srcIn,
+                                  ),
                                 ),
-                              ),
-                              activeIcon: SvgPicture.asset(
-                                AppAssets.homeIcon,
-                                height: 22,
-                                width: 22,
-                                colorFilter: ColorFilter.mode(
-                                  Theme.of(context).colorScheme.onSurface,
-                                  BlendMode.srcIn,
+                                activeIcon: SvgPicture.asset(
+                                  AppAssets.homeIcon,
+                                  height: 22,
+                                  width: 22,
+                                  colorFilter: ColorFilter.mode(
+                                    Theme.of(context).colorScheme.onSurface,
+                                    BlendMode.srcIn,
+                                  ),
                                 ),
+                                label: "home",
                               ),
-                              label: "home",
-                            ),
-                            BottomNavigationBarItem(
-                              icon: Icon(
-                                Icons.search,
-                                size: _isVisible ? 22 : 0,
-                              ),
-                              label: "search",
-                            ),
-                            BottomNavigationBarItem(
-                              icon: Consumer(
-                                builder: (context, ref, child) => getIcon(
-                                  AppAssets.notificationsIcon,
-                                  true,
-                                  _isVisible,
-                                  ref.watch(unReadNotificationCountProvider),
+                              BottomNavigationBarItem(
+                                icon: Icon(
+                                  Icons.search,
+                                  size: _isVisible ? 22 : 0,
                                 ),
+                                label: "search",
                               ),
-                              activeIcon: Consumer(
-                                builder: (context, ref, child) => getIcon(
-                                  AppAssets.notificationsIcon,
-                                  false,
-                                  _isVisible,
-                                  ref.watch(unReadNotificationCountProvider),
+                              BottomNavigationBarItem(
+                                icon: Consumer(
+                                  builder: (context, ref, child) => getIcon(
+                                    AppAssets.notificationsIcon,
+                                    true,
+                                    _isVisible,
+                                    ref.watch(unReadNotificationCountProvider),
+                                  ),
                                 ),
-                              ),
-                              label: "notifications",
-                            ),
-                            BottomNavigationBarItem(
-                              icon: Consumer(
-                                builder: (context, ref, child) => getIcon(
-                                  AppAssets.messagesIcon,
-                                  true,
-                                  _isVisible,
-                                  ref.watch(unReadConversationsCountProvider),
+                                activeIcon: Consumer(
+                                  builder: (context, ref, child) => getIcon(
+                                    AppAssets.notificationsIcon,
+                                    false,
+                                    _isVisible,
+                                    ref.watch(unReadNotificationCountProvider),
+                                  ),
                                 ),
+                                label: "notifications",
                               ),
-                              activeIcon: Consumer(
-                                builder: (context, ref, child) => getIcon(
-                                  AppAssets.messagesIcon,
-                                  false,
-                                  _isVisible,
-                                  ref.watch(unReadConversationsCountProvider),
+                              BottomNavigationBarItem(
+                                icon: Consumer(
+                                  builder: (context, ref, child) => getIcon(
+                                    AppAssets.messagesIcon,
+                                    true,
+                                    _isVisible,
+                                    ref.watch(unReadConversationsCountProvider),
+                                  ),
                                 ),
+                                activeIcon: Consumer(
+                                  builder: (context, ref, child) => getIcon(
+                                    AppAssets.messagesIcon,
+                                    false,
+                                    _isVisible,
+                                    ref.watch(unReadConversationsCountProvider),
+                                  ),
+                                ),
+                                label: "messages",
                               ),
-                              label: "messages",
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -441,8 +463,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
               : "Search",
           initialQuery: query,
         );
-      // return SizedBox(width: 2);
-      //return SearchBarCustomized();
+
       case 2:
         return Text(
           "Notifications",
@@ -453,7 +474,14 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
           ),
         );
       case 3:
-        return SearchBarCustomized();
+        return Text(
+          "Messaging",
+          style: GoogleFonts.outfit(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+        );
     }
     return ImageIcon(AssetImage(AppAssets.xIcon));
   }
