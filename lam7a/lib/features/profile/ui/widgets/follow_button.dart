@@ -102,7 +102,7 @@ class _FollowButtonState extends ConsumerState<FollowButton> {
         padding: const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 4,
-        ), // Adjusted padding
+        ), 
       ),
       child: _loading
           ? const SizedBox(

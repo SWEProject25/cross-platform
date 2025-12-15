@@ -23,7 +23,6 @@ class ProfileHeaderWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      // Top-right action: Edit or Follow
       Padding(
         padding: const EdgeInsets.only(right: 16),
         child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -35,14 +34,14 @@ class ProfileHeaderWidget extends ConsumerWidget {
                   minimumSize: const Size(0, 28), 
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap, 
 
-                  // Border color depends on theme
+
                   side: BorderSide(
                     color: Theme.of(context).brightness == Brightness.light
                         ? Colors.black
                         : Colors.white,
                   ),
 
-                  // Background color optional
+
                   backgroundColor: Theme.of(context).brightness == Brightness.light
                       ? Colors.white
                       : Colors.black,
@@ -112,7 +111,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
 
                   // Format the date properly
                   Text(
-                    (user.birthDate ?? '').split("T").first, // <-- FIX
+                    (user.birthDate ?? '').split("T").first, // FIX
                   ),
                 ],
               ),
@@ -153,14 +152,13 @@ class ProfileHeaderWidget extends ConsumerWidget {
 
       const SizedBox(height: 12),
 
-      // Following / Followers - navigates to FollowersFollowingPage
+      // Following / Followers -page
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(children: [
           GestureDetector(
             key: const ValueKey('profile_following_button'),
             onTap: () async {
-              //Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 1)));
               final changed = await Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -172,7 +170,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
                             );
 
                             if (changed == true) {
-                              onEdited?.call(); // refresh profile
+                              onEdited?.call(); 
                             }
             },
             child: RichText(
@@ -188,7 +186,6 @@ class ProfileHeaderWidget extends ConsumerWidget {
           GestureDetector(
             key: const ValueKey('profile_followers_button'),
             onTap: () async {
-              //Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 0)));
               final changed = await Navigator.push(
                                       context,
                                       MaterialPageRoute(
@@ -200,7 +197,7 @@ class ProfileHeaderWidget extends ConsumerWidget {
                                     );
 
                                     if (changed == true) {
-                                      onEdited?.call(); // refresh profile
+                                      onEdited?.call(); 
                                     }
             },
             child: RichText(

@@ -19,19 +19,19 @@ class ProfileRepository {
 
   ProfileRepository(this._api);
 
-  // ---------------- GET PROFILE BY USERNAME ----------------
+  //get profile/username
   Future<UserModel> getProfile(String username) async {
     final dto = await _api.getProfileByUsername(username);
     return _fromDto(dto);
   }
 
-  // ---------------- GET MY PROFILE ----------------
+
   Future<UserModel> getMyProfile() async {
     final dto = await _api.getMyProfile();
     return _fromDto(dto);
   }
 
-  // ---------------- UPDATE MY PROFILE ----------------
+
   Future<UserModel> updateMyProfile(
     UserModel user, {
     String? avatarPath,
@@ -61,25 +61,20 @@ class ProfileRepository {
     return _fromDto(dto);
   }
 
-  // ---------------- FOLLOW / UNFOLLOW ----------------
   Future<void> followUser(int id) => _api.followUser(id);
   Future<void> unfollowUser(int id) => _api.unfollowUser(id);
 
-  // ------------ MUTE / UNMUTE ------------
   Future<void> muteUser(int id) => _api.muteUser(id);
   Future<void> unmuteUser(int id) => _api.unmuteUser(id);
 
-  // ------------ BLOCK / UNBLOCK ----------
   Future<void> blockUser(int id) => _api.blockUser(id);
   Future<void> unblockUser(int id) => _api.unblockUser(id);
 
 
-  // ---------------- GET FOLLOWERS / FOLLOWING ----------------
-  /// These endpoints return a list of lightweight "user" objects (not full profile DTOs).
-  /// We parse them with FollowUserDto and convert to UserModel.
+
   Future<List<UserModel>> getFollowers(int id) async {
     final list = await _api.getFollowers(id);
-    // list is List<Map<String, dynamic>>
+
     return list.map<UserModel>((raw) {
       final f = FollowUserDto.fromJson(Map<String, dynamic>.from(raw));
       return UserModel(
@@ -88,7 +83,6 @@ class ProfileRepository {
         name: f.name,
         bio: f.bio,
         profileImageUrl: f.profileImageUrl,
-        // conservative defaults for counts / other states
         followersCount: 0,
         followingCount: 0,
         stateFollow: (f.isFollowedByMe ?? false)
@@ -123,7 +117,6 @@ class ProfileRepository {
     }).toList();
   }
 
-  // ---------------- DTO → USER MODEL (full profile) ----------------
   UserModel _fromDto(ProfileDto dto) {
     return UserModel(
       id: dto.id,
@@ -142,7 +135,7 @@ class ProfileRepository {
       stateFollow: (dto.isFollowedByMe ?? false)
           ? ProfileStateOfFollow.following
           : ProfileStateOfFollow.notfollowing,
-      // if backend returns these fields for full profile
+      
       stateMute: (dto.toJson().containsKey('is_muted_by_me') && dto.toJson()['is_muted_by_me'] == true)
           ? ProfileStateOfMute.muted
           : ProfileStateOfMute.notmuted,

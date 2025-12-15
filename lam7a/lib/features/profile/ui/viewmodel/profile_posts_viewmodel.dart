@@ -11,16 +11,13 @@ T? read<T>(Map json, List<String> keys) {
   return null;
 }
 
-/// Converts ANY kind of profile JSON into a proper TweetModel
 TweetModel convertProfileJsonToTweetModel(Map<String, dynamic> json) {
   final bool isRepost = json["isRepost"] == true;
   final bool isQuote = json["isQuote"] == true;
 
   final original = json["originalPostData"];
 
-  // -------------------------------------------------------------------
   // CASE 1: REPOST
-  // -------------------------------------------------------------------
   if (isRepost && original is Map<String, dynamic>) {
     final inner = original;
 
@@ -60,9 +57,7 @@ TweetModel convertProfileJsonToTweetModel(Map<String, dynamic> json) {
     );
   }
 
-  // -------------------------------------------------------------------
   // CASE 2: QUOTE TWEET
-  // -------------------------------------------------------------------
   if (isQuote && original is Map<String, dynamic>) {
     final parent = original;
 
@@ -104,9 +99,7 @@ TweetModel convertProfileJsonToTweetModel(Map<String, dynamic> json) {
     );
   }
 
-  // -------------------------------------------------------------------
   // CASE 3: NORMAL POST or REPLY
-  // -------------------------------------------------------------------
   return TweetModel(
     id: read(json, ["post_id", "postId", "id"])!.toString(),
     userId: read(json, ["user_id", "userId"])!.toString(),
@@ -126,9 +119,7 @@ TweetModel convertProfileJsonToTweetModel(Map<String, dynamic> json) {
   );
 }
 
-// ---------------------------------------------------------------------
 // PROVIDERS
-// ---------------------------------------------------------------------
 
 final profilePostsProvider =
     FutureProvider.family<List<TweetModel>, String>((ref, userId) async {
