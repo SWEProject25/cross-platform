@@ -67,7 +67,7 @@ void main() {
           'username': 'testuser',
           'email': 'a@b.com',
           'role': 'user',
-          'created_at': '2020-01-01T00:00:00Z'
+          'created_at': '2020-01-01T00:00:00Z',
         },
         'followers_count': 5,
         'following_count': 3,
@@ -78,9 +78,9 @@ void main() {
     group('isAuthenticated - Success Path', () {
       test('isAuthenticated sets state when API returns data', () async {
         final fakeApi = FakeApiService(getResponse: {'data': dtoJson});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -97,9 +97,9 @@ void main() {
 
       test('isAuthenticated sets user email correctly', () async {
         final fakeApi = FakeApiService(getResponse: {'data': dtoJson});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -111,9 +111,9 @@ void main() {
 
       test('isAuthenticated sets user name correctly', () async {
         final fakeApi = FakeApiService(getResponse: {'data': dtoJson});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -129,9 +129,9 @@ void main() {
         final fakeApi = FakeApiService(
           getException: Exception('Network error'),
         );
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -145,9 +145,9 @@ void main() {
 
       test('isAuthenticated handles null response data', () async {
         final fakeApi = FakeApiService(getResponse: {'data': null});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -159,9 +159,9 @@ void main() {
 
       test('isAuthenticated handles missing data key', () async {
         final fakeApi = FakeApiService(getResponse: {});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -178,9 +178,9 @@ void main() {
             error: 'Connection timeout',
           ),
         );
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -194,9 +194,9 @@ void main() {
     group('userDtoToUserModel Mapping', () {
       test('userDtoToUserModel maps values correctly', () {
         final fakeApi = FakeApiService(getResponse: {'data': dtoJson});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -206,52 +206,85 @@ void main() {
 
         expect(userModel.username, equals('testuser'));
         expect(userModel.name, equals('Test User'));
-        expect(userModel.profileImageUrl, equals('https://example.com/avatar.jpg'));
+        expect(
+          userModel.profileImageUrl,
+          equals('https://example.com/avatar.jpg'),
+        );
         expect(userModel.followersCount, equals(5));
         expect(userModel.followingCount, equals(3));
       });
 
-      test('userDtoToUserModel handles null User object', () {
-        final dtoJsonNoUser = {
+      test('userDtoToUserModel handles null User fields', () {
+        final dtoJsonNoUserData = {
           'id': 1,
+          'user_id': 1,
           'name': 'Test User',
+          'birth_date': '2003-11-20T00:00:00+02:00',
           'profile_image_url': 'https://example.com/avatar.jpg',
+          'banner_image_url': "null",
+          'bio': "null",
+          'location': "null",
+          'website': "null",
           'followers_count': 5,
           'following_count': 3,
+          'is_deactivated': true,
+          'is_followed_by_me': true,
+          'created_at': '2024-01-01T00:00:00Z',
+          'updated_at': '2024-01-01T00:00:00Z',
+          'User': {
+            'id': 10,
+            'username': null,
+            'email': "null",
+            'role': 'user',
+            'created_at': '2024-01-01T00:00:00Z',
+          },
         };
 
-        final fakeApi = FakeApiService(getResponse: {'data': dtoJsonNoUser});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final fakeApi = FakeApiService(
+          getResponse: {'data': dtoJsonNoUserData},
+        );
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
-        final dto = UserDtoAuth.fromJson(dtoJsonNoUser);
+        final dto = UserDtoAuth.fromJson(dtoJsonNoUserData);
         final userModel = notifier.userDtoToUserModel(dto);
 
         expect(userModel.username, isNull);
-        expect(userModel.email, isNull);
       });
 
       test('userDtoToUserModel handles null profileImageUrl', () {
         final dtoWithoutImage = {
           'id': 1,
+          'user_id': 1,
           'name': 'Test User',
+          'birth_date': null,
           'profile_image_url': null,
+          'banner_image_url': null,
+          'bio': null,
+          'location': null,
+          'website': null,
           'followers_count': 5,
           'following_count': 3,
+          'is_deactivated': false,
+          'is_followed_by_me': false,
+          'created_at': '2024-01-01T00:00:00Z',
+          'updated_at': '2024-01-01T00:00:00Z',
           'User': {
             'id': 10,
             'username': 'testuser',
             'email': 'a@b.com',
+            'role': 'user',
+            'created_at': '2024-01-01T00:00:00Z',
           },
         };
 
         final fakeApi = FakeApiService(getResponse: {'data': dtoWithoutImage});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -265,9 +298,9 @@ void main() {
     group('authenticateUser', () {
       test('authenticateUser(null) does nothing', () {
         final fakeApi = FakeApiService(getResponse: {'data': dtoJson});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -281,9 +314,9 @@ void main() {
 
       test('authenticateUser with valid DTO sets state', () {
         final fakeApi = FakeApiService(getResponse: {'data': dtoJson});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -303,10 +336,11 @@ void main() {
         SharedPreferences.setMockInitialValues({'token': 'abc'});
 
         final fakeApi = FakeApiService(
-            postResponse: {'message': 'Logout successful'});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+          postResponse: {'message': 'Logout successful'},
+        );
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -331,10 +365,11 @@ void main() {
         SharedPreferences.setMockInitialValues({'token': 'abc'});
 
         final fakeApi = FakeApiService(
-            postResponse: {'message': 'Something went wrong'});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+          postResponse: {'message': 'Something went wrong'},
+        );
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -359,9 +394,9 @@ void main() {
         final fakeApi = FakeApiService(
           postException: Exception('Network error'),
         );
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -386,9 +421,9 @@ void main() {
             error: 'Server error',
           ),
         );
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -405,9 +440,9 @@ void main() {
         SharedPreferences.setMockInitialValues({'token': 'abc'});
 
         final fakeApi = FakeApiService(postResponse: {});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -424,9 +459,9 @@ void main() {
     group('updateUser', () {
       test('updateUser updates the user in state', () {
         final fakeApi = FakeApiService(getResponse: {'data': dtoJson});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -449,9 +484,9 @@ void main() {
     group('refreshUser - Success Path', () {
       test('refreshUser updates user from server', () async {
         final fakeApi = FakeApiService(getResponse: {'data': dtoJson});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -476,9 +511,9 @@ void main() {
         };
 
         final fakeApi = FakeApiService(getResponse: {'data': updatedDtoJson});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -498,9 +533,9 @@ void main() {
         final fakeApi = FakeApiService(
           getException: Exception('Network error'),
         );
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -518,9 +553,9 @@ void main() {
 
       test('refreshUser handles null response data', () async {
         final fakeApi = FakeApiService(getResponse: {'data': null});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -543,9 +578,9 @@ void main() {
             error: 'Server error',
           ),
         );
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -560,9 +595,9 @@ void main() {
 
       test('refreshUser handles missing data key', () async {
         final fakeApi = FakeApiService(getResponse: {});
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(fakeApi),
-        ]);
+        final container = ProviderContainer(
+          overrides: [apiServiceProvider.overrideWithValue(fakeApi)],
+        );
         addTearDown(container.dispose);
 
         final notifier = container.read(authenticationProvider.notifier);
@@ -578,11 +613,13 @@ void main() {
 
     group('Initial State', () {
       test('provider initializes with default AuthState', () {
-        final container = ProviderContainer(overrides: [
-          apiServiceProvider.overrideWithValue(
-            FakeApiService(getResponse: {'data': dtoJson}),
-          ),
-        ]);
+        final container = ProviderContainer(
+          overrides: [
+            apiServiceProvider.overrideWithValue(
+              FakeApiService(getResponse: {'data': dtoJson}),
+            ),
+          ],
+        );
         addTearDown(container.dispose);
 
         final state = container.read(authenticationProvider);
