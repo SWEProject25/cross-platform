@@ -233,6 +233,5 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
       throw 'Could not launch $url';
     }
   }
- // coverage:ignore-start
-
+  // coverage:ignore-end
 }
