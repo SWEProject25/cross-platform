@@ -20,7 +20,6 @@ class AccountSettingsRepository {
       _api.changePassword(oldPassword, newPassword);
   Future<void> changeUsername(String newUsername) =>
       _api.changeUsername(newUsername);
-  Future<void> deactivateAccount() => _api.deactivateAccount();
   Future<bool> validatePassword(String password) =>
       _api.validatePassword(password);
   Future<bool> checkEmailExists(String email) => _api.checkEmailExists(email);
