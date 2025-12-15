@@ -16,7 +16,6 @@ void main() {
     );
   }
 
-
   testWidgets('shows empty followers and following states', (tester) async {
     final api = FakeProfileApiService()
       ..followers = []
@@ -33,7 +32,6 @@ void main() {
 
     expect(find.byKey(const ValueKey('followers_empty')), findsOneWidget);
 
-    // Switch tab
     await tester.tap(find.byKey(const ValueKey('following_tab')));
     await tester.pumpAndSettle();
 
@@ -47,6 +45,7 @@ void main() {
           'id': 10,
           'username': 'follower1',
           'name': 'Follower One',
+          'bio': 'Hello',
         }
       ]
       ..following = [];
@@ -63,8 +62,8 @@ void main() {
     expect(find.byKey(const ValueKey('followers_list')), findsOneWidget);
     expect(find.byKey(const ValueKey('user_tile_10')), findsOneWidget);
     expect(find.byKey(const ValueKey('user_name_10')), findsOneWidget);
+    expect(find.text('Follower One'), findsOneWidget);
   });
-
 
   testWidgets('renders following list when switching tab', (tester) async {
     final api = FakeProfileApiService()
@@ -91,9 +90,8 @@ void main() {
 
     expect(find.byKey(const ValueKey('following_list')), findsOneWidget);
     expect(find.byKey(const ValueKey('user_tile_20')), findsOneWidget);
-    expect(find.byKey(const ValueKey('user_name_20')), findsOneWidget);
+    expect(find.text('Following One'), findsOneWidget);
   });
-
 
   testWidgets('pop returns false when no changes happened', (tester) async {
     final api = FakeProfileApiService()
@@ -136,4 +134,54 @@ void main() {
 
     expect(popResult, false);
   });
+
+  testWidgets('tapping user tile marks page as changed', (tester) async {
+    final api = FakeProfileApiService()
+      ..followers = [
+        {'id': 1, 'username': 'user1', 'name': 'User One'}
+      ]
+      ..following = [];
+
+    bool? result;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          profileApiServiceProvider.overrideWithValue(api),
+        ],
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () async {
+                  result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const FollowersFollowingPage(userId: 1),
+                    ),
+                  );
+                },
+                child: const Text('Open'),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('user_tile_1')));
+    await tester.pumpAndSettle();
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(result, true);
+  });
+
+
+
 }
