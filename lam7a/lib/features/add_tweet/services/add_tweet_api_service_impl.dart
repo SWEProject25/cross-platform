@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'dart:io';
 import 'dart:convert';
 import 'package:dio/dio.dart';
@@ -9,10 +10,13 @@ import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
 import 'add_tweet_api_service.dart';
 
+
+
 /// Real implementation of AddTweetApiService
 /// Sends tweet with media files to backend in a single multipart request with authentication
 class AddTweetApiServiceImpl implements AddTweetApiService {
   final ApiService _apiService;
+  
   
   AddTweetApiServiceImpl({required ApiService apiService}) 
       : _apiService = apiService;

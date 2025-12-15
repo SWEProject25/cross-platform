@@ -7,94 +7,178 @@ T? read<T>(Map json, List<String> keys) {
   return null;
 }
 
+List<String> _extractImages(Map<String, dynamic> json) {
+  final media = json['media'];
+  if (media == null || media is! List) return <String>[];
+
+  final images = <String>[];
+  for (final item in media) {
+    if (item == null) continue;
+    if (item is String) {
+      images.add(item);
+      continue;
+    }
+    if (item is Map) {
+      final type = (item['type'] ?? item['mediaType'])
+          ?.toString()
+          .toUpperCase();
+      final url = (item['url'] ?? item['media_url'] ?? item['mediaUrl'])
+          ?.toString();
+      if (url == null || url.isEmpty) continue;
+      if (type != 'VIDEO') images.add(url);
+    }
+  }
+  return images;
+}
+
+List<String> _extractVideos(Map<String, dynamic> json) {
+  final media = json['media'];
+  if (media == null || media is! List) return <String>[];
+
+  final videos = <String>[];
+  for (final item in media) {
+    if (item == null) continue;
+    if (item is String) {
+      final lower = item.toLowerCase();
+      if (lower.endsWith('.mp4') || lower.contains('video')) videos.add(item);
+      continue;
+    }
+    if (item is Map) {
+      final type = (item['type'] ?? item['mediaType'])
+          ?.toString()
+          .toUpperCase();
+      final url = (item['url'] ?? item['media_url'] ?? item['mediaUrl'])
+          ?.toString();
+      if (url == null || url.isEmpty) continue;
+      if (type == 'VIDEO' || url.toLowerCase().contains('mp4')) videos.add(url);
+    }
+  }
+  return videos;
+}
+
 TweetModel convertProfileJsonToTweetModel(Map<String, dynamic> json) {
+  if (json.containsKey('postId') && json.containsKey('date')) {
+    try {
+      return TweetModel.fromJsonPosts(json);
+    } catch (_) {}
+  }
+
   final bool isRepost = json["isRepost"] == true;
   final bool isQuote = json["isQuote"] == true;
   final original = json["originalPostData"];
 
   // ---------------- REPOST ----------------
   if (isRepost && original is Map<String, dynamic>) {
-    final inner = original;
+    final merged = <String, dynamic>{
+      ...Map<String, dynamic>.from(original),
+    };
+
+    if (json['userId'] != null) merged['userId'] = json['userId'];
+    if (json['username'] != null) merged['username'] = json['username'];
+    if (json['name'] != null) merged['name'] = json['name'];
+    if (json['avatar'] != null) merged['avatar'] = json['avatar'];
+    if (json['date'] != null) merged['date'] = json['date'];
+
+    merged['isRepost'] = true;
+    merged['originalPostData'] = Map<String, dynamic>.from(original);
+
+    try {
+      return TweetModel.fromJsonPosts(merged);
+    } catch (_) {}
+
+    final inner = Map<String, dynamic>.from(original);
 
     final originalTweet = TweetModel(
-      id: read(inner, ["postId"])!.toString(),
-      userId: read(inner, ["userId"])!.toString(),
-      username: read(inner, ["username"]) ?? "",
-      authorName: read(inner, ["name"]) ?? "",
-      authorProfileImage: read(inner, ["avatar"]),
-      body: inner["text"] ?? "",
-      likes: inner["likesCount"] ?? 0,
-      repost: inner["retweetsCount"] ?? 0,
-      comments: inner["commentsCount"] ?? 0,
-      date: DateTime.parse(read(inner, ["date"])!),
+      id: inner['postId'].toString(),
+      userId: inner['userId'].toString(),
+      username: inner['username'],
+      authorName: inner['name'],
+      authorProfileImage: inner['avatar'],
+      body: inner['text'] ?? '',
+      date: DateTime.parse(inner['date']),
+      likes: inner['likesCount'] ?? 0,
+      repost: inner['retweetsCount'] ?? 0,
+      comments: inner['commentsCount'] ?? 0,
+      mediaImages: _extractImages(inner),
+      mediaVideos: _extractVideos(inner),
       isRepost: false,
       isQuote: false,
     );
 
     return TweetModel(
-      id: read(json, ["postId"])!.toString(),
-      userId: read(json, ["userId"])!.toString(),
-      username: read(json, ["username"]) ?? "",
-      authorName: read(json, ["name"]) ?? "",
-      authorProfileImage: read(json, ["avatar"]),
+      id: json['postId'].toString(),
+      userId: json['userId'].toString(),
+      username: json['username'],
+      authorName: json['name'],
+      authorProfileImage: json['avatar'],
       body: originalTweet.body,
+      date: DateTime.parse(json['date']),
       likes: originalTweet.likes,
       repost: originalTweet.repost,
       comments: originalTweet.comments,
-      date: DateTime.parse(read(json, ["date"])!),
       isRepost: true,
+      isQuote: false,
+      mediaImages: originalTweet.mediaImages,
+      mediaVideos: originalTweet.mediaVideos,
       originalTweet: originalTweet,
     );
   }
 
   // ---------------- QUOTE ----------------
   if (isQuote && original is Map<String, dynamic>) {
-    final parent = original;
+    final parent = Map<String, dynamic>.from(original);
 
     final parentTweet = TweetModel(
-      id: read(parent, ["postId"])!.toString(),
-      userId: read(parent, ["userId"])!.toString(),
-      username: read(parent, ["username"]) ?? "",
-      authorName: read(parent, ["name"]) ?? "",
-      authorProfileImage: read(parent, ["avatar"]),
-      body: parent["text"] ?? "",
-      likes: parent["likesCount"] ?? 0,
-      repost: parent["retweetsCount"] ?? 0,
-      comments: parent["commentsCount"] ?? 0,
-      date: DateTime.parse(read(parent, ["date"])!),
+      id: parent['postId'].toString(),
+      userId: parent['userId'].toString(),
+      username: parent['username'],
+      authorName: parent['name'],
+      authorProfileImage: parent['avatar'],
+      body: parent['text'] ?? '',
+      date: DateTime.parse(parent['date']),
+      likes: parent['likesCount'] ?? 0,
+      repost: parent['retweetsCount'] ?? 0,
+      comments: parent['commentsCount'] ?? 0,
+      mediaImages: _extractImages(parent),
+      mediaVideos: _extractVideos(parent),
       isRepost: false,
       isQuote: false,
     );
 
     return TweetModel(
-      id: read(json, ["postId"])!.toString(),
-      userId: read(json, ["userId"])!.toString(),
-      username: read(json, ["username"]) ?? "",
-      authorName: read(json, ["name"]) ?? "",
-      authorProfileImage: read(json, ["avatar"]),
-      body: json["text"] ?? "",
-      likes: json["likesCount"] ?? 0,
-      repost: json["retweetsCount"] ?? 0,
-      comments: json["commentsCount"] ?? 0,
-      date: DateTime.parse(read(json, ["date"])!),
+      id: json['postId'].toString(),
+      userId: json['userId'].toString(),
+      username: json['username'],
+      authorName: json['name'],
+      authorProfileImage: json['avatar'],
+      body: json['text'] ?? '',
+      date: DateTime.parse(json['date']),
+      likes: json['likesCount'] ?? 0,
+      repost: json['retweetsCount'] ?? 0,
+      comments: json['commentsCount'] ?? 0,
+      isRepost: false,
       isQuote: true,
+      mediaImages: _extractImages(json),
+      mediaVideos: _extractVideos(json),
       originalTweet: parentTweet,
     );
   }
 
   // ---------------- NORMAL ----------------
   return TweetModel(
-    id: read(json, ["postId", "id"])!.toString(),
-    userId: read(json, ["userId"])!.toString(),
-    username: read(json, ["username"]) ?? "",
-    authorName: read(json, ["name"]) ?? "",
-    authorProfileImage: read(json, ["avatar"]),
-    body: json["text"] ?? "",
-    likes: json["likesCount"] ?? 0,
-    repost: json["retweetsCount"] ?? 0,
-    comments: json["commentsCount"] ?? 0,
-    date: DateTime.parse(read(json, ["date"])!),
+    id: json['postId']?.toString() ?? json['id']?.toString() ?? '',
+    userId: json['userId']?.toString() ?? '',
+    username: json['username'] ?? '',
+    authorName: json['name'] ?? '',
+    authorProfileImage: json['avatar'],
+    body: json['text'] ?? '',
+    date: DateTime.parse(json['date']),
+    likes: json['likesCount'] ?? 0,
+    repost: json['retweetsCount'] ?? 0,
+    comments: json['commentsCount'] ?? 0,
     isRepost: false,
     isQuote: false,
+    mediaImages: _extractImages(json),
+    mediaVideos: _extractVideos(json),
   );
 }

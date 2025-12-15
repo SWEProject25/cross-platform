@@ -417,6 +417,10 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                       ),
                     );
 
+                    if (!mounted) {
+                      return;
+                    }
+
                     ref.invalidate(tweetViewModelProvider(postId));
                   },
                 ),
@@ -638,6 +642,10 @@ class _TweetDetailedFeedState extends ConsumerState<TweetDetailedFeed>
                       );
 
                       // Refresh replies and parent tweet (comments count) after returning
+                      if (!mounted) {
+                        return;
+                      }
+
                       ref.invalidate(tweetRepliesViewModelProvider(postId));
                       ref.invalidate(tweetViewModelProvider(postId));
                     },

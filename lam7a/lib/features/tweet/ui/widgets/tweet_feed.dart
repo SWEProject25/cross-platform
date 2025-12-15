@@ -50,30 +50,11 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
     _scaleAnimationRepost = Tween<double>(begin: 1.0, end: 1.3).animate(
       CurvedAnimation(parent: _controllerRepost, curve: Curves.easeOut),
     );
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-    final tweetId = widget.tweetState.tweet.value?.id;
-    if (tweetId == null) return;
-
-    ref.listen(tweetViewModelProvider(tweetId), (prev, next) {
-      if (prev == null || next == null) return;
-
-      final prevLiked = prev.value?.isLiked;
-      final nextLiked = next.value?.isLiked;
-
-      // Trigger ONLY when like state actually changes
-      if (prevLiked != nextLiked) {
-        final me = ref.read(authenticationProvider).user;
-        if (me != null && me.id != null) {
-          ref.invalidate(profileLikesProvider(me.id.toString()));
-        }
-      }
-    });
-  });
-
   }
 
   void _handlerepost() {
+    if (!mounted) return;
+
     final tweetId = widget.tweetState.tweet.value?.id;
     if (tweetId == null) return;
 
@@ -120,6 +101,8 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
   }
 
   void _showRepostQuoteOptions(BuildContext context) {
+    if (!mounted) return;
+
     final tweetId = widget.tweetState.tweet.value?.id;
     if (tweetId == null) return;
 
@@ -144,9 +127,16 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     onTap: () {
+                      // If the TweetFeed widget was disposed while the bottom
+                      // sheet is still open, avoid using ref from here.
+                      if (!mounted) {
+                        Navigator.pop(context);
+                        return;
+                      }
+
                       _handlerepost();
                       final tweet = widget.tweetState.tweet.value;
-                      if (tweet != null && tweet.userId != null){
+                      if (tweet != null && tweet.userId != null) {
                         final userId = tweet.userId.toString();
 
                         ref.invalidate(profilePostsProvider(userId));
@@ -166,6 +156,14 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     onTap: () async {
+                      // Same as above: bottom sheet can outlive TweetFeed.
+                      // Bail out if the widget is no longer mounted to avoid
+                      // Riverpod "ref used when unmounted" errors.
+                      if (!mounted) {
+                        Navigator.pop(context);
+                        return;
+                      }
+
                       final authState = ref.read(authenticationProvider);
                       final user = authState.user;
                       if (user == null || user.id == null) {
@@ -197,6 +195,10 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                         ),
                       );
 
+                      if (!mounted) {
+                        return;
+                      }
+
                       ref.invalidate(tweetViewModelProvider(tweetId));
                     },
                   ),
@@ -214,6 +216,7 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
   @override
   void dispose() {
     _controller.dispose();
+    _controllerRepost.dispose();
     super.dispose();
   }
 
@@ -315,6 +318,10 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
             );
 
             // Refresh replies and parent tweet (comments count) after returning
+            if (!mounted) {
+              return;
+            }
+
             ref.invalidate(tweetRepliesViewModelProvider(postId));
             ref.invalidate(tweetViewModelProvider(postId));
           },

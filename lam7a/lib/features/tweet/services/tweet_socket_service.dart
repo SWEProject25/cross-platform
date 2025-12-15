@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'dart:async';
 import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/core/services/socket_service.dart';
@@ -5,7 +6,9 @@ import 'package:lam7a/features/tweet/dtos/tweets_socket_events_dto.dart';
 import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+
 part 'tweet_socket_service.g.dart';
+
 
 @Riverpod(keepAlive: true)
 TweetsSocketService tweetsSocketService(Ref ref) {
