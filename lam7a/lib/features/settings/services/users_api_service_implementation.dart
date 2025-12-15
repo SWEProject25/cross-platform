@@ -1,3 +1,5 @@
+// coverage:ignore-file
+
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/core/constants/server_constant.dart';

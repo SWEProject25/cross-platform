@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dio/dio.dart';
@@ -55,6 +56,49 @@ void main() {
       )).called(1);
     });
 
+    test('createTweet prefers transformed post shape when postId is present',
+        () async {
+      final now = DateTime.now().toIso8601String();
+      final responseData = {
+        'status': 'success',
+        'data': {
+          'postId': '42',
+          'userId': '1',
+          'text': 'Transformed content',
+          'date': now,
+          'likesCount': 3,
+          'commentsCount': 1,
+          'retweetsCount': 2,
+          'media': [
+            {
+              'url': 'http://img.com/transformed.jpg',
+              'type': 'IMAGE',
+            },
+            {
+              'url': 'http://vid.com/transformed.mp4',
+              'type': 'VIDEO',
+            },
+          ],
+        },
+      };
+
+      when(() => mockApiService.post<Map<String, dynamic>>(
+            endpoint: any(named: 'endpoint'),
+            data: any(named: 'data'),
+            options: any(named: 'options'),
+          )).thenAnswer((_) async => responseData);
+
+      final result = await service.createTweet(
+        userId: 1,
+        content: 'Transformed content',
+      );
+
+      expect(result.id, '42');
+      expect(result.body, 'Transformed content');
+      expect(result.mediaImages, contains('http://img.com/transformed.jpg'));
+      expect(result.mediaVideos, contains('http://vid.com/transformed.mp4'));
+    });
+
     test('createTweet parses media in response correctly', () async {
       final responseData = {
         'status': 'success',
@@ -105,6 +149,25 @@ void main() {
 
       expect(result.mediaImages, contains('http://img.com/pic.jpg'));
       expect(result.mediaVideos, contains('http://vid.com/movie.mp4'));
+    });
+
+    test('createTweet throws StateError when response data is not a map',
+        () async {
+      final responseData = {
+        'status': 'success',
+        'data': 'unexpected-string-response',
+      };
+
+      when(() => mockApiService.post<Map<String, dynamic>>(
+            endpoint: any(named: 'endpoint'),
+            data: any(named: 'data'),
+            options: any(named: 'options'),
+          )).thenAnswer((_) async => responseData);
+
+      expect(
+        () => service.createTweet(userId: 1, content: 'Bad response'),
+        throwsA(isA<StateError>()),
+      );
     });
 
     // SKIP: Real file IO causing crashes in test runner environment

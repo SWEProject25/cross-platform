@@ -2,9 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/common/providers/pagination_notifier.dart';
 import 'package:lam7a/features/common/states/pagination_state.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
-import '../../services/profile_api_service.dart';
-import '../../utils/profile_tweet_mapper.dart';
-
+import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
 
 final profileRepliesProvider = NotifierProvider.family<
     ProfileRepliesPaginationNotifier,
@@ -19,7 +17,7 @@ class ProfileRepliesPaginationNotifier
   final String userId;
   ProfileRepliesPaginationNotifier(this.userId);
 
-  ProfileApiService get _api => ref.read(profileApiServiceProvider);
+  TweetRepository get _repo => ref.read(tweetRepositoryProvider);
 
   @override
   PaginationState<TweetModel> build() {
@@ -29,46 +27,23 @@ class ProfileRepliesPaginationNotifier
 
   @override
   Future<(List<TweetModel>, bool)> fetchPage(int page) async {
-    final raw = await _api.getProfileReplies(userId, page, pageSize);
+    final allReplies = await _repo.fetchUserReplies(userId);
 
-    final items = raw
-        .map((e) => convertProfileJsonToTweetModel(
-              Map<String, dynamic>.from(
-                e['originalPostData'] ?? e,
-              ),
-            ))
-        .toList();
+    if (allReplies.isEmpty) {
+      return (<TweetModel>[], false);
+    }
 
-    return (items, items.length == pageSize);
-  }
+    final start = (page - 1) * pageSize;
+    if (start >= allReplies.length) {
+      return (<TweetModel>[], false);
+    }
 
-  Map<String, dynamic> normalizeTweetJson(Map<String, dynamic> e) {
-    return {
-      "id": e["postId"],
-      "text": e["text"],
-      "createdAt": e["date"],
+    final end =
+        (start + pageSize) > allReplies.length ? allReplies.length : (start + pageSize);
 
-      "user": {
-        "id": e["userId"],
-        "username": e["username"],
-        "name": e["name"],
-        "avatar": e["avatar"],
-        "verified": e["verified"] ?? false,
-      },
+    final items = allReplies.sublist(start, end);
+    final hasMore = end < allReplies.length;
 
-      "likesCount": e["likesCount"] ?? 0,
-      "retweetsCount": e["retweetsCount"] ?? 0,
-      "commentsCount": e["commentsCount"] ?? 0,
-
-      "isLikedByMe": e["isLikedByMe"] ?? false,
-      "isRepostedByMe": e["isRepostedByMe"] ?? false,
-      "isFollowedByMe": e["isFollowedByMe"] ?? false,
-
-      "media": e["media"] ?? [],
-      "mentions": e["mentions"] ?? [],
-
-      "isRepost": e["isRepost"] ?? false,
-      "isQuote": e["isQuote"] ?? false,
-    };
+    return (items, hasMore);
   }
 }

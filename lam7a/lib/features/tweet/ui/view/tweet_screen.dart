@@ -325,102 +325,102 @@ class TweetScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Parent tweet with avatar and connector
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left column: parent avatar + connector line
-              Column(
-                children: [
-                  AppUserAvatar(
-                    radius: avatarRadius,
-                    imageUrl: parentTweet.authorProfileImage,
-                    displayName: parentDisplayName,
-                    username: parentUsername,
-                  ),
-                  Expanded(
-                    child: Container(width: 2, color: Colors.grey),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 10),
-              // Parent tweet content - whole area tappable to open parent tweet
-              Expanded(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => TweetScreen(
-                          tweetId: parentTweet.id,
-                          tweetData: parentTweet,
-                        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Left column: parent avatar + connector line
+            Column(
+              children: [
+                AppUserAvatar(
+                  radius: avatarRadius,
+                  imageUrl: parentTweet.authorProfileImage,
+                  displayName: parentDisplayName,
+                  username: parentUsername,
+                ),
+                Container(
+                  width: 2,
+                  height: avatarRadius * 2,
+                  color: Colors.grey,
+                ),
+              ],
+            ),
+            const SizedBox(width: 10),
+            // Parent tweet content - whole area tappable to open parent tweet
+            Expanded(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => TweetScreen(
+                        tweetId: parentTweet.id,
+                        tweetData: parentTweet,
                       ),
-                    );
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Parent user info with time
-                      Row(
-                        children: [
-                          Flexible(
+                    ),
+                  );
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Parent user info with time
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            parentDisplayName,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).pushNamed(
+                                '/profile',
+                                arguments: {'username': parentUsername},
+                              );
+                            },
                             child: Text(
-                              parentDisplayName,
+                              '@$parentUsername',
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
+                                color: Colors.grey,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: GestureDetector(
-                              onTap: () {
-                                Navigator.of(context).pushNamed(
-                                  '/profile',
-                                  arguments: {'username': parentUsername},
-                                );
-                              },
-                              child: Text(
-                                '@$parentUsername',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: Colors.grey,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            ' · ${_formatTimeAgo(parentTweet.date)}',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      // Parent body and media
-                      TweetBodySummaryWidget(
-                        post: parentTweet,
-                        disableOriginalTap: true,
-                      ),
-                      const SizedBox(height: 8),
-                      // Parent action bar
-                      TweetFeed(
-                        tweetState: TweetState(
-                          isLiked: false,
-                          isReposted: false,
-                          isViewed: false,
-                          tweet: AsyncValue.data(parentTweet),
                         ),
+                        Text(
+                          ' · ${_formatTimeAgo(parentTweet.date)}',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // Parent body and media
+                    TweetBodySummaryWidget(
+                      post: parentTweet,
+                      disableOriginalTap: true,
+                    ),
+                    const SizedBox(height: 8),
+                    // Parent action bar
+                    TweetFeed(
+                      tweetState: TweetState(
+                        isLiked: false,
+                        isReposted: false,
+                        isViewed: false,
+                        tweet: AsyncValue.data(parentTweet),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         // Reply tweet user info (entire row tappable to open reply author's profile)

@@ -52,6 +52,7 @@ class _TweetHomeScreenState extends ConsumerState<TweetHomeScreen>
     super.didChangeDependencies();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       if (!_isTabBarVisible) {
         setState(() {
           _isTabBarVisible = true;
@@ -308,7 +309,9 @@ class _TweetHomeScreenState extends ConsumerState<TweetHomeScreen>
         if (index == tweets.length) {
           return const Padding(
             padding: EdgeInsets.all(16.0),
-            child: Center(child: Expanded(child: CircularProgressIndicator())),
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
           );
         }
 
