@@ -9,6 +9,7 @@ class AddTweetBodyInputWidget extends StatelessWidget {
   final String? authorProfileImage;
   final String? authorName;
   final String? username;
+  final FocusNode? focusNode;
 
   const AddTweetBodyInputWidget({
     super.key,
@@ -18,6 +19,7 @@ class AddTweetBodyInputWidget extends StatelessWidget {
     this.authorProfileImage,
     this.authorName,
     this.username,
+    this.focusNode,
   });
 
   @override
@@ -38,6 +40,7 @@ class AddTweetBodyInputWidget extends StatelessWidget {
         Expanded(
           child: TextField(
             controller: controller,
+            focusNode: focusNode,
             onChanged: onChanged,
             maxLines: null,
             minLines: 5,

@@ -9,6 +9,7 @@ part 'tweet_home_viewmodel.g.dart';
 class TweetHomeViewModel extends _$TweetHomeViewModel {
   Map<String, List<TweetModel>> _cachedTweets = Map();
   int _currentPage = 1;
+  int _currentPageFollowing = 1;
   bool _hasMoreForYou = true;
   bool _hasMoreFollowing = true;
   bool _isLoadingMore = false;
@@ -28,31 +29,34 @@ class TweetHomeViewModel extends _$TweetHomeViewModel {
     return tweets;
   }
 
+  bool isFollowingEmptyInState() {
+    final currentState = state.value;
+    if (currentState == null) return true;
+
+    final followingTweets = currentState['following'] ?? [];
+    return followingTweets.isEmpty;
+  }
+
   /// Fetch initial tweets (first page)
   Future<Map<String, List<TweetModel>>> _fetchInitialTweets() async {
     final repository = ref.read(tweetRepositoryProvider);
-    final tweetsForYou = await repository.fetchTweets(_pageSize, 1, 'for-you');
-    final tweetsFollownig = await repository.fetchTweets(
-      _pageSize,
-      1,
-      'following',
-    );
+    final tweetsForYou = await repository.fetchTweetsForYou(_pageSize, 1);
 
     _cachedTweets['for-you'] = tweetsForYou;
-    _cachedTweets['following'] = tweetsFollownig;
+    _cachedTweets['following'] = [];
+    print(
+      "there is cashed tweets" + _cachedTweets['for-you']!.length.toString(),
+    );
     _currentPage = 1;
     _hasMoreForYou = tweetsForYou.length >= _pageSize;
-    _hasMoreFollowing = tweetsFollownig.length >= _pageSize;
 
-    return {'for-you': tweetsForYou, 'following': tweetsFollownig};
+    return {'for-you': tweetsForYou, 'following': []};
   }
 
   /// Load more tweets (next page) - called when scrolling near end
-  Future<void> loadMoreTweets(String tweetsType) async {
+  Future<void> loadMoreTweetsForYou() async {
     // Prevent multiple simultaneous loads
-    if (_isLoadingMore || (!_hasMoreForYou && tweetsType == 'for-you')) return;
-    if (_isLoadingMore || (!_hasMoreFollowing && tweetsType == 'following'))
-      return;
+    if (_isLoadingMore || (!_hasMoreForYou)) return;
 
     _isLoadingMore = true;
 
@@ -60,42 +64,63 @@ class TweetHomeViewModel extends _$TweetHomeViewModel {
       final repository = ref.read(tweetRepositoryProvider);
       final nextPage = _currentPage + 1;
 
-      final newTweets = await repository.fetchTweets(
-        _pageSize,
-        nextPage,
-        tweetsType,
-      );
+      final newTweets = await repository.fetchTweetsForYou(_pageSize, nextPage);
 
-      if (newTweets.isEmpty && tweetsType == 'for-you') {
+      if (newTweets.isEmpty) {
         _hasMoreForYou = false;
         return;
       }
-
-      if (newTweets.isEmpty && tweetsType == 'following') {
-        _hasMoreFollowing = false;
-        return;
-      }
       // Append new tweets to existing list
-      final existingIds = _cachedTweets[tweetsType]!.map((t) => t.id).toSet();
+      final forYouTweets = _cachedTweets['for-you'] ?? [];
+      final existingIds = forYouTweets.map((t) => t.id).toSet();
       final uniqueNewTweets = newTweets
           .where((t) => !existingIds.contains(t.id))
           .toList();
 
-      _cachedTweets[tweetsType] = [
-        ..._cachedTweets[tweetsType]!,
-        ...uniqueNewTweets,
-      ];
+      _cachedTweets['for-you'] = [...forYouTweets, ...uniqueNewTweets];
       _currentPage = nextPage;
-      if (tweetsType == 'for-you') {
-        _hasMoreForYou = newTweets.length >= _pageSize;
-      } else {
-        _hasMoreFollowing = newTweets.length >= _pageSize;
-      }
-
+      _hasMoreForYou = newTweets.length >= _pageSize;
       // Update state with appended list
       state = AsyncValue.data(_cachedTweets);
     } catch (e) {
       _hasMoreForYou = false;
+    } finally {
+      _isLoadingMore = false;
+    }
+  }
+
+  Future<void> loadMoreTweetsFollowing() async {
+    // Prevent multiple simultaneous loads
+    if (_isLoadingMore || (!_hasMoreFollowing)) return;
+
+    _isLoadingMore = true;
+
+    try {
+      final repository = ref.read(tweetRepositoryProvider);
+      final nextPage = _currentPageFollowing + 1;
+
+      final newTweets = await repository.fetchTweetsFollowing(
+        _pageSize,
+        nextPage,
+      );
+
+      if (newTweets.isEmpty) {
+        _hasMoreFollowing = false;
+        return;
+      }
+      // Append new tweets to existing list
+      final followingTweets = _cachedTweets['following'] ?? [];
+      final existingIds = followingTweets.map((t) => t.id).toSet();
+      final uniqueNewTweets = newTweets
+          .where((t) => !existingIds.contains(t.id))
+          .toList();
+
+      _cachedTweets['following'] = [...followingTweets, ...uniqueNewTweets];
+      _currentPageFollowing = nextPage;
+      _hasMoreFollowing = newTweets.length >= _pageSize;
+      // Update state with appended list
+      state = AsyncValue.data(_cachedTweets);
+    } catch (e) {
       _hasMoreFollowing = false;
     } finally {
       _isLoadingMore = false;
@@ -103,13 +128,9 @@ class TweetHomeViewModel extends _$TweetHomeViewModel {
   }
 
   /// Refresh tweets (pull-to-refresh) - resets to page 1
-  Future<void> refreshTweets() async {
-    print('🔄 Refreshing tweets...');
-
+  Future<void> refreshTweetsForYou() async {
     // Reset pagination state
-    _currentPage = 1;
-    _hasMoreForYou = true;
-    _hasMoreFollowing = true;
+    _currentPageFollowing = 1;
     _isLoadingMore = false;
 
     state = const AsyncValue.loading();
@@ -121,33 +142,31 @@ class TweetHomeViewModel extends _$TweetHomeViewModel {
   }
 
   Future<void> refreshFollowingTweets() async {
-    print('🔄 Refreshing following tweets...');
-
-    _hasMoreFollowing = true;
     _isLoadingMore = false;
+
+    state = const AsyncValue.loading();
 
     // Preserve current state
     final currentTweets = state.value ?? {'for-you': [], 'following': []};
 
     // Fetch new following tweets
     final repository = ref.read(tweetRepositoryProvider);
-    
+
     state = await AsyncValue.guard(() async {
-      final followingTweets = await repository.fetchTweets(
+      final followingTweets = await repository.fetchTweetsFollowing(
         _pageSize,
         1,
-        'following',
       );
-      
+
       _cachedTweets['following'] = followingTweets;
-      
+      _hasMoreFollowing = followingTweets.length >= _pageSize;
       return {
         'for-you': currentTweets['for-you'] ?? [],
         'following': followingTweets,
       };
     });
-
   }
+
   void upsertTweetLocally(TweetModel tweet) {
     final current = state.value!['for-you'];
 

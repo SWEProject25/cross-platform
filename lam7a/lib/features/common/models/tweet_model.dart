@@ -76,11 +76,46 @@ abstract class TweetModel with _$TweetModel {
       }
     }
 
+    // Backend returns media as an array of objects: [{ url, type }, ...].
+    // Reuse parseMedia for image-like entries and filter VIDEO into
+    // mediaVideos so timelines and detail views can render playable videos.
+    final dynamic media = json['media'];
+    final List<String> mediaImages;
+    final List<String> mediaVideos = [];
+
+    if (media is List) {
+      final images = <String>[];
+      for (final item in media) {
+        if (item == null) continue;
+        if (item is String) {
+          // Treat bare strings as images by default
+          images.add(item);
+          continue;
+        }
+        if (item is Map) {
+          final url = (item['url'] ?? item['media_url'] ?? item['mediaUrl'])
+              ?.toString();
+          if (url == null || url.isEmpty) continue;
+          final type = (item['type'] ?? item['mediaType'])
+              ?.toString()
+              .toUpperCase();
+          if (type == 'VIDEO') {
+            mediaVideos.add(url);
+          } else {
+            images.add(url);
+          }
+        }
+      }
+      mediaImages = images;
+    } else {
+      mediaImages = parseMedia(media);
+    }
+
     return TweetModel(
       id: json['postId'].toString(),
       body: json['text'] ?? '',
-      mediaImages: parseMedia(json['media']),
-      mediaVideos: const [],
+      mediaImages: mediaImages,
+      mediaVideos: mediaVideos,
 
       date: DateTime.parse(json['date']),
       likes: json['likesCount'] ?? 0,
