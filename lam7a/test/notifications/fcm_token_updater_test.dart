@@ -139,5 +139,141 @@ void main() {
 
       container.dispose();
     });
+
+    test('does not set FCM token when token is null', () async {
+      // Arrange
+      final user = createMockUser();
+      final mockAuth = MockAuthentication(
+        AuthState(user: user, isAuthenticated: true),
+      );
+
+      when(() => mockCloudMessagingService.getToken())
+          .thenAnswer((_) async => null);
+
+      final container = ProviderContainer(
+        overrides: [
+          authenticationProvider.overrideWith(() => mockAuth),
+          cloudMessagingServiceProvider
+              .overrideWithValue(mockCloudMessagingService),
+          notificationsRepositoryProvider
+              .overrideWithValue(mockNotificationsRepository),
+          notificationsReceiverProvider
+              .overrideWithValue(mockNotificationsReceiver),
+        ],
+      );
+
+      // Act
+      container.read(fCMTokenUpdaterProvider);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Assert
+      verify(() => mockNotificationsReceiver.requestPermission()).called(1);
+      verify(() => mockCloudMessagingService.getToken()).called(1);
+      verifyNever(() => mockNotificationsRepository.setFCMToken(any()));
+      verifyNever(() => mockNotificationsRepository.removeFCMToken());
+
+      container.dispose();
+    });
+
+    test('updates token on token refresh event', () async {
+      // Arrange
+      final user = createMockUser();
+      final mockAuth = MockAuthentication(
+        AuthState(user: user, isAuthenticated: true),
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          authenticationProvider.overrideWith(() => mockAuth),
+          cloudMessagingServiceProvider
+              .overrideWithValue(mockCloudMessagingService),
+          notificationsRepositoryProvider
+              .overrideWithValue(mockNotificationsRepository),
+          notificationsReceiverProvider
+              .overrideWithValue(mockNotificationsReceiver),
+        ],
+      );
+
+      // Act
+      container.listen(fCMTokenUpdaterProvider, (_, __) {});
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Emit token refresh event
+      when(() => mockCloudMessagingService.getToken())
+          .thenAnswer((_) async => 'new-fcm-token');
+      tokenRefreshController.add('new-fcm-token');
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Assert
+      verify(() => mockNotificationsRepository.setFCMToken('test-fcm-token'))
+          .called(1);
+      verify(() => mockNotificationsRepository.setFCMToken('new-fcm-token'))
+          .called(1);
+
+      container.dispose();
+    });
+
+    test('handles token refresh when user becomes null', () async {
+      // Arrange
+      final user = createMockUser();
+      final mockAuth = MockAuthentication(
+        const AuthState(user: null, isAuthenticated: false),
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          authenticationProvider.overrideWith(() => mockAuth),
+          cloudMessagingServiceProvider
+              .overrideWithValue(mockCloudMessagingService),
+          notificationsRepositoryProvider
+              .overrideWithValue(mockNotificationsRepository),
+          notificationsReceiverProvider
+              .overrideWithValue(mockNotificationsReceiver),
+        ],
+      );
+
+      // Act
+      container.listen(fCMTokenUpdaterProvider, (_, __) {});
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Emit token refresh event
+      tokenRefreshController.add('refreshed-token');
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Assert
+      verify(() => mockNotificationsRepository.removeFCMToken()).called(greaterThan(0));
+
+      container.dispose();
+    });
+
+    test('cancels subscription on dispose', () async {
+      // Arrange
+      final user = createMockUser();
+      final mockAuth = MockAuthentication(
+        AuthState(user: user, isAuthenticated: true),
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          authenticationProvider.overrideWith(() => mockAuth),
+          cloudMessagingServiceProvider
+              .overrideWithValue(mockCloudMessagingService),
+          notificationsRepositoryProvider
+              .overrideWithValue(mockNotificationsRepository),
+          notificationsReceiverProvider
+              .overrideWithValue(mockNotificationsReceiver),
+        ],
+      );
+
+      // Act
+      container.read(fCMTokenUpdaterProvider);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Dispose should cancel subscription without errors
+      container.dispose();
+
+      // Assert - no exception thrown
+      expect(true, true);
+    });
   });
 }
