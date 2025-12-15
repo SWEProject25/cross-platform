@@ -13,6 +13,7 @@ class MockExploreRepository extends Mock implements ExploreRepository {}
 void main() {
   late MockExploreRepository mockRepo;
   late ProviderContainer container;
+  bool skipTearDown = false;
 
   setUpAll(() {
     registerFallbackValue(<TrendingHashtag>[]);
@@ -23,10 +24,13 @@ void main() {
 
   setUp(() {
     mockRepo = MockExploreRepository();
+    skipTearDown = false;
   });
 
   tearDown(() {
-    container.dispose();
+    if (!skipTearDown) {
+      container.dispose();
+    }
   });
 
   ProviderContainer createContainer() {
@@ -884,7 +888,13 @@ void main() {
         () => mockRepo.getForYouTweets(any()),
       ).thenThrow(Exception('Network error'));
 
-      expect(container.read(exploreViewModelProvider.future), throwsException);
+      // Let the provider initialize and fail
+      await Future.delayed(Duration(milliseconds: 100));
+
+      final asyncValue = container.read(exploreViewModelProvider);
+
+      expect(asyncValue.hasError, isTrue);
+      expect(asyncValue.error, isA<Exception>());
     });
   });
 }
