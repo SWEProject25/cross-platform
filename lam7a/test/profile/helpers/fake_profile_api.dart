@@ -21,6 +21,10 @@ class FakeProfileApiService implements ProfileApiService {
   bool blockCalled = false;
   bool unblockCalled = false;
   bool updateCalled = false;
+  bool delayUpdate = false;
+  bool throwOnUpdate = false;
+  bool delayFollow = false;
+
 
   /// ---------- PROFILE ----------
   @override
@@ -41,15 +45,30 @@ class FakeProfileApiService implements ProfileApiService {
 
   @override
   Future<ProfileDto> updateMyProfile(Map<String, dynamic> data) async {
+    if (delayUpdate) {
+      await Future.delayed(const Duration(seconds: 1));
+    }
+
+    if (throwOnUpdate) {
+      throw Exception('update failed');
+    }
+
     updateCalled = true;
 
-    return ProfileDto.fromJson({
-      'id': 1,
-      'user_id': 1,
-      'name': data['name'],
-      'user': {'username': 'test'},
-    });
+    return ProfileDto(
+      id: 1,
+      userId: 1,
+      name: data['name'],
+      bio: data['bio'],
+      location: data['location'],
+      website: data['website'],
+      birthDate: data['birth_date'],
+      profileImageUrl: data['profile_image_url'],
+      bannerImageUrl: data['banner_image_url'],
+      user: {'username': 'test'},
+    );
   }
+
 
   /// ---------- MEDIA ----------
   @override
@@ -66,6 +85,9 @@ class FakeProfileApiService implements ProfileApiService {
   @override
   Future<void> followUser(int id) async {
     followCalled = true;
+    if (delayFollow) {
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
   }
 
   @override

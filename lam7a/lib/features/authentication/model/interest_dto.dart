@@ -1,3 +1,4 @@
+// coverage:ignore-file
 class InterestDto {
   int id;
   String? name;

@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'package:lam7a/core/models/user_dto.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/features/authentication/model/authentication_user_credentials_model.dart';

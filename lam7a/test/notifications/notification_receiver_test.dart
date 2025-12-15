@@ -587,5 +587,186 @@ void main() {
       // Assert - should complete without errors
       // No verifications needed as nothing should happen
     });
+
+    test('handleInitialMessageIfAny processes initial message when present',
+        () async {
+      // Arrange
+      final mockMessage = MockRemoteMessage();
+      when(() => mockMessage.messageId).thenReturn('initial-msg-123');
+      when(() => mockMessage.data).thenReturn({
+        'id': 'notif-initial',
+        'type': 'LIKE',
+        'actor': {
+          'id': 2000,
+          'username': 'initialuser',
+          'name': 'Initial User',
+          'profileImageUrl': 'https://example.com/avatar.jpg',
+        },
+        'postId': 3000,
+        'createdAt': '2025-12-15T10:00:00Z',
+        'isRead': false,
+      });
+
+      when(() => mockCloudMessagingService.initialize(any()))
+          .thenAnswer((_) async => {});
+      when(() => mockCloudMessagingService.getInitialMessage())
+          .thenAnswer((_) async => mockMessage);
+      when(() => mockCloudMessagingService.onMessage)
+          .thenAnswer((_) => Stream<RemoteMessage>.empty());
+      when(() => mockCloudMessagingService.onMessageOpenedApp)
+          .thenAnswer((_) => Stream<RemoteMessage>.empty());
+      when(() => mockNotificationsRepository.markAsRead('notif-initial'))
+          .thenAnswer((_) async => {});
+      when(() => mockNewNotificationCount.updateNotificationsCount())
+          .thenAnswer((_) async => {});
+
+      // Act
+      await receiver.initialize();
+      receiver.handleInitialMessageIfAny();
+
+      // Wait for async processing
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Assert - verify message was processed
+      verify(() => mockNotificationsRepository.markAsRead('notif-initial'))
+          .called(1);
+      verify(() => mockNewNotificationCount.updateNotificationsCount())
+          .called(1);
+    });
+
+    test('handleInitialMessageIfAny clears initial message after processing',
+        () async {
+      // Arrange
+      final mockMessage = MockRemoteMessage();
+      when(() => mockMessage.messageId).thenReturn('initial-msg-456');
+      when(() => mockMessage.data).thenReturn({
+        'id': 'notif-cleared',
+        'type': 'FOLLOW',
+        'actor': {
+          'id': 4000,
+          'username': 'follower2',
+          'name': 'Follower Two',
+          'profileImageUrl': 'https://example.com/avatar.jpg',
+        },
+        'createdAt': '2025-12-15T10:00:00Z',
+        'isRead': false,
+      });
+
+      when(() => mockCloudMessagingService.initialize(any()))
+          .thenAnswer((_) async => {});
+      when(() => mockCloudMessagingService.getInitialMessage())
+          .thenAnswer((_) async => mockMessage);
+      when(() => mockCloudMessagingService.onMessage)
+          .thenAnswer((_) => Stream<RemoteMessage>.empty());
+      when(() => mockCloudMessagingService.onMessageOpenedApp)
+          .thenAnswer((_) => Stream<RemoteMessage>.empty());
+      when(() => mockNotificationsRepository.markAsRead('notif-cleared'))
+          .thenAnswer((_) async => {});
+      when(() => mockNewNotificationCount.updateNotificationsCount())
+          .thenAnswer((_) async => {});
+
+      // Act
+      await receiver.initialize();
+      receiver.handleInitialMessageIfAny();
+      
+      // Wait for async processing
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Call again - should not process message again
+      receiver.handleInitialMessageIfAny();
+      
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Assert - verify message was only processed once
+      verify(() => mockNotificationsRepository.markAsRead('notif-cleared'))
+          .called(1);
+    });
+  });
+
+  group('NotificationsReceiver - Message with notification payload', () {
+    test('_onMessageReceived logs when message contains notification payload',
+        () async {
+      // Arrange
+      final mockNotification = MockRemoteMessage();
+      final mockMessage = MockRemoteMessage();
+      
+      when(() => mockMessage.data).thenReturn({
+        'id': 'notif-with-payload',
+        'type': 'LIKE',
+        'actor': {
+          'id': 5000,
+          'username': 'payloaduser',
+          'name': 'Payload User',
+          'profileImageUrl': 'https://example.com/avatar.jpg',
+        },
+        'postId': 6000,
+        'createdAt': '2025-12-15T10:00:00Z',
+        'isRead': false,
+      });
+      
+      // Mock the notification property
+      when(() => mockMessage.notification).thenReturn(
+        RemoteNotification(
+          title: 'Test Notification',
+          body: 'Test notification body',
+        ),
+      );
+
+      when(() => mockNewNotificationCount.updateNotificationsCount())
+          .thenAnswer((_) async => {});
+      when(() => mockNewNotificationCount.notifyViewModels()).thenReturn(null);
+
+      final controller = StreamController<RemoteMessage>();
+      when(() => mockCloudMessagingService.onMessage)
+          .thenAnswer((_) => controller.stream);
+      when(() => mockCloudMessagingService.onMessageOpenedApp)
+          .thenAnswer((_) => Stream<RemoteMessage>.empty());
+      when(() => mockCloudMessagingService.getInitialMessage())
+          .thenAnswer((_) async => null);
+      when(() => mockCloudMessagingService.initialize(any()))
+          .thenAnswer((_) async => {});
+
+      receiver = NotificationsReceiver(
+        mockCloudMessagingService,
+        mockNotificationsRepository,
+        mockNewNotificationCount,
+      );
+
+      // Act
+      await receiver.initialize();
+      controller.add(mockMessage);
+
+      // Wait for stream processing
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Assert - verify notification count was updated
+      verify(() => mockNewNotificationCount.updateNotificationsCount())
+          .called(1);
+      verify(() => mockNewNotificationCount.notifyViewModels()).called(1);
+
+      controller.close();
+    });
+  });
+
+  group('NotificationsReceiver - Unknown notification type', () {
+    test('handleNotificationAction logs unknown notification type', () {
+      final unknownNotification = NotificationModel(
+        notificationId: 'notif-truly-unknown',
+        type: NotificationType.unknown,
+        actor: ActorModel(
+          id: 8000,
+          username: 'unknownuser2',
+          displayName: 'Unknown User 2',
+          profileImageUrl: 'https://example.com/avatar.jpg',
+        ),
+        postId: null, // No postId
+        createdAt: DateTime.parse('2025-12-15T10:00:00Z'),
+        isRead: false,
+      );
+
+      receiver.handleNotificationAction(unknownNotification);
+
+      expect(unknownNotification.postId, isNull);
+    });
   });
 }

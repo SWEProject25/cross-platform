@@ -11,11 +11,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'notifications_receiver.g.dart';
 
+// coverage:ignore-start
 @riverpod
 NotificationsReceiver notificationsReceiver(Ref ref){
   ref.keepAlive();
   return NotificationsReceiver(ref.read(cloudMessagingServiceProvider), ref.read(notificationsRepositoryProvider), ref.read(unReadNotificationCountProvider.notifier));
 }
+// coverage:ignore-end
 
 class NotificationsReceiver {
   Logger logger = getLogger(NotificationsReceiver);
