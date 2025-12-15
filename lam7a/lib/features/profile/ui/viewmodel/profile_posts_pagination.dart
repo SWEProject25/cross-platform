@@ -47,7 +47,6 @@ class ProfilePostsPaginationNotifier
       "text": e["text"],
       "createdAt": e["date"],
 
-      // 👇 REQUIRED BY TweetModel
       "user": {
         "id": e["userId"],
         "username": e["username"],

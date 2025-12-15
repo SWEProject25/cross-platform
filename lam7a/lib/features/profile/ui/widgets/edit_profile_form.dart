@@ -122,7 +122,6 @@ class EditProfileFormState extends ConsumerState<EditProfileForm> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(children: [
             TextField(key: const ValueKey('edit_profile_name_input'), controller: nameController, maxLength: 30, decoration: const InputDecoration(labelText: 'Display name')),
-            //TextField(controller: bioController, decoration: const InputDecoration(labelText: 'Bio')),
             TextField(
               key: const ValueKey('edit_profile_bio_input'),
               controller: bioController,
