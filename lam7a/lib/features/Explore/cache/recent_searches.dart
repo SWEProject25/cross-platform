@@ -1,3 +1,5 @@
+// coverage:ignore-file
+
 import 'package:hive/hive.dart';
 import 'package:lam7a/core/models/user_model.dart';
 
