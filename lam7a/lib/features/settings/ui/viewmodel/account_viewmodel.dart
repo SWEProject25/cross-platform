@@ -40,10 +40,10 @@ class AccountViewModel extends Notifier<UserModel> {
   Future<void> changeEmail(String newEmail) async {
     try {
       await _repo.changeEmail(newEmail);
-
       updateEmailLocalState(newEmail);
     } catch (e) {
-      // handle or rethrow error
+      print("error in account view model change email");
+      rethrow;
     }
   }
 
@@ -71,6 +71,7 @@ class AccountViewModel extends Notifier<UserModel> {
 }
 
 // 🔹 Global provider
-final accountProvider = NotifierProvider<AccountViewModel, UserModel>(
-  AccountViewModel.new,
-);
+final accountProvider =
+    NotifierProvider.autoDispose<AccountViewModel, UserModel>(
+      AccountViewModel.new,
+    );

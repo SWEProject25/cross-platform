@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/features/profile/repository/profile_repository.dart';
@@ -46,6 +48,48 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     super.dispose();
   }
 
+  bool _isValidName(String name) {
+    final trimmed = name.trim();
+
+    if (trimmed.isEmpty) return false;
+    if (trimmed.length < 5) return false;
+    if (trimmed.length > 30) return false;
+
+    
+    final validNameRegex = RegExp(r'^[a-zA-Z0-9 _.-]+$');
+    return validNameRegex.hasMatch(trimmed);
+  }
+
+  bool _isValidBirthYear(String birthDate) {
+    if (birthDate.isEmpty) return true; 
+
+    final maxAllowedYear = 2010;
+    final parts = birthDate.split('-');
+    if (parts.isEmpty) return false;
+
+    final year = int.tryParse(parts[0]);
+    if (year == null) return false;
+
+    // Max allowed year = 2010
+    return year <= maxAllowedYear;
+  }
+
+  bool _isValidWebsite(String website) {
+    if (website.isEmpty) return true; 
+
+    // No emojis or spaces
+    final validChars = RegExp(r"^[a-zA-Z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+$");
+    if (!validChars.hasMatch(website)) return false;
+
+    // Must look like a domain
+    final domainRegex = RegExp(
+      r'^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}$',
+    );
+
+    return domainRegex.hasMatch(website);
+  }
+
+
   Future<void> pickAvatar() async {
     final f = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (f != null) setState(() => newAvatarPath = f.path);
@@ -60,12 +104,63 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     if (_saving) return;
     setState(() => _saving = true);
 
+    final name = nameCtrl.text.trim();
+
+    if (!_isValidName(name)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Name must be 5–30 characters and cannot contain emojis or only spaces',
+            ),
+          ),
+        );
+      }
+      setState(() => _saving = false);
+      return;
+    }
+
+    final birthDate = birthDateCtrl.text.trim();
+
+    if (!_isValidBirthYear(birthDate)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Birth year must be 2010 or earlier',
+            ),
+          ),
+        );
+      }
+      setState(() => _saving = false);
+      return;
+    }
+
+    final website = websiteCtrl.text.trim();
+
+    if (!_isValidWebsite(website)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please enter a valid website URL'),
+          ),
+        );
+      }
+      setState(() => _saving = false);
+      return;
+    }
+
+    final normalizedWebsite =
+        website.isNotEmpty && !website.startsWith('http')
+            ? 'https://$website'
+            : website;
+
     final updated = widget.user.copyWith(
-      name: nameCtrl.text.trim(),
+      name: name,
       bio: bioCtrl.text.trim(),
       location: locationCtrl.text.trim(),
-      website: websiteCtrl.text.trim(),
-      birthDate: birthDateCtrl.text.trim(),
+      website: normalizedWebsite,
+      birthDate: birthDate,
       profileImageUrl: newAvatarPath ?? widget.user.profileImageUrl,
       bannerImageUrl: newBannerPath ?? widget.user.bannerImageUrl,
     );
@@ -82,16 +177,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
   }
 
-  // Widget buildField(String label, TextEditingController c, {int maxLines = 1}) {
-  //   return Padding(
-  //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-  //     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-  //       Text(label, style: const TextStyle(color: Colors.grey)),
-  //       const SizedBox(height: 6),
-  //       TextField(controller: c, maxLines: maxLines, decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)))),
-  //     ]),
-  //   );
-  // }
+
 
   Widget buildField(String label, TextEditingController c, {int maxLines = 1, int? maxLength, Key? fieldKey,}) {
   return Padding(
@@ -105,7 +191,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           key: fieldKey,
           controller: c,
           maxLines: maxLines,
-          maxLength: maxLength,  // <-- ADD THIS
+          maxLength: maxLength, 
           decoration: InputDecoration(
             counterText: "",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -145,7 +231,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             ),
           
           const SizedBox(height: 12),
-          buildField('Name', nameCtrl, fieldKey: const ValueKey('edit_profile_name_field'),),
+          buildField('Name', nameCtrl, maxLength: 30, fieldKey: const ValueKey('edit_profile_name_field'),),
           buildField('Bio', bioCtrl, maxLines: 3, maxLength: 160, fieldKey: const ValueKey('edit_profile_bio_field'),),
           buildField('Location', locationCtrl, fieldKey: const ValueKey('edit_profile_location_field'),),
           buildField('Website', websiteCtrl, fieldKey: const ValueKey('edit_profile_website_field'),),

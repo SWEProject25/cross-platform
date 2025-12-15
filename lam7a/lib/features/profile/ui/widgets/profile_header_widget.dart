@@ -1,6 +1,7 @@
 // lib/features/profile/ui/widgets/profile_header_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:lam7a/core/models/user_model.dart';
 import 'package:lam7a/features/profile/ui/view/edit_profile_page.dart';
@@ -22,7 +23,6 @@ class ProfileHeaderWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      // Top-right action: Edit or Follow
       Padding(
         padding: const EdgeInsets.only(right: 16),
         child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -34,14 +34,14 @@ class ProfileHeaderWidget extends ConsumerWidget {
                   minimumSize: const Size(0, 28), 
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap, 
 
-                  // Border color depends on theme
+
                   side: BorderSide(
                     color: Theme.of(context).brightness == Brightness.light
                         ? Colors.black
                         : Colors.white,
                   ),
 
-                  // Background color optional
+
                   backgroundColor: Theme.of(context).brightness == Brightness.light
                       ? Colors.white
                       : Colors.black,
@@ -111,9 +111,37 @@ class ProfileHeaderWidget extends ConsumerWidget {
 
                   // Format the date properly
                   Text(
-                    (user.birthDate ?? '').split("T").first, // <-- FIX
+                    (user.birthDate ?? '').split("T").first, // FIX
                   ),
                 ],
+              ),
+
+              if ((user.website ?? '').isNotEmpty)
+              GestureDetector(
+                key: const ValueKey('profile_website'),
+                onTap: () async {
+                  final url = Uri.parse(user.website!);
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(
+                      url,
+                      mode: LaunchMode.externalApplication,
+                    );
+                  }
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.link, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      user.website!,
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
 
@@ -124,14 +152,26 @@ class ProfileHeaderWidget extends ConsumerWidget {
 
       const SizedBox(height: 12),
 
-      // Following / Followers - navigates to FollowersFollowingPage
+      // Following / Followers -page
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(children: [
           GestureDetector(
             key: const ValueKey('profile_following_button'),
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 1)));
+            onTap: () async {
+              final changed = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => FollowersFollowingPage(
+                                  userId: user.id ?? 0,
+                                  initialTab: 1,
+                                ),
+                              ),
+                            );
+
+                            if (changed == true) {
+                              onEdited?.call(); 
+                            }
             },
             child: RichText(
               text: TextSpan(children: [
@@ -145,8 +185,20 @@ class ProfileHeaderWidget extends ConsumerWidget {
 
           GestureDetector(
             key: const ValueKey('profile_followers_button'),
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 0)));
+            onTap: () async {
+              final changed = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => FollowersFollowingPage(
+                                          userId: user.id ?? 0,
+                                          initialTab: 1,
+                                        ),
+                                      ),
+                                    );
+
+                                    if (changed == true) {
+                                      onEdited?.call(); 
+                                    }
             },
             child: RichText(
               text: TextSpan(children: [

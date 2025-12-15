@@ -30,31 +30,45 @@ class ExploreViewModel extends AsyncNotifier<ExploreState> {
     if (_initialized) return state.value!;
     _initialized = true;
 
-    _hashtags = await _repo.getTrendingHashtags();
-    print("Explore Hashtags loaded: ${_hashtags.length}");
+    try {
+      _hashtags = await _repo.getTrendingHashtags();
+      print("Explore Hashtags loaded: ${_hashtags.length}");
 
-    final randomHashtags = (List.of(_hashtags)..shuffle()).take(5).toList();
+      final randomHashtags = _hashtags.isEmpty
+          ? <TrendingHashtag>[]
+          : (List.of(_hashtags)..shuffle()).take(5).toList();
 
-    final users = await _repo.getSuggestedUsers(limit: 7);
-    print("Suggested Users loaded: ${users.length}");
+      if (randomHashtags.isEmpty) {
+        await Future.delayed(const Duration(seconds: 1));
+      }
 
-    final randomUsers = (List.of(
-      users.length >= 7 ? users.take(7) : users,
-    )..shuffle()).take(5).toList();
+      final users = await _repo.getSuggestedUsers(limit: 7);
+      print("Suggested Users loaded: ${users.length}");
 
-    final forYouTweetsMap = await _repo.getForYouTweets(_limit);
-    print("For You Tweets Map loaded: ${forYouTweetsMap.length} interests");
+      final randomUsers = users.isEmpty
+          ? <UserModel>[]
+          : (List.of(
+              users.length >= 7 ? users.take(7) : users,
+            )..shuffle()).take(5).toList();
 
-    print("Explore ViewModel initialized");
+      final forYouTweetsMap = await _repo.getForYouTweets(_limit);
+      print("For You Tweets Map loaded: ${forYouTweetsMap.length} interests");
 
-    return ExploreState.initial().copyWith(
-      forYouHashtags: randomHashtags,
-      suggestedUsers: randomUsers,
-      interestBasedTweets: forYouTweetsMap,
-      isForYouHashtagsLoading: false,
-      isSuggestedUsersLoading: false,
-      isInterestMapLoading: false,
-    );
+      print("Explore ViewModel initialized");
+
+      return ExploreState.initial().copyWith(
+        forYouHashtags: randomHashtags,
+        suggestedUsers: randomUsers,
+        interestBasedTweets: forYouTweetsMap,
+        isForYouHashtagsLoading: false,
+        isSuggestedUsersLoading: false,
+        isInterestMapLoading: false,
+      );
+    } catch (e) {
+      state = AsyncError(e, StackTrace.current);
+      print("Error initializing Explore ViewModel: $e");
+      rethrow;
+    }
   }
 
   // --------------------------------------------------------
@@ -101,361 +115,182 @@ class ExploreViewModel extends AsyncNotifier<ExploreState> {
   // FOR YOU
   // ========================================================
   Future<void> loadForYou({bool reset = false}) async {
-    if (reset) {
-      _isLoadingMore = false;
+    try {
+      if (reset) {
+        _isLoadingMore = false;
+      }
+
+      final prev = state.value!;
+      final oldList = reset ? <TrendingHashtag>[] : prev.forYouHashtags;
+
+      final oldSuggestedUsers = reset ? <UserModel>[] : prev.suggestedUsers;
+
+      final oldForYouTweetsMap = reset
+          ? <String, List<TweetModel>>{}
+          : prev.interestBasedTweets;
+
+      state = AsyncData(
+        prev.copyWith(
+          forYouHashtags: oldList,
+          isForYouHashtagsLoading: true,
+          suggestedUsers: oldSuggestedUsers,
+          isSuggestedUsersLoading: true,
+          interestBasedTweets: oldForYouTweetsMap,
+          isInterestMapLoading: true,
+        ),
+      );
+
+      final list = await _repo.getTrendingHashtags();
+      final randomHashtags = list.isEmpty
+          ? <TrendingHashtag>[]
+          : (List.of(list)..shuffle()).take(5).toList();
+
+      final users = await _repo.getSuggestedUsers(limit: 7);
+      final randomUsers = users.isEmpty
+          ? <UserModel>[]
+          : (List.of(
+              users.length >= 7 ? users.take(7) : users,
+            )..shuffle()).take(5).toList();
+
+      final forYouTweetsMap = await _repo.getForYouTweets(_limit);
+
+      state = AsyncData(
+        state.value!.copyWith(
+          forYouHashtags: randomHashtags,
+          isForYouHashtagsLoading: false,
+          suggestedUsers: randomUsers,
+          isSuggestedUsersLoading: false,
+          interestBasedTweets: forYouTweetsMap,
+          isInterestMapLoading: false,
+        ),
+      );
+    } catch (e) {
+      print("Error loading For You: $e");
+      rethrow;
     }
-
-    final prev = state.value!;
-    final oldList = reset
-        ? List<TrendingHashtag>.empty()
-        : prev.trendingHashtags;
-
-    final oldSuggestedUsers = reset
-        ? List<UserModel>.empty()
-        : prev.suggestedUsers;
-
-    final oldForYouTweetsMap = reset
-        ? <String, List<TweetModel>>{}
-        : prev.interestBasedTweets;
-
-    state = AsyncData(
-      prev.copyWith(
-        forYouHashtags: oldList,
-        isForYouHashtagsLoading: true,
-        suggestedUsers: oldSuggestedUsers,
-        isSuggestedUsersLoading: true,
-        interestBasedTweets: oldForYouTweetsMap,
-        isInterestMapLoading: true,
-      ),
-    );
-
-    final list = await _repo.getTrendingHashtags();
-    final randomHashtags = (List.of(list)..shuffle()).take(5).toList();
-    final users = await _repo.getSuggestedUsers(limit: 7);
-    final randomUsers = (List.of(
-      users.length >= 7 ? users.take(7) : users,
-    )..shuffle()).take(5).toList();
-    final forYouTweetsMap = await _repo.getForYouTweets(_limit);
-    state = AsyncData(
-      state.value!.copyWith(
-        forYouHashtags: randomHashtags,
-        isForYouHashtagsLoading: false,
-        suggestedUsers: randomUsers,
-        isSuggestedUsersLoading: false,
-        interestBasedTweets: forYouTweetsMap,
-        isInterestMapLoading: false,
-      ),
-    );
   }
-
-  // Future<void> loadMoreForYou() async {
-  //   final prev = state.value!;
-  //   if (!prev.hasMoreForYouTweets || _isLoadingMore) return;
-
-  //   _isLoadingMore = true;
-
-  //   final oldList = prev.forYouTweets;
-  //   state = AsyncData(prev.copyWith(isForYouTweetsLoading: true));
-
-  //   final list = await _repo.getForYouTweets(_limit, _pageForYou);
-
-  //   _isLoadingMore = false;
-
-  //   state = AsyncData(
-  //     state.value!.copyWith(
-  //       forYouTweets: [...oldList, ...list],
-  //       isForYouTweetsLoading: false,
-  //       hasMoreForYouTweets: list.length == _limit,
-  //     ),
-  //   );
-
-  //   if (list.length == _limit) _pageForYou++;
-  // }
 
   // ========================================================
   // TRENDING
   // ========================================================
   Future<void> loadTrending({bool reset = false}) async {
-    if (reset) {
-      _isLoadingMore = false;
+    try {
+      if (reset) {
+        _isLoadingMore = false;
+      }
+
+      final prev = state.value!;
+      final oldList = reset ? <TrendingHashtag>[] : prev.trendingHashtags;
+
+      state = AsyncData(
+        prev.copyWith(trendingHashtags: oldList, isHashtagsLoading: true),
+      );
+
+      final list = await _repo.getTrendingHashtags();
+
+      state = AsyncData(
+        state.value!.copyWith(
+          trendingHashtags: [...oldList, ...list],
+          isHashtagsLoading: false,
+        ),
+      );
+    } catch (e) {
+      print("Error loading Trending: $e");
+      rethrow;
     }
-
-    final prev = state.value!;
-    final oldList = reset
-        ? List<TrendingHashtag>.empty()
-        : prev.trendingHashtags;
-
-    state = AsyncData(
-      prev.copyWith(trendingHashtags: oldList, isHashtagsLoading: true),
-    );
-
-    final list = await _repo.getTrendingHashtags();
-
-    state = AsyncData(
-      state.value!.copyWith(
-        trendingHashtags: [...oldList, ...list],
-        isHashtagsLoading: false,
-      ),
-    );
   }
 
   // ========================================================
   // NEWS
   // ========================================================
   Future<void> loadNews({bool reset = false}) async {
-    // if (reset) {
-    //   _pageNews = 1;
-    //   _isLoadingMore = false;
-    // }
+    try {
+      if (reset) {
+        _isLoadingMore = false;
+      }
 
-    // final prev = state.value!;
-    // final oldList = reset ? List<TweetModel>.empty() : prev.newsTweets;
+      final prev = state.value!;
+      final oldList = reset ? <TrendingHashtag>[] : prev.newsHashtags;
 
-    // state = AsyncData(
-    //   prev.copyWith(
-    //     newsTweets: oldList,
-    //     isNewsTweetsLoading: false,
-    //     hasMoreNewsTweets: true,
-    //   ),
-    // );
+      state = AsyncData(
+        prev.copyWith(newsHashtags: oldList, isNewsHashtagsLoading: true),
+      );
 
-    // final list = await _repo.getExploreTweetsWithFilter(
-    //   _limit,
-    //   _pageNews,
-    //   "news",
-    // );
+      final list = await _repo.getInterestHashtags("news");
 
-    // state = AsyncData(
-    //   state.value!.copyWith(
-    //     newsTweets: [...oldList, ...list],
-    //     isNewsTweetsLoading: true,
-    //     hasMoreNewsTweets: list.length == _limit,
-    //   ),
-    // );
-
-    // if (list.length == _limit) _pageNews++;
-    if (reset) {
-      _isLoadingMore = false;
+      state = AsyncData(
+        state.value!.copyWith(
+          newsHashtags: [...oldList, ...list],
+          isNewsHashtagsLoading: false,
+        ),
+      );
+    } catch (e) {
+      print("Error loading News: $e");
+      rethrow;
     }
-
-    final prev = state.value!;
-    final oldList = reset ? List<TrendingHashtag>.empty() : prev.newsHashtags;
-
-    state = AsyncData(
-      prev.copyWith(newsHashtags: oldList, isNewsHashtagsLoading: true),
-    );
-
-    final list = await _repo.getInterestHashtags("news");
-
-    state = AsyncData(
-      state.value!.copyWith(
-        newsHashtags: [...oldList, ...list],
-        isNewsHashtagsLoading: false,
-      ),
-    );
-  }
-
-  Future<void> loadMoreNews() async {
-    // final prev = state.value!;
-    // if (!prev.hasMoreNewsTweets || _isLoadingMore) return;
-
-    // _isLoadingMore = true;
-
-    // final oldList = prev.newsTweets;
-    // state = AsyncData(prev.copyWith(isNewsTweetsLoading: true));
-
-    // final list = await _repo.getExploreTweetsWithFilter(
-    //   _limit,
-    //   _pageNews,
-    //   "news",
-    // );
-
-    // _isLoadingMore = false;
-
-    // state = AsyncData(
-    //   state.value!.copyWith(
-    //     newsTweets: [...oldList, ...list],
-    //     isNewsTweetsLoading: false,
-    //     hasMoreNewsTweets: list.length == _limit,
-    //   ),
-    // );
-
-    // if (list.length == _limit) _pageNews++;
   }
 
   // ========================================================
   // SPORTS
   // ========================================================
   Future<void> loadSports({bool reset = false}) async {
-    // if (reset) {
-    //   _pageSports = 1;
-    //   _isLoadingMore = false;
-    // }
+    try {
+      if (reset) {
+        _isLoadingMore = false;
+      }
 
-    // final prev = state.value!;
-    // final oldList = reset ? <TweetModel>[] : prev.sportsTweets;
+      final prev = state.value!;
+      final oldList = reset ? <TrendingHashtag>[] : prev.sportsHashtags;
 
-    // state = AsyncData(
-    //   prev.copyWith(
-    //     sportsTweets: oldList,
-    //     isSportsTweetsLoading: true,
-    //     hasMoreSportsTweets: true,
-    //   ),
-    // );
+      state = AsyncData(
+        prev.copyWith(sportsHashtags: oldList, isSportsHashtagsLoading: true),
+      );
 
-    // final list = await _repo.getExploreTweetsWithFilter(
-    //   _limit,
-    //   _pageSports,
-    //   "sports",
-    // );
+      final list = await _repo.getInterestHashtags("sports");
 
-    // state = AsyncData(
-    //   state.value!.copyWith(
-    //     sportsTweets: [...oldList, ...list],
-    //     isSportsTweetsLoading: false,
-    //     hasMoreSportsTweets: list.length == _limit,
-    //   ),
-    // );
-
-    // if (list.length == _limit) _pageSports++;
-
-    if (reset) {
-      _isLoadingMore = false;
+      state = AsyncData(
+        state.value!.copyWith(
+          sportsHashtags: [...oldList, ...list],
+          isSportsHashtagsLoading: false,
+        ),
+      );
+    } catch (e) {
+      print("Error loading Sports: $e");
+      rethrow;
     }
-
-    final prev = state.value!;
-    final oldList = reset ? List<TrendingHashtag>.empty() : prev.sportsHashtags;
-
-    state = AsyncData(
-      prev.copyWith(sportsHashtags: oldList, isSportsHashtagsLoading: true),
-    );
-
-    final list = await _repo.getInterestHashtags("sports");
-
-    state = AsyncData(
-      state.value!.copyWith(
-        sportsHashtags: [...oldList, ...list],
-        isSportsHashtagsLoading: false,
-      ),
-    );
-  }
-
-  Future<void> loadMoreSports() async {
-    // final prev = state.value!;
-    // if (!prev.hasMoreSportsTweets || _isLoadingMore) return;
-
-    // _isLoadingMore = true;
-
-    // final oldList = prev.sportsTweets;
-    // state = AsyncData(prev.copyWith(isSportsTweetsLoading: true));
-
-    // final list = await _repo.getExploreTweetsWithFilter(
-    //   _limit,
-    //   _pageSports,
-    //   "sports",
-    // );
-
-    // _isLoadingMore = false;
-
-    // state = AsyncData(
-    //   state.value!.copyWith(
-    //     sportsTweets: [...oldList, ...list],
-    //     isSportsTweetsLoading: false,
-    //     hasMoreSportsTweets: list.length == _limit,
-    //   ),
-    // );
-
-    // if (list.length == _limit) _pageSports++;
   }
 
   // ========================================================
   // ENTERTAINMENT
   // ========================================================
   Future<void> loadEntertainment({bool reset = false}) async {
-    // if (reset) {
-    //   _pageEntertainment = 1;
-    //   _isLoadingMore = false;
-    // }
+    try {
+      if (reset) {
+        _isLoadingMore = false;
+      }
 
-    // final prev = state.value!;
-    // final oldList = reset ? <TweetModel>[] : prev.entertainmentTweets;
+      final prev = state.value!;
+      final oldList = reset ? <TrendingHashtag>[] : prev.entertainmentHashtags;
 
-    // state = AsyncData(
-    //   prev.copyWith(
-    //     entertainmentTweets: oldList,
-    //     isEntertainmentTweetsLoading: true,
-    //     hasMoreEntertainmentTweets: true,
-    //   ),
-    // );
+      state = AsyncData(
+        prev.copyWith(
+          entertainmentHashtags: oldList,
+          isEntertainmentHashtagsLoading: true,
+        ),
+      );
 
-    // final list = await _repo.getExploreTweetsWithFilter(
-    //   _limit,
-    //   _pageEntertainment,
-    //   "entertainment",
-    // );
+      final list = await _repo.getInterestHashtags("entertainment");
 
-    // state = AsyncData(
-    //   state.value!.copyWith(
-    //     entertainmentTweets: [...oldList, ...list],
-    //     isEntertainmentTweetsLoading: false,
-    //     hasMoreEntertainmentTweets: list.length == _limit,
-    //   ),
-    // );
-
-    // if (list.length == _limit) _pageEntertainment++;
-
-    if (reset) {
-      _isLoadingMore = false;
+      state = AsyncData(
+        state.value!.copyWith(
+          entertainmentHashtags: [...oldList, ...list],
+          isEntertainmentHashtagsLoading: false,
+        ),
+      );
+    } catch (e) {
+      print("Error loading Entertainment: $e");
+      rethrow;
     }
-
-    final prev = state.value!;
-    final oldList = reset
-        ? List<TrendingHashtag>.empty()
-        : prev.entertainmentHashtags;
-
-    state = AsyncData(
-      prev.copyWith(
-        entertainmentHashtags: oldList,
-        isEntertainmentHashtagsLoading: true,
-      ),
-    );
-
-    final list = await _repo.getInterestHashtags("entertainment");
-
-    state = AsyncData(
-      state.value!.copyWith(
-        entertainmentHashtags: [...oldList, ...list],
-        isEntertainmentHashtagsLoading: false,
-      ),
-    );
-  }
-
-  Future<void> loadMoreEntertainment() async {
-    // final prev = state.value!;
-    // if (!prev.hasMoreEntertainmentTweets || _isLoadingMore) return;
-
-    // _isLoadingMore = true;
-
-    // final oldList = prev.entertainmentTweets;
-    // state = AsyncData(prev.copyWith(isEntertainmentTweetsLoading: true));
-
-    // final list = await _repo.getExploreTweetsWithFilter(
-    //   _limit,
-    //   _pageEntertainment,
-    //   "entertainment",
-    // );
-
-    // _isLoadingMore = false;
-
-    // state = AsyncData(
-    //   state.value!.copyWith(
-    //     entertainmentTweets: [...oldList, ...list],
-    //     isEntertainmentTweetsLoading: false,
-    //     hasMoreEntertainmentTweets: list.length == _limit,
-    //   ),
-    // );
-
-    // if (list.length == _limit) _pageEntertainment++;
   }
 
   // --------------------------------------------------------
@@ -486,74 +321,93 @@ class ExploreViewModel extends AsyncNotifier<ExploreState> {
   }
 
   Future<void> loadSuggestedUsers() async {
-    final prev = state.value!;
-    final oldList = prev.suggestedUsers;
+    try {
+      final prev = state.value!;
+      final oldList = prev.suggestedUsers;
 
-    state = AsyncData(
-      prev.copyWith(suggestedUsers: oldList, isSuggestedUsersLoading: true),
-    );
+      state = AsyncData(
+        prev.copyWith(suggestedUsers: oldList, isSuggestedUsersLoading: true),
+      );
 
-    final users = await _repo.getSuggestedUsers(limit: 30);
+      final users = await _repo.getSuggestedUsers(limit: 30);
 
-    state = AsyncData(
-      state.value!.copyWith(
-        suggestedUsersFull: users,
-        isSuggestedUsersLoading: false,
-      ),
-    );
+      state = AsyncData(
+        state.value!.copyWith(
+          suggestedUsersFull: users,
+          isSuggestedUsersLoading: false,
+        ),
+      );
+    } catch (e) {
+      print("Error loading Suggested Users: $e");
+      rethrow;
+    }
   }
 
   Future<void> loadIntresesTweets(String intreset) async {
-    final prev = state.value!;
-    _currentInterestPage = 1;
+    try {
+      final prev = state.value!;
+      _currentInterestPage = 1;
 
-    state = AsyncData(
-      prev.copyWith(intrestTweets: List.empty(), isIntrestTweetsLoading: true),
-    );
+      state = AsyncData(
+        prev.copyWith(
+          intrestTweets: <TweetModel>[],
+          isIntrestTweetsLoading: true,
+        ),
+      );
 
-    final list = await _repo.getExploreTweetsWithFilter(
-      _limit,
-      _currentInterestPage,
-      intreset,
-    );
+      final list = await _repo.getExploreTweetsWithFilter(
+        _limit,
+        _currentInterestPage,
+        intreset,
+      );
 
-    state = AsyncData(
-      state.value!.copyWith(
-        intrestTweets: list,
-        isIntrestTweetsLoading: false,
-        hasMoreIntrestTweets: list.length == _limit,
-      ),
-    );
+      state = AsyncData(
+        state.value!.copyWith(
+          intrestTweets: list,
+          isIntrestTweetsLoading: false,
+          hasMoreIntrestTweets: list.length == _limit,
+        ),
+      );
 
-    if (list.length == _limit) _currentInterestPage++;
+      if (list.length == _limit) _currentInterestPage++;
+    } catch (e) {
+      print("Error loading Interest Tweets: $e");
+      rethrow;
+    }
   }
 
   Future<void> loadMoreInterestedTweets(String interest) async {
-    final prev = state.value!;
-    if (!prev.hasMoreIntrestTweets || _isLoadingMore) return;
+    try {
+      final prev = state.value!;
+      if (!prev.hasMoreIntrestTweets || _isLoadingMore) return;
 
-    _isLoadingMore = true;
+      _isLoadingMore = true;
 
-    final oldList = prev.intrestTweets;
-    state = AsyncData(prev.copyWith(isIntrestTweetsLoading: true));
+      final oldList = prev.intrestTweets;
+      state = AsyncData(prev.copyWith(isIntrestTweetsLoading: true));
 
-    final list = await _repo.getExploreTweetsWithFilter(
-      _limit,
-      _currentInterestPage,
-      interest,
-    );
+      final list = await _repo.getExploreTweetsWithFilter(
+        _limit,
+        _currentInterestPage,
+        interest,
+      );
 
-    _isLoadingMore = false;
+      _isLoadingMore = false;
 
-    state = AsyncData(
-      state.value!.copyWith(
-        intrestTweets: [...oldList, ...list],
-        isIntrestTweetsLoading: false,
-        hasMoreIntrestTweets: list.length == _limit,
-      ),
-    );
+      state = AsyncData(
+        state.value!.copyWith(
+          intrestTweets: [...oldList, ...list],
+          isIntrestTweetsLoading: false,
+          hasMoreIntrestTweets: list.length == _limit,
+        ),
+      );
 
-    if (list.length == _limit) _currentInterestPage++;
+      if (list.length == _limit) _currentInterestPage++;
+    } catch (e) {
+      _isLoadingMore = false;
+      print("Error loading more Interest Tweets: $e");
+      rethrow;
+    }
   }
 }
 
@@ -564,7 +418,7 @@ class ExploreViewModel extends AsyncNotifier<ExploreState> {
 //news -> tweets and some trends
 //entertainment -> tweets and some trends
 
-// think about caching just the last result 
+// think about caching just the last result
 
 
 

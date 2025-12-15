@@ -8,8 +8,9 @@ import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
 import 'package:lam7a/core/providers/authentication.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
-import 'package:lam7a/features/profile/ui/viewmodel/profile_posts_viewmodel.dart';
-import 'package:lam7a/features/profile/ui/viewmodel/profile_viewmodel.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_likes_pagination.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_replies_pagination.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_posts_pagination.dart';
 
 
 class TweetFeed extends ConsumerStatefulWidget {

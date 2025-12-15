@@ -29,8 +29,12 @@ class _TweetHomeScreenState extends ConsumerState<TweetHomeScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() {
+    _tabController.addListener(() async {
       print("Current tab is: ${_tabController.index}");
+      final viewmodel = ref.read(tweetHomeViewModelProvider.notifier);
+      if (_tabController.index == 1 && viewmodel.isFollowingEmptyInState()) {
+        await viewmodel.refreshFollowingTweets();
+      }
     });
     _scrollController.addListener(_onScroll);
   }
@@ -42,22 +46,23 @@ class _TweetHomeScreenState extends ConsumerState<TweetHomeScreen>
     _tabController.dispose();
     super.dispose();
   }
+
   @override
-void didChangeDependencies() {
-  super.didChangeDependencies();
-  
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (!_isTabBarVisible) {
-      setState(() {
-        _isTabBarVisible = true;
-        _lastOffset = 0;
-      });
-    }
-  });
-}
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isTabBarVisible) {
+        setState(() {
+          _isTabBarVisible = true;
+          _lastOffset = 0;
+        });
+      }
+    });
+  }
 
   /// Handle scroll events for pagination
-  void _onScroll() {
+  void _onScroll() async {
     if (_isLoadingMore) return; // Prevent multiple simultaneous loads
 
     final maxScroll = _scrollController.position.maxScrollExtent;
@@ -69,24 +74,41 @@ void didChangeDependencies() {
       if (_tabController.index == 0 &&
           viewModel.hasMoreForYou &&
           !viewModel.isLoadingMore) {
-        _loadMore('for-you', viewModel);
+        await _loadMoreForYou(viewModel);
       } else if (_tabController.index == 1 &&
           viewModel.hasMoreFollowing &&
           !viewModel.isLoadingMore) {
-        _loadMore('following', viewModel);
+        await _loadMoreFollowing(viewModel);
       }
     }
   }
 
   /// Load more tweets with proper async handling
-  Future<void> _loadMore(String tab, TweetHomeViewModel viewModel) async {
+  Future<void> _loadMoreForYou(TweetHomeViewModel viewModel) async {
     if (_isLoadingMore) return;
 
     setState(() => _isLoadingMore = true);
     try {
-      await viewModel.loadMoreTweets(tab).timeout(
-        const Duration(seconds: 3)
+      await viewModel.loadMoreTweetsForYou().timeout(
+        const Duration(seconds: 4),
       );
+      setState(() => _isLoadingMore = false);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingMore = false);
+      }
+    }
+  }
+
+  Future<void> _loadMoreFollowing(TweetHomeViewModel viewModel) async {
+    if (_isLoadingMore) return;
+
+    setState(() => _isLoadingMore = true);
+    try {
+      await viewModel.loadMoreTweetsFollowing().timeout(
+        const Duration(seconds: 4),
+      );
+      setState(() => _isLoadingMore = false);
     } finally {
       if (mounted) {
         setState(() => _isLoadingMore = false);
@@ -147,7 +169,7 @@ void didChangeDependencies() {
                           });
                         }
                         // Scroll up - show both bars
-                        else if (currentOffset < _lastOffset - 5 &&
+                        else if (currentOffset < _lastOffset - 3 &&
                             !_isTabBarVisible) {
                           setState(() {
                             _isTabBarVisible = true;
@@ -164,7 +186,7 @@ void didChangeDependencies() {
                         // For You tab
                         RefreshIndicator(
                           onRefresh: () async {
-                            await viewModel.refreshTweets();
+                            await viewModel.refreshTweetsForYou();
                           },
                           child: _buildTweetList(
                             tweets['for-you']!,
@@ -174,7 +196,7 @@ void didChangeDependencies() {
                         // Following tab
                         RefreshIndicator(
                           onRefresh: () async {
-                            await viewModel.refreshTweets();
+                            await viewModel.refreshFollowingTweets();
                           },
                           child: _buildTweetList(
                             tweets['following']!,
@@ -185,7 +207,9 @@ void didChangeDependencies() {
                     ),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(
+                  child: Expanded(child: CircularProgressIndicator()),
+                ),
                 error: (error, _) => Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -193,7 +217,13 @@ void didChangeDependencies() {
                       Text("Error: $error"),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: () => viewModel.refreshTweets(),
+                        onPressed: () async {
+                          if (_tabController.index == 0) {
+                            await viewModel.refreshTweetsForYou();
+                          } else {
+                            await viewModel.refreshFollowingTweets();
+                          }
+                        },
                         child: const Text('Retry'),
                       ),
                     ],
@@ -251,27 +281,25 @@ void didChangeDependencies() {
 
   Widget _buildTweetList(List<TweetModel> tweets, bool hasMore) {
     if (tweets.isEmpty && !hasMore) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: constraints.maxHeight,
-            ),
-            child: Center(
-              child: Text(
-                "There's no tweets press + to add more",
-                style: GoogleFonts.oxanium(
-                  color: Theme.of(context).colorScheme.secondary,
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Center(
+                child: Text(
+                  "There's no tweets press + to add more",
+                  style: GoogleFonts.oxanium(
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-      },
-    );
-  }
+          );
+        },
+      );
+    }
     return ListView.builder(
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
@@ -280,7 +308,7 @@ void didChangeDependencies() {
         if (index == tweets.length) {
           return const Padding(
             padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: Expanded(child: CircularProgressIndicator())),
           );
         }
 

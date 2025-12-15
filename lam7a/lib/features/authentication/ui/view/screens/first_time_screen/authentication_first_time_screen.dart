@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -96,6 +97,18 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
                           textColor: Pallete.blackColor,
                           isBorder: true,
                           pressEffect: () async {
+                            if (Platform.isIOS) {
+                              final Uri authUrl = Uri(
+                                scheme: "https",
+                                host: ServerConstant.oAuthIosRedirect
+                                    .replaceFirst("https://", "")
+                                    .replaceFirst("http://", ""),
+                                path:
+                                    "${ServerConstant.apiPrefix}${ServerConstant.oAuthGithubedirect}",
+                              );
+                              await _launchUrl(authUrl.toString());
+                              return;
+                            }
                             await ref
                                 .read(authenticationViewmodelProvider.notifier)
                                 .oAuthLoginGoogle();

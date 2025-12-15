@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../widgets/settings_listtile.dart';
 import 'account_info/Account_information_page.dart';
 import 'change_password/change_password_view.dart';
-import 'Deactivate_account/deactivate_account_view.dart';
 import '../../viewmodel/account_viewmodel.dart';
 
 class YourAccountSettings extends ConsumerWidget {
@@ -114,22 +113,22 @@ class YourAccountSettings extends ConsumerWidget {
               },
             ),
 
-            SettingsOptionTile(
-              key: const ValueKey('openDeactivateAccountTile'),
-              icon: Icons.favorite_border_rounded,
-              title: 'Deactivate Account',
-              subtitle: 'Find out how you can deactivate your account.',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (ctx) => const DeactivateAccountView(
-                      key: ValueKey('deactivateAccountPage'),
-                    ),
-                  ),
-                );
-              },
-            ),
+            // SettingsOptionTile(
+            //   key: const ValueKey('openDeactivateAccountTile'),
+            //   icon: Icons.favorite_border_rounded,
+            //   title: 'Deactivate Account',
+            //   subtitle: 'Find out how you can deactivate your account.',
+            //   onTap: () {
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(
+            //         builder: (ctx) => const DeactivateAccountView(
+            //           key: ValueKey('deactivateAccountPage'),
+            //         ),
+            //       ),
+            //     );
+            //   },
+            // ),
           ],
         ),
       ),

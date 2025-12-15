@@ -44,12 +44,6 @@ class AccountApiServiceMock implements AccountApiService {
   }
 
   @override
-  Future<void> deactivateAccount() async {
-    await Future.delayed(const Duration(seconds: 2));
-    // In a real implementation, this would deactivate the account.
-  }
-
-  @override
   Future<bool> validatePassword(String password) async {
     await Future.delayed(const Duration(seconds: 1));
     return password == this.password;

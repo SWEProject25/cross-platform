@@ -30,9 +30,7 @@ class ProfileApiServiceImpl implements ProfileApiService {
     return ProfileDto.fromJson(_extractObject(res));
   }
 
-  // -------------------- Helpers --------------------
 
-  /// Extract JSON object `{ ... }`
   Map<String, dynamic> _extractObject(dynamic res) {
     if (res is Map && res.containsKey("data")) {
       return Map<String, dynamic>.from(res["data"]);
@@ -40,7 +38,6 @@ class ProfileApiServiceImpl implements ProfileApiService {
     return Map<String, dynamic>.from(res);
   }
 
-  /// Extract JSON list `[ ... ]`
   List<Map<String, dynamic>> _extractList(dynamic res) {
     if (res is Map && res.containsKey("data")) {
       return List<Map<String, dynamic>>.from(res["data"]);
@@ -59,7 +56,6 @@ class ProfileApiServiceImpl implements ProfileApiService {
     );
   }
 
-  // -------------------- Uploads --------------------
 
   @override
   Future<String> uploadProfilePicture(String filePath) async {
@@ -75,7 +71,6 @@ class ProfileApiServiceImpl implements ProfileApiService {
     return _extractUploadUrl(res);
   }
 
-  // -------------------- Follow System --------------------
 
   @override
   Future<void> followUser(int id) async {
@@ -117,6 +112,45 @@ class ProfileApiServiceImpl implements ProfileApiService {
   @override
   Future<void> unblockUser(int id) async {
     await _api.delete(endpoint: "/users/$id/block");
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getProfilePosts(
+      String userId, int page, int limit) async {
+    final res = await _api.get(
+      endpoint: "/posts/profile/$userId",
+      queryParameters: {
+        "page": page,
+        "limit": limit,
+      },
+    );
+    return _extractList(res);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getProfileReplies(
+      String userId, int page, int limit) async {
+    final res = await _api.get(
+      endpoint: "/posts/profile/$userId/replies",
+      queryParameters: {
+        "page": page,
+        "limit": limit,
+      },
+    );
+    return _extractList(res);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getProfileLikes(
+      String userId, int page, int limit) async {
+    final res = await _api.get(
+      endpoint: "/posts/liked/$userId",
+      queryParameters: {
+        "page": page,
+        "limit": limit,
+      },
+    );
+    return _extractList(res);
   }
 
 }

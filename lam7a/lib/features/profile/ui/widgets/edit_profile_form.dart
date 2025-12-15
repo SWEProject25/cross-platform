@@ -1,6 +1,7 @@
 // lib/features/profile/ui/widgets/edit_profile_form.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lam7a/core/models/user_model.dart';
@@ -42,6 +43,14 @@ class EditProfileFormState extends ConsumerState<EditProfileForm> {
     super.dispose();
   }
 
+  bool _isValidName(String name) {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return false;
+    if (trimmed.length < 5 || trimmed.length > 30) return false;
+    final validNameRegex = RegExp(r'^[a-zA-Z0-9 _.-]+$');
+    return validNameRegex.hasMatch(trimmed);
+  }
+
   Future<void> pickBanner() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) setState(() => newBanner = File(picked.path));
@@ -55,8 +64,26 @@ class EditProfileFormState extends ConsumerState<EditProfileForm> {
   Future<UserModel?> saveProfile() async {
     setState(() => saving = true);
     final repo = ref.read(profileRepositoryProvider);
+
+    final name = nameController.text.trim();
+
+    if (!_isValidName(name)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Name must be 5–30 characters and cannot contain emojis or only spaces',
+            ),
+          ),
+        );
+      }
+      setState(() => saving = false);
+      return null;
+    }
+
+
     final updated = widget.user.copyWith(
-      name: nameController.text.trim(),
+      name: name,
       bio: bioController.text.trim(),
       location: locationController.text.trim(),
       website: websiteController.text.trim(),
@@ -94,8 +121,7 @@ class EditProfileFormState extends ConsumerState<EditProfileForm> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(children: [
-            TextField(key: const ValueKey('edit_profile_name_input'), controller: nameController, maxLength: 20, decoration: const InputDecoration(labelText: 'Display name')),
-            //TextField(controller: bioController, decoration: const InputDecoration(labelText: 'Bio')),
+            TextField(key: const ValueKey('edit_profile_name_input'), controller: nameController, maxLength: 30, decoration: const InputDecoration(labelText: 'Display name')),
             TextField(
               key: const ValueKey('edit_profile_bio_input'),
               controller: bioController,

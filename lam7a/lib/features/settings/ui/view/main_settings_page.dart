@@ -19,7 +19,7 @@ class MainSettingsPage extends ConsumerWidget {
         'icon': Icons.person_outline,
         'title': 'Your account',
         'subtitle':
-            'See information about your account, download an archive of your data or deactivate your account',
+            'See information about your account, download an archive of your data ',
       },
 
       {

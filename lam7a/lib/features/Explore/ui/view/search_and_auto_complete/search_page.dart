@@ -11,6 +11,13 @@ class SearchMainPage extends ConsumerStatefulWidget {
 
   const SearchMainPage({super.key, this.initialQuery});
 
+  static const Key scaffoldKey = Key('search_scaffold');
+  static const Key appBarKey = Key('search_app_bar');
+  static const Key backButtonKey = Key('search_back_button');
+  static const Key textFieldKey = Key('search_text_field');
+  static const Key clearButtonKey = Key('search_clear_button');
+  static const Key animatedSwitcherKey = Key('search_animated_switcher');
+
   @override
   ConsumerState<SearchMainPage> createState() => _SearchMainPageState();
 }
@@ -37,7 +44,9 @@ class _SearchMainPageState extends ConsumerState<SearchMainPage> {
     final searchController = vm.searchController;
 
     return Scaffold(
+      key: SearchMainPage.scaffoldKey,
       backgroundColor: theme.scaffoldBackgroundColor,
+
       appBar: _buildAppBar(context, searchController, vm),
       body: Column(
         children: [
@@ -45,6 +54,7 @@ class _SearchMainPageState extends ConsumerState<SearchMainPage> {
 
           Expanded(
             child: AnimatedSwitcher(
+              key: SearchMainPage.animatedSwitcherKey,
               duration: const Duration(milliseconds: 250),
               switchInCurve: Curves.easeOut,
               switchOutCurve: Curves.easeIn,
@@ -66,13 +76,16 @@ class _SearchMainPageState extends ConsumerState<SearchMainPage> {
   ) {
     final theme = Theme.of(context);
     return AppBar(
+      key: SearchMainPage.appBarKey,
       backgroundColor: theme.scaffoldBackgroundColor,
       elevation: 0,
       titleSpacing: 0,
+      scrolledUnderElevation: 0,
       automaticallyImplyLeading: false,
       title: Row(
         children: [
           IconButton(
+            key: SearchMainPage.backButtonKey,
             icon: Icon(
               Icons.arrow_back,
               color: theme.brightness == Brightness.light
@@ -88,6 +101,7 @@ class _SearchMainPageState extends ConsumerState<SearchMainPage> {
               padding: const EdgeInsets.only(left: 18),
               alignment: Alignment.center,
               child: TextField(
+                key: SearchMainPage.textFieldKey,
                 controller: controller,
                 cursorColor: const Color(0xFF1DA1F2),
                 style: const TextStyle(
@@ -118,6 +132,7 @@ class _SearchMainPageState extends ConsumerState<SearchMainPage> {
 
                   suffixIcon: (controller?.text.isNotEmpty ?? false)
                       ? IconButton(
+                          key: SearchMainPage.clearButtonKey,
                           icon: Icon(
                             Icons.close,
                             color: theme.brightness == Brightness.light
@@ -148,7 +163,7 @@ class _SearchMainPageState extends ConsumerState<SearchMainPage> {
 
   void _onSearchSubmitted(BuildContext context, String query) {
     final trimmed = query.trim();
-    if (trimmed.isEmpty) return;
+    if (trimmed.length < 3) return;
 
     final vm = ref.read(searchViewModelProvider.notifier);
     vm.pushAutocomplete(trimmed);
