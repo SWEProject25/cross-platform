@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../widgets/settings_listtile.dart';
 import 'account_info/Account_information_page.dart';
 import 'change_password/change_password_view.dart';
-import 'Deactivate_account/deactivate_account_view.dart';
 import '../../viewmodel/account_viewmodel.dart';
 
 class YourAccountSettings extends ConsumerWidget {
