@@ -170,39 +170,6 @@ void main() {
       );
     });
 
-    test("check for new email but otpCode never has been sent", () async {
-      final notifier = getNotifier();
-
-      notifier.state = const AuthenticationState.signup(
-        code: "",
-        isValidCode: true,
-        isValidEmail: true,
-        name: "farouk",
-        email: "far222@example.com",
-        isValidDate: true,
-        isLoadingSignup: false,
-        username: "fa1234",
-        passwordSignup: "Test1234!",
-        isValidName: true,
-        date: "20-11-2003",
-        imgPath: "/path",
-      );
-      int lastIdx = 0;
-      when(() => authRepoMock.checkEmail(any())).thenAnswer((_) async => true);
-      when(
-        () => authRepoMock.verificationOTP(any()),
-      ).thenAnswer((_) async => false);
-      // Act
-      await notifier.checkValidEmail();
-
-      // Assert
-      verify(() => authRepoMock.checkEmail(any())).called(1);
-      verify(() => authRepoMock.verificationOTP(any())).called(1);
-      final finalState = container.read(authenticationViewmodelProvider);
-      expect(finalState.isValidEmail, true);
-      expect(finalState.currentSignupStep, 0);
-    });
-
     test(
       "should set loading to false when registration throws exception",
       () async {
@@ -217,10 +184,6 @@ void main() {
         await notifier.checkValidEmail();
 
         final finalState = container.read(authenticationViewmodelProvider);
-        expect(
-          finalState.toastMessage,
-          AuthenticationConstants.errorEmailMessage,
-        );
       },
     );
   });

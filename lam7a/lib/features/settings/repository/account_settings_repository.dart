@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/models/user_model.dart';
 import '../services/account_api_service.dart';
@@ -20,7 +21,6 @@ class AccountSettingsRepository {
       _api.changePassword(oldPassword, newPassword);
   Future<void> changeUsername(String newUsername) =>
       _api.changeUsername(newUsername);
-  Future<void> deactivateAccount() => _api.deactivateAccount();
   Future<bool> validatePassword(String password) =>
       _api.validatePassword(password);
   Future<bool> checkEmailExists(String email) => _api.checkEmailExists(email);

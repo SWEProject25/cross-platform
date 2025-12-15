@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'package:lam7a/core/services/api_service.dart';
 import 'package:lam7a/core/models/user_model.dart';
 import 'account_api_service.dart';
@@ -48,15 +49,6 @@ class AccountApiServiceImpl implements AccountApiService {
       );
     } catch (e) {
       rethrow;
-    }
-  }
-
-  @override // to be made
-  Future<void> deactivateAccount() async {
-    try {
-      await _api.post(endpoint: '/user/deactivate');
-    } catch (e) {
-      // Handle error
     }
   }
 

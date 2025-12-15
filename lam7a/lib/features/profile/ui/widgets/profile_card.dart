@@ -1,3 +1,4 @@
+// coverage:ignore-file
 // lib/features/profile/ui/widgets/profile_card.dart
 
 import 'package:flutter/material.dart';

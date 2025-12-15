@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../model/trending_hashtag.dart';
 import '../../widgets/hashtag_list_item.dart';
 
-class TrendingView extends StatelessWidget {
+class TrendingView extends ConsumerWidget {
   final List<TrendingHashtag> trendingHashtags;
 
   const TrendingView({super.key, required this.trendingHashtags});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scrollbar(
       // 🔥 Fade-in / fade-out effect (default behavior)
       interactive: true,

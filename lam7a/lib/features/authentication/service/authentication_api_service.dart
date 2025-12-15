@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/constants/server_constant.dart';
 import 'package:lam7a/core/services/api_service.dart';

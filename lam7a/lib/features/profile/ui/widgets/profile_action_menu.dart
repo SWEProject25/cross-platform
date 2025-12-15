@@ -26,7 +26,6 @@ class ProfileActionMenu extends ConsumerWidget {
             ),
           );
         }
-        // mute, block, share, etc. can call API via service provider
       },
       itemBuilder: (_) => [
         const PopupMenuItem(value: 'share', child: Text('Share')),

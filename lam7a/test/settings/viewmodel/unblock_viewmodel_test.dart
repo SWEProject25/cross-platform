@@ -116,4 +116,127 @@ void main() {
     // Should still have both users
     expect(state.blockedUsers.length, 2);
   });
+
+  // --------------------
+  // TEST: refreshBlockedUsers success
+  // --------------------
+  test('refreshBlockedUsers updates state with fresh data', () async {
+    // Initial load
+    when(
+      () => mockRepo.fetchBlockedUsers(),
+    ).thenAnswer((_) async => [userA, userB]);
+
+    final notifier = container.read(blockedUsersProvider.notifier);
+    await notifier.future;
+
+    var state = container.read(blockedUsersProvider).value!;
+    expect(state.blockedUsers.length, 2);
+
+    // Mock new data for refresh
+    final userC = UserModel(
+      id: 3,
+      username: "charlie",
+      email: "c@mail.com",
+      role: "",
+      name: "",
+      birthDate: "",
+      profileImageUrl: "",
+      bannerImageUrl: "",
+      bio: "",
+      location: "",
+      website: "",
+      createdAt: "",
+    );
+
+    when(
+      () => mockRepo.fetchBlockedUsers(),
+    ).thenAnswer((_) async => [userA, userB, userC]);
+
+    // Call refresh
+    await notifier.refreshBlockedUsers();
+
+    state = container.read(blockedUsersProvider).value!;
+    expect(state.blockedUsers.length, 3);
+    expect(state.blockedUsers[2].id, 3);
+    expect(state.blockedUsers[2].username, "charlie");
+  });
+
+  // --------------------
+  // TEST: refreshBlockedUsers sets loading state
+  // --------------------
+  test('refreshBlockedUsers sets AsyncLoading state during refresh', () async {
+    when(
+      () => mockRepo.fetchBlockedUsers(),
+    ).thenAnswer((_) async => [userA, userB]);
+
+    final notifier = container.read(blockedUsersProvider.notifier);
+    await notifier.future;
+
+    // Mock delayed response to catch loading state
+    when(() => mockRepo.fetchBlockedUsers()).thenAnswer((_) async {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return [userA];
+    });
+
+    // Start refresh (don't await yet)
+    final refreshFuture = notifier.refreshBlockedUsers();
+
+    // Check loading state
+    await Future.delayed(const Duration(milliseconds: 10));
+    final loadingState = container.read(blockedUsersProvider);
+    expect(loadingState.isLoading, true);
+
+    // Wait for completion
+    await refreshFuture;
+
+    final finalState = container.read(blockedUsersProvider);
+    expect(finalState.isLoading, false);
+    expect(finalState.hasValue, true);
+  });
+
+  // --------------------
+  // TEST: refreshBlockedUsers error
+  // --------------------
+  test('refreshBlockedUsers sets AsyncError on failure', () async {
+    // Initial load success
+    when(
+      () => mockRepo.fetchBlockedUsers(),
+    ).thenAnswer((_) async => [userA, userB]);
+
+    final notifier = container.read(blockedUsersProvider.notifier);
+    await notifier.future;
+
+    // Mock error on refresh
+    when(
+      () => mockRepo.fetchBlockedUsers(),
+    ).thenThrow(Exception("Network error"));
+
+    await notifier.refreshBlockedUsers();
+
+    final state = container.read(blockedUsersProvider);
+    expect(state.hasError, true);
+    expect(state.error.toString(), contains("Network error"));
+  });
+
+  // --------------------
+  // TEST: refreshBlockedUsers with empty list
+  // --------------------
+  test('refreshBlockedUsers handles empty list', () async {
+    // Initial load with users
+    when(
+      () => mockRepo.fetchBlockedUsers(),
+    ).thenAnswer((_) async => [userA, userB]);
+
+    final notifier = container.read(blockedUsersProvider.notifier);
+    await notifier.future;
+
+    // Refresh returns empty list
+    when(() => mockRepo.fetchBlockedUsers()).thenAnswer((_) async => []);
+
+    await notifier.refreshBlockedUsers();
+
+    final state = container.read(blockedUsersProvider).value!;
+    expect(state.blockedUsers.length, 0);
+    expect(state.blockedUsers, isEmpty);
+  });
 }

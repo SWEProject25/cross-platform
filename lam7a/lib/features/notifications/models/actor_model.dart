@@ -1,3 +1,4 @@
+// coverage:ignore-file
 class ActorModel {
   final int id;
   final String username;

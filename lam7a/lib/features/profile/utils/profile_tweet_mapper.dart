@@ -67,7 +67,7 @@ TweetModel convertProfileJsonToTweetModel(Map<String, dynamic> json) {
   final bool isQuote = json["isQuote"] == true;
   final original = json["originalPostData"];
 
-  // ---------------- REPOST ----------------
+  // REPOST
   if (isRepost && original is Map<String, dynamic>) {
     final merged = <String, dynamic>{
       ...Map<String, dynamic>.from(original),
@@ -124,7 +124,7 @@ TweetModel convertProfileJsonToTweetModel(Map<String, dynamic> json) {
     );
   }
 
-  // ---------------- QUOTE ----------------
+  // QUOTE
   if (isQuote && original is Map<String, dynamic>) {
     final parent = Map<String, dynamic>.from(original);
 
@@ -164,7 +164,7 @@ TweetModel convertProfileJsonToTweetModel(Map<String, dynamic> json) {
     );
   }
 
-  // ---------------- NORMAL ----------------
+  // NORMAL
   return TweetModel(
     id: json['postId']?.toString() ?? json['id']?.toString() ?? '',
     userId: json['userId']?.toString() ?? '',

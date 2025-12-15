@@ -15,25 +15,8 @@ class NotificationsScreen extends ConsumerStatefulWidget  {
 }
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with WidgetsBindingObserver {
-  final ScrollController _allScrollController = ScrollController();
-  final ScrollController _mentionsScrollController = ScrollController();
-
   @override
   void initState() {
-    _allScrollController.addListener(() {
-      final trigger = 0.8 * _allScrollController.position.maxScrollExtent;
-
-      if (_allScrollController.position.pixels > trigger) {
-        ref.read(allNotificationsViewModelProvider.notifier).loadMore();
-      }
-    });
-    _mentionsScrollController.addListener(() {
-      final trigger = 0.8 * _mentionsScrollController.position.maxScrollExtent;
-
-      if (_mentionsScrollController.position.pixels > trigger) {
-        ref.read(mentionNotificationsViewModelProvider.notifier).loadMore();
-      }
-    });
     WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
@@ -42,9 +25,15 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
   void deactivate() {
     // TODO: implement deactivate
 
-    ref.read(allNotificationsViewModelProvider.notifier).markAllAsRead();
-    ref.read(mentionNotificationsViewModelProvider.notifier).markAllAsRead();
+    try {
+      ref.read(allNotificationsViewModelProvider.notifier).markAllAsRead();
+      ref.read(mentionNotificationsViewModelProvider.notifier).markAllAsRead();
 
+    } catch (e) {
+      // already removed
+    }
+
+    WidgetsBinding.instance.removeObserver(this);
     super.deactivate();
   }
 
@@ -59,7 +48,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
   }
 
   void handleNotificationTap(NotificationModel notification) {
-
     if (notification.type != NotificationType.mention || notification.type != NotificationType.reply || notification.type != NotificationType.quote) {
       ref
           .read(allNotificationsViewModelProvider.notifier)
@@ -91,6 +79,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
                     PaginatedListView(
                       viewModelProvider: allNotificationsViewModelProvider,
                       builder: (item) => NotificationItem(
+                        key: Key('notification_item_${item.notificationId}'),
                         notification: item,
                         onTap: () => handleNotificationTap(item),
                       ),
@@ -100,6 +89,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
                     PaginatedListView(
                       viewModelProvider: mentionNotificationsViewModelProvider,
                       builder: (item) => NotificationItem(
+                        key: Key('notification_item_${item.notificationId}'),
                         notification: item,
                         onTap: () => handleNotificationTap(item),
                       ),

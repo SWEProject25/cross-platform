@@ -1,3 +1,5 @@
+// coverage:ignore-file
+
 // mock_dms_api_service.dart
 import 'dart:async';
 import 'dart:math';

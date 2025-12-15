@@ -170,7 +170,7 @@ class _TweetHomeScreenState extends ConsumerState<TweetHomeScreen>
                           });
                         }
                         // Scroll up - show both bars
-                        else if (currentOffset < _lastOffset - 5 &&
+                        else if (currentOffset < _lastOffset - 3 &&
                             !_isTabBarVisible) {
                           setState(() {
                             _isTabBarVisible = true;

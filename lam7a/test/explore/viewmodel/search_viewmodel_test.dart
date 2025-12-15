@@ -196,6 +196,24 @@ void main() {
       final asyncValue = container.read(searchViewModelProvider);
       expect(asyncValue.hasError, true);
     });
+
+    test('sets loading state before search', () async {
+      when(() => mockRepo.getCachedAutocompletes()).thenAnswer((_) async => []);
+      when(() => mockRepo.getCachedUsers()).thenAnswer((_) async => []);
+      when(() => mockRepo.searchUsers('test', 8, 1)).thenAnswer((_) async {
+        await Future.delayed(const Duration(milliseconds: 100));
+        return createMockUsers(2);
+      });
+
+      final viewModel = container.read(searchViewModelProvider.notifier);
+      await container.read(searchViewModelProvider.future);
+
+      viewModel.onChanged('test');
+      await Future.delayed(const Duration(milliseconds: 350));
+
+      final asyncValue = container.read(searchViewModelProvider);
+      expect(asyncValue.hasValue, true);
+    });
   });
 
   group('SearchViewModel - Integration (COMPLETED TEST)', () {
@@ -239,6 +257,159 @@ void main() {
       await viewModel.pushUser(users.first);
       state = container.read(searchViewModelProvider).value!;
       expect(state.recentSearchedUsers!.length, 1);
+    });
+  });
+
+  group('SearchViewModel - Controller Management', () {
+    test('controller text and selection updated on onChanged', () async {
+      when(() => mockRepo.getCachedAutocompletes()).thenAnswer((_) async => []);
+      when(() => mockRepo.getCachedUsers()).thenAnswer((_) async => []);
+      when(
+        () => mockRepo.searchUsers('test', 8, 1),
+      ).thenAnswer((_) async => createMockUsers(2));
+
+      final viewModel = container.read(searchViewModelProvider.notifier);
+      await container.read(searchViewModelProvider.future);
+
+      viewModel.onChanged('test');
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(viewModel.searchController.text, 'test');
+      expect(viewModel.searchController.selection.baseOffset, 4);
+    });
+
+    test('debounce cancels on rapid typing', () async {
+      when(() => mockRepo.getCachedAutocompletes()).thenAnswer((_) async => []);
+      when(() => mockRepo.getCachedUsers()).thenAnswer((_) async => []);
+      when(
+        () => mockRepo.searchUsers(any(), 8, 1),
+      ).thenAnswer((_) async => createMockUsers(1));
+
+      final viewModel = container.read(searchViewModelProvider.notifier);
+      await container.read(searchViewModelProvider.future);
+
+      viewModel.onChanged('f');
+      await Future.delayed(const Duration(milliseconds: 100));
+      viewModel.onChanged('fl');
+      await Future.delayed(const Duration(milliseconds: 100));
+      viewModel.onChanged('flu');
+      await Future.delayed(const Duration(milliseconds: 350));
+
+      // Only the last search should fire
+      verify(() => mockRepo.searchUsers('flu', 8, 1)).called(1);
+      verifyNever(() => mockRepo.searchUsers('f', 8, 1));
+      verifyNever(() => mockRepo.searchUsers('fl', 8, 1));
+    });
+  });
+
+  group('SearchViewModel - Edge Cases', () {
+    test('handles whitespace-only query correctly', () async {
+      when(() => mockRepo.getCachedAutocompletes()).thenAnswer((_) async => []);
+      when(() => mockRepo.getCachedUsers()).thenAnswer((_) async => []);
+      when(
+        () => mockRepo.searchUsers(any(), 8, 1),
+      ).thenAnswer((_) async => createMockUsers(2));
+
+      final viewModel = container.read(searchViewModelProvider.notifier);
+      await container.read(searchViewModelProvider.future);
+
+      viewModel.onChanged('   ');
+      await Future.delayed(const Duration(milliseconds: 350));
+
+      // Should not search for empty/whitespace
+      final state = container.read(searchViewModelProvider).value!;
+      expect(state.suggestedUsers, isEmpty);
+    });
+
+    test('onChanged returns early when state is null', () async {
+      when(() => mockRepo.getCachedAutocompletes()).thenAnswer((_) async => []);
+      when(() => mockRepo.getCachedUsers()).thenAnswer((_) async => []);
+
+      final viewModel = container.read(searchViewModelProvider.notifier);
+      // Don't await - state will be loading
+
+      viewModel.onChanged('');
+
+      // Should not throw
+      expect(container.read(searchViewModelProvider).isLoading, true);
+    });
+
+    test('multiple rapid searches with different queries', () async {
+      when(() => mockRepo.getCachedAutocompletes()).thenAnswer((_) async => []);
+      when(() => mockRepo.getCachedUsers()).thenAnswer((_) async => []);
+      when(
+        () => mockRepo.searchUsers('flutter', 8, 1),
+      ).thenAnswer((_) async => createMockUsers(3));
+      when(
+        () => mockRepo.searchUsers('dart', 8, 1),
+      ).thenAnswer((_) async => createMockUsers(2));
+
+      final viewModel = container.read(searchViewModelProvider.notifier);
+      await container.read(searchViewModelProvider.future);
+
+      viewModel.onChanged('flutter');
+      await Future.delayed(const Duration(milliseconds: 100));
+      viewModel.onChanged('dart');
+      await Future.delayed(const Duration(milliseconds: 350));
+
+      // Only last query should execute
+      verify(() => mockRepo.searchUsers('dart', 8, 1)).called(1);
+      verifyNever(() => mockRepo.searchUsers('flutter', 8, 1));
+    });
+
+    test('search with trimmed query removes extra spaces', () async {
+      when(() => mockRepo.getCachedAutocompletes()).thenAnswer((_) async => []);
+      when(() => mockRepo.getCachedUsers()).thenAnswer((_) async => []);
+      when(
+        () => mockRepo.searchUsers('flutter', 8, 1),
+      ).thenAnswer((_) async => createMockUsers(2));
+
+      final viewModel = container.read(searchViewModelProvider.notifier);
+      await container.read(searchViewModelProvider.future);
+
+      viewModel.onChanged('  flutter  ');
+      await Future.delayed(const Duration(milliseconds: 350));
+
+      verify(() => mockRepo.searchUsers('flutter', 8, 1)).called(1);
+    });
+
+    test('pushUser updates recent users list', () async {
+      final users = createMockUsers(3);
+      when(() => mockRepo.getCachedAutocompletes()).thenAnswer((_) async => []);
+      when(() => mockRepo.getCachedUsers()).thenAnswer((_) async => []);
+      when(() => mockRepo.pushUser(users.first)).thenAnswer((_) async => {});
+      when(
+        () => mockRepo.getCachedUsers(),
+      ).thenAnswer((_) async => [users.first]);
+
+      final viewModel = container.read(searchViewModelProvider.notifier);
+      await container.read(searchViewModelProvider.future);
+
+      await viewModel.pushUser(users.first);
+
+      final state = container.read(searchViewModelProvider).value!;
+      expect(state.recentSearchedUsers!.length, 1);
+      expect(state.recentSearchedUsers!.first.username, 'user0');
+    });
+
+    test('pushAutocomplete updates recent terms list', () async {
+      when(() => mockRepo.getCachedAutocompletes()).thenAnswer((_) async => []);
+      when(() => mockRepo.getCachedUsers()).thenAnswer((_) async => []);
+      when(
+        () => mockRepo.pushAutocomplete('flutter'),
+      ).thenAnswer((_) async => {});
+      when(
+        () => mockRepo.getCachedAutocompletes(),
+      ).thenAnswer((_) async => ['flutter']);
+
+      final viewModel = container.read(searchViewModelProvider.notifier);
+      await container.read(searchViewModelProvider.future);
+
+      await viewModel.pushAutocomplete('flutter');
+
+      final state = container.read(searchViewModelProvider).value!;
+      expect(state.recentSearchedTerms!.length, 1);
+      expect(state.recentSearchedTerms!.first, 'flutter');
     });
   });
 }

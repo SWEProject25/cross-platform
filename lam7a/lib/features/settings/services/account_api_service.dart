@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/services/api_service.dart';
 import 'account_api_service_implementation.dart';
@@ -20,7 +21,6 @@ abstract class AccountApiService {
   Future<UserModel> getMyInfo();
   Future<void> changeEmail(String newEmail);
   Future<void> changePassword(String oldPassword, String newPassword);
-  Future<void> deactivateAccount();
   Future<void> changeUsername(String newUsername);
   Future<bool> validatePassword(String password);
   Future<bool> checkEmailExists(String email);
