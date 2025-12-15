@@ -21,12 +21,12 @@ class TweetRepository {
     return await _apiService.getAllTweets(limit, page);
   }
 
-  Future<List<TweetModel>> fetchTweets(
-    int limit,
-    int page,
-    String tweetsType,
-  ) async {
-    return await _apiService.getTweets(limit, page, tweetsType);
+  Future<List<TweetModel>> fetchTweetsForYou(int limit, int page) async {
+    return await _apiService.getTweets(limit, page, "for-you");
+  }
+
+  Future<List<TweetModel>> fetchTweetsFollowing(int limit, int page) async {
+    return await _apiService.getTweets(limit, page, "following");
   }
 
   Future<TweetModel> fetchTweetById(String id) async {

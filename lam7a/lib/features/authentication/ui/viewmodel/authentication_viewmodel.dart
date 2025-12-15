@@ -74,63 +74,59 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   // check for email if it exists in data base and call the generate otp method from backend
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
-    Future<void> checkValidEmail() async {
-      bool checkValid = false;
-      try {
-        if (state.isValidEmail) {
-          state = state.map(
-            login: (login) => login,
-            signup: (signup) => signup.copyWith(isLoadingSignup: true),
-          );
-          checkValid = await repo.checkEmail(state.email);
-          state = state.map(
-            login: (login) => login,
-            signup: (signup) => signup.copyWith(isValidEmail: checkValid),
-          );
-          if (checkValid) {
-            //generate otp and send it to user email
-            final genrateStatus = await repo.verificationOTP(state.email);
-            if (genrateStatus) {
-              state = state.map(
-                login: (login) => login,
-                signup: (signup) => signup.copyWith(
-                  isLoadingSignup: false,
-                  toastMessage: AuthenticationConstants.otpSentMessage,
-                ),
-              );
-            } else {
-              showToastMessage(
-                "Please wait 60 seconds",
-              );
-            }
-            gotoNextSignupStep();
-          } else {
+  Future<void> checkValidEmail() async {
+    bool checkValid = false;
+    try {
+      if (state.isValidEmail) {
+        state = state.map(
+          login: (login) => login,
+          signup: (signup) => signup.copyWith(isLoadingSignup: true),
+        );
+        checkValid = await repo.checkEmail(state.email);
+        state = state.map(
+          login: (login) => login,
+          signup: (signup) => signup.copyWith(isValidEmail: checkValid),
+        );
+        if (checkValid) {
+          //generate otp and send it to user email
+          final genrateStatus = await repo.verificationOTP(state.email);
+          if (genrateStatus) {
             state = state.map(
               login: (login) => login,
-              signup: (signup) => AuthenticationState.signup(
-                toastMessage: AuthenticationConstants.errorEmailMessage,
+              signup: (signup) => signup.copyWith(
+                isLoadingSignup: false,
+                toastMessage: AuthenticationConstants.otpSentMessage,
               ),
             );
+          } else {
+            showToastMessage("Please wait 60 seconds");
           }
-        }
-      } catch (e) {
-        print("verification code error" + e.toString());
-        // showToastMessage("this email is already taken");
-        if (checkValid) {
           gotoNextSignupStep();
-        
-          showToastMessage(
-            "Please wait 60 seconds",
+        } else {
+          state = state.map(
+            login: (login) => login,
+            signup: (signup) => AuthenticationState.signup(
+              toastMessage: AuthenticationConstants.errorEmailMessage,
+            ),
           );
         }
-        else{
-      state = state.map(
-        login: (login) => login,
-        signup: (signup) => signup.copyWith(
-          isLoadingSignup: false,
-          toastMessage: "Internal server error",
-        ),
-      );}
+      }
+    } catch (e) {
+      print("verification code error" + e.toString());
+      // showToastMessage("this email is already taken");
+      if (checkValid) {
+        gotoNextSignupStep();
+
+        showToastMessage("Please wait 60 seconds");
+      } else {
+        state = state.map(
+          login: (login) => login,
+          signup: (signup) => signup.copyWith(
+            isLoadingSignup: false,
+            toastMessage: "Internal server error",
+          ),
+        );
+      }
     }
   }
 
@@ -264,6 +260,20 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
     );
   }
 
+  void setLoadingLogin() {
+    state = state.map(
+      login: (login) => login.copyWith(isLoadingLogin: true),
+      signup: (signup) => signup,
+    );
+  }
+
+  void setLoadedLogin() {
+    state = state.map(
+      login: (login) => login.copyWith(isLoadingLogin: false),
+      signup: (signup) => signup,
+    );
+  }
+
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
   //      this is the code of login authentication
@@ -294,7 +304,6 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           login: (login) => login.copyWith(
             identifier: "",
             passwordLogin: "",
-            isLoadingLogin: false,
             hasCompeletedFollowing:
                 myData.onboardingStatus.hasCompeletedFollowing,
             hasCompeletedInterests:

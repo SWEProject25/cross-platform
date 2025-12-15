@@ -376,7 +376,9 @@ class OriginalTweetCard extends ConsumerWidget {
                     username: username,
                   ),
                   if (showConnectorLine)
-                    Expanded(child: Container(width: 2, color: Colors.grey)),
+                    Expanded(
+                      child: Container(width: 2, color: Colors.grey),
+                    ),
                 ],
               ),
               const SizedBox(width: 9),

@@ -30,7 +30,7 @@ void main() {
   late MockTweetRepository mockRepo;
   late MockTweetsApiService mockTweetsApiService;
   late MockPostInteractionsService mockInteractionsService;
-  const tweetId = 't1';
+  const tweetId = '1';
 
   final testTweet = TweetModel(
     id: tweetId,

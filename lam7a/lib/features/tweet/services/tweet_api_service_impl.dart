@@ -1246,24 +1246,38 @@ class TweetsApiServiceImpl implements TweetsApiService {
     final data = response["data"];
     if (data is! List) return [];
 
-    return data.map<TweetModel>((json) {
-      return TweetModel(
-        id: json['postId'].toString(),
-        userId: json['userId'].toString(),
-        username: json['username'],
-        authorName: json['name'],
-        authorProfileImage: json['avatar'],
-        body: json['text'] ?? '',
-        date: DateTime.parse(json['date']),
-        likes: json['likesCount'] ?? 0,
-        repost: json['retweetsCount'] ?? 0,
-        comments: json['commentsCount'] ?? 0,
-        isRepost: json['isRepost'] ?? false,
-        isQuote: json['isQuote'] ?? false,
-        mediaImages: _extractImages(json),
-        mediaVideos: _extractVideos(json),
-      );
-    }).toList();
+    // The /posts/liked endpoint currently returns the flat transformed post
+    // shape without originalPostData for quotes. To ensure quotes in the
+    // Likes tab show their parent tweet (and any further hierarchy), we
+    // re-fetch each liked post via getTweetById, which uses the enriched
+    // /posts/:id endpoint and TweetModel.fromJsonPosts.
+
+    // Extract postIds in order
+    final likedIds = <String>[];
+    for (final raw in data) {
+      if (raw is! Map) continue;
+      final map = raw as Map;
+      final dynamic idRaw = map['postId'] ?? map['id'];
+      if (idRaw == null) continue;
+      final id = idRaw.toString();
+      if (id.isEmpty) continue;
+      likedIds.add(id);
+    }
+
+    if (likedIds.isEmpty) return [];
+
+    final likedTweets = <TweetModel>[];
+
+    for (final id in likedIds) {
+      try {
+        final tweet = await getTweetById(id);
+        likedTweets.add(tweet);
+      } catch (e) {
+        print('⚠️ Failed to fetch liked post $id via getTweetById: $e');
+      }
+    }
+
+    return likedTweets;
   }
 
   // Helper: extract non-video image urls from a backend post JSON
