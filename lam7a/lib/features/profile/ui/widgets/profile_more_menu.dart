@@ -37,6 +37,7 @@ class ProfileMoreMenu extends ConsumerWidget {
           } else {
             await repo.blockUser(user.id!);
           }
+
         }
 
         onAction();
