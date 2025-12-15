@@ -61,6 +61,7 @@ class ExploreViewModel extends AsyncNotifier<ExploreState> {
         isInterestMapLoading: false,
       );
     } catch (e) {
+      state = AsyncError(e, StackTrace.current);
       print("Error initializing Explore ViewModel: $e");
       rethrow;
     }
@@ -225,10 +226,6 @@ class ExploreViewModel extends AsyncNotifier<ExploreState> {
     }
   }
 
-  Future<void> loadMoreNews() async {
-    // Implementation if needed
-  }
-
   // ========================================================
   // SPORTS
   // ========================================================
@@ -257,10 +254,6 @@ class ExploreViewModel extends AsyncNotifier<ExploreState> {
       print("Error loading Sports: $e");
       rethrow;
     }
-  }
-
-  Future<void> loadMoreSports() async {
-    // Implementation if needed
   }
 
   // ========================================================
@@ -294,10 +287,6 @@ class ExploreViewModel extends AsyncNotifier<ExploreState> {
       print("Error loading Entertainment: $e");
       rethrow;
     }
-  }
-
-  Future<void> loadMoreEntertainment() async {
-    // Implementation if needed
   }
 
   // --------------------------------------------------------
