@@ -12,8 +12,12 @@ import 'package:lam7a/features/add_tweet/ui/widgets/add_tweet_header_widget.dart
 import 'package:lam7a/features/add_tweet/ui/widgets/add_tweet_toolbar_widget.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
-import 'package:lam7a/features/profile/ui/viewmodel/profile_posts_viewmodel.dart';
-import 'package:lam7a/features/profile/ui/viewmodel/profile_viewmodel.dart';
+// import 'package:lam7a/features/profile/ui/viewmodel/profile_posts_viewmodel.dart';
+//import 'package:lam7a/features/profile/ui/viewmodel/profile_viewmodel.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_likes_pagination.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_replies_pagination.dart';
+import 'package:lam7a/features/profile/ui/viewmodel/profile_posts_pagination.dart';
+
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 
