@@ -142,11 +142,7 @@ final profileRepliesProvider =
   return repo.fetchUserReplies(userId);
 });
 
-// final profileLikesProvider =
-//     FutureProvider.family<List<TweetModel>, String>((ref, userId) async {
-//   final repo = ref.read(tweetRepositoryProvider);
-//   return repo.fetchUserLikes(userId);
-// });
+
 final profileLikesProvider =
     FutureProvider.family<List<TweetModel>, String>((ref, userId) async {
   final repo = ref.read(tweetRepositoryProvider);
