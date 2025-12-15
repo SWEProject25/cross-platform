@@ -94,7 +94,7 @@ void main() {
           .thenReturn(null);
       when(() => mockNotificationCount.updateNotificationsCount(
               reset: any(named: 'reset')))
-          .thenReturn(null);
+          .thenAnswer((_) async => {});
 
       container = ProviderContainer(
         overrides: [
