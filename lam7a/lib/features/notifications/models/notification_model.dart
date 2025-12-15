@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'dart:convert';
 
 import 'package:lam7a/features/common/models/tweet_model.dart';

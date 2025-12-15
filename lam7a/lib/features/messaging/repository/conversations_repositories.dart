@@ -32,7 +32,7 @@ class ConversationsRepository {
   ConversationsRepository(this._apiService, this._authState, this.authRepo, this._profileRepository);
 
   Future<(List<Conversation> data, bool hasMore)> fetchConversations() async {
-    if (!_authState.isAuthenticated) return ([] as List<Conversation>, false);
+    if (!_authState.isAuthenticated) return (List<Conversation>.empty(), false);
 
     
     ApiResponse<List<ConversationDto>>? conversationsDto;

@@ -168,6 +168,7 @@ class ChatViewModel extends _$ChatViewModel {
       _messagesRepository.updateTypingStatus(_conversationId, false);
       _typingTimer = null;
     });
+    print("Updateing draft message: ${state.draftMessage}");
   }
 
   Future<void> sendMessage() async {

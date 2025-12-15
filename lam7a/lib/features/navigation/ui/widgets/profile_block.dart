@@ -127,24 +127,7 @@ class ProfileBlock extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(
-                width: 25,
-                height: 25,
-                child: ElevatedButton(
-                  onPressed: () {},
-
-                  child: Icon(Icons.more_vert),
-                  style: ElevatedButton.styleFrom(
-                    shape: CircleBorder(
-                      side: BorderSide(color: Pallete.blackColor, width: 1.5),
-                    ),
-                    padding: EdgeInsets.all(1),
-                    backgroundColor: Pallete.transparentColor,
-                    foregroundColor: Pallete.blackColor,
-                    elevation: 0,
-                  ),
-                ),
-              ),
+        
             ],
           ),
         );

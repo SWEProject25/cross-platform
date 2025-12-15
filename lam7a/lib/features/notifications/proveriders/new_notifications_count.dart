@@ -16,18 +16,17 @@ final unReadNotificationCountProvider = NotifierProvider<NewNotificationCount, i
 
 
 class NewNotificationCount extends Notifier<int> {
-  late NotificationsRepository repository;
   final Logger _logger = getLogger(NewNotificationCount);
   @override
   int build() {
     ref.keepAlive();
-    repository = ref.read(notificationsRepositoryProvider);
     AuthState auth = ref.watch(authenticationProvider);
 
     _logger.i("Initialized NewNotificationCount");
     Future.microtask(() async {
-      if(auth.user != null)
+      if(auth.user != null){
          updateNotificationsCount();
+      }
     });
 
     return 0;
@@ -43,7 +42,7 @@ class NewNotificationCount extends Notifier<int> {
     else if (increament)  state = state+1;
   
     _logger.i("Updating Notification Unread Count");
-    var count = await repository.getUnReadCount();
+    var count = await ref.read(notificationsRepositoryProvider).getUnReadCount();
     _logger.i("Updated Count With $count");
 
     state = count;

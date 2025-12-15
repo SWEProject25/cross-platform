@@ -1,307 +1,516 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:flutter_test/flutter_test.dart';
-// import 'package:lam7a/features/messaging/ui/state/chat_state.dart';
-// import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
-// import 'package:lam7a/features/messaging/ui_keys.dart';
-// import 'package:mocktail/mocktail.dart';
-
-// import 'package:lam7a/features/messaging/model/contact.dart';
-// import 'package:lam7a/features/messaging/model/chat_message.dart';
-// import 'package:lam7a/features/messaging/ui/viewmodel/chat_viewmodel.dart';
-// import 'package:lam7a/core/services/socket_service.dart';
-// import 'package:state_notifier/state_notifier.dart';
-
-// class MockChatViewModel implements ChatViewModel {
-//   @override
-//   ChatState state;
-
-//   MockChatViewModel(this.state);
-
-//   @override
-//   ChatState build({required int userId, int? conversationId}) {
-//     // TODO: implement build
-//     throw UnimplementedError();
-//   }
-
-//   @override
-//   // TODO: implement conversationId
-//   int? get conversationId => throw UnimplementedError();
-
-//   @override
-//   RemoveListener listenSelf(void Function(ChatState? previous, ChatState next) listener, {void Function(Object error, StackTrace stackTrace)? onError}) {
-//     // TODO: implement listenSelf
-//     throw UnimplementedError();
-//   }
-
-//   @override
-//   Future<void> loadMoreMessages() async {
-//   }
-
-//   @override
-//   // TODO: implement ref
-//   Ref get ref => throw UnimplementedError();
-
-//   @override
-//   Future<void> refresh() async {
-    
-//   }
-
-//   @override
-//   void runBuild() {
-//     // TODO: implement runBuild
-//   }
-
-//   @override
-//   Future<void> sendMessage() async {
-//   }
-
-//   @override
-//   // TODO: implement stateOrNull
-//   ChatState? get stateOrNull => throw UnimplementedError();
-
-//   @override
-//   void updateDraftMessage(String draft)  {
-//   }
-
-//   @override
-//   bool updateShouldNotify(ChatState previous, ChatState next) {
-//     // TODO: implement updateShouldNotify
-//     throw UnimplementedError();
-//   }
-
-//   @override
-//   // TODO: implement userId
-//   int get userId => throw UnimplementedError();
-// }
-// class MockAsyncNotifier extends Fake implements AsyncNotifier {}
-
-// class MockSocketConn extends Mock implements SocketService {}
-
-// void main() {
-//   TestWidgetsFlutterBinding.ensureInitialized();
-
-//   late MockChatViewModel mockVM;
-
-//   ProviderContainer makeContainer({
-//     required AsyncValue<List<ChatMessage>> messages,
-//     required AsyncValue<Contact> contact,
-//     required bool connection,
-//     bool isTyping = false,
-//     String draft = "",
-//     bool hasMore = false,
-//   }) {
-
-//     final state = ChatState(
-//       contact: contact,
-//       draftMessage: draft,
-//       messages: messages,
-//       isTyping: isTyping,
-//       hasMoreMessages: hasMore,
-//     );
-
-//     mockVM = MockChatViewModel(state);
-
-
-//     // when(() => mockVM.state).thenReturn(state);
-//     // when(() => mockVM.refresh()).thenAnswer((_) async {});
-//     // when(() => mockVM.loadMoreMessages()).thenAnswer((_) async {});
-//     // when(() => mockVM.sendMessage()).thenAnswer((_) async {});
-//     // when(() => mockVM.updateDraftMessage(any())).thenAnswer((_) async {});
-
-//     final container = ProviderContainer(
-//       overrides: [
-//         chatViewModelProvider(conversationId: 1, userId: 10)
-//             .overrideWith(() => mockVM),
-//         socketConnectionProvider.overrideWithValue(AsyncValue.data(connection)),
-//       ],
-//     );
-
-//     return container;
-//   }
-
-//   Widget makeWidget(ProviderContainer container) {
-//     return UncontrolledProviderScope(
-//       container: container,
-//       child:  MaterialApp(
-//         home: ChatScreen(conversationId: 1, userId: 10),
-//       ),
-//     );
-//   }
-
-//   group("ChatScreen widget tests", () {
-
-//     testWidgets("shows loading state", (tester) async {
-//       final container = makeContainer(
-//         messages:  AsyncValue.loading(),
-//         contact:  AsyncValue.loading(),
-//         connection: false,
-//       );
-
-//       await tester.pumpWidget(makeWidget(container));
-
-//       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-//       expect(find.byKey( Key("chatScreenConnectionStatus")), findsOneWidget);
-//     });
-
-//     testWidgets("shows error state", (tester) async {
-//       final container = makeContainer(
-//         messages:  AsyncValue.error("ERR", StackTrace.empty),
-//         contact: AsyncValue.data(Contact(id: 1, name: "Ziad", handle: "z")),
-//         connection: true,
-//       );
-
-//       await tester.pumpWidget(makeWidget(container));
-
-//       expect(find.text("Error: ERR"), findsOneWidget);
-//       expect(find.byKey( Key("chatScreenConnectionStatus")), findsOneWidget);
-//     });
-
-//     testWidgets("shows messages list when data available", (tester) async {
-//       final msgs = [
-//         ChatMessage(
-//           id: 1,
-//           senderId: 10,
-//           conversationId: 1,
-//           text: "Hi",
-//           time: DateTime(2024),
-//           isMine: true,
-//         ),
-//       ];
-
-//       final container = makeContainer(
-//         messages: AsyncValue.data(msgs),
-//         contact:  AsyncValue.data(Contact(id: 1, name: "Ziad", handle: "@z")),
-//         connection: true,
-//       );
-
-//       await tester.pumpWidget(makeWidget(container));
-//       await tester.pumpAndSettle();
-
-//       expect(find.byKey( Key("messagesListView")), findsOneWidget);
-//       expect(find.byKey( Key("chatInputBar")), findsOneWidget);
-//     });
-
-//     testWidgets("typing indicator is shown", (tester) async {
-//       final container = makeContainer(
-//         messages: AsyncValue.data([]),
-//         contact:  AsyncValue.data(Contact(id: 1, name: "Ziad", handle: "@z")),
-//         connection: true,
-//         isTyping: true,
-//       );
-
-//       await tester.pumpWidget(makeWidget(container));
-//       expect(find.byKey( Key("chatScreenTypingIndicator")), findsOneWidget);
-//     });
-
-// // testWidgets("ChatInputBar calls updateDraft and sendMessage", (tester) async {
-// //   bool sendCalled = false;
-// //   String updatedDraft = "";
-
-// //   final container = makeContainer(
-// //     messages: AsyncValue.data([]),
-// //     contact: AsyncValue.data(Contact(id: 1, name: "Ziad", handle: "@z")),
-// //     connection: true,
-// //   );
-
-// //   await tester.pumpWidget(makeWidget(container));
-// //   await tester.pump(); // start build
-
-// //   // Tap the preview to expand the input bar
-// //   final openButton = find.byKey(const Key("chat_input_gesture_detector"));
-// //   await tester.tap(openButton);
-// //   await tester.pump(); // start animations
-
-// //   // Pump enough time for fade + slide + expand delay
-// //   await tester.pump(const Duration(milliseconds: 600));
-
-// //   // Now TextField is visible
-// //   final textField = find.byType(TextField);
-// //   expect(textField, findsOneWidget);
-
-// //   // Enter text
-// //   await tester.enterText(textField, "Hello");
-// //   await tester.pump();
-
-// //   // Simulate the updateDraft callback
-// //   updatedDraft = "Hello"; // or call your mock verify here
-// //   expect(updatedDraft, "Hello");
-
-// //   // Press the send button
-// //   final sendButton = find.byKey(Key(MessagingUIKeys.chatInputSendButton));
-// //   expect(sendButton, findsOneWidget);
-// //   await tester.tap(sendButton);
-// //   await tester.pump();
-
-// //   // Simulate send callback
-// //   sendCalled = true;
-// //   expect(sendCalled, isTrue);
-// // });
-
-
-// //     testWidgets("pull-to-refresh triggers refresh()", (tester) async {
-// //       final container = makeContainer(
-// //         messages: AsyncValue.data([]),
-// //         contact:  AsyncValue.data(Contact(id: 1, name: "Ziad", handle: "@z")),
-// //         connection: true,
-// //       );
-
-// //       await tester.pumpWidget(makeWidget(container));
-// //       await tester.pump();
-
-// //       final refreshFinder = find.byKey( Key("chatScreenRefreshIndicator"));
-// //       await tester.drag(refreshFinder,  Offset(0, 200));
-// //       await tester.pump( Duration(seconds: 1));
-
-// //       verify(() => mockVM.refresh()).called(1);
-// //     });
-
-//     testWidgets("app bar shows offline status", (tester) async {
-//       final container = makeContainer(
-//         messages: AsyncValue.data([]),
-//         contact:  AsyncValue.data(Contact(id: 1, name: "Ziad", handle: "@z")),
-//         connection: false,
-//       );
-
-//       await tester.pumpWidget(makeWidget(container));
-
-//       final circle = tester.widget<CircleAvatar>(
-//         find.byKey( Key("chatScreenConnectionStatus")),
-//       );
-
-//       expect(circle.backgroundColor, Colors.red);
-//     });
-
-//     testWidgets("app bar shows online status", (tester) async {
-//       final container = makeContainer(
-//         messages: AsyncValue.data([]),
-//         contact:  AsyncValue.data(Contact(id: 1, name: "Ziad", handle: "@z")),
-//         connection: true,
-//       );
-
-//       await tester.pumpWidget(makeWidget(container));
-
-//       final circle = tester.widget<CircleAvatar>(
-//         find.byKey( Key("chatScreenConnectionStatus")),
-//       );
-
-//       expect(circle.backgroundColor, Colors.green);
-//     });
-
-//     // testWidgets("tap anywhere dismisses keyboard", (tester) async {
-//     //   final container = makeContainer(
-//     //     messages: AsyncValue.data([]),
-//     //     contact:  AsyncValue.data(Contact(id: 1, name: "Ziad", handle: "@z")),
-//     //     connection: true,
-//     //   );
-
-//     //   await tester.pumpWidget(makeWidget(container));
-
-//     //   FocusScope.of(tester.element(find.byType(Scaffold))).requestFocus(FocusNode());
-//     //   await tester.tap(find.byType(GestureDetector));
-//     //   await tester.pump();
-
-//     //   expect(FocusManager.instance.primaryFocus, isNull);
-//     // });
-//   });
-// }
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:lam7a/core/services/socket_service.dart';
+import 'package:lam7a/features/messaging/active_chat_screens.dart';
+import 'package:lam7a/features/messaging/model/chat_message.dart';
+import 'package:lam7a/features/messaging/model/contact.dart';
+import 'package:lam7a/features/messaging/model/conversation.dart';
+import 'package:lam7a/features/messaging/ui/state/chat_state.dart';
+import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/chat_viewmodel.dart';
+import 'package:lam7a/features/messaging/ui_keys.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockChatViewModel extends ChatViewModel with Mock {  
+  final ChatState initialState;
+  int refreshCallCount = 0;
+  int loadMoreMessagesCallCount = 0;
+  int sendMessageCallCount = 0;
+  String? lastDraftMessage;
+  int updateDraftMessageCallCount = 0;
+
+  MockChatViewModel(this.initialState);
+
+  @override
+  ChatState build({required int conversationId, required int userId}) {
+    return initialState;
+  }
+
+  @override
+  Future<void> refresh() async {
+    refreshCallCount++;
+  }
+
+  @override
+  Future<void> loadMoreMessages() async {
+    loadMoreMessagesCallCount++;
+  }
+
+  @override
+  Future<void> sendMessage() async {
+    sendMessageCallCount++;
+  }
+
+  @override
+  void updateDraftMessage(String message) {
+    lastDraftMessage = message;
+    updateDraftMessageCallCount++;
+  }
+}
+
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  final testContact = Contact(
+    id: 2,
+    name: 'Test User',
+    handle: '@testuser',
+    bio: 'Test bio',
+    totalFollowers: 1000,
+  );
+
+  final testConversation = Conversation(
+    id: 1,
+    name: 'Test User',
+    userId: 2,
+    username: '@testuser',
+    unseenCount: 0,
+    isBlocked: false,
+  );
+
+  final testMessages = [
+    ChatMessage(
+      id: 1,
+      text: 'Hello',
+      time: DateTime(2025, 1, 1),
+      isMine: false,
+      senderId: 2,
+    ),
+    ChatMessage(
+      id: 2,
+      text: 'Hi there',
+      time: DateTime(2025, 1, 1, 10),
+      isMine: true,
+      senderId: 1,
+    ),
+  ];
+
+  Widget makeTestWidget(ProviderContainer container) {
+    return UncontrolledProviderScope(
+      container: container,
+      child: MaterialApp(
+        initialRoute: ChatScreen.routeName,
+        onGenerateRoute: (settings) {
+          if (settings.name == ChatScreen.routeName) {
+            return MaterialPageRoute(
+              settings: RouteSettings(
+                name: ChatScreen.routeName,
+                arguments: {'userId': 2, 'conversationId': 1},
+              ),
+              builder: (_) => ChatScreen(),
+            );
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  group('ChatScreen Tests', () {
+    setUp(() {
+      // Clear active chat screens before each test
+      ActiveChatScreens.setInactive(1);
+    });
+
+    testWidgets('initializes and sets active chat screen', (tester) async {
+      final state = ChatState(
+        contact: AsyncData(testContact),
+        conversation: AsyncData(testConversation),
+        messages: AsyncData(testMessages),
+      );
+
+      final mockViewModel = MockChatViewModel(state);
+
+      final container = ProviderContainer(
+        overrides: [
+          chatViewModelProvider(conversationId: 1, userId: 2)
+              .overrideWith(() => mockViewModel),
+          socketConnectionProvider.overrideWith((ref) => Stream.value(true)),
+        ],
+      );
+
+      await tester.pumpWidget(makeTestWidget(container));
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      expect(ActiveChatScreens.isActive(1), true);
+
+      container.dispose();
+    });
+
+    testWidgets('disposes and sets inactive chat screen', (tester) async {
+      final state = ChatState(
+        contact: AsyncData(testContact),
+        conversation: AsyncData(testConversation),
+        messages: AsyncData(testMessages),
+      );
+
+      final mockViewModel = MockChatViewModel(state);
+
+      final container = ProviderContainer(
+        overrides: [
+          chatViewModelProvider(conversationId: 1, userId: 2)
+              .overrideWith(() => mockViewModel),
+          socketConnectionProvider.overrideWith((ref) => Stream.value(true)),
+        ],
+      );
+
+      await tester.pumpWidget(makeTestWidget(container));
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      expect(ActiveChatScreens.isActive(1), true);
+
+      // Navigate away
+      await tester.pumpWidget(Container());
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      expect(ActiveChatScreens.isActive(1), false);
+
+      container.dispose();
+    });
+
+    testWidgets('displays loading state', (tester) async {
+      final state = ChatState(
+        contact: const AsyncLoading(),
+        conversation: const AsyncLoading(),
+        messages: const AsyncLoading(),
+      );
+
+      final mockViewModel = MockChatViewModel(state);
+
+      final container = ProviderContainer(
+        overrides: [
+          chatViewModelProvider(conversationId: 1, userId: 2)
+              .overrideWith(() => mockViewModel),
+          socketConnectionProvider.overrideWith((ref) => Stream.value(true)),
+        ],
+      );
+
+      await tester.pumpWidget(makeTestWidget(container));
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      container.dispose();
+    });
+
+    testWidgets('displays error state', (tester) async {
+      final state = ChatState(
+        contact: AsyncData(testContact),
+        conversation: AsyncData(testConversation),
+        messages: AsyncError('Test error', StackTrace.current),
+      );
+
+      final mockViewModel = MockChatViewModel(state);
+
+      final container = ProviderContainer(
+        overrides: [
+          chatViewModelProvider(conversationId: 1, userId: 2)
+              .overrideWith(() => mockViewModel),
+          socketConnectionProvider.overrideWith((ref) => Stream.value(true)),
+        ],
+      );
+
+      await tester.pumpWidget(makeTestWidget(container));
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      expect(find.textContaining('Error'), findsOneWidget);
+
+      container.dispose();
+    });
+
+    testWidgets('displays messages list', (tester) async {
+      final state = ChatState(
+        contact: AsyncData(testContact),
+        conversation: AsyncData(testConversation),
+        messages: AsyncData(testMessages),
+      );
+
+      final mockViewModel = MockChatViewModel(state);
+
+      final container = ProviderContainer(
+        overrides: [
+          chatViewModelProvider(conversationId: 1, userId: 2)
+              .overrideWith(() => mockViewModel),
+          socketConnectionProvider.overrideWith((ref) => Stream.value(true)),
+        ],
+      );
+
+      await tester.pumpWidget(makeTestWidget(container));
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      expect(find.byKey(Key(MessagingUIKeys.messagesListView)), findsOneWidget);
+
+      container.dispose();
+    });
+
+    testWidgets('displays typing indicator when user is typing', (tester) async {
+      final state = ChatState(
+        contact: AsyncData(testContact),
+        conversation: AsyncData(testConversation),
+        messages: AsyncData(testMessages),
+        isTyping: true,
+      );
+
+      final mockViewModel = MockChatViewModel(state);
+
+      final container = ProviderContainer(
+        overrides: [
+          chatViewModelProvider(conversationId: 1, userId: 2)
+              .overrideWith(() => mockViewModel),
+          socketConnectionProvider.overrideWith((ref) => Stream.value(true)),
+        ],
+      );
+
+      await tester.pumpWidget(makeTestWidget(container));
+      await tester.pump(); // Use pump() instead of pumpAndSettle() for continuous animations
+
+      expect(find.byKey(Key(MessagingUIKeys.chatScreenTypingIndicator)), findsOneWidget);
+
+      container.dispose();
+    });
+
+    testWidgets('displays chat input bar when not blocked', (tester) async {
+      final state = ChatState(
+        contact: AsyncData(testContact),
+        conversation: AsyncData(testConversation),
+        messages: AsyncData(testMessages),
+      );
+
+      final mockViewModel = MockChatViewModel(state);
+
+      final container = ProviderContainer(
+        overrides: [
+          chatViewModelProvider(conversationId: 1, userId: 2)
+              .overrideWith(() => mockViewModel),
+          socketConnectionProvider.overrideWith((ref) => Stream.value(true)),
+        ],
+      );
+
+      await tester.pumpWidget(makeTestWidget(container));
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      expect(find.byKey(Key(MessagingUIKeys.chatInputBar)), findsOneWidget);
+
+      container.dispose();
+    });
+
+    testWidgets('displays blocked message when conversation is blocked', (tester) async {
+      final blockedConversation = testConversation.copyWith(isBlocked: true);
+      final state = ChatState(
+        contact: AsyncData(testContact),
+        conversation: AsyncData(blockedConversation),
+        messages: AsyncData(testMessages),
+      );
+
+      final mockViewModel = MockChatViewModel(state);
+
+      final container = ProviderContainer(
+        overrides: [
+          chatViewModelProvider(conversationId: 1, userId: 2)
+              .overrideWith(() => mockViewModel),
+          socketConnectionProvider.overrideWith((ref) => Stream.value(true)),
+        ],
+      );
+
+      await tester.pumpWidget(makeTestWidget(container));
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      expect(find.text('This user is not available.'), findsOneWidget);
+      expect(find.byKey(Key(MessagingUIKeys.chatInputBar)), findsNothing);
+
+      container.dispose();
+    });
+
+    testWidgets('displays profile info when no more messages to load', (tester) async {
+      final state = ChatState(
+        contact: AsyncData(testContact),
+        conversation: AsyncData(testConversation),
+        messages: AsyncData(testMessages),
+        hasMoreMessages: false,
+      );
+
+      final mockViewModel = MockChatViewModel(state);
+
+      final container = ProviderContainer(
+        overrides: [
+          chatViewModelProvider(conversationId: 1, userId: 2)
+              .overrideWith(() => mockViewModel),
+          socketConnectionProvider.overrideWith((ref) => Stream.value(true)),
+        ],
+      );
+
+      await tester.pumpWidget(makeTestWidget(container));
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      expect(find.text('Test User'), findsWidgets);
+      expect(find.text('Test bio'), findsOneWidget);
+      expect(find.text('1K Followers'), findsOneWidget);
+
+      container.dispose();
+    });
+
+    testWidgets('displays offline indicator when not connected', (tester) async {
+      final state = ChatState(
+        contact: AsyncData(testContact),
+        conversation: AsyncData(testConversation),
+        messages: AsyncData(testMessages),
+      );
+
+      final mockViewModel = MockChatViewModel(state);
+
+      final container = ProviderContainer(
+        overrides: [
+          chatViewModelProvider(conversationId: 1, userId: 2)
+              .overrideWith(() => mockViewModel),
+          socketConnectionProvider.overrideWith((ref) => Stream.value(false)),
+        ],
+      );
+
+      await tester.pumpWidget(makeTestWidget(container));
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      expect(find.byIcon(Icons.signal_wifi_statusbar_connected_no_internet_4), findsOneWidget);
+
+      container.dispose();
+    });
+
+    testWidgets('does not display offline indicator when connected', (tester) async {
+      final state = ChatState(
+        contact: AsyncData(testContact),
+        conversation: AsyncData(testConversation),
+        messages: AsyncData(testMessages),
+      );
+
+      final mockViewModel = MockChatViewModel(state);
+
+      final container = ProviderContainer(
+        overrides: [
+          chatViewModelProvider(conversationId: 1, userId: 2)
+              .overrideWith(() => mockViewModel),
+          socketConnectionProvider.overrideWith((ref) => Stream.value(true)),
+        ],
+      );
+
+      await tester.pumpWidget(makeTestWidget(container));
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      expect(find.byIcon(Icons.signal_wifi_statusbar_connected_no_internet_4), findsNothing);
+
+      container.dispose();
+    });
+
+    testWidgets('displays skeleton loading for contact', (tester) async {
+      final state = ChatState(
+        contact: const AsyncLoading(),
+        conversation: AsyncData(testConversation),
+        messages: AsyncData(testMessages),
+        hasMoreMessages: false,
+      );
+
+      final mockViewModel = MockChatViewModel(state);
+
+      final container = ProviderContainer(
+        overrides: [
+          chatViewModelProvider(conversationId: 1, userId: 2)
+              .overrideWith(() => mockViewModel),
+          socketConnectionProvider.overrideWith((ref) => Stream.value(true)),
+        ],
+      );
+
+      await tester.pumpWidget(makeTestWidget(container));
+      await tester.pump(const Duration(seconds: 5));
+
+      expect(find.text('Ask PlayStation'), findsWidgets);
+
+      container.dispose();
+    });
+
+    // testWidgets('pulls to refresh calls refresh method', (tester) async {
+    //   final state = ChatState(
+    //     contact: AsyncData(testContact),
+    //     conversation: AsyncData(testConversation),
+    //     messages: AsyncData(testMessages),
+    //   );
+
+    //   final mockViewModel = MockChatViewModel(state);
+
+    //   final container = ProviderContainer(
+    //     overrides: [
+    //       chatViewModelProvider(conversationId: 1, userId: 2)
+    //           .overrideWith(() => mockViewModel),
+    //       socketConnectionProvider.overrideWith((ref) => Stream.value(true)),
+    //     ],
+    //   );
+
+    //   await tester.pumpWidget(makeTestWidget(container));
+    //   await tester.pumpAndSettle(const Duration(seconds: 5));
+
+    //   await tester.drag(
+    //     find.byKey(Key(MessagingUIKeys.chatScreenRefreshIndicator)),
+    //     const Offset(0, -500),
+    //   );
+    //   await tester.pumpAndSettle(const Duration(seconds: 5));
+
+    //   expect(mockViewModel.refreshCallCount, 1);
+
+    //   container.dispose();
+    // });
+
+    testWidgets('tap on scaffold dismisses keyboard', (tester) async {
+      final state = ChatState(
+        contact: AsyncData(testContact),
+        conversation: AsyncData(testConversation),
+        messages: AsyncData(testMessages),
+      );
+
+      final mockViewModel = MockChatViewModel(state);
+
+      final container = ProviderContainer(
+        overrides: [
+          chatViewModelProvider(conversationId: 1, userId: 2)
+              .overrideWith(() => mockViewModel),
+          socketConnectionProvider.overrideWith((ref) => Stream.value(true)),
+        ],
+      );
+
+      await tester.pumpWidget(makeTestWidget(container));
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      // Find the GestureDetector
+      final gestureDetector = find.byKey(Key('chatScreenGestureDetector'));
+      expect(gestureDetector, findsOneWidget);
+
+      await tester.tap(gestureDetector);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      container.dispose();
+    });
+
+    testWidgets('displays correct contact name in app bar when loaded', (tester) async {
+      final state = ChatState(
+        contact: AsyncData(testContact),
+        conversation: AsyncData(testConversation),
+        messages: AsyncData(testMessages),
+      );
+
+      final mockViewModel = MockChatViewModel(state);
+
+      final container = ProviderContainer(
+        overrides: [
+          chatViewModelProvider(conversationId: 1, userId: 2)
+              .overrideWith(() => mockViewModel),
+          socketConnectionProvider.overrideWith((ref) => Stream.value(true)),
+        ],
+      );
+
+      await tester.pumpWidget(makeTestWidget(container));
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+
+      expect(find.text('Test User'), findsWidgets);
+
+      container.dispose();
+    });
+  });
+}

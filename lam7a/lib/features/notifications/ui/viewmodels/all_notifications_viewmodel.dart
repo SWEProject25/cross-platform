@@ -16,17 +16,11 @@ final allNotificationsViewModelProvider =
     >(() => AllNotificationsViewModel());
 
 class AllNotificationsViewModel extends PaginationNotifier<NotificationModel> {
-  late final NotificationsRepository _notificationsRepository;
-  late NotificationsReceiver _notificationsReceiver;
   final Logger _logger = getLogger(AllNotificationsViewModel);
 
   @override
   PaginationState<NotificationModel> build() {
     _logger.i("Init AllNotificationsViewModel");
-    _notificationsRepository = ref.read(notificationsRepositoryProvider);
-    _notificationsReceiver = ref.read(notificationsReceiverProvider);
-
-    // _notificationsRepository.markAllAsRead();
 
     Future.microtask(() async {
       try {
@@ -45,7 +39,7 @@ class AllNotificationsViewModel extends PaginationNotifier<NotificationModel> {
   ) async {
     try {
       _logger.i("Fetching page $page of all notifications");
-      var res = await _notificationsRepository.fetchAllNotifications(page, 20);
+      var res = await ref.read(notificationsRepositoryProvider).fetchAllNotifications(page, 20);
       _logger.i(
         "Fetched ${res.$1.length} notifications on page $page, hasMore: ${res.$2}",
       );
@@ -67,17 +61,12 @@ class AllNotificationsViewModel extends PaginationNotifier<NotificationModel> {
 
   void markAllAsRead() {
     _logger.i("Marking All notifications As Read");
-    _notificationsRepository.markAllAsRead();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
-          .read(unReadNotificationCountProvider.notifier)
-          .updateNotificationsCount(reset: true);
+    ref.read(notificationsRepositoryProvider).markAllAsRead();
+    ref.read(unReadNotificationCountProvider.notifier).updateNotificationsCount(reset: true);
 
-      var newState = state.copyWith(
-        items: state.items.map((n) => n.copyWith(isRead: true)).toList(),
-      );
-      state = newState;
-    });
+    state = state.copyWith(
+      items: state.items.map((n) => n.copyWith(isRead: true)).toList(),
+    );
   }
 
   void markNotAsRead(String id) {
@@ -90,9 +79,9 @@ class AllNotificationsViewModel extends PaginationNotifier<NotificationModel> {
         }).toList(),
       );
       state = newState;
-      _notificationsRepository.markAsRead(id);
+      ref.read(notificationsRepositoryProvider).markAsRead(id);
   }
   void handleNotificationAction(NotificationModel notification) {
-    _notificationsReceiver.handleNotificationAction(notification);
+    ref.read(notificationsReceiverProvider).handleNotificationAction(notification);
   }
 }

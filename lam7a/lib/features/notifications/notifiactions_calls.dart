@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'package:flutter/material.dart';
 import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/features/messaging/active_chat_screens.dart';

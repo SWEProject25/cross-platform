@@ -30,9 +30,7 @@ class ProfileApiServiceImpl implements ProfileApiService {
     return ProfileDto.fromJson(_extractObject(res));
   }
 
-  // -------------------- Helpers --------------------
 
-  /// Extract JSON object `{ ... }`
   Map<String, dynamic> _extractObject(dynamic res) {
     if (res is Map && res.containsKey("data")) {
       return Map<String, dynamic>.from(res["data"]);
@@ -40,7 +38,6 @@ class ProfileApiServiceImpl implements ProfileApiService {
     return Map<String, dynamic>.from(res);
   }
 
-  /// Extract JSON list `[ ... ]`
   List<Map<String, dynamic>> _extractList(dynamic res) {
     if (res is Map && res.containsKey("data")) {
       return List<Map<String, dynamic>>.from(res["data"]);
@@ -59,7 +56,6 @@ class ProfileApiServiceImpl implements ProfileApiService {
     );
   }
 
-  // -------------------- Uploads --------------------
 
   @override
   Future<String> uploadProfilePicture(String filePath) async {
@@ -75,7 +71,6 @@ class ProfileApiServiceImpl implements ProfileApiService {
     return _extractUploadUrl(res);
   }
 
-  // -------------------- Follow System --------------------
 
   @override
   Future<void> followUser(int id) async {

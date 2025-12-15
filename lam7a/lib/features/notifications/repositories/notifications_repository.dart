@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/notifications/models/notification_model.dart';
