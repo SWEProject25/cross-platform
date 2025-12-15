@@ -97,7 +97,16 @@ class TweetScreen extends ConsumerWidget {
                             size: 17,
                             color: Colors.blueAccent,
                           ),
-                          onTap: () {},
+                          onTap: () {
+                            if (tweetData == null) return;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    TweetAiSummary(tweet: tweetData!),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -329,9 +338,7 @@ class TweetScreen extends ConsumerWidget {
                     displayName: parentDisplayName,
                     username: parentUsername,
                   ),
-                  Expanded(
-                    child: Container(width: 2, color: Colors.grey),
-                  ),
+                  Expanded(child: Container(width: 2, color: Colors.grey)),
                 ],
               ),
               const SizedBox(width: 10),
