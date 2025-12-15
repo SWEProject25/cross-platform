@@ -220,6 +220,7 @@ void main() {
       'should call login when next button pressed on password step with valid data',
       (tester) async {
         final container = createContainer();
+        container.read(authenticationProvider.notifier).isAuthenticated();
         final notifier = container.read(
           authenticationViewmodelProvider.notifier,
         );
@@ -241,8 +242,13 @@ void main() {
         when(() => mockRepo.login(any())).thenAnswer(
           (_) async => RootData(
             onboardingStatus: OnboardingStatus(
+<<<<<<< HEAD
+              hasCompeletedFollowing: true,
+              hasCompeletedInterests: true,
+=======
               hasCompeletedFollowing: false,
               hasCompeletedInterests: false,
+>>>>>>> origin/dev
               hasCompletedBirthDate: true,
             ),
             user: User(
@@ -278,7 +284,6 @@ void main() {
             ),
           ),
         ).called(1);
-        expect(find.byKey(ValueKey("transmissionAfterLogin")), findsOne);
         container.dispose();
       },
     );

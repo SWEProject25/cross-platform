@@ -8,6 +8,7 @@ import 'package:lam7a/features/messaging/dtos/conversation_dto.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
 import 'package:lam7a/features/messaging/services/dms_api_service.dart';
+import 'package:lam7a/features/profile/repository/profile_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'conversations_repositories.g.dart';
@@ -17,7 +18,8 @@ ConversationsRepository conversationsRepository(Ref ref) {
   return ConversationsRepository(
     ref.read(dmsApiServiceProvider),
     ref.watch(authenticationProvider),
-    ref.read(authenticationImplRepositoryProvider)
+    ref.read(authenticationImplRepositoryProvider),
+    ref.read(profileRepositoryProvider),
   );
 }
 
@@ -25,8 +27,9 @@ class ConversationsRepository {
   final DMsApiService _apiService;
   final AuthState _authState;
   final AuthenticationRepositoryImpl authRepo;
+  final ProfileRepository _profileRepository;
 
-  ConversationsRepository(this._apiService, this._authState, this.authRepo);
+  ConversationsRepository(this._apiService, this._authState, this.authRepo, this._profileRepository);
 
   Future<(List<Conversation> data, bool hasMore)> fetchConversations() async {
     if (!_authState.isAuthenticated) return ([] as List<Conversation>, false);
@@ -73,17 +76,27 @@ class ConversationsRepository {
     int page, [
     int limit = 20,
   ]) async {
-    return await _apiService.searchForContacts(query, page, limit);
-  }
-
-  Future<List<Contact>> searchForContactsExtended(
-    String query,
-    int page, [
-    int limit = 20,
-  ]) async {
     if(query.length <= 1){
-      var res = await authRepo.getUsersToFollow(50);
-      return res.map((x)=> Contact(id: x.id??-1, name: x.profile?.name?? "Unkown", handle: x.username?? "@unkown")).toList();
+
+      if (!(_authState.isAuthenticated)) {
+        return [];
+      }
+      
+      var followersRes = await _profileRepository.getFollowers(_authState.user!.id!);
+      var followers = followersRes.map((x)=> Contact(id: x.id ?? -1, name: x.name?? "Unkown", handle: x.username?? "@unkown", avatarUrl: x.profileImageUrl)).toList();
+
+      var followingRes = await _profileRepository.getFollowing(_authState.user!.id!);
+      var following = followingRes.map((x)=> Contact(id: x.id ?? -1, name: x.name?? "Unkown", handle: x.username?? "@unkown", avatarUrl: x.profileImageUrl)).toList();
+
+      var suggestedRes = await authRepo.getUsersToFollow(50);
+      var suggested = suggestedRes.map((x)=> Contact(id: x.id??-1, name: x.profile?.name?? "Unkown", handle: x.username?? "@unkown", avatarUrl: x.profile?.profileImageUrl)).toList();
+
+      // Remove duplicates ids and combine lists
+      var allContactsMap = <int, Contact>{};
+      for (var contact in [...followers, ...following, ...suggested]) {
+        allContactsMap[contact.id] = contact;
+      }
+      return allContactsMap.values.toList();
     }else{
       return await _apiService.searchForContacts(query, page, limit);
     }

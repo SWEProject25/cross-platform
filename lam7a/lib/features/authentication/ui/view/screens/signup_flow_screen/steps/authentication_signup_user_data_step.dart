@@ -33,7 +33,9 @@ class UserDataSignUp extends ConsumerWidget {
               textType: TextInputType.name,
               onChangeEffect: viewModel.updateName,
               isValid: state.isValidName,
+              errorText: state.name.length < 3 ? "name must be greater than 3 letters" : "",
             ),
+            SizedBox(height: 20),
             TextInputField(
               key: ValueKey("emailSignupTextField"),
               content: state.email,
@@ -42,6 +44,8 @@ class UserDataSignUp extends ConsumerWidget {
               textType: TextInputType.emailAddress,
               onChangeEffect: viewModel.updateEmail,
               isValid: state.isValidEmail,
+              errorText: !state.isValidEmail ? "the email must match tech@example.com" : "",
+
             ),
             TextInputField(
               key: ValueKey("datePickerTextField"),

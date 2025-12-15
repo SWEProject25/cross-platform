@@ -27,6 +27,7 @@ class _InterestsScreenState extends ConsumerState<InterestsScreen> {
   Widget build(BuildContext context) {
     final interestsAsynch = ref.watch(interestsViewModelProvider);
     return Scaffold(
+      key: ValueKey("interestsScreen"),
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
@@ -75,6 +76,7 @@ class _InterestsScreenState extends ConsumerState<InterestsScreen> {
                                   index,
                                 );
                                 return InterestWidget(
+                                  key: ValueKey("intreset${index}"),
                                   isSelected: selected,
                                   interest: interests[index],
                                   onTap: () {
