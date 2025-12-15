@@ -92,7 +92,7 @@ class _loginFlowtate extends State<LogInScreen> {
 
                       Expanded(
                         child: Container(
-                          margin: EdgeInsets.only(bottom: 10, left: 10),
+                          margin: EdgeInsets.only(bottom: 10, left: 30,),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -116,7 +116,7 @@ class _loginFlowtate extends State<LogInScreen> {
                                   enable: true,
                                 ),
                               ),
-                              SizedBox(width: 150),
+                              SizedBox(width: 100),
                               Align(
                                 alignment: Alignment.bottomRight,
                                 child: AuthenticationStepButton(
@@ -133,6 +133,7 @@ class _loginFlowtate extends State<LogInScreen> {
                                   onPressedEffect: () async {
                                     if (currentIndex ==
                                         AuthenticationConstants.finishLogin) {
+                                      viewmodel.setLoadingLogin();
                                       await viewmodel.login();
                                       String? message = ref
                                           .watch(authenticationViewmodelProvider)
@@ -168,6 +169,7 @@ class _loginFlowtate extends State<LogInScreen> {
                                           );
                                         }
                                       }
+                                      viewmodel.setLoadedLogin();
                                     } else if (viewmodel
                                         .shouldEnableNextLogin()) {
                                       viewmodel.gotoNextLoginStep();
