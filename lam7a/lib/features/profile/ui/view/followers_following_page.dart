@@ -30,6 +30,7 @@ class _FollowersFollowingPageState extends ConsumerState<FollowersFollowingPage>
 
   bool _loadingFollowers = true;
   bool _loadingFollowing = true;
+  bool _hasChanges = false;
 
   @override
   void initState() {
@@ -73,14 +74,23 @@ Widget _buildTile(UserModel u) {
 
   return InkWell(
     key: ValueKey('user_tile_${u.id}'),
-    onTap: () {
-      Navigator.push(
+    onTap: () async {
+      final changed = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => const ProfileScreen(),
           settings: RouteSettings(arguments: {"username": u.username}),
         ),
       );
+
+      if (changed == true) {
+        setState(() {
+          _followers?.removeWhere((e) => e.id == u.id);
+          _following?.removeWhere((e) => e.id == u.id);
+        });
+        _hasChanges = true;
+      }
+      _hasChanges = true;
     },
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -115,11 +125,23 @@ Widget _buildTile(UserModel u) {
                         ),
                       ),
                     ),
+                    // FollowButton(
+                    //   key: ValueKey('follow_button_${u.id}'),
+                    //   user: u,
+                    //   onFollowStateChanged: () => _loadData(),
+                    //   ),
                     FollowButton(
                       key: ValueKey('follow_button_${u.id}'),
                       user: u,
-                      onFollowStateChanged: () => _loadData(),
-                      ),
+                      onFollowStateChanged: () {
+                            setState(() {
+                            _following?.removeWhere((e) => e.id == u.id);
+                            _followers?.removeWhere((e) => e.id == u.id);
+                          });
+                        _hasChanges = true;
+                        _loadData();
+                      },
+                    ),
                   ],
                 ),
                 const SizedBox(height: 1),
@@ -148,7 +170,12 @@ Widget _buildTile(UserModel u) {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+      Navigator.pop(context, _hasChanges);
+      return false; // prevent default pop
+    },
+    child: Scaffold(
       key: const ValueKey('followers_following_scaffold'),
       appBar: AppBar(
         key: const ValueKey('followers_following_appbar'),
@@ -188,6 +215,7 @@ Widget _buildTile(UserModel u) {
                     ),
         ],
       ),
+    )
     );
   }
 }

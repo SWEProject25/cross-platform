@@ -159,8 +159,21 @@ class ProfileHeaderWidget extends ConsumerWidget {
         child: Row(children: [
           GestureDetector(
             key: const ValueKey('profile_following_button'),
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 1)));
+            onTap: () async {
+              //Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 1)));
+              final changed = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => FollowersFollowingPage(
+                                  userId: user.id ?? 0,
+                                  initialTab: 1,
+                                ),
+                              ),
+                            );
+
+                            if (changed == true) {
+                              onEdited?.call(); // refresh profile
+                            }
             },
             child: RichText(
               text: TextSpan(children: [
@@ -174,8 +187,21 @@ class ProfileHeaderWidget extends ConsumerWidget {
 
           GestureDetector(
             key: const ValueKey('profile_followers_button'),
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 0)));
+            onTap: () async {
+              //Navigator.push(context, MaterialPageRoute(builder: (_) => FollowersFollowingPage(userId: user.id ?? 0, initialTab: 0)));
+              final changed = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => FollowersFollowingPage(
+                                          userId: user.id ?? 0,
+                                          initialTab: 1,
+                                        ),
+                                      ),
+                                    );
+
+                                    if (changed == true) {
+                                      onEdited?.call(); // refresh profile
+                                    }
             },
             child: RichText(
               text: TextSpan(children: [
