@@ -28,4 +28,22 @@ abstract class ProfileApiService {
 
   Future<List<Map<String, dynamic>>> getFollowers(int id);
   Future<List<Map<String, dynamic>>> getFollowing(int id);
+
+  Future<List<Map<String, dynamic>>> getProfilePosts(
+    String userId,
+    int page,
+    int limit,
+  );
+
+  Future<List<Map<String, dynamic>>> getProfileReplies(
+    String userId,
+    int page,
+    int limit,
+  );
+
+  Future<List<Map<String, dynamic>>> getProfileLikes(
+    String userId,
+    int page,
+    int limit,
+  );
 }

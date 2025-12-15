@@ -119,4 +119,43 @@ class ProfileApiServiceImpl implements ProfileApiService {
     await _api.delete(endpoint: "/users/$id/block");
   }
 
+  @override
+  Future<List<Map<String, dynamic>>> getProfilePosts(
+      String userId, int page, int limit) async {
+    final res = await _api.get(
+      endpoint: "/posts/profile/$userId",
+      queryParameters: {
+        "page": page,
+        "limit": limit,
+      },
+    );
+    return _extractList(res);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getProfileReplies(
+      String userId, int page, int limit) async {
+    final res = await _api.get(
+      endpoint: "/posts/profile/$userId/replies",
+      queryParameters: {
+        "page": page,
+        "limit": limit,
+      },
+    );
+    return _extractList(res);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getProfileLikes(
+      String userId, int page, int limit) async {
+    final res = await _api.get(
+      endpoint: "/posts/liked/$userId",
+      queryParameters: {
+        "page": page,
+        "limit": limit,
+      },
+    );
+    return _extractList(res);
+  }
+
 }
