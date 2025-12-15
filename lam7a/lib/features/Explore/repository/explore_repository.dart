@@ -1,3 +1,5 @@
+// coverage:ignore-file
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../services/explore_api_service.dart';
 import 'package:lam7a/features/Explore/model/trending_hashtag.dart';

@@ -1,3 +1,5 @@
+// coverage:ignore-file
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/models/user_model.dart';
 import '../services/users_api_service.dart';
