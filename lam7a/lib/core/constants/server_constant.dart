@@ -28,4 +28,5 @@ class ServerConstant {
   static String oAuthExchangeCode = "/auth/oauth/exchange-code";
   static String forgotPasswordConst  = "/auth/forgotPassword";
   static String resetPasswordForgot = "/auth/resetPassword";
+  static String oAuthIosRedirect = "/auth/google/redirect";
 }
