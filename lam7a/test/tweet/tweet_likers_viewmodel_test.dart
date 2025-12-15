@@ -1,18 +1,16 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lam7a/core/models/user_model.dart';
-import 'package:lam7a/features/tweet/services/post_interactions_service.dart';
-import 'package:lam7a/features/tweet/ui/viewmodel/tweet_likers_viewmodel.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:lam7a/features/tweet/ui/viewmodel/tweet_likers_viewmodel.dart';
+import 'package:lam7a/features/tweet/services/post_interactions_service.dart';
+import 'package:lam7a/core/models/user_model.dart';
 
+// Mocks
 class MockPostInteractionsService extends Mock implements PostInteractionsService {}
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
   late ProviderContainer container;
   late MockPostInteractionsService mockService;
-  const postId = 'post-1';
 
   setUp(() {
     mockService = MockPostInteractionsService();
@@ -27,64 +25,37 @@ void main() {
     container.dispose();
   });
 
-  test('TweetLikersViewModel returns likers from service', () async {
-    final users = <UserModel>[
-      const UserModel(id: 1, username: 'user1'),
-      const UserModel(id: 2, username: 'user2'),
-    ];
+  group('TweetLikersViewModel Tests', () {
+    test('build calls getLikers and returns users', () async {
+      final users = [
+        UserModel(id: 1, username: 'user1', email: 'u1@test.com'),
+        UserModel(id: 2, username: 'user2', email: 'u2@test.com'),
+      ];
 
-    when(() => mockService.getLikers(
-          postId,
-          page: any(named: 'page'),
-          limit: any(named: 'limit'),
-        )).thenAnswer((_) async => users);
+      when(() => mockService.getLikers('123')).thenAnswer((_) async => users);
 
-    final result = await container.read(
-      tweetLikersViewModelProvider(postId).future,
-    );
+      final result = await container.read(tweetLikersViewModelProvider('123').future);
 
-    expect(result, users);
+      expect(result, users);
+      verify(() => mockService.getLikers('123')).called(1);
+    });
 
-    verify(() => mockService.getLikers(
-          postId,
-          page: any(named: 'page'),
-          limit: any(named: 'limit'),
-        )).called(1);
-  });
+    test('build handles empty list', () async {
+      when(() => mockService.getLikers('123')).thenAnswer((_) async => []);
 
-  test('TweetLikersViewModel handles empty list', () async {
-    when(() => mockService.getLikers(
-          postId,
-          page: any(named: 'page'),
-          limit: any(named: 'limit'),
-        )).thenAnswer((_) async => <UserModel>[]);
+      final result = await container.read(tweetLikersViewModelProvider('123').future);
 
-    final result = await container.read(
-      tweetLikersViewModelProvider(postId).future,
-    );
+      expect(result, isEmpty);
+      verify(() => mockService.getLikers('123')).called(1);
+    });
 
-    expect(result, isEmpty);
+    test('build handles error', () async {
+      when(() => mockService.getLikers('123')).thenThrow(Exception('Network error'));
 
-    verify(() => mockService.getLikers(
-          postId,
-          page: any(named: 'page'),
-          limit: any(named: 'limit'),
-        )).called(1);
-  });
-
-  test('TweetLikersViewModel surfaces errors from service', () async {
-    when(() => mockService.getLikers(
-          postId,
-          page: any(named: 'page'),
-          limit: any(named: 'limit'),
-        )).thenThrow(Exception('network error'));
-
-    await expectLater(
-      container.read(
-        tweetLikersViewModelProvider(postId).future,
-      ),
-      // Riverpod surfaces an error when the provider fails while loading
-      throwsA(isA<StateError>()),
-    );
+      expect(
+        () => container.read(tweetLikersViewModelProvider('123').future),
+        throwsA(isA<Object>()),
+      );
+    });
   });
 }

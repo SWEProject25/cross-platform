@@ -53,10 +53,11 @@ class StyledTweetText extends StatelessWidget {
   ) {
     final List<TextSpan> spans = [];
     
-    // Regex to match hashtags (#word) and mentions (@handle), allowing
-    // underscores, dots, and hyphens in mentions so usernames like
-    // @omar-nabil are fully matched.
-    final RegExp pattern = RegExp(r'(#\w+|@[A-Za-z0-9_.-]+)');
+    // Regex to match hashtags (#word) and mentions (@handle).
+    // \p{L} matches any Unicode letter (Arabic, Chinese, Japanese, etc.)
+    // \p{N} matches any Unicode number
+    // This allows hashtags in any language: #hello #مرحبا #你好 #こんにちは
+    final RegExp pattern = RegExp(r'(#[\p{L}\p{N}_]+|@[A-Za-z0-9_.-]+)', unicode: true);
     
     int lastMatchEnd = 0;
     

@@ -74,7 +74,6 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
   void dispose() {
     _bodyController.dispose();
     _scrollController.dispose();
-    ref.read(mentionSuggestionsViewModelProvider.notifier).clear();
     super.dispose();
   }
 
@@ -631,6 +630,16 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
     final authState = ref.watch(authenticationProvider);
     final currentUser = authState.user;
 
+    // Focus node for the main tweet body input so we can clear mention
+    // suggestions when the input loses focus.
+    final FocusNode bodyFocusNode = FocusNode();
+
+    bodyFocusNode.addListener(() {
+      if (!bodyFocusNode.hasFocus) {
+        ref.read(mentionSuggestionsViewModelProvider.notifier).clear();
+      }
+    });
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
@@ -667,6 +676,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
                         // Tweet body input for new posts / quotes
                         AddTweetBodyInputWidget(
                           controller: _bodyController,
+                          focusNode: bodyFocusNode,
                           onChanged: (value) {
                             viewmodel.updateBody(value);
                             _handleBodyChanged(value);

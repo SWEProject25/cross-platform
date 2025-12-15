@@ -144,82 +144,106 @@ class AddTweetApiServiceImpl implements AddTweetApiService {
       
       // Parse response to get the created tweet with media URLs
       final responseData = responseMap['data'];
-        print('   Response data: $responseData');
-        
-        // Create TweetModel from response
-        // The backend returns the post with field names: id, user_id, content, created_at
-        
-        // Parse media from backend - supporting multiple formats
-        final imageUrls = <String>[];
-        final videoUrls = <String>[];
-        
-        // Format 1: media array with type info (preferred)
-        if (responseData['media'] != null && responseData['media'] is List) {
-          final mediaArray = responseData['media'] as List;
-          print('   📷 Media array found: ${mediaArray.length} items');
-          
-          for (final mediaItem in mediaArray) {
-            final url = mediaItem['media_url']?.toString();
-            final type = mediaItem['type']?.toString();
-            
-            if (url != null && url.isNotEmpty) {
-              print('      - URL: $url (type: $type)');
-              if (type == 'VIDEO') {
-                videoUrls.add(url);
-                print('      ✅ Added to videos');
-              } else {
-                imageUrls.add(url);
-                print('      ✅ Added to images');
-              }
+      print('   Response data: $responseData');
+
+      // Prefer the new transformed post shape used by the backend
+      // (TransformedPost / FeedPostDto) which matches TweetModel.fromJsonPosts.
+      if (responseData is Map<String, dynamic>) {
+        try {
+          if (responseData.containsKey('postId') &&
+              responseData.containsKey('date')) {
+            final tweet = TweetModel.fromJsonPosts(responseData);
+            print('   Parsed tweet from transformed post shape (postId=${tweet.id}).');
+            return tweet;
+          }
+        } catch (e) {
+          print('⚠️ Failed to parse createTweet response via fromJsonPosts, falling back: $e');
+        }
+      }
+
+      // Legacy / fallback mapping for older backend shapes that return a
+      // plain post object with id/user_id/content/created_at and media/mediaUrls.
+      if (responseData is! Map) {
+        throw StateError('Unexpected createTweet response format: $responseData');
+      }
+
+      final legacy = responseData as Map<String, dynamic>;
+
+      // Parse media from backend - supporting multiple legacy formats
+      final imageUrls = <String>[];
+      final videoUrls = <String>[];
+
+      // Format 1: media array with type info (preferred legacy shape)
+      if (legacy['media'] != null && legacy['media'] is List) {
+        final mediaArray = legacy['media'] as List;
+        print('   📷 Legacy media array found: ${mediaArray.length} items');
+
+        for (final mediaItem in mediaArray) {
+          if (mediaItem is! Map) continue;
+          final url = (mediaItem['media_url'] ?? mediaItem['url'])?.toString();
+          final type = mediaItem['type']?.toString();
+
+          if (url != null && url.isNotEmpty) {
+            print('      - URL: $url (type: $type)');
+            if (type == 'VIDEO') {
+              videoUrls.add(url);
+              print('      ✅ Added to videos');
+            } else {
+              imageUrls.add(url);
+              print('      ✅ Added to images');
             }
           }
         }
-        // Format 2: mediaUrls array (fallback)
-        else if (responseData['mediaUrls'] != null && responseData['mediaUrls'] is List) {
-          final mediaUrls = responseData['mediaUrls'] as List;
-          print('   📷 MediaUrls in response: ${mediaUrls.length} items');
-          
-          for (int i = 0; i < mediaUrls.length; i++) {
-            final url = mediaUrls[i]?.toString();
-            print('      - URL $i: $url');
-            
-            if (url != null && url.isNotEmpty) {
-              // Simple heuristic: check file extension
-              final lowerUrl = url.toLowerCase();
-              if (lowerUrl.endsWith('.mp4') || lowerUrl.endsWith('.mov') || 
-                  lowerUrl.endsWith('.avi') || lowerUrl.endsWith('.webm') ||
-                  lowerUrl.contains('video')) {
-                videoUrls.add(url);
-                print('      ✅ Added to videos');
-              } else {
-                imageUrls.add(url);
-                print('      ✅ Added to images');
-              }
+      }
+      // Format 2: mediaUrls array (very old fallback)
+      else if (legacy['mediaUrls'] != null && legacy['mediaUrls'] is List) {
+        final mediaUrls = legacy['mediaUrls'] as List;
+        print('   📷 Legacy mediaUrls in response: ${mediaUrls.length} items');
+
+        for (int i = 0; i < mediaUrls.length; i++) {
+          final url = mediaUrls[i]?.toString();
+          print('      - URL $i: $url');
+
+          if (url != null && url.isNotEmpty) {
+            // Simple heuristic: check file extension
+            final lowerUrl = url.toLowerCase();
+            if (lowerUrl.endsWith('.mp4') ||
+                lowerUrl.endsWith('.mov') ||
+                lowerUrl.endsWith('.avi') ||
+                lowerUrl.endsWith('.webm') ||
+                lowerUrl.contains('video')) {
+              videoUrls.add(url);
+              print('      ✅ Added to videos');
+            } else {
+              imageUrls.add(url);
+              print('      ✅ Added to images');
             }
           }
         }
-        
-        final createdTweet = TweetModel(
-          id: responseData['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
-          userId: responseData['user_id']?.toString() ?? userId.toString(),
-          body: responseData['content'] ?? content,
-          date: responseData['created_at'] != null 
-              ? DateTime.parse(responseData['created_at']) 
-              : DateTime.now(),
-          likes: responseData['likes'] ?? 0,
-          repost: responseData['repost'] ?? 0,
-          comments: responseData['comments'] ?? 0,
-          views: responseData['views'] ?? 0,
-          qoutes: responseData['qoutes'] ?? 0,
-          bookmarks: responseData['bookmarks'] ?? 0,
-          mediaImages: imageUrls,
-          mediaVideos: videoUrls,
-        );
-        
-        print('   Created tweet ID: ${createdTweet.id}');
-        print('   Media Images: ${createdTweet.mediaImages.length} items');
-        print('   Media Videos: ${createdTweet.mediaVideos.length} items');
-        
+      }
+
+      final createdTweet = TweetModel(
+        id: legacy['id']?.toString() ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
+        userId: legacy['user_id']?.toString() ?? userId.toString(),
+        body: legacy['content'] ?? content,
+        date: legacy['created_at'] != null
+            ? DateTime.parse(legacy['created_at'])
+            : DateTime.now(),
+        likes: legacy['likes'] ?? 0,
+        repost: legacy['repost'] ?? 0,
+        comments: legacy['comments'] ?? 0,
+        views: legacy['views'] ?? 0,
+        qoutes: legacy['qoutes'] ?? 0,
+        bookmarks: legacy['bookmarks'] ?? 0,
+        mediaImages: imageUrls,
+        mediaVideos: videoUrls,
+      );
+
+      print('   Created tweet ID (legacy): ${createdTweet.id}');
+      print('   Media Images: ${createdTweet.mediaImages.length} items');
+      print('   Media Videos: ${createdTweet.mediaVideos.length} items');
+
       return createdTweet;
     } on DioException catch (e) {
       print('❌ Dio Error creating tweet:');
