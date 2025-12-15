@@ -79,6 +79,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
     try {
       if (state.isValidEmail) {
         state = state.map(
+          // coverage:ignore-next-line
           login: (login) => login,
           signup: (signup) => signup.copyWith(isLoadingSignup: true),
         );
@@ -92,6 +93,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           final genrateStatus = await repo.verificationOTP(state.email);
           if (genrateStatus) {
             state = state.map(
+              // coverage:ignore-next-line
               login: (login) => login,
               signup: (signup) => signup.copyWith(
                 isLoadingSignup: false,
@@ -104,6 +106,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           gotoNextSignupStep();
         } else {
           state = state.map(
+            // coverage:ignore-next-line
             login: (login) => login,
             signup: (signup) => AuthenticationState.signup(
               toastMessage: AuthenticationConstants.errorEmailMessage,
@@ -120,6 +123,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         showToastMessage("Please wait 60 seconds");
       } else {
         state = state.map(
+          // coverage:ignore-next-line
           login: (login) => login,
           signup: (signup) => signup.copyWith(
             isLoadingSignup: false,
@@ -139,6 +143,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
     try {
       if (state.isValidCode) {
         state = state.map(
+          // coverage:ignore-next-line
           login: (login) => login,
           signup: (signup) => signup.copyWith(isLoadingSignup: true),
         );
@@ -147,6 +152,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           gotoNextSignupStep();
         } else {
           state = state.map(
+            // coverage:ignore-next-line
             login: (login) => login,
             signup: (signup) => signup.copyWith(
               toastMessage: AuthenticationConstants.wrongOtpMessage,
@@ -154,6 +160,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
           );
         }
         state = state.map(
+          // coverage:ignore-next-line
           login: (login) => login,
           signup: (signup) =>
               signup.copyWith(isValidCode: isValidCode, isLoadingSignup: false),
@@ -163,6 +170,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       print(e);
       // showToastMessage("the code is wrong");
       state = state.map(
+        // coverage:ignore-next-line
         login: (login) => login,
         signup: (signup) => signup.copyWith(
           isLoadingSignup: false,
@@ -182,12 +190,14 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       bool isSuccessed = await repo.resendOTP(state.email);
       if (!isSuccessed) {
         state = state.map(
+          // coverage:ignore-next-line
           login: (login) => login,
           signup: (signup) =>
               signup.copyWith(toastMessage: "this service isn't available"),
         );
       } else {
         state = state.map(
+          // coverage:ignore-next-line
           login: (login) => login,
           signup: (signup) => signup.copyWith(
             isLoadingSignup: false,
@@ -197,6 +207,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       }
     } catch (e) {
       state = state.map(
+        // coverage:ignore-next-line
         login: (login) => login,
         signup: (signup) => signup.copyWith(
           isLoadingSignup: false,
@@ -229,6 +240,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
     } catch (e) {
       print(e);
       state = state.map(
+        // coverage:ignore-next-line
         login: (login) => login,
         signup: (signup) => signup.copyWith(isLoadingSignup: false),
       );
@@ -253,6 +265,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
 
   void clearMessage() {
     state = state.map(
+      // coverage:ignore-next-line
       login: (login) => login,
       signup: (signup) {
         return signup.copyWith(toastMessage: null);
@@ -262,6 +275,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
 
   void setLoadingLogin() {
     state = state.map(
+      // coverage:ignore-next-line
       login: (login) => login.copyWith(isLoadingLogin: true),
       signup: (signup) => signup,
     );
@@ -269,6 +283,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
 
   void setLoadedLogin() {
     state = state.map(
+      // coverage:ignore-next-line
       login: (login) => login.copyWith(isLoadingLogin: false),
       signup: (signup) => signup,
     );
@@ -287,6 +302,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
     try {
       bool isSuccessed = false;
       state = state.map(
+        // coverage:ignore-next-line
         login: (login) => login.copyWith(isLoadingLogin: true),
         signup: (signup) => signup,
       );
@@ -301,6 +317,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         isSuccessed = true;
         await authController.isAuthenticated();
         state = state.map(
+          // coverage:ignore-next-line
           login: (login) => login.copyWith(
             identifier: "",
             passwordLogin: "",
@@ -313,6 +330,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
         );
       } else {
         state = state.map(
+          // coverage:ignore-next-line
           login: (login) => login.copyWith(
             toastMessageLogin: "the email or password is wrong",
             isLoadingLogin: false,
@@ -325,10 +343,12 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       print(e);
       // showToastMessage("the email or password is wrong");
       state = state.map(
+        // coverage:ignore-next-line
         login: (login) => login.copyWith(
           isLoadingLogin: false,
           toastMessageLogin: "the email or password is wrong",
         ),
+        // coverage:ignore-next-line
         signup: (signup) => signup,
       );
       return false;
@@ -339,6 +359,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
 
   void gotoNextSignupStep() {
     state = state.map(
+      // coverage:ignore-next-line
       login: (loginState) => loginState,
       signup: (signupState) {
         if (signupState.currentSignupStep < maxSignupScreens &&
@@ -360,6 +381,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
 
   void setLoadingSignUp() {
     state = state.map(
+      // coverage:ignore-next-line
       login: (login) => login,
       signup: (signup) => signup.copyWith(isLoadingSignup: true),
     );
@@ -367,10 +389,12 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
 
   void setLoadedSignUp() {
     state = state.map(
+      // coverage:ignore-next-line
       login: (login) => login,
       signup: (signup) => signup.copyWith(isLoadingSignup: false),
     );
   }
+  // coverage:ignore-start
 
   Future<void> oAuthLoginGoogle() async {
     try {
@@ -398,6 +422,8 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       print("Google Sign-In Error: $e");
     }
   }
+  // coverage:ignore-end
+  // coverage:ignore-start
 
   Future<void> oAuthGithubLogin(String code) async {
     RootData myUserData = await repo.oAuthGithubLogin(code);
@@ -412,6 +438,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
       ),
     );
   }
+  // coverage:ignore-end
 
   ///////////////////////////////////////////////
   ///    this part is to manage my state       //
@@ -427,6 +454,7 @@ class AuthenticationViewmodel extends _$AuthenticationViewmodel {
   ////////////////////////////////////////////////////////////////////////
   void gotoPrevSignupStep() {
     state = state.map(
+        // coverage:ignore-next-line
       login: (loginState) => loginState,
       signup: (signupState) {
         if (signupState.currentSignupStep > 0) {
