@@ -51,15 +51,6 @@ class AccountApiServiceImpl implements AccountApiService {
     }
   }
 
-  @override // to be made
-  Future<void> deactivateAccount() async {
-    try {
-      await _api.post(endpoint: '/user/deactivate');
-    } catch (e) {
-      // Handle error
-    }
-  }
-
   @override
   Future<void> changeUsername(String newUsername) async {
     try {

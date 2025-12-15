@@ -4,7 +4,6 @@ import 'package:lam7a/features/authentication/ui/view/screens/forgot_password/fo
 import '../../../viewmodel/change_password_viewmodel.dart';
 import '../../../widgets/settings_textfield.dart';
 import '../../../viewmodel/account_viewmodel.dart';
-import './forget_password_view.dart/send_otp_view.dart';
 
 class ChangePasswordView extends ConsumerWidget {
   const ChangePasswordView({super.key});
