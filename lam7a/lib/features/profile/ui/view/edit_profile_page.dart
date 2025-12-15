@@ -75,7 +75,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   }
 
   bool _isValidWebsite(String website) {
-    if (website.isEmpty) return true; // optional field
+    if (website.isEmpty) return true; 
 
     // No emojis or spaces
     final validChars = RegExp(r"^[a-zA-Z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+$");
@@ -177,16 +177,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
   }
 
-  // Widget buildField(String label, TextEditingController c, {int maxLines = 1}) {
-  //   return Padding(
-  //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-  //     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-  //       Text(label, style: const TextStyle(color: Colors.grey)),
-  //       const SizedBox(height: 6),
-  //       TextField(controller: c, maxLines: maxLines, decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)))),
-  //     ]),
-  //   );
-  // }
+
 
   Widget buildField(String label, TextEditingController c, {int maxLines = 1, int? maxLength, Key? fieldKey,}) {
   return Padding(
@@ -200,7 +191,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           key: fieldKey,
           controller: c,
           maxLines: maxLines,
-          maxLength: maxLength,  // <-- ADD THIS
+          maxLength: maxLength, 
           decoration: InputDecoration(
             counterText: "",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),

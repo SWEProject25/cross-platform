@@ -106,7 +106,7 @@ Widget _buildTile(UserModel u) {
             child: !hasImage ? const Icon(Icons.person, color: Colors.white) : null,
           ),
 
-          const SizedBox(width: 8), // <-- Reduce this to control spacing!
+          const SizedBox(width: 8), 
 
           // Username + Bio + Follow button
           Expanded(
@@ -125,11 +125,6 @@ Widget _buildTile(UserModel u) {
                         ),
                       ),
                     ),
-                    // FollowButton(
-                    //   key: ValueKey('follow_button_${u.id}'),
-                    //   user: u,
-                    //   onFollowStateChanged: () => _loadData(),
-                    //   ),
                     FollowButton(
                       key: ValueKey('follow_button_${u.id}'),
                       user: u,
@@ -173,7 +168,7 @@ Widget _buildTile(UserModel u) {
     return WillPopScope(
       onWillPop: () async {
       Navigator.pop(context, _hasChanges);
-      return false; // prevent default pop
+      return false; 
     },
     child: Scaffold(
       key: const ValueKey('followers_following_scaffold'),

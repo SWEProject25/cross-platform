@@ -12,7 +12,7 @@ TweetModel convertProfileJsonToTweetModel(Map<String, dynamic> json) {
   final bool isQuote = json["isQuote"] == true;
   final original = json["originalPostData"];
 
-  // ---------------- REPOST ----------------
+  // REPOST
   if (isRepost && original is Map<String, dynamic>) {
     final inner = original;
 
@@ -47,7 +47,7 @@ TweetModel convertProfileJsonToTweetModel(Map<String, dynamic> json) {
     );
   }
 
-  // ---------------- QUOTE ----------------
+  // QUOTE
   if (isQuote && original is Map<String, dynamic>) {
     final parent = original;
 
@@ -82,7 +82,7 @@ TweetModel convertProfileJsonToTweetModel(Map<String, dynamic> json) {
     );
   }
 
-  // ---------------- NORMAL ----------------
+  // NORMAL
   return TweetModel(
     id: read(json, ["postId", "id"])!.toString(),
     userId: read(json, ["userId"])!.toString(),
