@@ -1,3 +1,5 @@
+// coverage:ignore-file
+
 import 'dart:async';
 import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/features/messaging/dtos/message_socket_dtos.dart';

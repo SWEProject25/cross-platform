@@ -1,65 +1,30 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:lam7a/core/models/auth_state.dart';
-import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/core/utils/logger.dart';
 import 'package:lam7a/features/notifications/models/notification_model.dart';
 import 'package:lam7a/features/notifications/notifiactions_calls.dart';
 import 'package:lam7a/features/notifications/proveriders/new_notifications_count.dart';
 import 'package:lam7a/features/notifications/repositories/notifications_repository.dart';
+import 'package:lam7a/features/notifications/services/cloud_messaging_service.dart';
 import 'package:lam7a/firebase_options.dart';
 import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'notifications_receiver.g.dart';
 
-@Riverpod(keepAlive: true)
-void fcmTokenUpdater(Ref ref) {
-  AuthState authState = ref.watch(authenticationProvider);
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-  var subscription = messaging.onTokenRefresh.listen((newToken) {
-    handleFCMTokenUpdate(messaging, authState, ref);
-  });
-
-  ref.onDispose(() {
-    subscription.cancel();
-  });
-
-  handleFCMTokenUpdate(messaging, authState, ref);
-}
-
-void handleFCMTokenUpdate(
-  FirebaseMessaging messaging,
-  AuthState authState,
-  Ref ref,
-) {
-  var logger = getLogger(NotificationsReceiver);
-  if (authState.user != null) {
-    messaging.getToken().then((String? token) {
-      if (token != null) {
-        ref.read(notificationsRepositoryProvider).setFCMToken(token);
-        logger.i("FCM Token sent to server: $token");
-      }
-    });
-  } else {
-    ref.read(notificationsRepositoryProvider).removeFCMToken();
-    logger.i("FCM Token removed from server");
-  }
-}
-
 @riverpod
 NotificationsReceiver notificationsReceiver(Ref ref){
   ref.keepAlive();
-  return NotificationsReceiver(ref, ref.read(unReadNotificationCountProvider.notifier));
+  return NotificationsReceiver(ref.read(cloudMessagingServiceProvider), ref.read(notificationsRepositoryProvider), ref.read(unReadNotificationCountProvider.notifier));
 }
 
 class NotificationsReceiver {
   Logger logger = getLogger(NotificationsReceiver);
-  NewNotificationCount _newNotificationCount;
+
+  final CloudMessagingService _cloudMessagingService;
+  final NotificationsRepository _notificationsRepository;
+  final NewNotificationCount _newNotificationCount;
   
-  Ref ref;
-  NotificationsReceiver(this.ref, this._newNotificationCount);
+  NotificationsReceiver(this._cloudMessagingService, this._notificationsRepository, this._newNotificationCount);
 
   RemoteMessage? _initialMessage;
 
@@ -67,17 +32,14 @@ class NotificationsReceiver {
   Future<void> initialize() async {
     logger.i("NotificationsReceiver initialized");
 
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await _cloudMessagingService.initialize(DefaultFirebaseOptions.currentPlatform);
 
-    _initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    _initialMessage = await _cloudMessagingService.getInitialMessage();
     logger.i("Initial message: $_initialMessage");
 
-    FirebaseMessaging.onMessage.listen(_onMessageReceived);
-    FirebaseMessaging.onMessageOpenedApp.listen(
-      _onNotificationTapped,
-    );
+    _cloudMessagingService.onMessage.listen(_onMessageReceived);
+    _cloudMessagingService.onMessageOpenedApp.listen(_onNotificationTapped);
 
-    requestPermission();
   }
 
   void handleInitialMessageIfAny() {
@@ -90,10 +52,8 @@ class NotificationsReceiver {
   }
 
 
-  void requestPermission() async {
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-    NotificationSettings settings = await messaging.requestPermission(
+  Future<void> requestPermission() async {
+    NotificationSettings settings = await _cloudMessagingService.requestPermission(
       alert: true,
       announcement: false,
       badge: true,
@@ -105,7 +65,7 @@ class NotificationsReceiver {
 
     logger.i('User granted permission: ${settings.authorizationStatus}');
 
-    String? token = await messaging.getToken();
+    String? token = await _cloudMessagingService.getToken();
     logger.i("FCM Token: $token");
   }
 
@@ -139,7 +99,7 @@ class NotificationsReceiver {
     RemoteMessage message,
   ) async {
     logger.i("Initializing Firebase in background message handler");
-    await Firebase.initializeApp();
+    await _cloudMessagingService.initialize(DefaultFirebaseOptions.currentPlatform);
 
     logger.i("Handling a background message: ${message.messageId}");
     logger.i('Message data: ${message.data.toString()} ${message.data.runtimeType.toString()}');
@@ -147,7 +107,7 @@ class NotificationsReceiver {
 
     handleNotificationAction(notifiacation);
 
-    ref.read(notificationsRepositoryProvider).markAsRead(notifiacation.notificationId);
+    _notificationsRepository.markAsRead(notifiacation.notificationId);
     _newNotificationCount.updateNotificationsCount();
   }
 

@@ -61,12 +61,15 @@ class FindContactsScreen extends ConsumerWidget {
                       style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
                     onTap: () async {
+                      var navigator = Navigator.of(context);
+
                       var convId = await viewModel.createConversationId(c.id);
                       print('Conversation ID: $convId');
-                      if (navigatorKey.currentState == null) return;
+                      // if (navigatorKey.currentState == null) return;
                       print('Navigating to ChatScreen with userId: ${c.id} and conversationId: $convId');
-                      navigatorKey.currentState!.pop();
-                      navigatorKey.currentState!.pushNamed(
+
+                      navigator.pop();
+                      navigator.pushNamed(
                         ChatScreen.routeName,
                         arguments: {'userId': c.id, 'conversationId': convId},
                       );
