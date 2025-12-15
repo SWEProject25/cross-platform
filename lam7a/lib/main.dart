@@ -23,7 +23,7 @@ import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
 import 'package:lam7a/features/messaging/ui/view/chat_screen.dart';
 import 'package:lam7a/features/navigation/ui/view/navigation_home_screen.dart';
 import 'package:lam7a/features/notifications/notifications_receiver.dart';
-import 'package:lam7a/features/tweet/repository/tweet_updates_repository.dart';
+import 'package:lam7a/features/notifications/proveriders/fcm_token_updater.dart';
 import 'package:lam7a/features/tweet/services/tweet_socket_service.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/add_tweet/ui/view/add_tweet_screen.dart';
@@ -32,7 +32,7 @@ import 'package:lam7a/features/tweet/ui/view/tweet_screen.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter/services.dart';
 
-void main() async {
+Future<void> main() async {
   await HiveTypes.initialize();
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,7 +47,7 @@ void main() async {
   container.listen(socketInitializerProvider, (_, _) => {});
   container.read(messagesSocketServiceProvider).setUpListners();
   container.read(tweetsSocketServiceProvider).setUpListners();
-  container.listen(fcmTokenUpdaterProvider, (_, _) => {});
+  container.listen(fCMTokenUpdaterProvider, (_, _) => {});
 
   runApp(
     UncontrolledProviderScope(

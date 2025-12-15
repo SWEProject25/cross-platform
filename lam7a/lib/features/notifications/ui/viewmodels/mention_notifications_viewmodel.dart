@@ -64,16 +64,13 @@ class MentionNotificationsViewmodel
   void markAllAsRead() {
     _logger.i("Marking All Mention notifications As Read");
     _notificationsRepository.markAllAsRead();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
-          .read(unReadNotificationCountProvider.notifier)
-          .updateNotificationsCount(reset: true);
+    ref
+        .read(unReadNotificationCountProvider.notifier)
+        .updateNotificationsCount(reset: true);
 
-      var newState = state.copyWith(
-        items: state.items.map((n) => n.copyWith(isRead: true)).toList(),
-      );
-      state = newState;
-    });
+    state = state.copyWith(
+      items: state.items.map((n) => n.copyWith(isRead: true)).toList(),
+    );
   }
     void markNotAsRead(String id) {
       var newState = state.copyWith(

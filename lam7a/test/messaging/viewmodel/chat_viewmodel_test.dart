@@ -1,74 +1,108 @@
 import 'dart:async';
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:lam7a/core/models/auth_state.dart';
 import 'package:lam7a/core/models/user_model.dart';
+import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/features/messaging/errors/blocked_user_error.dart';
 import 'package:lam7a/features/messaging/model/chat_message.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
+import 'package:lam7a/features/messaging/model/conversation.dart';
+import 'package:lam7a/features/messaging/repository/conversations_repositories.dart';
+import 'package:lam7a/features/messaging/repository/messages_repository.dart';
+import 'package:lam7a/features/messaging/ui/state/conversation_state.dart';
 import 'package:lam7a/features/messaging/ui/viewmodel/chat_viewmodel.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/conversation_viewmodel.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:lam7a/features/messaging/repository/messages_repository.dart';
-import 'package:lam7a/features/messaging/repository/conversations_repositories.dart';
-import 'package:lam7a/core/models/auth_state.dart';
-import 'package:lam7a/core/providers/authentication.dart';
-
-/// ---- MOCKS ----
-class MockMessagesRepository extends Mock implements MessagesRepository {}
-
 class MockConversationsRepository extends Mock implements ConversationsRepository {}
+class MockMessagesRepository extends Mock implements MessagesRepository {}
+class MockConversationViewmodel extends Mock implements ConversationViewmodel {}
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
-  late ProviderContainer container;
-  late MockMessagesRepository mockMessagesRepository;
   late MockConversationsRepository mockConversationsRepository;
+  late MockMessagesRepository mockMessagesRepository;
+  late ProviderContainer container;
+
+  final testContact = Contact(
+    id: 1,
+    name: 'Test User',
+    handle: '@testuser',
+    avatarUrl: 'https://example.com/avatar.jpg',
+  );
+
+  final testConversation = Conversation(
+    id: 1,
+    name: 'Test User',
+    userId: 1,
+    username: '@testuser',
+    avatarUrl: 'https://example.com/avatar.jpg',
+    lastMessage: 'Hello',
+    lastMessageTime: DateTime(2025, 1, 1),
+    unseenCount: 0,
+    isBlocked: false,
+  );
+
+  final testMessages = [
+    ChatMessage(
+      id: 1,
+      text: 'Hello',
+      time: DateTime(2025, 1, 1),
+      isMine: false,
+      senderId: 1,
+    ),
+    ChatMessage(
+      id: 2,
+      text: 'Hi there',
+      time: DateTime(2025, 1, 1, 0, 1),
+      isMine: true,
+      senderId: 2,
+    ),
+  ];
+
+  final testUser = UserModel(
+    id: 2,
+    name: 'Current User',
+    username: '@currentuser',
+    email: 'test@example.com',
+    birthDate: '2000-01-01',
+  );
 
   setUp(() {
-    mockMessagesRepository = MockMessagesRepository();
     mockConversationsRepository = MockConversationsRepository();
+    mockMessagesRepository = MockMessagesRepository();
 
-    // default stubs that most tests will reuse
-    when(() => mockMessagesRepository.onMessageRecieved(any()))
-        .thenAnswer((_) => Stream<void>.value(null));
-    when(() => mockMessagesRepository.onUserTyping(any()))
-        .thenAnswer((_) => Stream<bool>.value(false));
-    when(() => mockMessagesRepository.fetchMessage(any()))
-        .thenAnswer((_) => <ChatMessage>[]);
-    when(() => mockMessagesRepository.joinConversation(any()))
-        .thenReturn(null);
-    when(() => mockMessagesRepository.sendMarkAsSeen(any()))
-        .thenReturn(null);
-    when(() => mockMessagesRepository.updateTypingStatus(any(), any()))
-        .thenReturn(null);
-    when(() => mockMessagesRepository.sendMessage(any(), any(), any()))
-        .thenReturn(null);
-    when(() => mockMessagesRepository.loadMessageHistory(any()))
-        .thenAnswer((_) async => false);
+    // Setup default mocks
+    when(() => mockMessagesRepository.onMessageRecieved(any())).thenAnswer(
+      (_) => Stream<void>.empty(),
+    );
+    when(() => mockMessagesRepository.onUserTyping(any())).thenAnswer(
+      (_) => Stream<bool>.empty(),
+    );
+    when(() => mockMessagesRepository.joinConversation(any())).thenReturn(null);
+    when(() => mockMessagesRepository.sendMarkAsSeen(any())).thenReturn(null);
+    when(() => mockMessagesRepository.leaveConversation(any())).thenReturn(null);
+    when(() => mockConversationsRepository.getContactByUserId(any())).thenAnswer(
+      (_) async => testContact,
+    );
+    when(() => mockConversationsRepository.getConversationById(any())).thenAnswer(
+      (_) async => testConversation,
+    );
+    when(() => mockMessagesRepository.fetchMessage(any())).thenAnswer(
+      (_) async => testMessages,
+    );
+    when(() => mockMessagesRepository.loadInitMessage(any())).thenAnswer(
+      (_) async => true,
+    );
 
-
-    when(() => mockConversationsRepository.getConversationIdByUserId(any()))
-        .thenAnswer((_) async => 1);
-    when(() => mockConversationsRepository.getContactByUserId(any()))
-        .thenAnswer((_) async => Contact(name: "dsf", id: 10, handle: "Test User", avatarUrl: null));
-
-
-
-    // Provide mocks to the provider container
     container = ProviderContainer(
       overrides: [
+        conversationsRepositoryProvider.overrideWithValue(mockConversationsRepository),
         messagesRepositoryProvider.overrideWithValue(mockMessagesRepository),
-        conversationsRepositoryProvider
-            .overrideWithValue(mockConversationsRepository),
-        // keep authenticationProvider default if available; if tests need
-        // specific user id, override it here with a simple AuthState:
-        authenticationProvider.overrideWithValue(
-          const AuthState(
-            isAuthenticated: true,
-            user: null, // leave null unless testing sendMessage which needs user
-          ),
-        ),
+        authenticationProvider.overrideWith(() {
+          return Authentication()..state = AuthState(user: testUser, isAuthenticated: true);
+        }),
       ],
     );
   });
@@ -77,242 +111,319 @@ void main() {
     container.dispose();
   });
 
-  test('build sets conversationId when provided and loads messages/contact streams', () async {
-    // Arrange: provide explicit conversationId so build won't call getConversationIdByUserId
-    final notifier = container.listen(chatViewModelProvider(userId: 101, conversationId: 1).notifier, (_, __) {}).read();
+  group('ChatViewModel', () {
+    test('initializes successfully with authenticated user', () async {
+      final viewModel = container.read(chatViewModelProvider(userId: 1, conversationId: 1).notifier);
+      final state = container.read(chatViewModelProvider(userId: 1, conversationId: 1));
 
-    // Wait a tick for microtasks triggered by build to run
-    await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(state, isNotNull);
+      expect(viewModel, isNotNull);
+    });
 
-    // Act: read state
-    final state = container.read(chatViewModelProvider(userId: 101, conversationId: 1));
+    test('throws exception when user not authenticated', () {
+      final unauthContainer = ProviderContainer(
+        overrides: [
+          conversationsRepositoryProvider.overrideWithValue(mockConversationsRepository),
+          messagesRepositoryProvider.overrideWithValue(mockMessagesRepository),
+          authenticationProvider.overrideWith(() {
+            return Authentication()..state = const AuthState(user: null, isAuthenticated: false);
+          }),
+        ],
+      );
 
-    // Assert: basic state fields set (conversationId and messages)
-    expect(state.conversationId, equals(1));
-    expect(state.messages, isA<AsyncValue>());
+      expect(
+        () => unauthContainer.read(chatViewModelProvider(userId: 1, conversationId: 1)),
+        throwsException,
+      );
+
+      unauthContainer.dispose();
+    });
+
+    test('loads contact, conversation, and messages on init', () async {
+      container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final state = container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+
+      expect(state.contact.hasValue, true);
+      expect(state.contact.value, testContact);
+      expect(state.conversation.hasValue, true);
+      expect(state.messages.hasValue, true);
+      expect(state.messages.value, testMessages);
+
+      verify(() => mockConversationsRepository.getContactByUserId(1)).called(1);
+      verify(() => mockMessagesRepository.fetchMessage(1)).called(1);
+    });
+
+    test('handles contact loading error', () async {
+      when(() => mockConversationsRepository.getContactByUserId(any()))
+          .thenThrow(Exception('Failed to load contact'));
+
+      container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final state = container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+
+      expect(state.contact.hasError, true);
+    });
+
+    test('handles messages loading error', () async {
+      when(() => mockMessagesRepository.fetchMessage(any()))
+          .thenThrow(Exception('Failed to load messages'));
+
+      container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final state = container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+
+      expect(state.messages.hasError, true);
+    });
+
+    test('updates draft message and triggers typing status', () async {
+      when(() => mockMessagesRepository.updateTypingStatus(any(), any())).thenReturn(null);
+
+      final viewModel = container.read(chatViewModelProvider(userId: 1, conversationId: 1).notifier);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      viewModel.updateDraftMessage('Hello world');
+
+      final state = container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      expect(state.draftMessage, 'Hello world');
+
+      verify(() => mockMessagesRepository.updateTypingStatus(1, true)).called(1);
+    });
+
+    test('truncates draft message to 1000 characters', () async {
+      when(() => mockMessagesRepository.updateTypingStatus(any(), any())).thenReturn(null);
+
+      final viewModel = container.read(chatViewModelProvider(userId: 1, conversationId: 1).notifier);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final longMessage = 'a' * 1500;
+      viewModel.updateDraftMessage(longMessage);
+
+      final state = container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      expect(state.draftMessage.length, 1000);
+    });
+
+    test('sends message successfully', () async {
+      when(() => mockMessagesRepository.updateTypingStatus(any(), any())).thenReturn(null);
+      when(() => mockMessagesRepository.sendMessage(any(), any(), any())).thenAnswer((_) async => {});
+
+      final viewModel = container.read(chatViewModelProvider(userId: 1, conversationId: 1).notifier);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      viewModel.updateDraftMessage('Test message');
+      await viewModel.sendMessage();
+
+      final state = container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      expect(state.draftMessage, '');
+
+      verify(() => mockMessagesRepository.sendMessage(2, 1, 'Test message')).called(1);
+      verify(() => mockMessagesRepository.updateTypingStatus(1, false)).called(1);
+    });
+
+    test('handles blocked user error when sending message', () async {
+      when(() => mockMessagesRepository.updateTypingStatus(any(), any())).thenReturn(null);
+      when(() => mockMessagesRepository.sendMessage(any(), any(), any()))
+          .thenThrow(BlockedUserError());
+
+      final viewModel = container.read(chatViewModelProvider(userId: 1, conversationId: 1).notifier);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      viewModel.updateDraftMessage('Test message');
+      await viewModel.sendMessage();
+
+      final state = container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      expect(state.conversation.value?.isBlocked, true);
+    });
+
+    test('handles generic error when sending message', () async {
+      when(() => mockMessagesRepository.updateTypingStatus(any(), any())).thenReturn(null);
+      when(() => mockMessagesRepository.sendMessage(any(), any(), any()))
+          .thenThrow(Exception('Network error'));
+
+      final viewModel = container.read(chatViewModelProvider(userId: 1, conversationId: 1).notifier);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      viewModel.updateDraftMessage('Test message');
+      await viewModel.sendMessage();
+
+      // Should complete without throwing
+      final state = container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      expect(state.draftMessage, '');
+    });
+
+    test('handles new messages arriving', () async {
+      final messageController = StreamController<void>();
+      when(() => mockMessagesRepository.onMessageRecieved(any())).thenAnswer(
+        (_) => messageController.stream,
+      );
+
+      container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      messageController.add(null);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      verify(() => mockMessagesRepository.fetchMessage(1)).called(greaterThan(1));
+      verify(() => mockMessagesRepository.sendMarkAsSeen(1)).called(greaterThan(1));
+
+      messageController.close();
+    });
+
+    test('handles user typing status', () async {
+      final typingController = StreamController<bool>();
+      when(() => mockMessagesRepository.onUserTyping(any())).thenAnswer(
+        (_) => typingController.stream,
+      );
+
+      container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      typingController.add(true);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      var state = container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      expect(state.isTyping, true);
+
+      typingController.add(false);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      state = container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      expect(state.isTyping, false);
+
+      typingController.close();
+    });
+
+    test('ignores typing status when conversation is blocked', () async {
+      final blockedConversation = testConversation.copyWith(isBlocked: true);
+      when(() => mockConversationsRepository.getConversationById(any())).thenAnswer(
+        (_) async => blockedConversation,
+      );
+
+      final typingController = StreamController<bool>();
+      when(() => mockMessagesRepository.onUserTyping(any())).thenAnswer(
+        (_) => typingController.stream,
+      );
+
+      container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      typingController.add(true);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final state = container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      expect(state.isTyping, false);
+
+      typingController.close();
+    });
+
+    test('loads initial messages successfully', () async {
+      when(() => mockMessagesRepository.loadInitMessage(any())).thenAnswer((_) async => true);
+
+      final viewModel = container.read(chatViewModelProvider(userId: 1, conversationId: 1).notifier);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      await viewModel.requestInitMessages();
+
+      final state = container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      expect(state.hasMoreMessages, true);
+      expect(state.loadingMoreMessages, false);
+
+      verify(() => mockMessagesRepository.loadInitMessage(1)).called(greaterThan(0));
+    });
+
+    test('loads more messages successfully', () async {
+      when(() => mockMessagesRepository.loadMessageHistory(any())).thenAnswer((_) async => false);
+
+      final viewModel = container.read(chatViewModelProvider(userId: 1, conversationId: 1).notifier);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      await viewModel.loadMoreMessages();
+
+      final state = container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      expect(state.hasMoreMessages, false);
+
+      verify(() => mockMessagesRepository.loadMessageHistory(1)).called(1);
+    });
+
+    test('does not load more messages when already loading', () async {
+      when(() => mockMessagesRepository.loadMessageHistory(any())).thenAnswer(
+        (_) async {
+          await Future.delayed(const Duration(milliseconds: 500));
+          return false;
+        },
+      );
+
+      final viewModel = container.read(chatViewModelProvider(userId: 1, conversationId: 1).notifier);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Start loading
+      viewModel.loadMoreMessages();
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      // Try to load again while already loading
+      await viewModel.loadMoreMessages();
+
+      verify(() => mockMessagesRepository.loadMessageHistory(1)).called(1);
+    });
+
+    test('does not load more messages when no more available', () async {
+      final viewModel = container.read(chatViewModelProvider(userId: 1, conversationId: 1).notifier);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Set hasMoreMessages to false
+      await viewModel.loadMoreMessages();
+      await viewModel.loadMoreMessages();
+
+      verify(() => mockMessagesRepository.loadMessageHistory(1)).called(1);
+    });
+
+    test('refreshes messages', () async {
+      final viewModel = container.read(chatViewModelProvider(userId: 1, conversationId: 1).notifier);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      await viewModel.refresh();
+
+      verify(() => mockMessagesRepository.fetchMessage(1)).called(greaterThan(1));
+    });
+
+    test('disposes resources properly', () async {
+      container.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      container.dispose();
+
+      verify(() => mockMessagesRepository.leaveConversation(1)).called(1);
+    });
+
+    test('uses existing conversation from conversation viewmodel', () async {
+      final mockConvViewmodel = MockConversationViewmodel();
+      when(() => mockConvViewmodel.state).thenReturn(
+        ConversationState(conversation: testConversation),
+      );
+      when(() => mockConvViewmodel.markConversationAsSeen()).thenReturn(null);
+      when(() => mockConvViewmodel.setConversation(any())).thenReturn(null);
+
+      final convContainer = ProviderContainer(
+        overrides: [
+          conversationsRepositoryProvider.overrideWithValue(mockConversationsRepository),
+          messagesRepositoryProvider.overrideWithValue(mockMessagesRepository),
+          authenticationProvider.overrideWith(() {
+            return Authentication()..state = AuthState(user: testUser, isAuthenticated: true);
+          }),
+          conversationViewmodelProvider(1).overrideWith(() => mockConvViewmodel),
+        ],
+      );
+
+      convContainer.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final state = convContainer.read(chatViewModelProvider(userId: 1, conversationId: 1));
+      expect(state.conversation.hasValue, true);
+
+      convContainer.dispose();
+    });
   });
-
-  test('updateDraftMessage updates draft and calls updateTypingStatus', () async {
-    final notifier = container.listen(chatViewModelProvider(userId: 101, conversationId: 1).notifier, (_, __) {}).read();
-
-    // Act
-    notifier.updateDraftMessage('hello world');
-
-    // Assert state updated
-    final state = container.read(chatViewModelProvider(userId: 101, conversationId: 1));
-    
-    expect(state.draftMessage, equals('hello world'));
-
-    // verify updateTypingStatus called with conversationId and true at least once
-    verify(() => mockMessagesRepository.updateTypingStatus(1, true)).called(greaterThanOrEqualTo(1));
-    print(  "zsdfsd");
-
-  });
-
-  test('loadMoreMessages calls repository and updates hasMoreMessages', () async {
-    when(() => mockMessagesRepository.loadMessageHistory(1))
-        .thenAnswer((_) async => true);
-
-    final notifier = container.listen(chatViewModelProvider(userId: 101, conversationId: 1).notifier, (_, __) {}).read();
-
-    // Act
-    await notifier.loadMoreMessages();
-    await Future<void>.delayed(const Duration(milliseconds: 10));
-    
-    // Assert
-    final state = container.read(chatViewModelProvider(userId: 101, conversationId: 1));
-    expect(state.loadingMoreMessages, isFalse);
-    expect(state.hasMoreMessages, isTrue);
-    verify(() => mockMessagesRepository.loadMessageHistory(1)).called(2);
-  });
-
-  test('refresh calls _loadMessages and sets messages AsyncData on success', () async {
-    ChatMessage m1 = ChatMessage(id: 1, conversationId: 1, senderId: 10, text: 'Hello', time: DateTime.now(), isMine: false);
-    ChatMessage m2 = ChatMessage(id: 2, conversationId: 1, senderId: 11, text: 'Hi', time: DateTime.now(), isMine: true);
-
-    when(() => mockMessagesRepository.fetchMessage(1))
-        .thenAnswer((_) => <ChatMessage>[m1, m2]);
-
-    final notifier = container.listen(chatViewModelProvider(userId: 101, conversationId: 1).notifier, (_, __) {}).read();
-
-    await notifier.refresh();
-
-    final state = container.read(chatViewModelProvider(userId: 101, conversationId: 1));
-    expect(state.messages, isA<AsyncData>());
-    expect((state.messages as AsyncData).value.length, equals(2));
-    verify(() => mockMessagesRepository.fetchMessage(1)).called(greaterThanOrEqualTo(1));
-  });
-
-  test('_getConvId sets state when conversationId is null', () async {
-  when(() => mockConversationsRepository.getConversationIdByUserId(101))
-      .thenAnswer((_) async => 5);
-
-  final notifier = container.listen(chatViewModelProvider(userId: 101).notifier, (_, __) {}).read();
-
-  await Future.delayed(const Duration(milliseconds: 10));
-  final state = container.read(chatViewModelProvider(userId: 101));
-
-  expect(state.conversationId, 5);
-});
-test('_getConvId handles convId = -1', () async {
-  when(() => mockConversationsRepository.getConversationIdByUserId(101))
-      .thenAnswer((_) async => -1);
-
-  final notifier = container.listen(chatViewModelProvider(userId: 101).notifier, (_, __) {}).read();
-
-  await Future.delayed(const Duration(milliseconds: 10));
-  final state = container.read(chatViewModelProvider(userId: 101));
-
-  // conversationId remains default
-  expect(state.conversationId, -1);
-});
-test('_loadContact sets AsyncError on failure', () async {
-  when(() => mockConversationsRepository.getContactByUserId(any()))
-      .thenThrow(Exception("fail"));
-
-  final notifier = container.listen(chatViewModelProvider(userId: 101, conversationId: 1).notifier, (_, __) {}).read();
-
-  await Future.delayed(const Duration(milliseconds: 20));
-  final state = container.read(chatViewModelProvider(userId: 101, conversationId: 1));
-
-  expect(state.contact, isA<AsyncError>());
-});
-test('_loadMessages sets AsyncError on failure', () async {
-  when(() => mockMessagesRepository.fetchMessage(1))
-      .thenThrow(Exception("load error"));
-
-  final notifier = container.read(chatViewModelProvider(userId: 101, conversationId: 1).notifier);
-
-  await notifier.refresh();
-  final state = container.read(chatViewModelProvider(userId: 101, conversationId: 1));
-
-  expect(state.messages, isA<AsyncError>());
-});
-
-test('_refreshMessages updates messages', () async {
-  when(() => mockMessagesRepository.fetchMessage(1))
-      .thenAnswer((_) => []);
-
-  final notifier = container.read(chatViewModelProvider(userId: 101, conversationId: 1).notifier);
-
-  notifier.updateDraftMessage("test");
-  notifier.refresh();
-
-  final state = container.read(chatViewModelProvider(userId: 101, conversationId: 1));
-  expect(state.messages, isA<AsyncData>());
-});
-test('_refreshMessages handles exceptions', () async {
-  when(() => mockMessagesRepository.fetchMessage(1))
-      .thenThrow(Exception("refresh fail"));
-
-  final notifier = container.read(chatViewModelProvider(userId: 101, conversationId: 1).notifier);
-
-  notifier.refresh();
-  final state = container.read(chatViewModelProvider(userId: 101, conversationId: 1));
-
-  expect(state.messages, isA<AsyncError>());
-});
-test('_onNewMessagesArrive refreshes messages and marks seen', () async {
-  StreamController<void> messageController = StreamController<void>();
-
-  when(() => mockMessagesRepository.onMessageRecieved(1))
-      .thenAnswer((_) => messageController.stream);
-
-  final notifier = container.listen(chatViewModelProvider(userId: 101, conversationId: 1).notifier, (_, __) {}).read();
-      
-  // act
-  messageController.add(null);
-  await Future<void>.delayed(const Duration(milliseconds: 10));
-
-  verify(() => mockMessagesRepository.sendMarkAsSeen(1)).called(2);
-});
-test('_onOtherTyping updates isTyping', () async {
-  StreamController<bool> typingController = StreamController<bool>();
-
-  when(() => mockMessagesRepository.onUserTyping(1))
-      .thenAnswer((_) => typingController.stream);
-
-  //act
-  final notifier = container.listen(chatViewModelProvider(userId: 101, conversationId: 1).notifier, (_, __) {}).read( );
-  typingController.add(true);
-  await Future<void>.delayed(const Duration(milliseconds: 10));
-
-  final state = container.read(chatViewModelProvider(userId: 101, conversationId: 1));
-
-  expect(state.isTyping, isTrue);
-});
-test('sendMessage sends message and clears draft', () async {
-  final container2 = ProviderContainer(
-    overrides: [
-      messagesRepositoryProvider.overrideWithValue(mockMessagesRepository),
-      conversationsRepositoryProvider.overrideWithValue(mockConversationsRepository),
-      authenticationProvider.overrideWithValue(const AuthState(
-        isAuthenticated: true,
-        user: UserModel(
-          id: 99,
-          name: "Test User",
-        )
-      )),
-    ],
-  );
-
-  final notifier = container2.listen(chatViewModelProvider(userId: 101, conversationId: 1).notifier, (_, __) {}).read();
-
-  notifier.updateDraftMessage("  hi  ");
-  await notifier.sendMessage();
-
-  verify(() => mockMessagesRepository.sendMessage(99, 1, "hi")).called(1);
-  verify(() => mockMessagesRepository.updateTypingStatus(1, false)).called(1);
-
-  final state = container2.read(chatViewModelProvider(userId: 101, conversationId: 1));
-  expect(state.draftMessage, "");
-});
-test('updateDraftMessage sets typing false after 3 seconds', () async {
-  final notifier = container.listen(
-    chatViewModelProvider(userId: 101, conversationId: 1).notifier,
-    (_, __) {},
-  ).read(
-  );
-
-  notifier.updateDraftMessage("test");
-
-  verify(() => mockMessagesRepository.updateTypingStatus(1, true)).called(1);
-
-  // Wait for the timer/delayed future inside updateDraftMessage
-  await Future.delayed(const Duration(seconds: 3));
-
-  verify(() => mockMessagesRepository.updateTypingStatus(1, false)).called(1);
-});
-
-test('loadMoreMessages returns early if already loading', () async {
-  final notifier = container.read(chatViewModelProvider(userId: 101, conversationId: 1).notifier);
-
-  container.read(chatViewModelProvider(userId: 101, conversationId: 1).notifier)
-    .state = container.read(chatViewModelProvider(userId: 101, conversationId: 1))
-      .copyWith(loadingMoreMessages: true);
-
-  await notifier.loadMoreMessages();
-
-  verifyNever(() => mockMessagesRepository.loadMessageHistory(any()));
-});
-test('loadMoreMessages returns early if no more messages', () async {
-  final notifier = container.read(chatViewModelProvider(userId: 101, conversationId: 1).notifier);
-
-  notifier.state = notifier.state.copyWith(hasMoreMessages: false);
-
-  await notifier.loadMoreMessages();
-
-  verifyNever(() => mockMessagesRepository.loadMessageHistory(any()));
-});
-// test('dispose cancels subscriptions and sets disposed', () async {
-//   final notifier = container.read(chatViewModelProvider(userId: 101, conversationId: 1).notifier);
-
-//   notifier.updateDraftMessage("test");
-//   container.dispose();
-
-//   expect(notifier._disposed, true);
-//   expect(notifier._newMessagesSub, null);
-//   expect(notifier._userTypingSub, null);
-// });
-
 }

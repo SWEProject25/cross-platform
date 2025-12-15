@@ -63,6 +63,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
     var theme = Theme.of(context);
     return GestureDetector(
+      key: Key('chatScreenGestureDetector'),
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         // backgroundColor: Colors.white,

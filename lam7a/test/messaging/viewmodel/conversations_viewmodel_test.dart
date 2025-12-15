@@ -1,211 +1,484 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lam7a/core/models/auth_state.dart';
+import 'package:lam7a/core/models/user_model.dart';
+import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/features/common/states/pagination_state.dart';
+import 'package:lam7a/features/messaging/dtos/message_socket_dtos.dart';
+import 'package:lam7a/features/messaging/model/chat_message.dart';
 import 'package:lam7a/features/messaging/model/contact.dart';
 import 'package:lam7a/features/messaging/model/conversation.dart';
-import 'package:lam7a/features/messaging/ui/viewmodel/conversations_viewmodel.dart';
 import 'package:lam7a/features/messaging/repository/conversations_repositories.dart';
-import 'package:lam7a/features/messaging/ui/state/conversations_state.dart';
-import 'package:lam7a/features/messaging/ui/viewmodel/conversations_viewmodel_temp.dart';
+import 'package:lam7a/features/messaging/repository/messages_repository.dart';
+import 'package:lam7a/features/messaging/services/messages_socket_service.dart';
+import 'package:lam7a/features/messaging/ui/state/conversation_state.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/conversation_viewmodel.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/conversations_viewmodel.dart';
 import 'package:mocktail/mocktail.dart';
 
-// Mock the repository
+import 'chat_viewmodel_simple_test.dart';
+
 class MockConversationsRepository extends Mock implements ConversationsRepository {}
+class MockMessagesSocketService extends Mock implements MessagesSocketService {}
+class MockMessagesRepository extends Mock implements MessagesRepository {}
+class MockConversationViewmodel extends Notifier<ConversationState> with Mock implements ConversationViewmodel {
+  @override
+  ConversationState build([int? conversationId]) {
+    return ConversationState();
+  }
+}
+
+class FakeConversation extends Fake implements Conversation {}
+class FakeMessageDto extends Fake implements MessageDto {}
 
 void main() {
-  group('ConversationsViewModel Tests', () {
-    late MockConversationsRepository mockRepository;
-    late ProviderContainer container;
+  final testUser = UserModel(
+    id: 1,
+    name: 'Current User',
+    username: '@currentuser',
+  );
 
-    setUp(() {
-      mockRepository = MockConversationsRepository();
+  final testConversation = Conversation(
+    id: 1,
+    name: 'Test User',
+    userId: 2,
+    username: '@testuser',
+    unseenCount: 0,
+    isBlocked: false,
+    lastMessage: 'Hello',
+    lastMessageTime: DateTime(2025, 1, 1),
+  );
 
-      // default stub for searches (can be overridden per-test)
-      when(() => mockRepository.searchForContacts(any(), any()))
-          .thenAnswer((_) async => <Contact>[]);
+  final testConversation2 = Conversation(
+    id: 2,
+    name: 'Test User 2',
+    userId: 3,
+    username: '@testuser2',
+    unseenCount: 0,
+    isBlocked: false,
+    lastMessage: 'Hi there',
+    lastMessageTime: DateTime(2025, 1, 2),
+  );
 
-      container = ProviderContainer(
+  final testContact = Contact(
+    id: 4,
+    name: 'New User',
+    handle: '@newuser',
+  );
+
+  setUpAll(() {
+      registerFallbackValue(FakeConversation());
+      registerFallbackValue(FakeMessageDto());
+  });
+
+
+  group('ConversationsViewmodel Tests', () {
+    test('initializes and subscribes to message streams', () async {
+      final mockRepository = MockConversationsRepository();
+      final mockSocket = MockMessagesSocketService();
+      final mockConversationViewmodel = MockConversationViewmodel();
+
+      when(() => mockRepository.fetchConversations())
+          .thenAnswer((_) async => (<Conversation>[], false));
+      when(() => mockSocket.incomingMessages)
+          .thenAnswer((_) => Stream<MessageDto>.empty());
+      when(() => mockSocket.incomingMessagesNotifications)
+          .thenAnswer((_) => Stream<MessageDto>.empty());
+      when(() => mockConversationViewmodel.setConversation(any())).thenReturn(null);
+
+      final container = ProviderContainer(
         overrides: [
-          // If `conversationsRepositoryProvider` is a plain Provider/ProviderFamily
-          // this will work to inject the mock implementation:
           conversationsRepositoryProvider.overrideWithValue(mockRepository),
-
-          // Provide an empty conversations pagination state to the viewmodel
-          conversationsProvider.overrideWithBuild(
-            (ref, _) => PaginationState<Conversation>(items: []),
-          ),
+          messagesSocketServiceProvider.overrideWithValue(mockSocket),
+          authenticationProvider.overrideWithValue(AuthState(user: testUser, isAuthenticated: true)),
+          conversationViewmodelProvider(1).overrideWith(() => mockConversationViewmodel),
         ],
       );
-    });
 
-    tearDown(() {
+      container.listen(conversationsViewmodel, (_, __) {}).read();
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      verify(() => mockSocket.incomingMessages).called(1);
+      verify(() => mockSocket.incomingMessagesNotifications).called(1);
+      verify(() => mockRepository.fetchConversations()).called(1);
+
       container.dispose();
     });
 
-    test('initial state should be ConversationsState with AsyncData', () {
-      final state = container.read(conversationsViewModelProvider);
+    test('onNewMessageReceived updates existing conversation when message is from other user', () async {
+      final mockRepository = MockConversationsRepository();
+      final mockSocket = MockMessagesSocketService();
+      final mockConversationViewmodel = MockConversationViewmodel();
+      final messageController = StreamController<MessageDto>();
 
-      expect(state, isA<ConversationsState>());
-      expect(state.conversations, isA<AsyncData>());
+      when(() => mockRepository.fetchConversations())
+          .thenAnswer((_) async => ([testConversation], false));
+      when(() => mockSocket.incomingMessages)
+          .thenAnswer((_) => messageController.stream);
+      when(() => mockSocket.incomingMessagesNotifications)
+          .thenAnswer((_) => Stream<MessageDto>.empty());
+      when(() => mockConversationViewmodel.setConversation(any())).thenReturn(null);
+
+      final container = ProviderContainer(
+        overrides: [
+          conversationsRepositoryProvider.overrideWithValue(mockRepository),
+          messagesSocketServiceProvider.overrideWithValue(mockSocket),
+          authenticationProvider.overrideWithValue(AuthState(user: testUser, isAuthenticated: true)),
+          conversationViewmodelProvider(1).overrideWith(() => mockConversationViewmodel),
+        ],
+      );
+
+      container.listen(conversationsViewmodel, (_, __) {}).read();
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final message = MessageDto(
+        id: 1,
+        conversationId: 1,
+        senderId: 2,
+        text: 'Updated message',
+        createdAt: DateTime(2025, 1, 3),
+      );
+
+      messageController.add(message);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final state = container.read(conversationsViewmodel);
+      expect(state.items.length, 1);
+      expect(state.items[0].lastMessage, 'Updated message');
+      expect(state.items[0].lastMessageTime, DateTime(2025, 1, 3));
+
+      messageController.close();
+      container.dispose();
     });
 
-    test('onQueryChanged should validate short query', () async {
-      final viewmodel = container.read(conversationsViewModelProvider.notifier);
+    test('onNewMessageReceived returns early when message is from current user', () async {
+      final mockRepository = MockConversationsRepository();
+      final mockSocket = MockMessagesSocketService();
+      final mockConversationViewmodel = MockConversationViewmodel();
+      final messageController = StreamController<MessageDto>();
 
-      viewmodel.onQueryChanged('a');
-      var state = container.read(conversationsViewModelProvider);
+      when(() => mockRepository.fetchConversations())
+          .thenAnswer((_) async => ([testConversation], false));
+      when(() => mockSocket.incomingMessages)
+          .thenAnswer((_) => messageController.stream);
+      when(() => mockSocket.incomingMessagesNotifications)
+          .thenAnswer((_) => Stream<MessageDto>.empty());
+      when(() => mockConversationViewmodel.setConversation(any())).thenReturn(null);
 
-      expect(state.searchQueryError, equals('Too short'));
+      final container = ProviderContainer(
+        overrides: [
+          conversationsRepositoryProvider.overrideWithValue(mockRepository),
+          messagesSocketServiceProvider.overrideWithValue(mockSocket),
+          authenticationProvider.overrideWithValue(AuthState(user: testUser, isAuthenticated: true)),
+          conversationViewmodelProvider(1).overrideWith(() => mockConversationViewmodel),
+        ],
+      );
+
+      container.listen(conversationsViewmodel, (_, __) {}).read();
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final message = MessageDto(
+        id: 1,
+        conversationId: 1,
+        senderId: 1, // Same as current user
+        text: 'My message',
+        createdAt: DateTime(2025, 1, 3),
+      );
+
+      messageController.add(message);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final state = container.read(conversationsViewmodel);
+      expect(state.items.length, 1);
+      expect(state.items[0].lastMessage, 'Hello'); // Not updated
+      expect(state.items[0].lastMessageTime, DateTime(2025, 1, 1)); // Not updated
+
+      messageController.close();
+      container.dispose();
     });
 
-    test('onQueryChanged with valid query should search', () async {
-      // override stub for this test
-      when(() => mockRepository.searchForContacts('test query', 1))
-          .thenAnswer((_) async => <Contact>[]);
+    test('onNewMessageReceived adds new conversation when not found', () async {
+      final mockRepository = MockConversationsRepository();
+      final mockSocket = MockMessagesSocketService();
+      final mockConversationViewmodel = MockConversationViewmodel();
+      final messageController = StreamController<MessageDto>();
+      final mockMessagesRepository = MockMessagesRepository();
 
-      final viewmodel = container.read(conversationsViewModelProvider.notifier);
+      when(() => mockRepository.fetchConversations())
+          .thenAnswer((_) async => ([testConversation], false));
+      when(() => mockRepository.getContactByUserId(4))
+          .thenAnswer((_) async => testContact);
+      when(() => mockSocket.incomingMessages)
+          .thenAnswer((_) => messageController.stream);
+      when(() => mockSocket.incomingMessagesNotifications)
+          .thenAnswer((_) => Stream<MessageDto>.empty());
+      when(() => mockConversationViewmodel.setConversation(any())).thenReturn(null);
 
-      await viewmodel.onQueryChanged('test query');
-      var state = container.read(conversationsViewModelProvider);
-      
-      expect(state.searchQueryError, isNull);
-      expect(state.contacts, isA<AsyncData>());
+      final container = ProviderContainer(
+        overrides: [
+          conversationsRepositoryProvider.overrideWithValue(mockRepository),
+          messagesSocketServiceProvider.overrideWithValue(mockSocket),
+          authenticationProvider.overrideWithValue(AuthState(user: testUser, isAuthenticated: true)),
+          conversationViewmodelProvider(3).overrideWith(() => mockConversationViewmodel),
+          messagesRepositoryProvider.overrideWithValue(mockMessagesRepository),
+        ],
+      );
+
+      container.listen(conversationsViewmodel, (_, __) {}).read();
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final message = MessageDto(
+        id: 1,
+        conversationId: 3,
+        senderId: 4,
+        text: 'New conversation',
+        createdAt: DateTime(2025, 1, 4),
+      );
+
+      messageController.add(message);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      verify(() => mockRepository.getContactByUserId(4)).called(1);
+      verify(() => mockConversationViewmodel.setConversation(any())).called(greaterThanOrEqualTo(1));
+
+      messageController.close();
+      container.dispose();
     });
 
-    test('onQueryChanged should handle search errors', () async {
-      when(() => mockRepository.searchForContacts('test query', 1))
-          .thenThrow(Exception('Search failed'));
+    test('onNewMessageReceived from notifications stream updates conversation', () async {
+      final mockRepository = MockConversationsRepository();
+      final mockSocket = MockMessagesSocketService();
+      final mockConversationViewmodel = MockConversationViewmodel();
+      final notificationController = StreamController<MessageDto>();
 
-      final viewmodel = container.read(conversationsViewModelProvider.notifier);
+      when(() => mockRepository.fetchConversations())
+          .thenAnswer((_) async => ([testConversation], false));
+      when(() => mockSocket.incomingMessages)
+          .thenAnswer((_) => Stream<MessageDto>.empty());
+      when(() => mockSocket.incomingMessagesNotifications)
+          .thenAnswer((_) => notificationController.stream);
+      when(() => mockConversationViewmodel.setConversation(any())).thenReturn(null);
 
-      await viewmodel.onQueryChanged('test query');
+      final container = ProviderContainer(
+        overrides: [
+          conversationsRepositoryProvider.overrideWithValue(mockRepository),
+          messagesSocketServiceProvider.overrideWithValue(mockSocket),
+          authenticationProvider.overrideWithValue(AuthState(user: testUser, isAuthenticated: true)),
+          conversationViewmodelProvider(1).overrideWith(() => mockConversationViewmodel),
+        ],
+      );
 
-      var state = container.read(conversationsViewModelProvider);
-      expect(state.contacts, isA<AsyncError>());
+      container.listen(conversationsViewmodel, (_, __) {}).read();
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final message = MessageDto(
+        id: 1,
+        conversationId: 1,
+        senderId: 2,
+        text: 'Notification message',
+        createdAt: DateTime(2025, 1, 5),
+      );
+
+      notificationController.add(message);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final state = container.read(conversationsViewmodel);
+      expect(state.items.length, 1);
+      expect(state.items[0].lastMessage, 'Notification message');
+      expect(state.items[0].lastMessageTime, DateTime(2025, 1, 5));
+
+      notificationController.close();
+      container.dispose();
     });
-//   test('build() should set conversations to AsyncError when provider has an error', () {
-//   final errorState = PaginationState<Conversation>(
-//     items: [],
-//     error: 'Some error',
-//   );
 
-//   var container = ProviderContainer(
-//     overrides: [
-//       conversationsRepositoryProvider.overrideWithValue(mockRepository),
-//       conversationsProvider.overrideWithBuild((ref, _) => errorState),
-//     ],
-//   );
+    test('fetchPage returns conversations and calls setConversation', () async {
+      final mockRepository = MockConversationsRepository();
+      final mockSocket = MockMessagesSocketService();
+      final mockConversationViewmodel = MockConversationViewmodel();
+      final mockConversationViewmodel2 = MockConversationViewmodel();
 
-//   final state = container.listen(conversationsViewModelProvider, (_, __) {}).read();
+      when(() => mockRepository.fetchConversations())
+          .thenAnswer((_) async => ([testConversation, testConversation2], true));
+      when(() => mockSocket.incomingMessages)
+          .thenAnswer((_) => Stream<MessageDto>.empty());
+      when(() => mockSocket.incomingMessagesNotifications)
+          .thenAnswer((_) => Stream<MessageDto>.empty());
+      when(() => mockSocket.userTyping)
+          .thenAnswer((_) => Stream<TypingEventDto>.empty());
+      when(() => mockConversationViewmodel.setConversation(any())).thenReturn(null);
+      when(() => mockConversationViewmodel2.setConversation(any())).thenReturn(null);
+      when(() => mockRepository.getContactByUserId(any()))
+          .thenAnswer((_) async => testContact);
 
-//   expect(state.conversations, isA<AsyncError>());
-//   expect((state.conversations as AsyncError).error, equals('Some error'));
-// });
-test('_validateQuery returns correct error messages', () {
+      final container = ProviderContainer(
+        overrides: [
+          conversationsRepositoryProvider.overrideWithValue(mockRepository),
+          messagesSocketServiceProvider.overrideWithValue(mockSocket),
+          authenticationProvider.overrideWithValue(AuthState(user: testUser, isAuthenticated: true)),
+          conversationViewmodelProvider(1).overrideWith(() => mockConversationViewmodel),
+          conversationViewmodelProvider(2).overrideWith(() => mockConversationViewmodel2),
+        ],
+      );
 
-  // act
-  final viewmodel = container.listen(conversationsViewModelProvider.notifier, (_, __) {}).read();
-  viewmodel.onQueryChanged(" ");
+      container.listen(conversationsViewmodel, (_, __) {}).read();
+      await Future.delayed(const Duration(milliseconds: 100));
 
-  // assert
-  expect(viewmodel.state.searchQueryError, 'Query is required');
-});
-test('_validateQuery returns correct error messages', () {
+      final state = container.read(conversationsViewmodel);
+      print(state.error);
+      expect(state.items.length, 2);
+      expect(state.hasMore, true);
 
-  // act
-  final viewmodel = container.listen(conversationsViewModelProvider.notifier, (_, __) {}).read();
-  viewmodel.onQueryChanged("a");
+      verify(() => mockConversationViewmodel.setConversation(any())).called(1);
+      verify(() => mockConversationViewmodel2.setConversation(any())).called(1);
 
-  // assert
-  expect(viewmodel.state.searchQueryError, 'Too short');
-});
+      container.dispose();
+    });
 
-test('_validateQuery returns correct error messages', () {
+    test('mergeList removes duplicates and sorts by lastMessageTime', () async {
+      final mockRepository = MockConversationsRepository();
+      final mockSocket = MockMessagesSocketService();
+      final mockConversationViewmodel = MockConversationViewmodel();
 
-  // act
-  final viewmodel = container.listen(conversationsViewModelProvider.notifier, (_, __) {}).read();
-  viewmodel.onQueryChanged("ab");
+      when(() => mockRepository.fetchConversations())
+          .thenAnswer((_) async => (<Conversation>[], false));
+      when(() => mockSocket.incomingMessages)
+          .thenAnswer((_) => Stream<MessageDto>.empty());
+      when(() => mockSocket.incomingMessagesNotifications)
+          .thenAnswer((_) => Stream<MessageDto>.empty());
+      when(() => mockConversationViewmodel.setConversation(any())).thenReturn(null);
 
-  // assert
-  expect(viewmodel.state.searchQueryError, isNull);
-});
-test('updateSerch returns early when searchQueryError is not null', () async {
-  final viewmodel = container.read(conversationsViewModelProvider.notifier);
+      final container = ProviderContainer(
+        overrides: [
+          conversationsRepositoryProvider.overrideWithValue(mockRepository),
+          messagesSocketServiceProvider.overrideWithValue(mockSocket),
+          authenticationProvider.overrideWithValue(AuthState(user: testUser, isAuthenticated: true)),
+          conversationViewmodelProvider(1).overrideWith(() => mockConversationViewmodel),
+          conversationViewmodelProvider(2).overrideWith(() => mockConversationViewmodel),
+          conversationViewmodelProvider(3).overrideWith(() => mockConversationViewmodel),
+        ],
+      );
 
-  // Force an error in state
-  viewmodel.state = viewmodel.state.copyWith(searchQueryError: 'Too short');
+      final viewModel = container.listen(conversationsViewmodel.notifier, (_, __) {}).read();
+      await Future.delayed(const Duration(milliseconds: 100));
 
-  await viewmodel.updateSerch('whatever');
+      final conv1 = testConversation.copyWith(lastMessageTime: DateTime(2025, 1, 1));
+      final conv2 = testConversation2.copyWith(lastMessageTime: DateTime(2025, 1, 3));
+      final conv3 = testConversation.copyWith(lastMessageTime: DateTime(2025, 1, 2)); // Duplicate ID
 
-  // Should NOT call repository
-  verifyNever(() => mockRepository.searchForContacts(any(), any()));
-});
-test('updateSerch should update contacts with AsyncData on success', () async {
-  when(() => mockRepository.searchForContacts('abc', 1))
-      .thenAnswer((_) async => <Contact>[
-            Contact(id: 1, name: 'Test', handle: 'test')
-          ]);
+      final list1 = [conv1, conv2];
+      final list2 = [conv3];
 
-  final vm = container.read(conversationsViewModelProvider.notifier);
+      final merged = viewModel.mergeList(list1, list2);
 
-  vm.state = vm.state.copyWith(searchQueryError: null);
+      expect(merged.length, 2); // Duplicate removed
+      expect(merged[0].id, 2); // Sorted by time, newest first
+      expect(merged[0].lastMessageTime, DateTime(2025, 1, 3));
+      expect(merged[1].id, 1);
+      expect(merged[1].lastMessageTime, DateTime(2025, 1, 2)); // Updated time
 
-  await vm.updateSerch('abc');
+      container.dispose();
+    });
 
-  final state = container.read(conversationsViewModelProvider);
+    test('mergeList handles conversations with null lastMessageTime', () async {
+      final mockRepository = MockConversationsRepository();
+      final mockSocket = MockMessagesSocketService();
+      final mockConversationViewmodel = MockConversationViewmodel();
 
-  expect(state.contacts, isA<AsyncData>());
-  expect(state.contacts.value!.length, 1);
-});
-test('refresh() completes without errors', () async {
-  final vm = container.read(conversationsViewModelProvider.notifier);
+      when(() => mockRepository.fetchConversations())
+          .thenAnswer((_) async => (<Conversation>[], false));
+      when(() => mockSocket.incomingMessages)
+          .thenAnswer((_) => Stream<MessageDto>.empty());
+      when(() => mockSocket.incomingMessagesNotifications)
+          .thenAnswer((_) => Stream<MessageDto>.empty());
+      when(() => mockConversationViewmodel.setConversation(any())).thenReturn(null);
 
-  await expectLater(vm.refresh(), completes);
-});
+      final container = ProviderContainer(
+        overrides: [
+          conversationsRepositoryProvider.overrideWithValue(mockRepository),
+          messagesSocketServiceProvider.overrideWithValue(mockSocket),
+          authenticationProvider.overrideWithValue(AuthState(user: testUser, isAuthenticated: true)),
+          conversationViewmodelProvider(1).overrideWith(() => mockConversationViewmodel),
+        ],
+      );
 
-test('build() sets conversations to AsyncError when provider has an error', () {
-  final errorState = PaginationState<Conversation>(
-    items: [],
-    error: 'Some error',
-  );
+      final viewModel = container.listen(conversationsViewmodel.notifier, (_, __) {}).read();
+      await Future.delayed(const Duration(milliseconds: 100));
 
-  final c = ProviderContainer(
-    overrides: [
-      conversationsRepositoryProvider.overrideWithValue(mockRepository),
-      conversationsProvider.overrideWithBuild((ref, _) => errorState),
-    ],
-  );
+      final conv1 = testConversation.copyWith(lastMessageTime: null);
+      final conv2 = testConversation2.copyWith(lastMessageTime: DateTime(2025, 1, 3));
 
-  final state = c.listen(conversationsViewModelProvider, (_,__){}).read();
+      final list1 = [conv1];
+      final list2 = [conv2];
 
-  expect(state.conversations, isA<AsyncError>());
-  expect((state.conversations as AsyncError).error, equals('Some error'));
-});
+      final merged = viewModel.mergeList(list1, list2);
 
-test('build() returns AsyncData when conversationsProvider has items', () {
-  final itemsState = PaginationState<Conversation>(
-    items: [
-      Conversation(id: 1, name: "sdfs", userId: 2, username: "dsf"),
-    ],
-  );
+      expect(merged.length, 2);
+      expect(merged[0].id, 2); // Has time, so it's first
+      expect(merged[1].id, 1); // Null time, so it's last
 
-  final c = ProviderContainer(
-    overrides: [
-      conversationsRepositoryProvider.overrideWithValue(mockRepository),
-      conversationsProvider.overrideWithBuild((ref, _) => itemsState),
-    ],
-  );
+      container.dispose();
+    });
 
-  final state = c.read(conversationsViewModelProvider);
+    test('onNewMessageReceived sorts conversations after update', () async {
+      final mockRepository = MockConversationsRepository();
+      final mockSocket = MockMessagesSocketService();
+      final mockConversationViewmodel = MockConversationViewmodel();
+      final messageController = StreamController<MessageDto>();
+      final mockMessagesRepository = MockMessagesRepository();
 
-  expect(state.conversations, isA<AsyncData<List<Conversation>>>());
-  expect(state.conversations.value!.length, 1);
-});
-test('newMessageSub is empty on initialization', () {
-  final vm = container.read(conversationsViewModelProvider.notifier);
+      final oldConv = testConversation.copyWith(
+        id: 1,
+        lastMessageTime: DateTime(2025, 1, 1),
+      );
+      final newerConv = testConversation2.copyWith(
+        id: 2,
+        lastMessageTime: DateTime(2025, 1, 2),
+      );
 
-  expect(vm.newMessageSub, isEmpty);
-});
+      when(() => mockRepository.fetchConversations())
+          .thenAnswer((_) async => ([oldConv, newerConv], false));
+      when(() => mockSocket.incomingMessages)
+          .thenAnswer((_) => messageController.stream);
+      when(() => mockSocket.incomingMessagesNotifications)
+          .thenAnswer((_) => Stream<MessageDto>.empty());
+      when(() => mockConversationViewmodel.setConversation(any())).thenReturn(null);
+      when(() => mockRepository.getContactByUserId(any()))
+          .thenAnswer((_) async => testContact);
 
+      final container = ProviderContainer(
+        overrides: [
+          conversationsRepositoryProvider.overrideWithValue(mockRepository),
+          messagesSocketServiceProvider.overrideWithValue(mockSocket),
+          authenticationProvider.overrideWithValue(AuthState(user: testUser, isAuthenticated: true)),
+          conversationViewmodelProvider(1).overrideWith(() => mockConversationViewmodel),
+          messagesRepositoryProvider.overrideWithValue(mockMessagesRepository),
+        ],
+      );
+
+      container.listen(conversationsViewmodel, (_, __) {}).read();
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Send message to conversation 1 with newer time
+      final message = MessageDto(
+        id: 1,
+        conversationId: 1,
+        senderId: 2,
+        text: 'Newest message',
+        createdAt: DateTime(2025, 1, 5),
+      );
+
+      messageController.add(message);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final state = container.read(conversationsViewmodel);
+      expect(state.items[0].id, 1); // Now first because it has newest message
+      expect(state.items[0].lastMessageTime, DateTime(2025, 1, 5));
+      expect(state.items[1].id, 2); // Now second
+
+      messageController.close();
+      container.dispose();
+    });
   });
-
 }
