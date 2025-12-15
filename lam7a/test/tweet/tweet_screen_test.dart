@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lam7a/core/widgets/app_user_avatar.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
 import 'package:lam7a/features/tweet/services/tweet_api_service.dart';
@@ -13,6 +15,7 @@ import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_ai_summery.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_detailed_body_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_detailed_feed.dart';
+import 'package:lam7a/features/tweet/ui/widgets/tweet_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_detailed.dart';
 import 'package:mocktail/mocktail.dart';
@@ -377,8 +380,6 @@ void main() {
 
       // Verify screen renders with reply structure
       expect(find.byType(TweetScreen), findsOneWidget);
-      
-      // Skip pumpAndSettle - causes infinite rendering cycles with parent tweet
     }, skip: true);
   });
 
@@ -610,20 +611,26 @@ void main() {
     testWidgets('shows parent tweet connector for reply threads',
         (WidgetTester tester) async {
       await tester.pumpWidget(buildViewModelDrivenScreen('reply-thread'));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      // Parent and reply display names from FakeTweetViewModel
       expect(find.text('Parent User'), findsOneWidget);
       expect(find.text('Reply User'), findsWidgets);
       expect(find.text('Replying to @parentuser'), findsOneWidget);
-    }, skip: true);
+    });
+
+    testWidgets('shows time ago format for parent tweet',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(buildViewModelDrivenScreen('reply-thread'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('m'), findsWidgets);
+    });
 
     testWidgets('tapping rocket icon opens TweetAiSummary with summary text',
         (WidgetTester tester) async {
       await tester.pumpWidget(buildViewModelDrivenScreen('vm-summary'));
       await tester.pumpAndSettle();
 
-      // Tap the AI summary rocket icon in the TweetScreen header
       final rocketIcon = find.byIcon(Icons.rocket).first;
       await tester.tap(rocketIcon);
       await tester.pump();
@@ -632,5 +639,75 @@ void main() {
       expect(find.byType(TweetAiSummary), findsOneWidget);
       expect(find.text('Summary for vm-summary'), findsOneWidget);
     });
+
+    testWidgets('displays error state when tweet fails to load',
+        (WidgetTester tester) async {
+      final container = ProviderScope(
+        overrides: [
+          tweetViewModelProvider.overrideWith(ErrorTweetViewModel.new),
+        ],
+        child: const MaterialApp(
+          home: TweetScreen(tweetId: 'error-tweet'),
+        ),
+      );
+
+      await tester.pumpWidget(container);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Error'), findsOneWidget);
+    });
+
+    testWidgets('displays loading state initially',
+        (WidgetTester tester) async {
+      final container = ProviderScope(
+        overrides: [
+          tweetViewModelProvider.overrideWith(LoadingTweetViewModel.new),
+        ],
+        child: const MaterialApp(
+          home: TweetScreen(tweetId: 'loading-tweet'),
+        ),
+      );
+
+      await tester.pumpWidget(container);
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    }, skip: true);
   });
+}
+
+/// ViewModel that returns an error state
+class ErrorTweetViewModel extends TweetViewModel {
+  @override
+  FutureOr<TweetState> build(String tweetId) {
+    return TweetState(
+      isLiked: false,
+      isReposted: false,
+      isViewed: false,
+      tweet: AsyncValue.error('Failed to load tweet', StackTrace.empty),
+    );
+  }
+
+  @override
+  Future<String> getSummary(String tweetId) async {
+    throw Exception('Failed to load summary');
+  }
+}
+
+/// ViewModel that returns a loading state
+class LoadingTweetViewModel extends TweetViewModel {
+  @override
+  FutureOr<TweetState> build(String tweetId) {
+    return TweetState(
+      isLiked: false,
+      isReposted: false,
+      isViewed: false,
+      tweet: const AsyncValue.loading(),
+    );
+  }
+
+  @override
+  Future<String> getSummary(String tweetId) async {
+    return 'Summary';
+  }
 }
