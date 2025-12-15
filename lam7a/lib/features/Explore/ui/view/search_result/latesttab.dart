@@ -9,6 +9,8 @@ class LatestTab extends ConsumerStatefulWidget {
   final SearchResultsViewmodel vm;
   const LatestTab({super.key, required this.data, required this.vm});
 
+  static const Key contentKey = Key('latest_tab_content');
+
   @override
   ConsumerState<LatestTab> createState() => _LatestTabState();
 }
@@ -51,6 +53,7 @@ class _LatestTabState extends ConsumerState<LatestTab>
     }
 
     return TweetsListView(
+      key: LatestTab.contentKey,
       tweets: data.latestTweets,
       hasMore: data.hasMoreLatest,
       onRefresh: () async => widget.vm.refreshCurrentTab(),

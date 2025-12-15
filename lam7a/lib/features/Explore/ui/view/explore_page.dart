@@ -10,6 +10,11 @@ import '../widgets/hashtag_list_item.dart';
 
 class ExplorePage extends ConsumerStatefulWidget {
   const ExplorePage({super.key});
+
+  static const Key tabBarKey = Key('explore_tab_bar');
+  static const Key tabBarViewKey = Key('explore_tab_bar_view');
+  static const Key scaffoldKey = Key('explore_scaffold');
+
   @override
   ConsumerState<ExplorePage> createState() => _ExplorePageState();
 }
@@ -44,9 +49,17 @@ class _ExplorePageState extends ConsumerState<ExplorePage>
     final vm = ref.read(exploreViewModelProvider.notifier);
 
     final width = MediaQuery.of(context).size.width;
+    final theme = Theme.of(context);
 
     return state.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => Center(
+        child: CircularProgressIndicator(
+          key: Key('explore_loading'),
+          color: theme.brightness == Brightness.light
+              ? const Color(0xFF1D9BF0)
+              : Colors.white,
+        ),
+      ),
       error: (e, st) => Text("Error: $e"),
       data: (data) {
         final index = ExplorePageView.values.indexOf(data.selectedPage);
@@ -60,6 +73,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage>
         });
 
         return Scaffold(
+          key: ExplorePage.scaffoldKey,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: Column(
             children: [
@@ -69,6 +83,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage>
 
               Expanded(
                 child: TabBarView(
+                  key: ExplorePage.tabBarViewKey,
                   controller: _tabController,
                   children: [
                     _forYouTab(data, vm, context),
@@ -93,6 +108,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage>
       color: theme.scaffoldBackgroundColor,
       padding: EdgeInsets.zero,
       child: TabBar(
+        key: ExplorePage.tabBarKey,
         controller: _tabController,
         isScrollable: true,
 
@@ -118,11 +134,11 @@ class _ExplorePageState extends ConsumerState<ExplorePage>
         dividerHeight: 0.3,
 
         tabs: const [
-          Tab(text: "For You"),
-          Tab(text: "Trending"),
-          Tab(text: "News"),
-          Tab(text: "Sports"),
-          Tab(text: "Entertainment"),
+          Tab(key: Key('for_you_tab'), text: "For You"),
+          Tab(key: Key('trending_tab'), text: "Trending"),
+          Tab(key: Key('news_tab'), text: "News"),
+          Tab(key: Key('sports_tab'), text: "Sports"),
+          Tab(key: Key('entertainment_tab'), text: "Entertainment"),
         ],
       ),
     );
@@ -136,19 +152,22 @@ Widget _forYouTab(
 ) {
   final theme = Theme.of(context);
   print("For You Tab rebuilt");
-  if (data.isForYouHashtagsLoading ||
-      data.isSuggestedUsersLoading ||
-      data.isInterestMapLoading) {
-    return Center(
-      child: CircularProgressIndicator(
-        color: theme.brightness == Brightness.light
-            ? const Color(0xFF1D9BF0)
-            : Colors.white,
-      ),
-    );
-  }
+  // if (data.isForYouHashtagsLoading ||
+  //     data.isSuggestedUsersLoading ||
+  //     data.isInterestMapLoading) {
+  //   return Center(
+  //     key: const Key('for_you_loading'),
+  //     child: CircularProgressIndicator(
+  //       key: const Key('for_you_progress_indicator'),
+  //       color: theme.brightness == Brightness.light
+  //           ? const Color(0xFF1D9BF0)
+  //           : Colors.white,
+  //     ),
+  //   );
+  // }
 
   return ForYouView(
+    key: const Key('for_you_content'),
     trendingHashtags: data.forYouHashtags,
     suggestedUsers: data.suggestedUsers,
     forYouTweetsMap: data.interestBasedTweets,
@@ -165,7 +184,9 @@ Widget _trendingTab(
   final theme = Theme.of(context);
   if (data.isHashtagsLoading) {
     return Center(
+      key: const Key('trending_loading'),
       child: CircularProgressIndicator(
+        key: const Key('trending_progress_indicator'),
         color: theme.brightness == Brightness.light
             ? const Color(0xFF1D9BF0)
             : Colors.white,
@@ -174,11 +195,13 @@ Widget _trendingTab(
   }
   if (data.trendingHashtags.isEmpty) {
     return RefreshIndicator(
+      key: const Key('trending_empty_refresh'),
       onRefresh: () async {
         vm.refreshCurrentTab();
       },
       child: Center(
         child: Text(
+          key: const Key('trending_empty_text'),
           "No trending hashtags found",
           style: TextStyle(
             color: theme.brightness == Brightness.light
@@ -190,10 +213,14 @@ Widget _trendingTab(
     );
   }
   return RefreshIndicator(
+    key: const Key('trending_refresh'),
     onRefresh: () async {
       vm.refreshCurrentTab();
     },
-    child: TrendingView(trendingHashtags: data.trendingHashtags),
+    child: TrendingView(
+      key: const Key('trending_content'),
+      trendingHashtags: data.trendingHashtags,
+    ),
   );
 }
 
@@ -202,7 +229,9 @@ Widget _newsTab(ExploreState data, ExploreViewModel vm, BuildContext context) {
   print("News Tab rebuilt");
   if (data.isNewsHashtagsLoading) {
     return Center(
+      key: const Key('news_loading'),
       child: CircularProgressIndicator(
+        key: const Key('news_progress_indicator'),
         color: theme.brightness == Brightness.light
             ? const Color(0xFF1D9BF0)
             : Colors.white,
@@ -211,11 +240,13 @@ Widget _newsTab(ExploreState data, ExploreViewModel vm, BuildContext context) {
   }
   if (data.newsHashtags.isEmpty) {
     return RefreshIndicator(
+      key: const Key('news_empty_refresh'),
       onRefresh: () async {
         vm.refreshCurrentTab();
       },
       child: Center(
         child: Text(
+          key: const Key('news_empty_text'),
           "No News Trending hashtags found",
           style: TextStyle(
             color: theme.brightness == Brightness.light
@@ -227,6 +258,7 @@ Widget _newsTab(ExploreState data, ExploreViewModel vm, BuildContext context) {
     );
   }
   return RefreshIndicator(
+    key: const Key('news_refresh'),
     onRefresh: () async {
       vm.refreshCurrentTab();
     },
@@ -235,6 +267,7 @@ Widget _newsTab(ExploreState data, ExploreViewModel vm, BuildContext context) {
       radius: const Radius.circular(20),
       thickness: 6,
       child: ListView.builder(
+        key: const Key('news_list'),
         padding: const EdgeInsets.all(12),
         itemCount: data.newsHashtags.length,
         itemBuilder: (context, index) {
@@ -258,7 +291,9 @@ Widget _sportsTab(
   print("Sports Tab rebuilt");
   if (data.isSportsHashtagsLoading) {
     return Center(
+      key: const Key('sports_loading'),
       child: CircularProgressIndicator(
+        key: const Key('sports_progress_indicator'),
         color: theme.brightness == Brightness.light
             ? const Color(0xFF1D9BF0)
             : Colors.white,
@@ -267,11 +302,13 @@ Widget _sportsTab(
   }
   if (data.sportsHashtags.isEmpty) {
     return RefreshIndicator(
+      key: const Key('sports_empty_refresh'),
       onRefresh: () async {
         vm.refreshCurrentTab();
       },
       child: Center(
         child: Text(
+          key: const Key('sports_empty_text'),
           "No Sports Trending hashtags found",
           style: TextStyle(
             color: theme.brightness == Brightness.light
@@ -283,6 +320,7 @@ Widget _sportsTab(
     );
   }
   return RefreshIndicator(
+    key: const Key('sports_refresh'),
     onRefresh: () async {
       vm.refreshCurrentTab();
     },
@@ -291,6 +329,7 @@ Widget _sportsTab(
       radius: const Radius.circular(20),
       thickness: 6,
       child: ListView.builder(
+        key: const Key('sports_list'),
         padding: const EdgeInsets.all(12),
         itemCount: data.sportsHashtags.length,
         itemBuilder: (context, index) {
@@ -314,7 +353,9 @@ Widget _entertainmentTab(
   print("Entertainment Tab rebuilt");
   if (data.isEntertainmentHashtagsLoading) {
     return Center(
+      key: const Key('entertainment_loading'),
       child: CircularProgressIndicator(
+        key: const Key('entertainment_progress_indicator'),
         color: theme.brightness == Brightness.light
             ? const Color(0xFF1D9BF0)
             : Colors.white,
@@ -323,9 +364,13 @@ Widget _entertainmentTab(
   }
   if (data.entertainmentHashtags.isEmpty) {
     return RefreshIndicator(
-      onRefresh: () async {},
+      key: const Key('entertainment_empty_refresh'),
+      onRefresh: () async {
+        vm.refreshCurrentTab();
+      },
       child: Center(
         child: Text(
+          key: const Key('entertainment_empty_text'),
           "No Entertainment Trending hashtags found",
           style: TextStyle(
             color: theme.brightness == Brightness.light
@@ -337,6 +382,7 @@ Widget _entertainmentTab(
     );
   }
   return RefreshIndicator(
+    key: const Key('entertainment_refresh'),
     onRefresh: () async {
       vm.refreshCurrentTab();
     },
@@ -345,6 +391,7 @@ Widget _entertainmentTab(
       radius: const Radius.circular(20),
       thickness: 6,
       child: ListView.builder(
+        key: const Key('entertainment_list'),
         padding: const EdgeInsets.all(12),
         itemCount: data.entertainmentHashtags.length,
         itemBuilder: (context, index) {

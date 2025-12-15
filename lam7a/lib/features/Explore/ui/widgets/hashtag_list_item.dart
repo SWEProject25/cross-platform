@@ -11,47 +11,6 @@ class HashtagItem extends StatelessWidget {
 
   const HashtagItem({super.key, required this.hashtag, this.showOrder = true});
 
-  void _showBottomOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      barrierColor: const Color.fromARGB(180, 36, 36, 36), // dim background
-      backgroundColor: const Color(0xFF1A1A1A), // dark sheet
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _sheetOption(context, "This trend is spam"),
-              _sheetOption(context, "Not interested in this"),
-              _sheetOption(context, "This trend is abusive or harmful"),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _sheetOption(BuildContext context, String text) {
-    return InkWell(
-      onTap: () {
-        Navigator.pop(context); // close bottom sheet
-        // You can trigger VM logic here if needed
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-        width: double.infinity,
-        child: Text(
-          text,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

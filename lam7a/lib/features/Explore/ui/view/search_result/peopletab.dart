@@ -9,6 +9,8 @@ class PeopleTab extends ConsumerStatefulWidget {
   final SearchResultsViewmodel vm;
   const PeopleTab({super.key, required this.data, required this.vm});
 
+  static const Key contentKey = Key('people_tab_content');
+
   @override
   ConsumerState<PeopleTab> createState() => _PeopleTabState();
 }
@@ -51,6 +53,7 @@ class _PeopleTabState extends ConsumerState<PeopleTab>
     }
 
     return ListView.builder(
+      key: PeopleTab.contentKey,
       padding: const EdgeInsets.only(top: 12),
       itemCount: data.searchedPeople.length,
       itemBuilder: (context, i) {

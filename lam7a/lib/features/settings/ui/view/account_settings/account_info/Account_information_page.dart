@@ -114,6 +114,7 @@ class AccountInformationPage extends ConsumerWidget {
             key: const ValueKey('logoutText'),
             onTap: () {
               auth.logout();
+              Navigator.of(context).popUntil((route) => route.isFirst);
             },
             behavior: HitTestBehavior.translucent,
             child: const Text(
