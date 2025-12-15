@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../model/trending_hashtag.dart';
 import '../../../../../core/models/user_model.dart';
 import '../../widgets/hashtag_list_item.dart';
@@ -7,7 +8,7 @@ import 'connect_view.dart';
 import '../../../../common/models/tweet_model.dart';
 import '../../../../common/widgets/static_tweets_list.dart';
 
-class ForYouView extends StatelessWidget {
+class ForYouView extends ConsumerWidget {
   final List<TrendingHashtag> trendingHashtags;
   final List<UserModel> suggestedUsers;
   final Map<String, List<TweetModel>> forYouTweetsMap;
@@ -22,7 +23,7 @@ class ForYouView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return RefreshIndicator(

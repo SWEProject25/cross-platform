@@ -17,6 +17,10 @@ class SearchResultPage extends ConsumerStatefulWidget {
   final String hintText;
   final bool canPopTwice;
 
+  static const Key scaffoldKey = Key('search_result_scaffold');
+  static const Key tabBarKey = Key('search_result_tab_bar');
+  static const Key tabBarViewKey = Key('search_result_tab_bar_view');
+
   @override
   ConsumerState<SearchResultPage> createState() => _SearchResultPageState();
 }
@@ -98,6 +102,7 @@ class _SearchResultPageState extends ConsumerState<SearchResultPage>
 
               Expanded(
                 child: TabBarView(
+                  key: SearchResultPage.tabBarViewKey,
                   controller: _tabController,
                   children: [
                     TopTab(data: data, vm: vm),
@@ -117,6 +122,7 @@ class _SearchResultPageState extends ConsumerState<SearchResultPage>
     return Material(
       color: Colors.transparent,
       child: TabBar(
+        key: SearchResultPage.tabBarKey,
         controller: _tabController,
         indicatorColor: const Color(0xFF1d9bf0),
         indicatorWeight: 3,

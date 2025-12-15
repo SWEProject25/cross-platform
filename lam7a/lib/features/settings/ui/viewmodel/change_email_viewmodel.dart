@@ -85,7 +85,8 @@ class ChangeEmailViewModel extends Notifier<ChangeEmailState> {
   }
 
   Future<void> saveEmail() async {
-    ref.read(accountProvider.notifier).changeEmail(state.email);
+    print("saving email in change email viewmodel");
+    await ref.read(accountProvider.notifier).changeEmail(state.email);
   }
 
   Future<void> ResendOtp() async {
