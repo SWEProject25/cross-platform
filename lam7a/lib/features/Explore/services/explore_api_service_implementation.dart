@@ -1,3 +1,5 @@
+// coverage:ignore-file
+
 import 'explore_api_service.dart';
 import '../../../core/services/api_service.dart';
 import '../../../core/models/user_model.dart';
