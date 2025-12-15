@@ -71,8 +71,8 @@ class _ExplorePageState extends ConsumerState<ExplorePage>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _forYouTab(data, vm),
-                    _trendingTab(data, vm),
+                    _forYouTab(data, vm, context),
+                    _trendingTab(data, vm, context),
                     _newsTab(data, vm, context),
                     _sportsTab(data, vm, context),
                     _entertainmentTab(data, vm, context),
@@ -129,35 +129,72 @@ class _ExplorePageState extends ConsumerState<ExplorePage>
   }
 }
 
-Widget _forYouTab(ExploreState data, ExploreViewModel vm) {
+Widget _forYouTab(
+  ExploreState data,
+  ExploreViewModel vm,
+  BuildContext context,
+) {
+  final theme = Theme.of(context);
   print("For You Tab rebuilt");
   if (data.isForYouHashtagsLoading ||
       data.isSuggestedUsersLoading ||
       data.isInterestMapLoading) {
-    return const Center(child: CircularProgressIndicator(color: Colors.white));
+    return Center(
+      child: CircularProgressIndicator(
+        color: theme.brightness == Brightness.light
+            ? const Color(0xFF1D9BF0)
+            : Colors.white,
+      ),
+    );
   }
 
   return ForYouView(
     trendingHashtags: data.forYouHashtags,
     suggestedUsers: data.suggestedUsers,
     forYouTweetsMap: data.interestBasedTweets,
+    onRefresh: () => vm.refreshCurrentTab(),
   );
 }
 
-Widget _trendingTab(ExploreState data, ExploreViewModel vm) {
+Widget _trendingTab(
+  ExploreState data,
+  ExploreViewModel vm,
+  BuildContext context,
+) {
   print("Trending Tab rebuilt");
+  final theme = Theme.of(context);
   if (data.isHashtagsLoading) {
-    return const Center(child: CircularProgressIndicator(color: Colors.white));
-  }
-  if (data.trendingHashtags.isEmpty) {
-    return const Center(
-      child: Text(
-        "No trending hashtags found",
-        style: TextStyle(color: Colors.white54),
+    return Center(
+      child: CircularProgressIndicator(
+        color: theme.brightness == Brightness.light
+            ? const Color(0xFF1D9BF0)
+            : Colors.white,
       ),
     );
   }
-  return TrendingView(trendingHashtags: data.trendingHashtags);
+  if (data.trendingHashtags.isEmpty) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        vm.refreshCurrentTab();
+      },
+      child: Center(
+        child: Text(
+          "No trending hashtags found",
+          style: TextStyle(
+            color: theme.brightness == Brightness.light
+                ? const Color(0xFF52636d)
+                : const Color(0xFF7c838c),
+          ),
+        ),
+      ),
+    );
+  }
+  return RefreshIndicator(
+    onRefresh: () async {
+      vm.refreshCurrentTab();
+    },
+    child: TrendingView(trendingHashtags: data.trendingHashtags),
+  );
 }
 
 Widget _newsTab(ExploreState data, ExploreViewModel vm, BuildContext context) {
@@ -173,32 +210,41 @@ Widget _newsTab(ExploreState data, ExploreViewModel vm, BuildContext context) {
     );
   }
   if (data.newsHashtags.isEmpty) {
-    return Center(
-      child: Text(
-        "No News Trending hashtags found",
-        style: TextStyle(
-          color: theme.brightness == Brightness.light
-              ? const Color(0xFF52636d)
-              : const Color(0xFF7c838c),
+    return RefreshIndicator(
+      onRefresh: () async {
+        vm.refreshCurrentTab();
+      },
+      child: Center(
+        child: Text(
+          "No News Trending hashtags found",
+          style: TextStyle(
+            color: theme.brightness == Brightness.light
+                ? const Color(0xFF52636d)
+                : const Color(0xFF7c838c),
+          ),
         ),
       ),
     );
   }
-  return Scrollbar(
-    interactive: true,
-    radius: const Radius.circular(20),
-    thickness: 6,
-
-    child: ListView.builder(
-      padding: const EdgeInsets.all(12),
-      itemCount: data.newsHashtags.length,
-      itemBuilder: (context, index) {
-        final hashtag = data.newsHashtags[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 25),
-          child: HashtagItem(hashtag: hashtag),
-        );
-      },
+  return RefreshIndicator(
+    onRefresh: () async {
+      vm.refreshCurrentTab();
+    },
+    child: Scrollbar(
+      interactive: true,
+      radius: const Radius.circular(20),
+      thickness: 6,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: data.newsHashtags.length,
+        itemBuilder: (context, index) {
+          final hashtag = data.newsHashtags[index];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 25),
+            child: HashtagItem(hashtag: hashtag),
+          );
+        },
+      ),
     ),
   );
 }
@@ -220,32 +266,41 @@ Widget _sportsTab(
     );
   }
   if (data.sportsHashtags.isEmpty) {
-    return Center(
-      child: Text(
-        "No Sports Trending hashtags found",
-        style: TextStyle(
-          color: theme.brightness == Brightness.light
-              ? const Color(0xFF52636d)
-              : const Color(0xFF7c838c),
+    return RefreshIndicator(
+      onRefresh: () async {
+        vm.refreshCurrentTab();
+      },
+      child: Center(
+        child: Text(
+          "No Sports Trending hashtags found",
+          style: TextStyle(
+            color: theme.brightness == Brightness.light
+                ? const Color(0xFF52636d)
+                : const Color(0xFF7c838c),
+          ),
         ),
       ),
     );
   }
-  return Scrollbar(
-    interactive: true,
-    radius: const Radius.circular(20),
-    thickness: 6,
-
-    child: ListView.builder(
-      padding: const EdgeInsets.all(12),
-      itemCount: data.sportsHashtags.length,
-      itemBuilder: (context, index) {
-        final hashtag = data.sportsHashtags[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 25),
-          child: HashtagItem(hashtag: hashtag),
-        );
-      },
+  return RefreshIndicator(
+    onRefresh: () async {
+      vm.refreshCurrentTab();
+    },
+    child: Scrollbar(
+      interactive: true,
+      radius: const Radius.circular(20),
+      thickness: 6,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: data.sportsHashtags.length,
+        itemBuilder: (context, index) {
+          final hashtag = data.sportsHashtags[index];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 25),
+            child: HashtagItem(hashtag: hashtag),
+          );
+        },
+      ),
     ),
   );
 }
@@ -267,32 +322,39 @@ Widget _entertainmentTab(
     );
   }
   if (data.entertainmentHashtags.isEmpty) {
-    return Center(
-      child: Text(
-        "No Entertainment Trending hashtags found",
-        style: TextStyle(
-          color: theme.brightness == Brightness.light
-              ? const Color(0xFF52636d)
-              : const Color(0xFF7c838c),
+    return RefreshIndicator(
+      onRefresh: () async {},
+      child: Center(
+        child: Text(
+          "No Entertainment Trending hashtags found",
+          style: TextStyle(
+            color: theme.brightness == Brightness.light
+                ? const Color(0xFF52636d)
+                : const Color(0xFF7c838c),
+          ),
         ),
       ),
     );
   }
-  return Scrollbar(
-    interactive: true,
-    radius: const Radius.circular(20),
-    thickness: 6,
-
-    child: ListView.builder(
-      padding: const EdgeInsets.all(12),
-      itemCount: data.entertainmentHashtags.length,
-      itemBuilder: (context, index) {
-        final hashtag = data.entertainmentHashtags[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 25),
-          child: HashtagItem(hashtag: hashtag),
-        );
-      },
+  return RefreshIndicator(
+    onRefresh: () async {
+      vm.refreshCurrentTab();
+    },
+    child: Scrollbar(
+      interactive: true,
+      radius: const Radius.circular(20),
+      thickness: 6,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: data.entertainmentHashtags.length,
+        itemBuilder: (context, index) {
+          final hashtag = data.entertainmentHashtags[index];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 25),
+            child: HashtagItem(hashtag: hashtag),
+          );
+        },
+      ),
     ),
   );
 }

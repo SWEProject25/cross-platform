@@ -38,6 +38,7 @@ class _SearchMainPageState extends ConsumerState<SearchMainPage> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
+
       appBar: _buildAppBar(context, searchController, vm),
       body: Column(
         children: [
@@ -69,6 +70,7 @@ class _SearchMainPageState extends ConsumerState<SearchMainPage> {
       backgroundColor: theme.scaffoldBackgroundColor,
       elevation: 0,
       titleSpacing: 0,
+      scrolledUnderElevation: 0,
       automaticallyImplyLeading: false,
       title: Row(
         children: [
