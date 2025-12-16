@@ -82,7 +82,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     key: Key(MessagingUIKeys.messagesListView),
                     messages: messages,
                     leading: chatState.hasMoreMessages
-                        ? null
+                        ? Center(child: CircularProgressIndicator())
                         : _buildProfileInfo(context, chatState.contact),
                     loadMore: () => chatViewModel.loadMoreMessages(),
                   ),

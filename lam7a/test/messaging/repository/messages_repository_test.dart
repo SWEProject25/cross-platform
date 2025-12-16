@@ -317,6 +317,13 @@ void main() {
           metadata: MessagesMetadataDto(hasMore: false),
         ),
       );
+      when(() => mockApiService.getMessageHistory(1, any())).thenAnswer(
+        (_) async => MessagesResponseDto(
+          status: 'success',
+          data: [testMessageDto],
+          metadata: MessagesMetadataDto(hasMore: false),
+        ),
+      );
 
       repository = MessagesRepository(mockStore, mockSocket, mockApiService, authState);
 

@@ -5,6 +5,7 @@ import 'package:lam7a/core/widgets/app_dialog.dart';
 import 'package:lam7a/core/widgets/clickable_text.dart';
 import 'package:lam7a/core/widgets/expandable_text.dart';
 import 'package:clipboard/clipboard.dart';
+import 'package:lam7a/features/messaging/ui/viewmodel/chat_viewmodel.dart';
 
 
 class MessageTile extends StatelessWidget {
@@ -37,13 +38,9 @@ class MessageTile extends StatelessWidget {
     return GestureDetector(
       onLongPress: () {
         print("Long Pressed");
-        showOptionsDialog(context, options: ["Copy Message text", "Delete message for you"], onSelected: [
+        showOptionsDialog(context, options: ["Copy Message text"], onSelected: [
           () async {
             await FlutterClipboard.copy(text);
-          },
-          () {
-            // Delete message logic here
-            Navigator.pop(context);
           },
 
         ]);

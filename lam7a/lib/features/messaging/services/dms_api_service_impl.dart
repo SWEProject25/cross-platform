@@ -125,4 +125,11 @@ class DMsApiServiceImpl extends DMsApiService {
       fromJson: (x) => MessagesResponseDto.fromJson(x),
     );
   }
+  
+  @override
+  Future<void> deleteMessage(int msgId) async {
+    await _apiService.delete(
+      endpoint: "/messages/$msgId",
+    );
+  }
 }

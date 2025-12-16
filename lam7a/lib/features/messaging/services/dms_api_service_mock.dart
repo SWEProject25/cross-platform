@@ -263,4 +263,10 @@ class MockDMsApiService implements DMsApiService {
     // TODO: implement getLostMessages
     throw UnimplementedError();
   }
+  
+  @override
+  Future<void> deleteMessage(int msgId) {
+    // TODO: implement deleteMessage
+    throw UnimplementedError();
+  }
 }
