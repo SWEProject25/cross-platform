@@ -27,6 +27,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget>
 
   @override
   void dispose() {
+    _controller.pause();
     _controller.dispose();
     super.dispose();
   }
@@ -60,7 +61,23 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget>
               aspectRatio: _controller.value.aspectRatio,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: VideoPlayer(_controller),
+                child: Stack(children: [
+                    VideoPlayer(_controller),
+
+                  Center(
+                    child:  _controller.value.isPlaying ? IconButton(onPressed: () {
+                      _controller.pause();
+                      setState(() {
+                        
+                      });
+                    }, icon: Icon(Icons.pause, color: Colors.white54, size: 50,)) : IconButton(onPressed: () {
+                      _controller.play();
+                      setState(() {
+                        
+                      });
+                    }, icon: Icon(Icons.play_arrow, color: Colors.white54, size: 50,)
+                    )),
+                ],),
               ),
             );
           } else {
