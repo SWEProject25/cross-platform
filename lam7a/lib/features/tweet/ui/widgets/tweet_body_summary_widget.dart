@@ -357,7 +357,12 @@ class OriginalTweetCard extends ConsumerWidget {
     final deletedIds = ref.watch(deletedTweetsProvider);
     if (deletedIds.contains(tweet.id)) {
       return Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.only(
+          left: 12,
+          top: 12,
+          bottom: 0,
+          right: 12,
+        ),
         decoration: BoxDecoration(
           color: Colors.grey.shade900,
           borderRadius: BorderRadius.circular(12),
@@ -395,7 +400,7 @@ class OriginalTweetCard extends ConsumerWidget {
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: responsive.padding(0),
-          vertical: responsive.padding(8),
+          vertical: responsive.padding(0),
         ),
         child: IntrinsicHeight(
           child: Row(

@@ -596,7 +596,7 @@ class TweetScreen extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 0),
         // Reply tweet user info (entire row tappable to open reply author's profile)
         GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -610,7 +610,7 @@ class TweetScreen extends ConsumerWidget {
             children: [
               Column(
                 children: [
-                  Container(width: 2, height: 16, color: Colors.grey),
+                  Container(width: 2, height: avatarRadius, color: Colors.grey),
                   AppUserAvatar(
                     radius: avatarRadius,
                     imageUrl: replyTweet.authorProfileImage,

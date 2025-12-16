@@ -182,7 +182,15 @@ class TweetSummaryWidget extends ConsumerWidget {
                   children: [
                     Column(
                       children: [
-                        Container(width: 2, height: 16, color: Colors.grey),
+                        // Vertical connector between the parent tweet above
+                        // and this reply's avatar. Use the same dimension as
+                        // the avatar radius so the line visually meets the
+                        // avatar without being cut short.
+                        Container(
+                          width: 2,
+                          height: avatarRadius,
+                          color: Colors.grey,
+                        ),
                         avatarWidget,
                       ],
                     ),
