@@ -221,34 +221,52 @@ class MessagesRepository {
   
   Future<bool> loadInitMessage(int conversationId) async {
 
-    int? newwestId = (await _cache.getMessages(conversationId))
+    var messages = await _cache.getMessages(conversationId);
+    
+    if(messages.isNotEmpty) {
+      _logger.i("Messages already loaded for conversation id {$conversationId}");
+
+      // Notify listeners to update UI
+      _getNotifier(conversationId).add(null);
+
+      // Synchronize lost messages
+      int? newwestId = (await _cache.getMessages(conversationId))
         .map((e) => e.id)
         .fold<int?>(null, (previousValue, element) {
-      if (previousValue == null) return element;
-      return element > previousValue ? element : previousValue;
-    });
-    _logger.i("Loading Lost Messages first message id is {$newwestId}");
+        if (previousValue == null) return element;
+        return element > previousValue ? element : previousValue;
+      });
 
-    late MessagesResponseDto messagesDto;
-
-    if(newwestId == null){
-      messagesDto = await _apiService.getMessageHistory(
-        conversationId,
-        null,
-      );
-    } else {
-      messagesDto = await _apiService.getLostMessages(
+      _logger.i("Loading Lost Messages first message id is {$newwestId}");
+      var messagesDto = await _apiService.getLostMessages(
         conversationId,
         newwestId,
       );
-    }
 
-    var messages = messagesDto.data
+      var newMessages = messagesDto.data
         .map((x) => ChatMessage.fromDto(x, currentUserId: _authState.user!.id!))
         .toList();
 
-    _cache.addMessages(conversationId, messages);
+      await _cache.addMessages(conversationId, newMessages);
+      _getNotifier(conversationId).add(null);
+    }
+
+    messages = await _cache.getMessages(conversationId);
+
+    int? minMessageId = messages.isNotEmpty
+      ? messages.map((e) => e.id).reduce((value, element) => value < element ? value : element)
+      : null;
+
+    _logger.i("Loading Initial Messages for conversation id {$conversationId}");
+    var messagesDto = await _apiService.getMessageHistory(conversationId, minMessageId);
+
+    var newMessages = messagesDto.data
+      .map((x) => ChatMessage.fromDto(x, currentUserId: _authState.user!.id!))
+      .toList();
+
+    await _cache.addMessages(conversationId, newMessages);
     _getNotifier(conversationId).add(null);
+
 
     return messagesDto.metadata.hasMore ?? false;
   }
@@ -335,5 +353,4 @@ class MessagesRepository {
     _joinedConversations.remove(conversationId);
   }
 
-  
 }

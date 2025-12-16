@@ -139,19 +139,22 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                             width: 40,
                             height: 40,
                             margin: EdgeInsets.all(13),
-                            child: ClipOval(
-                              child: Image.network(
-                                imgUrl,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    color: Pallete.greyColor,
-                                    child: Icon(
-                                      Icons.person,
-                                      color: Colors.white,
-                                    ),
-                                  );
-                                },
+                            child: AspectRatio(
+                              aspectRatio: 1,
+                              child: ClipOval(
+                                child: Image.network(
+                                  imgUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: Pallete.greyColor,
+                                      child: Icon(
+                                        Icons.person_outline_outlined,
+                                        color: Colors.white,
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                           ),

@@ -33,4 +33,6 @@ abstract class DMsApiService {
   Future<Contact> getContactByUserId(int userId);
 
   Future<int> getNumberOfUnseenConversations(int? conversationId);
+
+  Future<void> deleteMessage(int msgId);
 }

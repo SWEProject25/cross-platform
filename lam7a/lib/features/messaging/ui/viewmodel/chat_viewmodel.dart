@@ -80,7 +80,7 @@ class ChatViewModel extends _$ChatViewModel {
     ref.read(conversationViewmodelProvider(_conversationId).notifier).markConversationAsSeen();
     _loadContact();
     _prepareConversation();
-    _loadMessages();
+    // await _loadMessages();
 
     await requestInitMessages();
   }
@@ -107,16 +107,6 @@ class ChatViewModel extends _$ChatViewModel {
     } catch (e,st) {
       state = state.copyWith(contact: AsyncError(e,st));
       _logger.e(e);
-    }
-  }
-
-  Future<void> _loadMessages() async {
-    state = state.copyWith(messages: const AsyncLoading());
-    try {
-      final data = await _messagesRepository.fetchMessage(_conversationId);
-      state = state.copyWith(messages: AsyncData(data));
-    } catch (e, st) {
-      state = state.copyWith(messages: AsyncError(e, st));
     }
   }
 
@@ -219,7 +209,6 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   Future<void> refresh() async {
-    await  _loadMessages();
+    // await  _loadMessages();
   }
-
 }
