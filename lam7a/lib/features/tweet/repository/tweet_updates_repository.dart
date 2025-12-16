@@ -65,6 +65,12 @@ class TweetUpdatesRepository {
       for (final ctrl in _postLikeCounts.values) {
         if (!ctrl.isClosed) ctrl.close();
       }
+      _postLikeCounts.clear();
+
+      for (final ctrl in _postRepostCounts.values) {
+        if (!ctrl.isClosed) ctrl.close();
+      }
+      _postRepostCounts.clear();
   }
 
 

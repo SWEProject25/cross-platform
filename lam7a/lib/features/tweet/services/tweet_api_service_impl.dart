@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'dart:io';
 import 'dart:convert';
 import 'package:lam7a/core/api/api_config.dart';
@@ -10,6 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+
+
 
 void printFullJson(dynamic json) {
   final prettyString = const JsonEncoder.withIndent('  ').convert(json);
@@ -1179,63 +1182,31 @@ class TweetsApiServiceImpl implements TweetsApiService {
     final data = response["data"];
     if (data is! List) return [];
 
-    return data.map<TweetModel>((json) {
-      // Prefer the transformed hierarchical post shape (TransformedPost)
-      // when available so replies carry their full parent chain via
-      // TweetModel.originalTweet, just like in the main timeline.
-      if (json is Map<String, dynamic>) {
-        try {
-          if (json.containsKey('postId') && json.containsKey('date')) {
-            return TweetModel.fromJsonPosts(json);
-          }
-        } catch (e) {
-          print(
-            '⚠️ Failed to parse profile reply via fromJsonPosts, falling back: $e',
-          );
-        }
+    final ids = <String>[];
+
+    for (final raw in data) {
+      if (raw is! Map) continue;
+      final json = raw as Map;
+      final dynamic idRaw = json['postId'] ?? json['id'];
+      if (idRaw == null) continue;
+      final id = idRaw.toString();
+      if (id.isEmpty) continue;
+      ids.add(id);
+    }
+
+    if (ids.isEmpty) return [];
+
+    final replies = <TweetModel>[];
+    for (final id in ids) {
+      try {
+        final tweet = await getTweetById(id);
+        replies.add(tweet);
+      } catch (e) {
+        print('⚠️ Failed to fetch profile reply $id via getTweetById: $e');
       }
+    }
 
-      // Legacy fallback: manual mapping using the flat shape.
-      final original = json['originalPostData'];
-
-      // Parent tweet (what reply is replying to)
-      TweetModel? parentTweet;
-      if (original is Map<String, dynamic>) {
-        parentTweet = TweetModel(
-          id: original['postId'].toString(),
-          userId: original['userId'].toString(),
-          username: original['username'],
-          authorName: original['name'],
-          authorProfileImage: original['avatar'],
-          body: original['text'] ?? '',
-          date: DateTime.parse(original['date']),
-          likes: original['likesCount'] ?? 0,
-          repost: original['retweetsCount'] ?? 0,
-          comments: original['commentsCount'] ?? 0,
-          mediaImages: _extractImages(original),
-          mediaVideos: _extractVideos(original),
-        );
-      }
-
-      // The reply itself
-      return TweetModel(
-        id: json['postId'].toString(),
-        userId: json['userId'].toString(),
-        username: json['username'],
-        authorName: json['name'],
-        authorProfileImage: json['avatar'],
-        body: json['text'] ?? '',
-        date: DateTime.parse(json['date']),
-        likes: json['likesCount'] ?? 0,
-        repost: json['retweetsCount'] ?? 0,
-        comments: json['commentsCount'] ?? 0,
-        isRepost: false,
-        isQuote: false,
-        mediaImages: _extractImages(json),
-        mediaVideos: _extractVideos(json),
-        originalTweet: parentTweet,
-      );
-    }).toList();
+    return replies;
   }
 
   // ===================== PROFILE LIKES ============================

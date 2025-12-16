@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/common/providers/pagination_notifier.dart';
 import 'package:lam7a/features/common/states/pagination_state.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
-import '../../services/profile_api_service.dart';
+import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
 import '../../utils/profile_tweet_mapper.dart';
 
 final profileLikesProvider = NotifierProvider.family<
@@ -18,7 +18,7 @@ class ProfileLikesPaginationNotifier
   final String userId;
   ProfileLikesPaginationNotifier(this.userId);
 
-  ProfileApiService get _api => ref.read(profileApiServiceProvider);
+  TweetRepository get _repo => ref.read(tweetRepositoryProvider);
 
   @override
   PaginationState<TweetModel> build() {
@@ -29,15 +29,25 @@ class ProfileLikesPaginationNotifier
 
   @override
   Future<(List<TweetModel>, bool)> fetchPage(int page) async {
-    final raw = await _api.getProfileLikes(userId, page, pageSize);
+    final allLikes = await _repo.fetchUserLikes(userId);
 
-    final items = raw
-        .map((e) => convertProfileJsonToTweetModel(
-              Map<String, dynamic>.from(e),
-            ))
-        .toList();
+    if (allLikes.isEmpty) {
+      return (<TweetModel>[], false);
+    }
 
-    return (items, items.length == pageSize);
+    final start = (page - 1) * pageSize;
+    if (start >= allLikes.length) {
+      return (<TweetModel>[], false);
+    }
+
+    final end = (start + pageSize) > allLikes.length
+        ? allLikes.length
+        : (start + pageSize);
+
+    final items = allLikes.sublist(start, end);
+    final hasMore = end < allLikes.length;
+
+    return (items, hasMore);
   }
 
   Map<String, dynamic> normalizeTweetJson(Map<String, dynamic> e) {
