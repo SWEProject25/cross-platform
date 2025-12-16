@@ -105,6 +105,7 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
                                     .replaceFirst("http://", ""),
                                 path:
                                     "${ServerConstant.apiPrefix}${ServerConstant.oAuthIosRedirect}",
+                              queryParameters: {'platform': 'mobile'},
                               );
                               await _launchUrl(authUrl.toString());
                               return;
