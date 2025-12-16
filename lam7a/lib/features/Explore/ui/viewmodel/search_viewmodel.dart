@@ -14,7 +14,6 @@ class SearchViewModel extends AsyncNotifier<SearchState> {
   Timer? _debounce;
   late final SearchRepository _searchRepository;
 
-  // FIX: Controller is stored in ViewModel (NOT in SearchState)
   late final TextEditingController searchController;
 
   @override
@@ -44,9 +43,6 @@ class SearchViewModel extends AsyncNotifier<SearchState> {
     return loaded;
   }
 
-  // -----------------------------
-  // SAME LOGIC — controller preserved
-  // -----------------------------
   void onChanged(String query) {
     _debounce?.cancel();
 
@@ -99,7 +95,6 @@ class SearchViewModel extends AsyncNotifier<SearchState> {
     }
   }
 
-  // SAME LOGIC
   void insertSearchedTerm(String term) {
     final current = state.value;
     if (current == null) return;
