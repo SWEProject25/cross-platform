@@ -61,6 +61,28 @@ class EditProfileFormState extends ConsumerState<EditProfileForm> {
     if (picked != null) setState(() => newAvatar = File(picked.path));
   }
 
+  Future<void> deleteAvatar() async {
+    final repo = ref.read(profileRepositoryProvider);
+    await repo.deleteAvatar();
+
+    if (mounted) {
+      setState(() {
+        newAvatar = null;
+      });
+    }
+  }
+
+  Future<void> deleteBanner() async {
+    final repo = ref.read(profileRepositoryProvider);
+    await repo.deleteBanner();
+
+    if (mounted) {
+      setState(() {
+        newBanner = null;
+      });
+    }
+  }
+
   Future<UserModel?> saveProfile() async {
     setState(() => saving = true);
     final repo = ref.read(profileRepositoryProvider);
@@ -114,9 +136,38 @@ class EditProfileFormState extends ConsumerState<EditProfileForm> {
     return SingleChildScrollView(
       key: const ValueKey('edit_profile_form'),
       child: Column(children: [
-        GestureDetector(key: const ValueKey('edit_profile_banner_picker'), onTap: pickBanner, child: Image(image: bannerImage, width: double.infinity, height: 180, fit: BoxFit.cover)),
+        //GestureDetector(key: const ValueKey('edit_profile_banner_picker'), onTap: pickBanner, child: Image(image: bannerImage, width: double.infinity, height: 180, fit: BoxFit.cover)),
+        GestureDetector(
+          key: const ValueKey('edit_profile_banner_picker'),
+          onTap: pickBanner,
+          child: Image(image: bannerImage, width: double.infinity, height: 180, fit: BoxFit.cover),
+        ),
+        if (widget.user.bannerImageUrl != null || newBanner != null)
+          TextButton(
+            onPressed: deleteBanner,
+            child: const Text(
+              'Remove banner',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
         const SizedBox(height: 12),
-        GestureDetector(key: const ValueKey('edit_profile_avatar_picker'), onTap: pickAvatar, child: CircleAvatar(backgroundImage: avatarImage, radius: 48)),
+        //GestureDetector(key: const ValueKey('edit_profile_avatar_picker'), onTap: pickAvatar, child: CircleAvatar(backgroundImage: avatarImage, radius: 48)),
+        GestureDetector(
+            key: const ValueKey('edit_profile_avatar_picker'),
+            onTap: pickAvatar,
+            child: CircleAvatar(backgroundImage: avatarImage, radius: 48),
+          ),
+          if (widget.user.profileImageUrl != null || newAvatar != null)
+            TextButton(
+                style: TextButton.styleFrom(
+                  alignment: Alignment.centerLeft,
+                ),
+              onPressed: deleteAvatar,
+              child: const Text(
+                'Remove avatar',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
         const SizedBox(height: 12),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),

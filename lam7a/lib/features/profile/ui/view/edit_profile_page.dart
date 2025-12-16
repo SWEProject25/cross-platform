@@ -100,6 +100,29 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     if (f != null) setState(() => newBannerPath = f.path);
   }
 
+  Future<void> deleteAvatar() async {
+    final repo = ref.read(profileRepositoryProvider);
+    await repo.deleteAvatar();
+
+    if (mounted) {
+      setState(() {
+        newAvatarPath = null;
+      });
+    }
+  }
+
+  Future<void> deleteBanner() async {
+    final repo = ref.read(profileRepositoryProvider);
+    await repo.deleteBanner();
+
+    if (mounted) {
+      setState(() {
+        newBannerPath = null;
+      });
+    }
+  }
+
+
   Future<void> save() async {
     if (_saving) return;
     setState(() => _saving = true);
@@ -224,11 +247,37 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             onTap: pickBanner,
             child: Image(image: bannerProvider, width: double.infinity, height: 160, fit: BoxFit.cover),
           ),
-          const SizedBox(height: 12),
-          Container(
-            alignment: Alignment.centerLeft,
-            child: GestureDetector(key: const ValueKey('edit_profile_avatar_picker'), onTap: pickAvatar, child: CircleAvatar(radius: 46, backgroundImage: avatarProvider))
+          if (widget.user.bannerImageUrl != null || newBannerPath != null)
+            TextButton(
+              onPressed: deleteBanner,
+              child: const Text(
+                'Remove banner',
+                style: TextStyle(color: Colors.red),
+              ),
             ),
+          const SizedBox(height: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              GestureDetector(
+                key: const ValueKey('edit_profile_avatar_picker'),
+                onTap: pickAvatar,
+                child: CircleAvatar(
+                  radius: 46,
+                  backgroundImage: avatarProvider,
+                ),
+              ),
+
+              if (widget.user.profileImageUrl != null || newAvatarPath != null)
+                TextButton(
+                  onPressed: deleteAvatar,
+                  child: const Text(
+                    'Remove avatar',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+            ],
+          ),
           
           const SizedBox(height: 12),
           buildField('Name', nameCtrl, maxLength: 30, fieldKey: const ValueKey('edit_profile_name_field'),),

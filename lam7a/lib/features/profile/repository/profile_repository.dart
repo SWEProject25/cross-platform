@@ -61,6 +61,14 @@ class ProfileRepository {
     return _fromDto(dto);
   }
 
+  Future<void> deleteAvatar() async {
+    await _api.deleteProfilePicture();
+  }
+
+  Future<void> deleteBanner() async {
+    await _api.deleteBanner();
+  }
+
   Future<void> followUser(int id) => _api.followUser(id);
   Future<void> unfollowUser(int id) => _api.unfollowUser(id);
 
