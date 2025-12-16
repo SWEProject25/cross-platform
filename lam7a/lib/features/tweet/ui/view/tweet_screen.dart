@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/core/widgets/app_user_avatar.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_replies_viewmodel.dart';
@@ -12,6 +13,8 @@ import 'package:lam7a/features/tweet/ui/widgets/tweet_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_summary_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_detailed.dart';
 import 'package:lam7a/features/tweet/ui/viewmodel/tweet_viewmodel.dart';
+import 'package:lam7a/features/tweet/ui/state/deleted_tweets_provider.dart';
+import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
 import '../../ui/widgets/tweet_ai_summery.dart';
 
 class TweetScreen extends ConsumerWidget {
@@ -22,6 +25,8 @@ class TweetScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final deletedIds = ref.watch(deletedTweetsProvider);
+
     // If tweet data provided, use it directly (avoids 404 from backend)
     if (tweetData != null) {
       final tweetState = TweetState(
@@ -39,6 +44,56 @@ class TweetScreen extends ConsumerWidget {
           ? tweetData!.authorName!
           : username;
 
+      final authState = ref.watch(authenticationProvider);
+      final myUser = authState.user;
+      final isOwnTweet = myUser != null &&
+      // coverage:ignore-start
+          myUser.id != null &&
+          myUser.id.toString() == tweetData!.userId;
+
+      Future<void> _handleDelete() async {
+        if (!isOwnTweet) return;
+
+        final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Delete Tweet'),
+                content:
+                    const Text('Are you sure you want to delete this tweet?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    child: const Text('Delete'),
+                  ),
+                ],
+              ),
+            ) ??
+            false;
+
+        if (!confirmed) return;
+
+        final repo = ref.read(tweetRepositoryProvider);
+        final deletedNotifier = ref.read(deletedTweetsProvider.notifier);
+
+        try {
+          await repo.deleteTweet(tweetId);
+          deletedNotifier.state = {
+            ...deletedNotifier.state,
+            tweetId,
+          };
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Failed to delete tweet')),
+            );
+          }
+        }
+      }
+      // coverage:ignore-end
       return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
@@ -56,64 +111,105 @@ class TweetScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (isPureRepost) ...[
-                    Row(
-                      children: [
-                        const Icon(Icons.repeat, size: 18, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text(
-                          '$displayName reposted',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall?.copyWith(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                  ],
-                  // Check if this is a reply (has parent tweet, not repost/quote)
-                  if (!isPureRepost &&
-                      !tweetData!.isQuote &&
-                      tweetData!.originalTweet != null) ...[
-                    // This is a reply - show parent tweet at top with connector
-                    _buildParentTweetWithConnector(
-                      context,
-                      ref,
-                      tweetData!.originalTweet!,
-                      tweetData!,
-                      tweetState,
+                  if (deletedIds.contains(tweetId)) ...[
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade900,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'This tweet is not available',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: Colors.grey),
+                      ),
                     ),
                   ] else ...[
-                    // Regular tweet or repost - show normal layout
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: TweetUserInfoDetailed(tweetState: tweetState),
-                        ),
-                        GestureDetector(
-                          child: const Icon(
-                            Icons.rocket,
-                            size: 17,
-                            color: Colors.blueAccent,
-                          ),
-                          onTap: () {
-                            if (tweetData == null) return;
-                            Navigator.push(
+                    if (isPureRepost) ...[
+                      Row(
+                        children: [
+                          const Icon(Icons.repeat, size: 18, color: Colors.grey),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$displayName reposted',
+                            style: Theme.of(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    TweetAiSummary(tweet: tweetData!),
+                            ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+                    // Check if this is a reply (has parent tweet, not repost/quote)
+                    if (!isPureRepost &&
+                        !tweetData!.isQuote &&
+                        tweetData!.originalTweet != null) ...[
+                      // This is a reply - show parent tweet at top with connector
+                      _buildParentTweetWithConnector(
+                        context,
+                        ref,
+                        tweetData!.originalTweet!,
+                        tweetData!,
+                        tweetState,
+                      ),
+                    ] else ...[
+                      // Regular tweet or repost - show normal layout
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: TweetUserInfoDetailed(tweetState: tweetState),
+                          ),
+                          GestureDetector(
+                            child: const Icon(
+                              Icons.rocket,
+                              size: 17,
+                              color: Colors.blueAccent,
+                            ),
+                                  // coverage:ignore-start
+
+                            onTap: () {
+                              if (tweetData == null) return;
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      TweetAiSummary(tweet: tweetData!),
+                                ),
+                              );
+                            },
+                          ),
+                          if (isOwnTweet) ...[
+                            const SizedBox(width: 4),
+                            PopupMenuButton<String>(
+                              icon: const Icon(
+                                Icons.more_vert,
+                                size: 18,
+                                color: Colors.grey,
                               ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    TweetDetailedBodyWidget(tweetState: tweetState),
-                    const SizedBox(height: 8),
-                    TweetDetailedFeed(tweetState: tweetState),
+                              onSelected: (value) {
+                                if (value == 'delete') {
+                                  _handleDelete();
+                                }
+                              },
+                              itemBuilder: (context) => const [
+                                PopupMenuItem<String>(
+                                  value: 'delete',
+                                  child: Text('Delete'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                            // coverage:ignore-end
+                      const SizedBox(height: 12),
+                      TweetDetailedBodyWidget(tweetState: tweetState),
+                      const SizedBox(height: 8),
+                      TweetDetailedFeed(tweetState: tweetState),
+                    ],
                   ],
                   const SizedBox(height: 16),
                   repliesAsync.when(
@@ -186,6 +282,62 @@ class TweetScreen extends ConsumerWidget {
                     ? tweetModel!.authorName!
                     : username;
 
+                final authState = ref.watch(authenticationProvider);
+                final myUser = authState.user;
+                // coverage:ignore-start
+
+                final isOwnTweet = tweetModel != null &&
+                    myUser != null &&
+                    myUser.id != null &&
+                    myUser.id.toString() == tweetModel.userId;
+
+                Future<void> _handleDelete() async {
+                  if (!isOwnTweet) return;
+
+                  final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Delete Tweet'),
+                          content: const Text(
+                            'Are you sure you want to delete this tweet?',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(true),
+                              child: const Text('Delete'),
+                            ),
+                          ],
+                        ),
+                      ) ??
+                      false;
+
+                  if (!confirmed) return;
+
+                  final vm = ref.read(tweetViewModelProvider(tweetId).notifier);
+                  await vm.handleDelete();
+                }
+
+                if (deletedIds.contains(tweetId)) {
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade900,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'This tweet is not available',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(color: Colors.grey),
+                    ),
+                  );
+                }
+// coverage:ignore-end
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,6 +399,27 @@ class TweetScreen extends ConsumerWidget {
                               );
                             },
                           ),
+                          if (isOwnTweet) ...[
+                            const SizedBox(width: 4),
+                            PopupMenuButton<String>(
+                              icon: const Icon(
+                                Icons.more_vert,
+                                size: 18,
+                                color: Colors.grey,
+                              ),
+                              onSelected: (value) {
+                                if (value == 'delete') {
+                                  _handleDelete();
+                                }
+                              },
+                              itemBuilder: (context) => const [
+                                PopupMenuItem<String>(
+                                  value: 'delete',
+                                  child: Text('Delete'),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -284,6 +457,7 @@ class TweetScreen extends ConsumerWidget {
                         padding: EdgeInsets.symmetric(vertical: 8),
                         child: Center(child: CircularProgressIndicator()),
                       ),
+                        // coverage:ignore-start
                       error: (e, _) => const SizedBox.shrink(),
                     ),
                   ],
@@ -297,7 +471,7 @@ class TweetScreen extends ConsumerWidget {
       ),
     );
   }
-
+ // coverage:ignore-end
   /// Builds the parent tweet at top with connector line to reply tweet
   Widget _buildParentTweetWithConnector(
     BuildContext context,

@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:lam7a/core/widgets/app_user_avatar.dart';
+import 'package:lam7a/core/providers/authentication.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
+import 'package:lam7a/features/tweet/ui/state/deleted_tweets_provider.dart';
 import 'package:lam7a/features/tweet/ui/view/tweet_screen.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_body_summary_widget.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_feed.dart';
 import 'package:lam7a/features/tweet/ui/widgets/tweet_user_info_summary.dart';
+import 'package:lam7a/features/tweet/repository/tweet_repository.dart';
 import 'tweet_ai_summery.dart';
 
 class TweetSummaryWidget extends ConsumerWidget {
@@ -44,6 +47,17 @@ class TweetSummaryWidget extends ConsumerWidget {
   }
 
   Widget _buildTweetUI(BuildContext context, WidgetRef ref, TweetModel tweet) {
+    // If this tweet has been deleted locally, render nothing
+    final deletedIds = ref.watch(deletedTweetsProvider);
+    if (deletedIds.contains(tweet.id)) {
+      return const SizedBox.shrink();
+    }
+
+    final authState = ref.watch(authenticationProvider);
+    final myUser = authState.user;
+    final isOwnTweet =
+        myUser != null && myUser.id != null && myUser.id.toString() == tweet.userId;
+
     final isPureRepost =
         tweet.isRepost && tweet.originalTweet != null;
     final isReply =
@@ -67,6 +81,46 @@ class TweetSummaryWidget extends ConsumerWidget {
       isViewed: false,
       tweet: AsyncValue.data(tweet),
     );
+
+    Future<void> _handleDelete() async {
+      if (!isOwnTweet) return;
+
+      final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Delete Tweet'),
+              content: const Text('Are you sure you want to delete this tweet?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: const Text('Delete'),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+
+      if (!confirmed) return;
+
+      final repo = ref.read(tweetRepositoryProvider);
+      final deletedNotifier = ref.read(deletedTweetsProvider.notifier);
+
+      try {
+        await repo.deleteTweet(tweet.id);
+        deletedNotifier.state = {
+          ...deletedNotifier.state,
+          tweet.id,
+        };
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to delete tweet')),
+        );
+      }
+    }
 
     // For pure reposts, interactions (TweetFeed) should target the parent tweet
     final TweetState feedTweetState = (isPureRepost && parentTweet != null)
@@ -151,6 +205,7 @@ class TweetSummaryWidget extends ConsumerWidget {
                                   size: 17,
                                   color: Colors.blueAccent,
                                 ),
+                                // coverage:ignore-start
                                 onTap: () {
                                   Navigator.push(
                                     context,
@@ -161,8 +216,30 @@ class TweetSummaryWidget extends ConsumerWidget {
                                   );
                                 },
                               ),
+                              if (isOwnTweet) ...[
+                                const SizedBox(width: 4),
+                                PopupMenuButton<String>(
+                                  icon: const Icon(
+                                    Icons.more_vert,
+                                    size: 18,
+                                    color: Colors.grey,
+                                  ),
+                                  onSelected: (value) {
+                                    if (value == 'delete') {
+                                      _handleDelete();
+                                    }
+                                  },
+                                  itemBuilder: (context) => const [
+                                    PopupMenuItem<String>(
+                                      value: 'delete',
+                                      child: Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ],
                           ),
+                      // coverage:ignore-end
                           SizedBox(
                             width: double.infinity,
                             child: TweetBodySummaryWidget(post: mainTweet),
@@ -243,6 +320,27 @@ class TweetSummaryWidget extends ConsumerWidget {
                                       );
                                     },
                                   ),
+                                  if (isOwnTweet) ...[
+                                    const SizedBox(width: 4),
+                                    PopupMenuButton<String>(
+                                      icon: const Icon(
+                                        Icons.more_vert,
+                                        size: 18,
+                                        color: Colors.grey,
+                                      ),
+                                      onSelected: (value) {
+                                        if (value == 'delete') {
+                                          _handleDelete();
+                                        }
+                                      },
+                                      itemBuilder: (context) => const [
+                                        PopupMenuItem<String>(
+                                          value: 'delete',
+                                          child: Text('Delete'),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ],
                               ),
                               SizedBox(

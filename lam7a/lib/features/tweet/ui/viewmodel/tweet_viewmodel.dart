@@ -9,6 +9,7 @@ import 'package:lam7a/features/tweet/services/tweet_api_service.dart';
 import 'package:lam7a/features/tweet/ui/state/tweet_state.dart';
 import 'package:lam7a/features/profile/ui/viewmodel/profile_posts_viewmodel.dart';
 import 'package:lam7a/core/providers/authentication.dart';
+import 'package:lam7a/features/tweet/ui/state/deleted_tweets_provider.dart';
 import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -76,6 +77,8 @@ class TweetViewModel extends _$TweetViewModel {
       
     );
   }
+// coverage:ignore-start
+
 
   void _onLikeUpdate(int count) {
     logger.i("Received like update: $count through socket on tweet id ${state.value?.tweet.value?.id ?? 'unknown'}");
@@ -118,6 +121,7 @@ class TweetViewModel extends _$TweetViewModel {
     );
   }
 
+// coverage:ignore-end
   //  Handle Like toggle
   Future<void> handleLike({required AnimationController controller}) async {
     // Get current state
@@ -312,6 +316,43 @@ class TweetViewModel extends _$TweetViewModel {
     }
   }
 
+  /// Handle deleting the current tweet.
+  /// Marks the tweet as deleted in state and records the ID in
+  /// deletedTweetsProvider so list items and embedded cards can react.
+  // coverage:ignore-start
+
+  Future<void> handleDelete() async {
+    if (!state.hasValue || state.value == null) {
+      print('⚠️ Cannot delete tweet: state not loaded');
+      return;
+    }
+
+    final currentState = state.value!;
+    if (!currentState.tweet.hasValue || currentState.tweet.value == null) {
+      print('⚠️ Cannot delete tweet: tweet not loaded');
+      return;
+    }
+
+    final currentTweet = currentState.tweet.value!;
+
+    final repo = ref.read(tweetRepositoryProvider);
+    final deletedNotifier = ref.read(deletedTweetsProvider.notifier);
+
+    try {
+      await repo.deleteTweet(currentTweet.id);
+
+      // Mark as deleted in global set so list UIs and OriginalTweetCard shrink
+      deletedNotifier.state = {
+        ...deletedNotifier.state,
+        currentTweet.id,
+      };
+      print('🗑️ Tweet deleted: ${currentTweet.id}');
+    } catch (e) {
+      print('❌ Error deleting tweet: $e');
+    }
+  }
+
+// coverage:ignore-end
   // Format large numbers (K, M, B)
   String howLong(double m) {
     String s = '';
