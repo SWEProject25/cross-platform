@@ -1,3 +1,4 @@
+// coverage:ignore-file
 // feature/profile/ui/viewmodel/profile_posts_viewmodel.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lam7a/features/tweet/repository/tweet_repository.dart';

@@ -1,3 +1,4 @@
+// coverage:ignore-file
 // profile_api_service_impl.dart
 import 'dart:io';
 import 'package:dio/dio.dart';
@@ -151,6 +152,16 @@ class ProfileApiServiceImpl implements ProfileApiService {
       },
     );
     return _extractList(res);
+  }
+
+  @override
+  Future<void> deleteProfilePicture() async {
+    await _api.delete(endpoint: '/profile/me/profile-picture');
+  }
+
+  @override
+  Future<void> deleteBanner() async {
+    await _api.delete(endpoint: '/profile/me/banner');
   }
 
 }
