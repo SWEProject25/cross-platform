@@ -432,7 +432,7 @@ void main() {
       when(() => mockMessagesSocket.incomingMessagesNotifications)
           .thenAnswer((_) => Stream<MessageDto>.empty());
       when(() => mockMessagesRepository.sendMarkAsSeen(any())).thenReturn(null);
-      when(() => mockUnreadCount.refresh()).thenReturn(null);
+      when(() => mockUnreadCount.refresh()).thenAnswer((_) async => null);
 
       final container = ProviderContainer(
         overrides: [

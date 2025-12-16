@@ -1,4 +1,4 @@
-import 'package:logger/logger.dart';
+// coverage:ignore-file
 
 import 'package:logger/logger.dart';
 

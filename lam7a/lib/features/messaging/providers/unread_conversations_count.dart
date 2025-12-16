@@ -40,7 +40,7 @@ class UnReadConversationsCount extends Notifier<int> {
     return 0;
   }
   
-  void refresh({bool reset = false, bool increament = false}) async {
+  Future<void> refresh({bool reset = false, bool increament = false}) async {
     if (reset ) state = 0;
     else if (increament)  state = state+1;
   
