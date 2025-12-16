@@ -38,6 +38,7 @@ class _SearchMainPageState extends ConsumerState<SearchMainPage> {
 
   @override
   Widget build(BuildContext context) {
+    final async = ref.watch(searchViewModelProvider);
     final vm = ref.read(searchViewModelProvider.notifier);
     ThemeData theme = Theme.of(context);
 
@@ -195,8 +196,6 @@ class _SearchMainPageState extends ConsumerState<SearchMainPage> {
     if (text.isEmpty) {
       return const RecentView(key: ValueKey("recent_view"));
     }
-
-    // When the user types → show autocomplete + suggested users
     return const SearchAutocompleteView(key: ValueKey("autocomplete_view"));
   }
 }
