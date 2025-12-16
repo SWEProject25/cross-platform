@@ -46,4 +46,8 @@ abstract class ProfileApiService {
     int page,
     int limit,
   );
+
+  Future<void> deleteProfilePicture();
+  Future<void> deleteBanner();
+
 }
