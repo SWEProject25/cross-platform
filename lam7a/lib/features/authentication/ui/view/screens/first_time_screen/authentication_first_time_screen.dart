@@ -100,11 +100,11 @@ class _FirstTimeScreenState extends ConsumerState<FirstTimeScreen> {
                             if (Platform.isIOS) {
                               final Uri authUrl = Uri(
                                 scheme: "https",
-                                host: ServerConstant.oAuthIosRedirect
+                                host: ServerConstant.serverURL
                                     .replaceFirst("https://", "")
                                     .replaceFirst("http://", ""),
                                 path:
-                                    "${ServerConstant.apiPrefix}${ServerConstant.oAuthGithubedirect}",
+                                    "${ServerConstant.apiPrefix}${ServerConstant.oAuthIosRedirect}",
                               );
                               await _launchUrl(authUrl.toString());
                               return;
