@@ -580,9 +580,13 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
     final viewmodel = ref.read(addTweetViewmodelProvider.notifier);
     await viewmodel.postTweet(mentionsIds: _mentionUserIds.toList());
 
+    if (!mounted) {
+      return;
+    }
+
+    final state = ref.read(addTweetViewmodelProvider);
+
     if (mounted) {
-      final state = ref.read(addTweetViewmodelProvider);
-      
       if (state.isTweetPosted) {
 
           try {

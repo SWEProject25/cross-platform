@@ -32,9 +32,7 @@ class ProfilePostsPaginationNotifier
 
     final items = raw
         .map((e) => convertProfileJsonToTweetModel(
-              Map<String, dynamic>.from(
-                e['originalPostData'] ?? e,
-              ),
+              Map<String, dynamic>.from(e),
             ))
         .toList();
 
