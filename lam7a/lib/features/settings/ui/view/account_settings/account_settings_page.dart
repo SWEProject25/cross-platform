@@ -112,23 +112,6 @@ class YourAccountSettings extends ConsumerWidget {
                 );
               },
             ),
-
-            // SettingsOptionTile(
-            //   key: const ValueKey('openDeactivateAccountTile'),
-            //   icon: Icons.favorite_border_rounded,
-            //   title: 'Deactivate Account',
-            //   subtitle: 'Find out how you can deactivate your account.',
-            //   onTap: () {
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(
-            //         builder: (ctx) => const DeactivateAccountView(
-            //           key: ValueKey('deactivateAccountPage'),
-            //         ),
-            //       ),
-            //     );
-            //   },
-            // ),
           ],
         ),
       ),
