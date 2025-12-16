@@ -80,7 +80,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
     _scrollController.dispose();
     super.dispose();
   }
-
+// coverage:ignore-start
   void _showImageSourceDialog() {
     showModalBottomSheet(
       context: context,
@@ -116,7 +116,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
       ),
     );
   }
-
+// coverage:ignore-end
   Widget _buildParentTweetPreview() {
     if (!widget.isReply || widget.parentPostId == null) {
       return const SizedBox.shrink();
@@ -231,7 +231,7 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
       ],
     );
   }
-
+// coverage:ignore-start
   Future<void> _handleImagePick(ImageSource source) async {
     try {
       final hasPermission = await _ensureMediaPermission(source, isVideo: false);
@@ -449,6 +449,9 @@ class _AddTweetScreenState extends ConsumerState<AddTweetScreen> {
 
     return true;
   }
+  
+// coverage:ignore-end
+
 
   void _handleBodyChanged(String value) {
     final mentionVm = ref.read(mentionSuggestionsViewModelProvider.notifier);

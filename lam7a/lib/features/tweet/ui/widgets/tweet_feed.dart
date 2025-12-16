@@ -380,17 +380,12 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                   ),
                 ),
             onPressed: () {
-              final tweet = widget.tweetState.tweet.value;
+              // Open bottom sheet with Repost / Quote options.
+              // Profile tabs listen to profile* providers; invalidating those
+              // here would rebuild the list and dispose this TweetFeed while
+              // the sheet is open, causing `mounted` to be false inside
+              // _showRepostQuoteOptions and breaking quote/repost actions.
               _showRepostQuoteOptions(context);
-
-              
-              if (tweet != null && tweet.userId != null){
-                final userId = tweet.userId.toString();
-
-                ref.invalidate(profilePostsProvider(userId));
-                ref.invalidate(profileRepliesProvider(userId));
-                ref.invalidate(profileLikesProvider(userId));
-              }
             },
           ),
         ),
