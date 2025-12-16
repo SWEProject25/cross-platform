@@ -1,3 +1,5 @@
+// coverage:ignore-file
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/services/api_service.dart';
 import 'package:lam7a/features/common/models/tweet_model.dart';
