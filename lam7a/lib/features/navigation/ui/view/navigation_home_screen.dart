@@ -149,7 +149,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen> {
                                     return Container(
                                       color: Pallete.greyColor,
                                       child: Icon(
-                                        Icons.person,
+                                        Icons.person_outline_outlined,
                                         color: Colors.white,
                                       ),
                                     );

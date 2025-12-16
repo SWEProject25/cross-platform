@@ -58,19 +58,26 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
     final tweetId = widget.tweetState.tweet.value?.id;
     if (tweetId == null) return;
 
-    ref
-        .read(tweetViewModelProvider(tweetId).notifier)
-        .handleRepost(controllerRepost: _controllerRepost);
+    final viewModel = ref.read(tweetViewModelProvider(tweetId).notifier);
+    final bool wasReposted = viewModel.getisReposted();
+
+    // Capture overlay and theme *before* any provider invalidation or
+    // widget disposal so the snackbar can still be shown even if this
+    // TweetFeed is rebuilt afterwards.
+    final overlay = Overlay.of(context, rootOverlay: true);
+    final theme = Theme.of(context);
+
+    viewModel.handleRepost(controllerRepost: _controllerRepost);
+
     final me = ref.read(authenticationProvider).user;
     if (me != null && me.id != null) {
       ref.invalidate(profileLikesProvider(me.id.toString()));
     }
-    if (ref.read(tweetViewModelProvider(tweetId).notifier).getisReposted()) {
+
+    // Only show the success snackbar when we are turning repost ON
+    // (i.e. it was not reposted before this tap).
+    if (!wasReposted && overlay != null) {
       Future.delayed(const Duration(milliseconds: 250), () {
-        final overlay = Overlay.of(context);
-        if (!mounted || overlay == null) {
-          return;
-        }
         showTopSnackBar(
           overlay,
           Card(
@@ -87,9 +94,8 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                   const SizedBox(width: 10),
                   Text(
                     "Reposted Successfully",
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyLarge?.copyWith(color: Colors.white),
+                    style:
+                        theme.textTheme.bodyLarge?.copyWith(color: Colors.white),
                   ),
                 ],
               ),
@@ -380,17 +386,12 @@ class _TweetFeedState extends ConsumerState<TweetFeed>
                   ),
                 ),
             onPressed: () {
-              final tweet = widget.tweetState.tweet.value;
+              // Open bottom sheet with Repost / Quote options.
+              // Profile tabs listen to profile* providers; invalidating those
+              // here would rebuild the list and dispose this TweetFeed while
+              // the sheet is open, causing `mounted` to be false inside
+              // _showRepostQuoteOptions and breaking quote/repost actions.
               _showRepostQuoteOptions(context);
-
-              
-              if (tweet != null && tweet.userId != null){
-                final userId = tweet.userId.toString();
-
-                ref.invalidate(profilePostsProvider(userId));
-                ref.invalidate(profileRepliesProvider(userId));
-                ref.invalidate(profileLikesProvider(userId));
-              }
             },
           ),
         ),

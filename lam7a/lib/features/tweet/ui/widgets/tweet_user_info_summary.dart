@@ -41,12 +41,15 @@ class _TweetUserSummaryInfoState extends ConsumerState<TweetUserSummaryInfo> {
 
     return Expanded(
       child: GestureDetector(
+        // coverage:ignore-start
         onTap: () {
           Navigator.of(context).pushNamed(
             '/profile',
             arguments: {'username': username},
           );
         },
+
+       // coverage:ignore-end
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

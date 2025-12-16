@@ -61,7 +61,8 @@ class RecentView extends ConsumerWidget {
                 final user = state.recentSearchedUsers![index];
                 return _HorizontalUserCard(
                   p: user,
-                  onTap: () => () {
+                  onTap: () {
+                    //print("user tapped: ${user.username}");
                     Navigator.push(
                       context,
                       MaterialPageRoute(
