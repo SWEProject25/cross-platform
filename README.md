@@ -5,7 +5,7 @@
   <h2>Modern Social Networking App — Flutter</h2>
   <p>A scalable, cross-platform mobile application for the Hankers platform</p>
   <p>Built once, deployed everywhere — Android & iOS</p>
-  <a href="https://hankers.tech" target="_blank"><strong>🔗 Live Platform: hankers.tech</strong></a>
+  <a href="https://github.com/SWEProject25/cross-platform/releases/tag/Release-1.0" target="_blank"><strong>🔗 Hankers app download</strong></a>
 </div>
 
 ---
